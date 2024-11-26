@@ -1,9 +1,14 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/hello.js", "use": "@vercel/node" }
-  ],
+  "functions": {
+      "api/*.{js,ts,py,php,rb,java}": {
+          "runtime": "java",
+          "handler": "target/springboot-0.0.1-SNAPSHOT.jar"
+      }
+  },
   "routes": [
-    { "src": "/api/hello", "dest": "/api/hello.js" }
+      {
+          "src": "/api/(.*)",
+          "dest": "/api/$1"
+      }
   ]
 }
