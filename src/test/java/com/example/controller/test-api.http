@@ -1,2 +1,5 @@
-GET http://localhost:8081/api/warehouses
-Content-Type: application/json
+#GET http://localhost:8081/api/warehouses
+#Content-Type: application/json
+
+GET http://localhost:8081/api/warehouses/optimal?latitude=50.1109&longitude=8.6821
+Accept: application/json

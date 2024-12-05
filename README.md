@@ -17,30 +17,27 @@ CREATE DATABASE demo;
 USE demo;
 
 # db建表语句
-CREATE TABLE warehouses (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    delivery_time INT NOT NULL,
-    latitude DECIMAL(9,6) NOT NULL,
-    longitude DECIMAL(9,6) NOT NULL
+# 用户行为
+CREATE TABLE user_behavior_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    action_type VARCHAR(50) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    details TEXT
 );
 
-CREATE TABLE IF NOT EXISTS inventory (
+INSERT INTO user_behavior_log (user_id, action_type, details) VALUES
+(1, 'browse', '用户浏览了产品1'),
+(2, 'search', '用户搜索了笔记本电脑'),
+(1, 'add_to_cart', '用户将产品2加入购物车'),
+(3, 'browse', '用户浏览了产品3'),
+(2, 'add_to_cart', '用户将产品4加入购物车');
+
+
+# 用户表
+CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    warehouse_id BIGINT NOT NULL, -- 仓库ID，不使用外键
-    product_name VARCHAR(255) NOT NULL,
-    quantity INT NOT NULL
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
-
-# 插入仓库数据
--- 插入库存数据
-INSERT INTO inventory (warehouse_id, product_name, quantity) VALUES
-('1', 'Product X', 100),
-('1', 'Product Y', 50),
-('2', 'Product Z', 75);
-
-INSERT INTO warehouses (name, location, delivery_time, latitude, longitude) VALUES
-('Beijing Warehouse', '北京市朝阳区', 2, 39.9042, 116.4074),
-('Shanghai Warehouse', '上海市浦东新区', 3, 31.2304, 121.4737),
-('Guangzhou Warehouse', '广州市天河区', 4, 23.1291, 113.2644);
