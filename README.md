@@ -35,9 +35,16 @@ INSERT INTO user_behavior_log (user_id, action_type, details) VALUES
 
 
 # 用户表
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(20) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
-);
+CREATE TABLE `users` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `registration_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_login_time` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+// TODO
+1 忘记密码
