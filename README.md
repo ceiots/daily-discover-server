@@ -45,29 +45,51 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-# 产品表
-CREATE TABLE products (
+# 历史的今天 SQL
+CREATE TABLE events (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    rating DECIMAL(3, 2) DEFAULT 0.0,
-    review_count INT DEFAULT 0,
-    image VARCHAR(255),
-    category VARCHAR(100)
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    date DATE NOT NULL,
+    imageUrl VARCHAR(255) NOT NULL
 );
 
-INSERT INTO products (name, description, price, rating, review_count, image, category) VALUES
-('笔记本电脑 Pro', '高性能笔记本电脑，配备 16GB 内存和 512GB SSD。', 999.99, 4.5, 120, 'https://example.com/images/laptop-pro.jpg', '电子产品'),
-('智能手机 Ultra', '最新款智能手机，配备 128GB 存储和 6400万像素摄像头。', 699.99, 4.7, 150, 'https://example.com/images/smartphone-ultra.jpg', '电子产品'),
-('无线蓝牙耳机', '降噪蓝牙耳机，电池寿命长。', 199.99, 4.3, 80, 'https://example.com/images/headphones.jpg', '电子产品'),
-('畅销小说', '一位知名作者撰写的引人入胜的小说。', 14.99, 4.8, 200, 'https://example.com/images/novel.jpg', '书籍'),
-('经典皮夹克', '适合男士的时尚皮夹克。', 79.99, 4.4, 100, 'https://example.com/images/jacket.jpg', '服装'),
-('智能手表 Pro', '具备健康监测功能的高级智能手表。', 299.99, 4.6, 130, 'https://example.com/images/smartwatch.jpg', '电子产品'),
-('咖啡机', '适用于家庭使用的紧凑型咖啡机。', 99.99, 4.2, 90, 'https://example.com/images/coffee-maker.jpg', '家用电器'),
-('健身追踪器', '便携式健身追踪器，帮助您监控活动。', 49.99, 4.5, 110, 'https://example.com/images/fitness-tracker.jpg', '电子产品'),
-('旅行背包', '耐用的旅行背包。', 59.99, 4.3, 140, 'https://example.com/images/backpack.jpg', '配件'),
-('游戏主机', '下一代游戏主机，图形性能强大。', 499.99, 4.7, 160, 'https://example.com/images/gaming-console.jpg', '电子产品');
+INSERT INTO events (title, description, category, date, imageUrl) VALUES
+('1965 年：百科全书《辞海》第一版正式出版', '《辞海》是我国最具权威性的大型综合性辞书，对传播中国传统文化、促进中外文化交流发挥了重要作用。第一版的出版是中国辞书编纂史上的重要里程碑。', '文化', '1965-01-15', 'http://pic.yupoo.com/ceiots/5a4adb21/fd238f4b.jpg'),
+('1004 年：景德镇正式建镇', '北宋景德年间，景德镇正式建镇，开启了千年制瓷史。景德镇凭借优质的瓷土资源和精湛的制瓷工艺，成为了世界瓷都。', '历史', '1004-01-15', 'http://pic.yupoo.com/ceiots/ca539911/160ba38c.jpg'),
+('138 年：张骞出使西域', '汉武帝派遣张骞出使西域，开辟了连接中国与中亚、西亚的贸易通道，这就是著名的“丝绸之路”的开端。', '贸易', '0138-01-15', 'https://ai-public.mastergo.com/ai/img_res/7b56c2788b75c54901ed75d82579d3bf.jpg');
 
-// TODO
-1 忘记密码
+-- 创建 categories 表
+CREATE TABLE categories (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    imageUrl VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE `recommendations` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `imageUrl` varchar(255) NOT NULL,
+  `shopName` varchar(255) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `soldCount` int NOT NULL,
+  `shopAvatarUrl` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 插入示例数据到 categories 表
+INSERT INTO categories (name, imageUrl) VALUES
+('端午节', 'http://pic.yupoo.com/ceiots/98c8a6b2/483a8f32.jpg'),
+('丝路文明', 'http://pic.yupoo.com/ceiots/98b77edf/cc6a5f25.jpg'),
+('考古发现', 'http://pic.yupoo.com/ceiots/7ef5c35a/1ee8d426.jpg'),
+('文化艺术', 'http://pic.yupoo.com/ceiots/7ebf4b0d/3c5923a3.jpg'),
+('医药史', 'http://pic.yupoo.com/ceiots/803ab1fa/bf937eca.jpg'),
+('年货专区', 'http://pic.yupoo.com/ceiots/75a732aa/1e1a404b.jpg');
+
+-- 插入示例数据到 recommendations 表
+INSERT INTO demo.recommendations
+(id, title, imageUrl, shopName, price, soldCount, shopAvatarUrl)
+VALUES(1, '【新品首发】纯手工宣纸文房四宝套装', 'http://pic.yupoo.com/ceiots/1654bd90/9dd70118.jpg', '墨香阁旗舰店', 299.00, 2300, 'http://pic.yupoo.com/ceiots/8b95f41c/c6648d5e.jpg'),
+(2, '景德镇手绘青花瓷茶具套装', 'http://pic.yupoo.com/ceiots/716e61f9/3e6e627a.jpg', '品茗轩旗舰店', 468.00, 1800, 'http://pic.yupoo.com/ceiots/67538d66/f32bfbf6.jpg'),
+(3, '陕西发现首个完整西周时期贵族墓园', 'http://pic.yupoo.com/ceiots/df44806c/35cbb7fe.jpg', '国家文物局', 300.00, 220, 'http://pic.yupoo.com/ceiots/d0d3c13b/2adb2df0.jpg');
