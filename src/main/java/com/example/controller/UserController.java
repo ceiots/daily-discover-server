@@ -1,7 +1,6 @@
 package com.example.controller;
 
-import com.example.entity.User;
-import com.example.service.UserService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -9,16 +8,18 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.RequestMapping;
+import com.example.entity.User;
+import com.example.service.UserService;
 
 @Controller
-public class UserController {
+@RequestMapping("/dailyDiscover/users")
+public class UserController  {
 
     @Autowired
     private UserService userService;
 
-    @GetMapping("/users")
+    @GetMapping("")
     public String listUsers(Model model) {
         List<User> users = userService.getAllUsers();
         model.addAttribute("users", users);

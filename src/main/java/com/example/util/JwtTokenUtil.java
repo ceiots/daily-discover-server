@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@Component
+//@Component
 public class JwtTokenUtil {
     private String secretKey = "your_secret_key";
 

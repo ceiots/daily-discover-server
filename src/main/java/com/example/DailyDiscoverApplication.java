@@ -9,10 +9,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootApplication
 @MapperScan("com.example.mapper")
-public class SpringbootApplication {
+public class DailyDiscoverApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpringbootApplication.class, args);
+		SpringApplication.run(DailyDiscoverApplication.class, args);
 	}
  	@Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {

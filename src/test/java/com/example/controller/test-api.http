@@ -1,5 +1,8 @@
-#GET http://localhost:8081/api/warehouses
+
+#GET http://localhost:8081/api/recommendations?page=1&limit=10&category=&sort=default&search=
 #Content-Type: application/json
 
-GET http://localhost:8081/api/warehouses/optimal?latitude=50.1109&longitude=8.6821
-Accept: application/json
+GET http://localhost:8081/dailyDiscover/events
+#Accept: application/json
+
+

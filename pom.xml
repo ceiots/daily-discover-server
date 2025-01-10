@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>springboot</artifactId>
+	<artifactId>dailyDiscover</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>springboot</name>
-	<description>springboot project for Spring Boot</description>
+	<name>dailyDiscoverServer</name>
+	<description>Daily Discover Server</description>
 	<url/>
 	<licenses>
 		<license/>
