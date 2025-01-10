@@ -13,7 +13,7 @@ import com.example.entity.User;
 import com.example.service.UserService;
 
 @Controller
-@RequestMapping("/dailyDiscover/users")
+@RequestMapping("/daily-discover/users")
 public class UserController  {
 
     @Autowired

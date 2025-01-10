@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>dailyDiscover</artifactId>
+	<artifactId>daily-discover</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>dailyDiscoverServer</name>
+	<name>daily-discover-server</name>
 	<description>Daily Discover Server</description>
 	<url/>
 	<licenses>

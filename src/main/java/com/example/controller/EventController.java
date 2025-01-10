@@ -10,7 +10,7 @@ import com.example.entity.Event;
 import com.example.mapper.EventMapper;
 
 @RestController
-@RequestMapping("/dailyDiscover/events")
+@RequestMapping("/daily-discover/events")
 public class EventController {
 
     @Autowired
