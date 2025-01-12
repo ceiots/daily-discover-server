@@ -75,6 +75,9 @@ CREATE TABLE `recommendations` (
   `price` decimal(10,2) NOT NULL,
   `soldCount` int NOT NULL,
   `shopAvatarUrl` varchar(255) DEFAULT NULL,
+  `productDetails` TEXT DEFAULT NULL,
+  `purchaseNotice` TEXT DEFAULT NULL comments '购买须知',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -93,3 +96,25 @@ INSERT INTO demo.recommendations
 VALUES(1, '【新品首发】纯手工宣纸文房四宝套装', 'http://pic.yupoo.com/ceiots/1654bd90/9dd70118.jpg', '墨香阁旗舰店', 299.00, 2300, 'http://pic.yupoo.com/ceiots/8b95f41c/c6648d5e.jpg'),
 (2, '景德镇手绘青花瓷茶具套装', 'http://pic.yupoo.com/ceiots/716e61f9/3e6e627a.jpg', '品茗轩旗舰店', 468.00, 1800, 'http://pic.yupoo.com/ceiots/67538d66/f32bfbf6.jpg'),
 (3, '陕西发现首个完整西周时期贵族墓园', 'http://pic.yupoo.com/ceiots/df44806c/35cbb7fe.jpg', '国家文物局', 300.00, 220, 'http://pic.yupoo.com/ceiots/d0d3c13b/2adb2df0.jpg');
+
+
+##
+-- 创建 comments 表
+CREATE TABLE comments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    recommendation_id BIGINT NOT NULL,
+    userName VARCHAR(255) NOT NULL,
+    userAvatarUrl VARCHAR(255),
+    content TEXT NOT NULL,
+    rating DECIMAL(2, 1) NOT NULL,
+    date DATE NOT NULL
+);
+
+INSERT INTO recommendations (title, imageUrl, shopName, shopAvatarUrl, price, soldCount, productDetails, purchaseNotice)
+VALUES 
+('纯手工宣纸文房四宝套装', 'https://example.com/image.jpg', '墨香阁旗舰店', 'https://example.com/shop_avatar.jpg', 299.00, 2300, '本套装采用上等宣纸，纯手工制作，包含毛笔、墨锭、砚台和印章。', '请在使用前仔细阅读说明书。');
+
+INSERT INTO comments (recommendation_id, userName, userAvatarUrl, content, rating, date)
+VALUES 
+(1, '李雯雯', 'https://example.com/user_avatar1.jpg', '宣纸质量非常好，毛笔也很顺滑。', 5.0, '2023-06-15'),
+(1, '张明', 'https://example.com/user_avatar2.jpg', '作为书法爱好者，这套文房四宝的品质让我很惊喜。', 4.0, '2023-06-10');
