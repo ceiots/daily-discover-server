@@ -24,4 +24,7 @@ public interface CartItemMapper {
 
     @Update("UPDATE cart_items SET quantity = #{quantity},  product_variant = #{product_variant} WHERE user_id = #{user_id} AND product_id = #{product_id}")
     void updateCartItem(@Param("user_id") Long user_id, @Param("product_id") Long product_id, @Param("quantity") Integer quantity, @Param("product_variant") String product_variant);
+
+    @Update("UPDATE cart_items SET quantity = #{quantity} WHERE id = #{itemId}")
+    void updateCartItemQuantity(@Param("itemId") Long itemId, @Param("quantity") Integer quantity);
 }

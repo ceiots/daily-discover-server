@@ -31,4 +31,8 @@ public class CartService {
             cartItemMapper.addCartItem(cartItem);
         }
     }
+
+    public void updateCartItemQuantity(Long itemId, Integer quantity) {
+        cartItemMapper.updateCartItemQuantity(itemId, quantity);
+    }
 }
