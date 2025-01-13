@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/daily-discover/categories")
+@RequestMapping("/categories")
 public class CategoryController {
 
     @Autowired

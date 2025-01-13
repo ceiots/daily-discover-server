@@ -75,8 +75,10 @@ CREATE TABLE `recommendations` (
   `price` decimal(10,2) NOT NULL,
   `soldCount` int NOT NULL,
   `shopAvatarUrl` varchar(255) DEFAULT NULL,
+  `specifications` JSON DEFAULT NULL COMMENT '规格参数';
   `productDetails` TEXT DEFAULT NULL,
-  `purchaseNotice` TEXT DEFAULT NULL comments '购买须知',
+  `purchaseNotice` TEXT DEFAULT NULL COMMENT '购买须知',
+  `storeDescription` varchar(255) NOT NULL COMMENT '店铺描述',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -118,3 +120,20 @@ INSERT INTO comments (recommendation_id, userName, userAvatarUrl, content, ratin
 VALUES 
 (1, '李雯雯', 'https://example.com/user_avatar1.jpg', '宣纸质量非常好，毛笔也很顺滑。', 5.0, '2023-06-15'),
 (1, '张明', 'https://example.com/user_avatar2.jpg', '作为书法爱好者，这套文房四宝的品质让我很惊喜。', 4.0, '2023-06-10');
+
+## 购物车表
+-- 创建购物车项表
+CREATE TABLE cart_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '购物车项ID，主键',
+    user_id BIGINT COMMENT '用户ID，用于关联用户',
+    product_id BIGINT COMMENT '产品ID，用于关联商品',
+    product_name VARCHAR(255) NOT NULL COMMENT '商品名称',
+    product_image VARCHAR(255) COMMENT '商品图片URL',
+    product_variant VARCHAR(255) COMMENT '商品变体（如颜色、尺寸等）',
+    price DECIMAL(10, 2) NOT NULL COMMENT '商品价格',
+    quantity INT NOT NULL DEFAULT 1 COMMENT '商品数量，默认为1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
+    INDEX idx_cart_items_user_id(user_id),
+    INDEX idx_cart_items_product_id(product_id)
+);

@@ -14,5 +14,6 @@ public class Recommendation {
     private String productDetails; // 产品详情
     private List<String> specifications; // 规格参数
     private String purchaseNotice; // 购买须知
+    private String storeDescription; // 店铺描述
     private List<Comment> comments; // 用户评论
 }
