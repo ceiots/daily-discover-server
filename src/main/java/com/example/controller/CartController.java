@@ -3,6 +3,7 @@ package com.example.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,5 +36,10 @@ public class CartController {
     @PutMapping("/update/{itemId}")
     public void updateCartItemQuantity(@PathVariable Long itemId, @RequestBody UpdateCartItemRequest request) {
         cartService.updateCartItemQuantity(itemId, request.getQuantity());
+    }
+
+    @DeleteMapping("/delete/{itemId}")
+    public void deleteCartItem(@PathVariable Long itemId) {
+        cartService.deleteCartItem(itemId);
     }
 }

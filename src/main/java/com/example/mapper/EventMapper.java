@@ -1,10 +1,11 @@
 package com.example.mapper;
 
-import com.example.entity.Event;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
-import java.util.List;
+import com.example.model.Event;
 
 @Mapper
 public interface EventMapper {

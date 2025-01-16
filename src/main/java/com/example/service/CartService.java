@@ -35,4 +35,8 @@ public class CartService {
     public void updateCartItemQuantity(Long itemId, Integer quantity) {
         cartItemMapper.updateCartItemQuantity(itemId, quantity);
     }
+
+    public void deleteCartItem(Long itemId) {
+        cartItemMapper.deleteCartItem(itemId);
+    }
 }

@@ -21,4 +21,6 @@ public class CartItem {
     private Integer quantity; // 商品数量
     private LocalDateTime created_at; // 记录创建时间
     private LocalDateTime updated_at; // 记录更新时间
+    private String shopName; // 店铺名称
+    private String shopAvatarUrl; // 店铺头像URL
 }

@@ -1,26 +1,24 @@
 package com.example.mapper;
 
-import com.example.entity.User;
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
-import java.util.List;
+import com.example.model.User;
 
 @Mapper
 public interface UserMapper {
 
-    @Select("SELECT * FROM user")
-    List<User> findAll();
 
-    @Select("SELECT * FROM user WHERE id = #{id}")
-    User findById(@Param("id") Long id);
+    @Select("SELECT * FROM users WHERE phone_number = #{phone_number} AND password = #{password}")
+    User findByPhoneNumberAndPassword(@Param("phone_number") String phone_number, @Param("password") String password);
 
-    @Insert("INSERT INTO user(email, password, registrationTime) VALUES(#{email}, #{password}, #{registrationTime})")
+    @Insert("INSERT INTO users (phone_number, password, nickname) VALUES (#{phoneNumber}, #{password}, #{nickname})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
-    int insert(User user);
+    void registerUser(User user);
 
-    @Update("UPDATE user SET email = #{email}, password = #{password} WHERE id = #{id}")
-    int update(User user);
-
-    @Delete("DELETE FROM user WHERE id = #{id}")
-    int deleteById(@Param("id") Long id);
+    @Select("SELECT * FROM users WHERE phone_number = #{phoneNumber}")
+    User findByPhoneNumber(String phoneNumber);
 }

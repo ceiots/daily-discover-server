@@ -134,6 +134,21 @@ CREATE TABLE cart_items (
     quantity INT NOT NULL DEFAULT 1 COMMENT '商品数量，默认为1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
+    shopName varchar(255) NOT null,
+    shopAvatarUrl varchar(255) DEFAULT NULL,
     INDEX idx_cart_items_user_id(user_id),
     INDEX idx_cart_items_product_id(product_id)
 );
+
+## 用户表 
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    phone_number VARCHAR(15) NOT NULL UNIQUE, -- 手机号码
+    password VARCHAR(255) NOT NULL, -- 密码（建议使用哈希存储）
+    nickname VARCHAR(50), -- 昵称
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+

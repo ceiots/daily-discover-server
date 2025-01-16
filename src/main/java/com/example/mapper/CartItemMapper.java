@@ -2,6 +2,7 @@ package com.example.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -16,7 +17,7 @@ public interface CartItemMapper {
     @Select("SELECT * FROM cart_items WHERE user_id = #{userId}")
     List<CartItem> getCartItemsByUserId(Long userId);
 
-    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, product_variant, price, quantity) VALUES (#{user_id}, #{product_id}, #{product_name}, #{product_image}, #{product_variant}, #{price}, #{quantity})")
+    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, product_variant, price, quantity, shopName, shopAvatarUrl) VALUES (#{user_id}, #{product_id}, #{product_name}, #{product_image}, #{product_variant}, #{price}, #{quantity}, #{shopName}, #{shopAvatarUrl})")
     void addCartItem(CartItem cartItem);
 
      @Select("SELECT COUNT(*) FROM cart_items WHERE user_id = #{user_id} AND product_id = #{product_id}")
@@ -27,4 +28,7 @@ public interface CartItemMapper {
 
     @Update("UPDATE cart_items SET quantity = #{quantity} WHERE id = #{itemId}")
     void updateCartItemQuantity(@Param("itemId") Long itemId, @Param("quantity") Integer quantity);
+
+    @Delete("DELETE FROM cart_items WHERE id = #{itemId}")
+    void deleteCartItem(Long itemId);
 }

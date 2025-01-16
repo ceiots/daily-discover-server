@@ -2,7 +2,16 @@
 #GET http://localhost:8081/api/recommendations?page=1&limit=10&category=&sort=default&search=
 #Content-Type: application/json
 
-GET http://localhost:8081/daily-discover/cart/1
+#GET http://localhost:8081/daily-discover/events
 #Accept: application/json
 
 
+POST http://localhost:8081/daily-discover/user/register
+Accept: application/json
+Content-Type: application/json
+
+{
+    "phoneNumber": "13800138000",
+    "password": "yourPassword123",
+    "nickname": "用户昵称"
+}
