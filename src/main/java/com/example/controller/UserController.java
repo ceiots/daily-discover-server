@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,5 +53,18 @@ public class UserController {
             return "手机号未注册";
         }
     }
-   
+
+    @PostMapping("/reset-password-code")
+    public ResponseEntity<?> sendResetPasswordCode(@RequestBody ResetPasswordRequest request) {
+        String message = userService.sendResetPasswordCode(request.getPhoneNumber());
+        return ResponseEntity.ok().body(message);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        String message = userService.resetPassword(request.getPhoneNumber(), request.getNewPassword(),
+                request.getConfirmPassword(), request.getVerificationCode());
+        return ResponseEntity.ok().body(message);
+    }
+
 }
