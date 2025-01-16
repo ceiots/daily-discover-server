@@ -14,7 +14,7 @@ import com.example.model.User;
 @Service
 public class UserService {
 
-    private final Map<String, String> verificationCodes = new HashMap<>();
+     private final Map<String, String> verificationCodes = new HashMap<>();
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
@@ -23,13 +23,12 @@ public class UserService {
     public void registerUser(String email, String password) {
         // 对密码进行加密
         User user = new User();
-        /*
-         * user.setPassword(passwordEncoder.encode(password));
-         * user.setEmail(email);
-         * user.setRegistrationTime(new Date());
-         * userMapper.insert(user);
-         */
+        /* user.setPassword(passwordEncoder.encode(password));
+        user.setEmail(email);
+        user.setRegistrationTime(new Date());
+        userMapper.insert(user); */
     }
+
 
     public User login(String phoneNumber, String password) {
         return userMapper.findByPhoneNumberAndPassword(phoneNumber, password);
@@ -43,7 +42,7 @@ public class UserService {
         return userMapper.findByPhoneNumber(phoneNumber);
     }
 
-    public String sendResetPasswordCode(String phoneNumber) {
+ public String sendResetPasswordCode(String phoneNumber) {
         // 检查手机号是否存在
         if (!isUserExists(phoneNumber)) {
             return "手机号不存在";
@@ -54,13 +53,12 @@ public class UserService {
         verificationCodes.put(phoneNumber, verificationCode);
 
         // 发送验证码邮件
-        emailUtil.sendEmail("recipient-email@example.com", "密码重置验证码", "您的验证码是：" + verificationCode);
+        /* emailUtil.sendEmail("recipient-email@example.com", "密码重置验证码", "您的验证码是：" + verificationCode); */
 
         return "验证码已发送，请查收";
     }
 
-    public String resetPassword(String phoneNumber, String newPassword, String confirmPassword,
-            String verificationCode) {
+    public String resetPassword(String phoneNumber, String newPassword, String confirmPassword, String verificationCode) {
         // 验证手机号和验证码
         if (!isUserExists(phoneNumber)) {
             return "手机号不存在";
