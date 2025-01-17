@@ -1,6 +1,9 @@
 # 运行命令
 java -jar daily-discover-0.0.1-SNAPSHOT.jar
 
+# 内网穿透
+cpolar http 8081
+
 #  登录数据库
 mysql -u root -p
 
