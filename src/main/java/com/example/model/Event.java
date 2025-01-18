@@ -2,6 +2,8 @@ package com.example.model;
 
 import java.util.Date;
 
+import com.example.config.ImageConfig;
+
 public class Event {
     private Long id;
     private String title;
@@ -56,6 +58,6 @@ public class Event {
     }
 
     public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+        this.imageUrl = ImageConfig.IMAGE_PREFIX + imageUrl;
     }
 }

@@ -4,6 +4,13 @@ java -jar daily-discover-0.0.1-SNAPSHOT.jar
 # 内网穿透
 cpolar http 8081
 
+# 启停nginx
+.\nginx.exe -s reload
+或者
+.\nginx.exe -s stop
+start nginx.exe
+
+
 #  登录数据库
 mysql -u root -p
 
