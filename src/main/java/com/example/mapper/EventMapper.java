@@ -10,6 +10,6 @@ import com.example.model.Event;
 @Mapper
 public interface EventMapper {
     
-    @Select("SELECT * FROM events limit 2")
-    List<Event> getAllEvents();
+    @Select("SELECT * FROM events WHERE DATE(event_date) = #{date}")
+    List<Event> getEventsByDate(String date);
 }

@@ -36,6 +36,7 @@ CREATE TABLE events (
     description TEXT NOT NULL,
     category VARCHAR(100) NOT NULL,
     date DATE NOT NULL,
+    event_date DATE NOT NULL,
     imageUrl VARCHAR(255) NOT NULL
 );
 
@@ -135,4 +136,6 @@ CREATE TABLE demo.recommendation_categories (
     category_id BIGINT NOT NULL,
     PRIMARY KEY (recommendation_id, category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 
