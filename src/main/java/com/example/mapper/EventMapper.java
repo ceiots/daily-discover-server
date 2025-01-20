@@ -12,4 +12,7 @@ public interface EventMapper {
     
     @Select("SELECT * FROM events WHERE DATE(event_date) = #{date}")
     List<Event> getEventsByDate(String date);
+
+    @Select("SELECT * FROM events WHERE title LIKE CONCAT('%', #{keyword}, '%')")
+    List<Event> searchEvents(String keyword);
 }

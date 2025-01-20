@@ -25,4 +25,6 @@ public interface RecommendationMapper {
     @Select("SELECT * FROM recommendations WHERE category_id = #{categoryId}")
     List<Recommendation> getRecommendationsByCategoryId(@Param("categoryId") Long categoryId);
 
+    @Select("SELECT * FROM recommendations WHERE title LIKE CONCAT('%', #{keyword}, '%') OR shopName LIKE CONCAT('%', #{keyword}, '%')")
+    List<Recommendation> searchRecommendations(String keyword); // 根据关键字搜索推荐
 }
