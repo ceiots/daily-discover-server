@@ -64,6 +64,7 @@ CREATE TABLE `recommendations` (
   `purchaseNotice` TEXT DEFAULT NULL COMMENT '购买须知',
   `storeDescription` varchar(255) NULL COMMENT '店铺描述',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `category_id` BIGINT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1;
 
@@ -129,5 +130,9 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-
+CREATE TABLE demo.recommendation_categories (
+    recommendation_id BIGINT NOT NULL,
+    category_id BIGINT NOT NULL,
+    PRIMARY KEY (recommendation_id, category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

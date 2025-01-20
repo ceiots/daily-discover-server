@@ -21,4 +21,13 @@ public class RecommendationService {
     public List<Comment> getCommentsByRecommendationId(Long recommendationId) {
         return recommendationMapper.getCommentsByRecommendationId(recommendationId);
     }
+
+    public List<Recommendation> getRecommendationsByCategoryId(Long categoryId) {
+        return recommendationMapper.getRecommendationsByCategoryId(categoryId);
+    }
+    
+    public List<Recommendation> getRandomRecommendations() {
+        // 假设我们从数据库中随机获取 5 条推荐
+        return recommendationMapper.getRandomRecommendations(6);
+    }
 }
