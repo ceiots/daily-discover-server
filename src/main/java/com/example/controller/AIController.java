@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,12 +25,12 @@ import com.example.model.AIResponse;
 public class AIController {
 
     @Autowired
-    private RestTemplate restTemplate; // 注入 RestTemplate
+    private RestTemplate restTemplate;
 
     @PostMapping("/generate")
     public List<AIContent> generateContent(@RequestBody String keyword) {
         String apiKey = "sk-271e72eb9797403a980c169e89c07416"; // DeepSeek API Key
-        String url = "https://api.deepseek.com/v1/chat/completions"; 
+        String url = "https://api.deepseek.com/v1/chat/completions";
 
         // 设置请求头
         HttpHeaders headers = new HttpHeaders();
@@ -37,12 +38,18 @@ public class AIController {
         headers.setBearerAuth(apiKey);
 
         // 构造请求体
-        String jsonBody = String.format(
-            "{\"model\": \"deepseek-chat\", \"messages\": [{\"role\": \"system\", \"content\": \"You are a helpful assistant.\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"stream\": false}",
-            keyword
-        );
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("model", "deepseek-chat");
+        JSONObject systemMessage = new JSONObject();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", "You are a helpful assistant.");
+        JSONObject userMessage = new JSONObject();
+        userMessage.put("role", "user");
+        userMessage.put("content", keyword);
+        jsonBody.put("messages", Arrays.asList(systemMessage, userMessage));
+        jsonBody.put("stream", false);
 
-        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(jsonBody.toString(), headers);
 
         try {
             // 发送 POST 请求
@@ -61,4 +68,4 @@ public class AIController {
             return Collections.emptyList(); // 返回空列表而不是抛出异常
         }
     }
-} 
+}
