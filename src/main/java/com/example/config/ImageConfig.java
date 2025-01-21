@@ -3,7 +3,7 @@ package com.example.config;
 public class ImageConfig {
 
     // 定义常量
-    public static final String IMAGE_PREFIX = "https://32dcc27b.r5.cpolar.top";
+    public static final String IMAGE_PREFIX = "https://4db90e30.r5.cpolar.top";
 
     /* private String prefix;
     

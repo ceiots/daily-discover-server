@@ -11,7 +11,7 @@ public class HelloController {
         return "Hello, World! my";
     }
 
-    @GetMapping("/api/hello")
+    @GetMapping("/hello")
     public String helloApi() {
         return "Hello from API!";
     }
