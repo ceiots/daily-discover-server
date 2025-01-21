@@ -1,0 +1,20 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "pom.xml",
+        "use": "@vercel/java",
+        "config": {
+          "buildCommand": "mvn package",
+          "runtime": "java",
+          "mainClass": "com.example.DailyDiscoverApplication"
+        }
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/"
+      }
+    ]
+  }
