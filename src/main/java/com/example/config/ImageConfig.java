@@ -1,18 +1,23 @@
 package com.example.config;
-//@ConfigurationProperties(prefix = "app.image")
+
+import org.springframework.stereotype.Component;
+
+@Component
 public class ImageConfig {
 
-    // 定义常量
-    public static final String IMAGE_PREFIX = "https://4db90e30.r5.cpolar.top";
+    private static String imagePrefix;
+    public static String getImagePrefix() {
+        return imagePrefix;
+    }
 
-    /* private String prefix;
-    
-    // getter 和 setter
-    
-    public String getFullImageUrl(String imageUrl) {
+    public static void setImagePrefix(String imagePrefix) {
+        ImageConfig.imagePrefix = imagePrefix;
+    }
+
+    public static String getFullImageUrl(String imageUrl) {
         if (imageUrl == null || imageUrl.startsWith("http")) {
             return imageUrl;
         }
-        return prefix + imageUrl;
-    } */
+        return getImagePrefix() + imageUrl;
+    }
 }

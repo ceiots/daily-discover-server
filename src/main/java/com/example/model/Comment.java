@@ -19,7 +19,7 @@ public class Comment {
         return userAvatarUrl;
     }
     public void setUserAvatarUrl(String userAvatarUrl) {
-        this.userAvatarUrl = ImageConfig.IMAGE_PREFIX + userAvatarUrl;
+        this.userAvatarUrl = ImageConfig.getImagePrefix() + userAvatarUrl;
     }
     public String getContent() {
         return content;

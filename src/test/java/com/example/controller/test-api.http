@@ -2,21 +2,21 @@
 #GET http://localhost:8081/api/recommendations?page=1&limit=10&category=&sort=default&search=
 #Content-Type: application/json
 
-#GET http://localhost:8081/daily-discover/events
-#Accept: application/json
+GET https://sr17pw6f-8081.asse.devtunnels.ms/daily-discover/events/date?date=2025-01-22
+Accept: application/json
 
-POST https://api.deepseek.com/v1/chat/completions
-Content-Type: application/json
-Authorization: Bearer sk-271e72eb9797403a980c169e89c07416
+#POST https://api.deepseek.com/v1/chat/completions
+#Content-Type: application/json
+#Authorization: Bearer sk-271e72eb9797403a980c169e89c07416
 
-{
-    "model": "deepseek-chat",
-    "messages": [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "除夕夜"}
-    ],
-    "stream": false
-}
+#{
+#    "model": "deepseek-chat",
+#    "messages": [
+#        {"role": "system", "content": "You are a helpful assistant."},
+ #       {"role": "user", "content": "除夕夜"}
+ #   ],
+ #   "stream": false
+#}
 
 
 POST http://localhost:8081/daily-discover/user/register

@@ -27,7 +27,7 @@ public class AIController {
     @Autowired
     private RestTemplate restTemplate;
 
-    @PostMapping("/generate")
+    @PostMapping(value = "/generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public List<AIContent> generateContent(@RequestBody String keyword) {
         String apiKey = "sk-271e72eb9797403a980c169e89c07416"; // DeepSeek API Key
         String url = "https://api.deepseek.com/v1/chat/completions";
@@ -47,7 +47,7 @@ public class AIController {
         userMessage.put("role", "user");
         userMessage.put("content", keyword);
         jsonBody.put("messages", Arrays.asList(systemMessage, userMessage));
-        jsonBody.put("stream", false);
+        jsonBody.put("stream", true);
 
         HttpEntity<String> entity = new HttpEntity<>(jsonBody.toString(), headers);
 

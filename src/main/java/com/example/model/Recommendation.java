@@ -32,7 +32,7 @@ public class Recommendation {
         return imageUrl;
     }
     public void setImageUrl(String imageUrl) {
-        this.imageUrl = ImageConfig.IMAGE_PREFIX + imageUrl;
+        this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
     }
     public String getShopName() {
         return shopName;
@@ -44,7 +44,7 @@ public class Recommendation {
         return shopAvatarUrl;
     }
     public void setShopAvatarUrl(String shopAvatarUrl) {
-        this.shopAvatarUrl = ImageConfig.IMAGE_PREFIX + shopAvatarUrl;
+        this.shopAvatarUrl = ImageConfig.getImagePrefix() + shopAvatarUrl;
     }
     public Double getPrice() {
         return price;

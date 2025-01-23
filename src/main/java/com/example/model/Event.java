@@ -58,6 +58,6 @@ public class Event {
     }
 
     public void setImageUrl(String imageUrl) {
-        this.imageUrl = ImageConfig.IMAGE_PREFIX + imageUrl;
+        this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
     }
 }

@@ -137,5 +137,11 @@ CREATE TABLE demo.recommendation_categories (
     PRIMARY KEY (recommendation_id, category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
-
+# 配置表
+CREATE TABLE config (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    `key` VARCHAR(255) NOT NULL,
+    `value` VARCHAR(255) NOT NULL
+);
+-- 插入初始数据
+INSERT INTO config (`key`, `value`) VALUES ('image_prefix', 'http://1f582ab5.r5.cpolar.top');
