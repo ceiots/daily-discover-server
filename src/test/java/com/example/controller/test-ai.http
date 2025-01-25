@@ -1,0 +1,13 @@
+
+
+### Generate Article
+POST http://localhost:8081/daily-discover/ai/generate-article
+Content-Type: application/json
+
+{
+  "prompt": "除夕夜, 内容显示中文"
+}
+
+
+
+
