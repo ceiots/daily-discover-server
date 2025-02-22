@@ -18,13 +18,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-        .csrf().disable() // 禁用CSRF保护
-        .authorizeRequests() // 授权请求
-            .antMatchers("/api/auth/**", "/api/public/**").permitAll() // 允许所有用户访问/api/auth/**和/api/public/**
-            .anyRequest().authenticated() // 其他请求需要认证
-        .and()
-        .sessionManagement() // 会话管理
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 无状态会话策略
+            .csrf(csrf -> csrf.disable()) // 禁用 CSRF
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+            );
         
         return http.build();
     }
