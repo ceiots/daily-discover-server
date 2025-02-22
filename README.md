@@ -1,14 +1,15 @@
 # 运行命令
 java -jar daily-discover-0.0.1-SNAPSHOT.jar
 
-# 内网穿透
-cpolar http 8081
-
 # 启停nginx
 .\nginx.exe -s reload
 或者
 .\nginx.exe -s stop
 start nginx.exe
+
+# 内网穿透
+cpolar http 8081
+cpolar http 8086
 
 
 #  登录数据库
@@ -145,3 +146,26 @@ CREATE TABLE config (
 );
 -- 插入初始数据
 INSERT INTO config (`key`, `value`) VALUES ('image_prefix', 'http://1f582ab5.r5.cpolar.top');
+
+
+# 电商订单相关
+CREATE TABLE orders (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    product_ids JSON NOT NULL,
+    shipping_address VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+# 电商库存相关
+CREATE TABLE inventory (
+    product_id BIGINT PRIMARY KEY,
+    stock INT NOT NULL
+);
+
+# 电商物流相关
+CREATE TABLE deliveries (
+    order_id BIGINT PRIMARY KEY,
+    status VARCHAR(50) NOT NULL
+);

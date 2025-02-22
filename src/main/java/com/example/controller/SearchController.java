@@ -1,3 +1,4 @@
+// daily-discover-server/src/main/java/com/example/controller/SearchController.java
 package com.example.controller;
 
 import java.util.List;
@@ -12,9 +13,9 @@ import org.springframework.http.HttpStatus;
 
 import com.example.dto.SearchResults;
 import com.example.mapper.EventMapper;
-import com.example.mapper.RecommendationMapper;
+import com.example.mapper.ProductMapper; // 导入 ProductMapper
 import com.example.model.Event;
-import com.example.model.Recommendation;
+import com.example.model.Product;
 
 @RestController
 @RequestMapping("/search")
@@ -24,26 +25,26 @@ public class SearchController {
     private EventMapper eventMapper;
 
     @Autowired
-    private RecommendationMapper recommendationMapper;
+    private ProductMapper productMapper; // 替换为 ProductMapper
 
     @GetMapping("/events")
     public List<Event> searchEvents(@RequestParam String keyword) {
         return eventMapper.searchEvents(keyword); // 根据关键字搜索事件
     }
 
-    @GetMapping("/recommendations")
-    public List<Recommendation> searchRecommendations(@RequestParam String keyword) {
-        return recommendationMapper.searchRecommendations(keyword); // 根据关键字搜索推荐
+    @GetMapping("/products") // 修改路径以反映产品搜索
+    public List<Product> searchProducts(@RequestParam String keyword) {
+        return productMapper.searchProducts(keyword); // 根据关键字搜索产品
     }
 
     @GetMapping("/all")
     public ResponseEntity<SearchResults> searchAll(@RequestParam String keyword) {
         try {
             List<Event> events = eventMapper.searchEvents(keyword);
-            List<Recommendation> recommendations = recommendationMapper.searchRecommendations(keyword);
+            List<Product> products = productMapper.searchProducts(keyword); // 使用 productMapper
             
-            // 返回事件和推荐内容，不合并 AI 数据
-            SearchResults results = new SearchResults(events, recommendations); // 确保 SearchResults 构造函数正确
+            // 返回事件和产品内容
+            SearchResults results = new SearchResults(events, products); // 确保 SearchResults 构造函数正确
             return new ResponseEntity<>(results, HttpStatus.OK);
         } catch (Exception e) {
             // 记录异常信息
@@ -52,4 +53,3 @@ public class SearchController {
         }
     }
 }
-

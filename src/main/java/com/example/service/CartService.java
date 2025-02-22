@@ -19,24 +19,14 @@ public class CartService {
     }
 
     public void addCartItem(CartItem cartItem) {
-        // Check if the cart item already exists
-        int count = cartItemMapper.countCartItem(cartItem.getUser_id(), cartItem.getProduct_id());
-
-        if (count > 0) {
-            // If it exists, update the quantity
-            cartItemMapper.updateCartItem(cartItem.getUser_id(), cartItem.getProduct_id(), cartItem.getQuantity(),
-                    cartItem.getProduct_variant());
-        } else {
-            // If it doesn't exist, insert a new cart item
-            cartItemMapper.addCartItem(cartItem);
-        }
+        // 添加逻辑，可能包括检查库存等
     }
 
-    public void updateCartItemQuantity(Long itemId, Integer quantity) {
-        cartItemMapper.updateCartItemQuantity(itemId, quantity);
+    public void updateCartItemQuantity(Long itemId, int quantity) {
+        // 更新逻辑，可能包括检查库存等
     }
 
     public void deleteCartItem(Long itemId) {
-        cartItemMapper.deleteCartItem(itemId);
+        // 删除逻辑
     }
 }
