@@ -1,7 +1,7 @@
 
 
-#GET http://452df7df.r5.cpolar.top/daily-discover/events/date?date=2025-02-22
-GET http://localhost:8081/daily-discover/events/date?date=2025-02-22
+GET http://452df7df.r5.cpolar.top/daily-discover/events/date?date=2025-02-22
+#GET http://localhost:8081/daily-discover/events/date?date=2025-02-22
 #Accept: application/json
 
 POST https://api.siliconflow.cn/v1/chat/completions

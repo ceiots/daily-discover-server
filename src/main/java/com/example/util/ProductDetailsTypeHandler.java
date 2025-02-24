@@ -1,14 +1,13 @@
 package com.example.util;
 
+import org.apache.ibatis.type.MappedTypes;
+import com.example.model.ProductDetail;
 import java.util.List;
 
-import org.apache.ibatis.type.MappedTypes;
-
-import com.example.model.ProductDetail;
-
 @MappedTypes(List.class)
-public class ProductDetailsTypeHandler extends ListTypeHandler<ProductDetail> {
+public class ProductDetailsTypeHandler extends JsonTypeHandler<List<ProductDetail>> {
+
     public ProductDetailsTypeHandler() {
-        super(ProductDetail.class);
+        super(List.class, ProductDetail.class);
     }
-} 
+}

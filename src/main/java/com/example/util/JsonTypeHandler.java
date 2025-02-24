@@ -1,52 +1,62 @@
 package com.example.util;
 
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.util.List;
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-/**
- * JSON类型处理器
- */
 @MappedJdbcTypes(JdbcType.VARCHAR)
-public class JsonTypeHandler<T> extends AbstractJsonTypeHandler<T> {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-    private final Class<T> type;
+public abstract class JsonTypeHandler<T> extends BaseTypeHandler<T> {
 
-    public JsonTypeHandler(Class<T> type) {
-        if (type == null) {
-            throw new IllegalArgumentException("Type argument cannot be null");
-        }
-        this.type = type;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JavaType javaType;
+
+    protected JsonTypeHandler(Class<?> parametrized, Class<?> parameterClass) {
+        this.javaType = objectMapper.getTypeFactory().constructParametricType(parametrized, parameterClass);
     }
 
     @Override
-    protected T parse(String json) {
-        try {
-            if (json == null || json.length() == 0) {
-                return null;
-            }
-            if (List.class.isAssignableFrom(type)) {
-                JavaType javaType = MAPPER.getTypeFactory().constructCollectionType(List.class, type);
-                return MAPPER.readValue(json, javaType);
-            }
-            return MAPPER.readValue(json, type);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {
+        ps.setString(i, toJson(parameter));
     }
 
     @Override
-    protected String toJson(T obj) {
+    public T getNullableResult(ResultSet rs, String columnName) throws SQLException {
+        return toObject(rs.getString(columnName));
+    }
+
+    @Override
+    public T getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+        return toObject(rs.getString(columnIndex));
+    }
+
+    @Override
+    public T getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+        return toObject(cs.getString(columnIndex));
+    }
+
+    private String toJson(T object) {
         try {
-            return MAPPER.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return objectMapper.writeValueAsString(object);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting object to JSON", e);
         }
     }
-} 
+
+    private T toObject(String content) {
+        if (content != null) {
+            try {
+                return objectMapper.readValue(content, javaType);
+            } catch (Exception e) {
+                throw new RuntimeException("Error converting JSON to object", e);
+            }
+        }
+        return null;
+    }
+}

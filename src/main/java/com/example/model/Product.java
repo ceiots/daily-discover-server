@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.config.ImageConfig;
 import com.example.util.JsonTypeHandler;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -42,4 +43,21 @@ public class Product {
     // 用户评论
     @TableField(exist = false)
     private List<Comment> comments;
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
+    }
+
+    public String getShopAvatarUrl() {
+        return shopAvatarUrl;
+    }
+
+    public void setShopAvatarUrl(String shopAvatarUrl) {
+        this.shopAvatarUrl = ImageConfig.getImagePrefix() + shopAvatarUrl;
+    }
+
 }
