@@ -15,7 +15,7 @@ public class ImageConfig {
     }
 
     public static String getFullImageUrl(String imageUrl) {
-        if (imageUrl == null || imageUrl.startsWith("http")) {
+        if (imageUrl == null || imageUrl.startsWith("http") || imageUrl.startsWith("https")) {
             return imageUrl;
         }
         return getImagePrefix() + imageUrl;

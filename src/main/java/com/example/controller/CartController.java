@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.dto.UpdateCartItemRequest;
 import com.example.model.CartItem;
 import com.example.service.CartService;
-
 @RestController
 @RequestMapping("/cart")
 public class CartController {
@@ -23,13 +22,18 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
+
     @GetMapping("/{userId}")
     public List<CartItem> getCartItems(@PathVariable Long userId) {
-        return cartService.getCartItems(userId);
+       
+        List<CartItem> cartItems = cartService.getCartItems(userId);
+        System.out.println("Cart items: " + cartItems);
+        return cartItems;
     }
 
     @PostMapping("/add")
     public void addCartItem(@RequestBody CartItem cartItem) {
+        System.out.println("Adding cart item: " + cartItem);
         cartService.addCartItem(cartItem);
     }
 

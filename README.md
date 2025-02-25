@@ -103,24 +103,6 @@ VALUES
 (1, '李雯雯', '/images/avatar/avatar1.jpg', '宣纸质量非常好，毛笔也很顺滑。', 5.0, '2023-06-15'),
 (1, '张明', '/images/avatar/avatar2.jpg', '作为书法爱好者，这套文房四宝的品质让我很惊喜。', 4.0, '2023-06-10');
 
-## 购物车表
--- 创建购物车项表
-CREATE TABLE cart_items (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '购物车项ID，主键',
-    user_id BIGINT COMMENT '用户ID，用于关联用户',
-    product_id BIGINT COMMENT '产品ID，用于关联商品',
-    product_name VARCHAR(255) NOT NULL COMMENT '商品名称',
-    product_image VARCHAR(255) COMMENT '商品图片URL',
-    product_variant VARCHAR(255) COMMENT '商品变体（如颜色、尺寸等）',
-    price DECIMAL(10, 2) NOT NULL COMMENT '商品价格',
-    quantity INT NOT NULL DEFAULT 1 COMMENT '商品数量，默认为1',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
-    shopName varchar(255) NOT null,
-    shopAvatarUrl varchar(255) DEFAULT NULL,
-    INDEX idx_cart_items_user_id(user_id),
-    INDEX idx_cart_items_product_id(product_id)
-);
 
 ## 用户表 
 CREATE TABLE users (

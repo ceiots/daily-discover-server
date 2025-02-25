@@ -19,14 +19,26 @@ public class CartService {
     }
 
     public void addCartItem(CartItem cartItem) {
-        // 添加逻辑，可能包括检查库存等
+        // Check if the item already exists in the cart
+        CartItem existingItem = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
+        if (existingItem != null) {
+            // If it exists, increase the quantity
+            existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
+            cartItemMapper.updateCartItemQuantity(existingItem.getId(), existingItem.getQuantity());
+        } else {
+            /* cartItem.setProduct_image(cartItem.getShopAvatarUrl().replaceFirst("http://[^/]+\\.r5\\.cpolar\\.top", ""));
+            cartItem.setShopAvatarUrl(cartItem.getShopAvatarUrl().replaceFirst("http://[^/]+\\.r5\\.cpolar\\.top", "")); */
+            cartItemMapper.addCartItem(cartItem);
+        }
     }
 
     public void updateCartItemQuantity(Long itemId, int quantity) {
-        // 更新逻辑，可能包括检查库存等
+        // Update the quantity
+        cartItemMapper.updateCartItemQuantity(itemId, quantity);
     }
 
     public void deleteCartItem(Long itemId) {
-        // 删除逻辑
+        // Remove the item from the cart
+        cartItemMapper.deleteCartItem(itemId);
     }
 }

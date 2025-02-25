@@ -3,122 +3,55 @@ package com.example.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.config.ImageConfig;
+import com.example.util.JsonTypeHandler;
+import lombok.Data;
+import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor // 自动生成无参构造函数
-@AllArgsConstructor // 自动生成全参构造函数
+@Data // 自动生成Getters and Setters
+@TableName(value = "cart_items", autoResultMap = true)
 public class CartItem {
+    @TableId(type = IdType.AUTO)
     private Long id; // 购物车项ID
-    private Long user_id; // 用户ID
-    private Long product_id; // 商品ID
-    private String product_name; // 商品名称
-    private String product_image; // 商品图片URL
-    private String product_variant; // 商品变体（如颜色、尺寸等）
+    @TableField("user_id")
+    private Long userId; // 用户ID
+    @TableField("product_id")
+    private Long productId; // 商品ID
+    @TableField("product_name")
+    private String productName; // 商品名称
+    @TableField("product_image")
+    private String productImage; // 商品图片URL
+
+    @TableField(typeHandler = JsonTypeHandler.class)
+    private List<Specification> specifications; // 商品变体（如颜色、尺寸等）
     private BigDecimal price; // 商品价格
     private Integer quantity; // 商品数量
-    private LocalDateTime created_at; // 记录创建时间
-    private LocalDateTime updated_at; // 记录更新时间
+    @TableField("created_at")
+    private LocalDateTime createdAt; // 记录创建时间
+    @TableField("updated_at")
+    private LocalDateTime updatedAt; // 记录更新时间
     private String shopName; // 店铺名称
     private String shopAvatarUrl; // 店铺头像URL
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(Long user_id) {
-        this.user_id = user_id;
-    }
-
-    public Long getProduct_id() {
-        return product_id;
-    }
-
-    public void setProduct_id(Long product_id) {
-        this.product_id = product_id;
-    }
-
-    public String getProduct_name() {
-        return product_name;
-    }
-
-    public void setProduct_name(String product_name) {
-        this.product_name = product_name;
-    }
-
-    public String getProduct_image() {
-        return product_image;
-    }
-
-    public void setProduct_image(String product_image) {
-        this.product_image = ImageConfig.getImagePrefix() + product_image;
-    }
-
-    public String getProduct_variant() {
-        return product_variant;
-    }
-
-    public void setProduct_variant(String product_variant) {
-        this.product_variant = product_variant;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
-    }
-
-    public LocalDateTime getUpdated_at() {
-        return updated_at;
-    }
-
-    public void setUpdated_at(LocalDateTime updated_at) {
-        this.updated_at = updated_at;
-    }
-
-    public String getShopName() {
-        return shopName;
-    }
-
-    public void setShopName(String shopName) {
-        this.shopName = shopName;
-    }
 
     public String getShopAvatarUrl() {
         return shopAvatarUrl;
     }
 
     public void setShopAvatarUrl(String shopAvatarUrl) {
-        this.shopAvatarUrl = ImageConfig.getImagePrefix() + shopAvatarUrl;
+        this.shopAvatarUrl = ImageConfig.getFullImageUrl(shopAvatarUrl);
     }
 
-    // Getters and Setters
+    @Override
+    public String toString() {
+        return "CartItem [id=" + id + ", userId=" + userId + ", productId=" + productId + ", productName="
+                + productName + ", productImage=" + productImage + ", specifications=" + specifications + ", price="
+                + price + ", quantity=" + quantity + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
+                + ", shopName=" + shopName + ", shopAvatarUrl=" + shopAvatarUrl + "]";
+    }
+
+    
 }
