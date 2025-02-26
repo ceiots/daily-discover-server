@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import java.io.InputStream;
 
 @Data
-@Configuration
-@ConfigurationProperties(prefix = "wxpay")
+//@Configuration
+//@ConfigurationProperties(prefix = "wxpay")
 public class WxPayConfig implements WXPayConfig {
     private String appId;
     private String mchId;

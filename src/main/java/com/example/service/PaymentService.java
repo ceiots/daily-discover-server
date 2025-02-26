@@ -21,10 +21,10 @@ import java.util.Map;
 @Service
 public class PaymentService {
 
-    @Autowired
+    //@Autowired
     private AlipayConfig alipayConfig;
 
-    @Autowired
+    //@Autowired
     private WxPayConfig wxPayConfig;
 
     public PaymentResult processPayment(PaymentRequest paymentRequest) {
