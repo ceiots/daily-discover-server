@@ -1,0 +1,13 @@
+alipay:
+  app-id: 你的支付宝APPID
+  private-key: 你的支付宝私钥
+  public-key: 支付宝公钥
+  gateway-url: https://openapi.alipay.com/gateway.do
+  return-url: http://你的域名/api/pay/return
+  notify-url: http://你的域名/api/pay/notify
+
+wxpay:
+  app-id: 你的微信支付APPID
+  mch-id: 你的微信商户号
+  key: 你的微信支付密钥
+  notify-url: http://你的域名/api/pay/wx/notify
