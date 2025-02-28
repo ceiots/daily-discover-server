@@ -17,7 +17,7 @@ mysql -u root -p
 
 # 授权语句
 CREATE USER 'demo0000'@'localhost' IDENTIFIED BY 'demo0000';
-GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER ON demo.* TO 'demo0000'@'localhost';
+GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP ON demo.* TO 'demo0000'@'localhost';
 
 # 刷新权限语句
 FLUSH PRIVILEGES;

@@ -1,7 +1,8 @@
+package com.example.service;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -63,9 +64,9 @@ public class UserService {
         // 对密码进行加密
         User user = new User();
         user.setPassword(passwordEncoder.encode(password));
-        user.setEmail(email);
+        user.setPhoneNumber(email);
         user.setRegistrationTime(new Date());
-        userMapper.insert(user);
+        userMapper.registerUser(user);
     }
 
     public void register(User user) {
@@ -134,5 +135,4 @@ public class UserService {
         // 更新数据库中的密码
         userMapper.updatePassword(phoneNumber, hashedPassword);
     }
-
 }
