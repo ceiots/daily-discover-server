@@ -27,7 +27,6 @@ public class CartController {
     public List<CartItem> getCartItems(@PathVariable Long userId) {
        
         List<CartItem> cartItems = cartService.getCartItems(userId);
-        System.out.println("Cart items: " + cartItems);
         return cartItems;
     }
 

@@ -11,7 +11,6 @@ import com.example.model.User;
 @Mapper
 public interface UserMapper {
 
-
     @Select("SELECT * FROM users WHERE phone_number = #{phone_number} AND password = #{password}")
     User findByPhoneNumberAndPassword(@Param("phone_number") String phone_number, @Param("password") String password);
 
@@ -20,5 +19,7 @@ public interface UserMapper {
     void registerUser(User user);
 
     @Select("SELECT * FROM users WHERE phone_number = #{phoneNumber}")
-    User findByPhoneNumber(String phoneNumber);
+    User findByPhoneNumber(@Param("phoneNumber") String phoneNumber);
+
+    void updatePassword(@Param("phoneNumber") String phoneNumber, @Param("password") String password);
 }

@@ -1,8 +1,7 @@
-package com.example.service;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,31 +9,68 @@ import org.springframework.stereotype.Service;
 
 import com.example.mapper.UserMapper;
 import com.example.model.User;
+import com.example.util.JwtTokenUtil;
 
 @Service
 public class UserService {
 
-     private final Map<String, String> verificationCodes = new HashMap<>();
+    private final Map<String, String> verificationCodes = new HashMap<>();
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    public Map<String, Object> login(String phoneNumber, String password) {
+        Map<String, Object> result = new HashMap<>();
+        
+        User user = userMapper.findByPhoneNumber(phoneNumber);
+        
+        if (user == null) {
+            result.put("code", 400);
+            result.put("message", "用户不存在");
+            return result;
+        }
+        
+        // 验证密码 (使用加密比对)
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            result.put("code", 400);
+            result.put("message", "密码错误");
+            return result;
+        }
+        
+        // 生成JWT令牌
+        String token = jwtTokenUtil.generateToken(user.getId());
+        
+        // 构建返回结果
+        result.put("code", 200);
+        result.put("message", "登录成功");
+        result.put("token", token);
+        
+        // 返回用户信息(排除敏感字段)
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getId());
+        userInfo.put("phoneNumber", user.getPhoneNumber());
+        userInfo.put("nickname", user.getNickname());
+        result.put("userInfo", userInfo);
+        
+        return result;
+    }
 
     public void registerUser(String email, String password) {
         // 对密码进行加密
         User user = new User();
-        /* user.setPassword(passwordEncoder.encode(password));
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setRegistrationTime(new Date());
-        userMapper.insert(user); */
-    }
-
-
-    public User login(String phoneNumber, String password) {
-        return userMapper.findByPhoneNumberAndPassword(phoneNumber, password);
+        userMapper.insert(user);
     }
 
     public void register(User user) {
+        // 对密码进行加密
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userMapper.registerUser(user);
     }
 
@@ -42,7 +78,7 @@ public class UserService {
         return userMapper.findByPhoneNumber(phoneNumber);
     }
 
- public String sendResetPasswordCode(String phoneNumber) {
+    public String sendResetPasswordCode(String phoneNumber) {
         // 检查手机号是否存在
         if (!isUserExists(phoneNumber)) {
             return "手机号不存在";
@@ -82,8 +118,9 @@ public class UserService {
     }
 
     private boolean isUserExists(String phoneNumber) {
-        // 这里可以替换为实际的用户查询逻辑
-        return "1234567890".equals(phoneNumber); // 示例数据
+        // 实际的用户查询逻辑
+        User user = userMapper.findByPhoneNumber(phoneNumber);
+        return user != null;
     }
 
     private String generateVerificationCode() {
@@ -92,11 +129,10 @@ public class UserService {
     }
 
     private void updatePassword(String phoneNumber, String newPassword) {
-        // 这里可以替换为实际的更新密码逻辑
-        System.out.println("更新密码：" + phoneNumber + " 新密码：" + newPassword);
-        // 示例：加密新密码
+        // 加密新密码
         String hashedPassword = passwordEncoder.encode(newPassword);
-        System.out.println("加密后的密码：" + hashedPassword);
+        // 更新数据库中的密码
+        userMapper.updatePassword(phoneNumber, hashedPassword);
     }
 
 }

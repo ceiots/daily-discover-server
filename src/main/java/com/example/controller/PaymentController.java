@@ -1,5 +1,7 @@
 package com.example.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +21,12 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @PostMapping("/confirm")
-    public CommonResult<PaymentResult> confirmPayment(@RequestBody PaymentRequest paymentRequest) {
+    public CommonResult<PaymentResult> confirmPayment(@RequestBody PaymentRequest paymentRequest, HttpServletRequest request) {
+
+        // 获取客户端IP地址
+        String clientIp = getClientIp(request);
+        paymentRequest.setClientIp(clientIp);
+
         // 调用支付服务处理支付逻辑
         PaymentResult paymentResult = paymentService.processPayment(paymentRequest);
         if (paymentResult.isSuccess()) {
@@ -27,5 +34,25 @@ public class PaymentController {
         } else {
             return CommonResult.failed(paymentResult.getMessage());
         }
+    }
+
+     private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 }

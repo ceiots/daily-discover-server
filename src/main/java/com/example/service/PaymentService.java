@@ -11,7 +11,6 @@ import com.example.model.PaymentRequest;
 import com.example.model.PaymentResult;
 import com.github.wxpay.sdk.WXPay;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -29,13 +28,19 @@ public class PaymentService {
 
     public PaymentResult processPayment(PaymentRequest paymentRequest) {
         PaymentResult result = new PaymentResult();
-        
+        System.out.println("processPayment" + paymentRequest);
         try {
             // 根据支付类型选择对应的支付方式
             if (PaymentTypeEnum.ALIPAY.getCode().equals(paymentRequest.getPayType())) {
-                return processAlipay(paymentRequest);
+                //return processAlipay(paymentRequest);
+                result.setSuccess(true);
+                result.setMessage("模拟支付成功");
+                return result;
             } else if (PaymentTypeEnum.WXPAY.getCode().equals(paymentRequest.getPayType())) {
-                return processWxPay(paymentRequest);
+                //return processWxPay(paymentRequest);
+                result.setSuccess(true);
+                result.setMessage("模拟支付成功");
+                return result;
             } else {
                 result.setSuccess(false);
                 result.setMessage("不支持的支付类型");

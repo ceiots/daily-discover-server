@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dto.ResetPasswordRequest;
-import com.example.dto.UserRequest;
 import com.example.model.User;
 import com.example.service.UserService;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -21,15 +21,11 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/login")
-    public String login(@RequestBody UserRequest user) {
-        User foundUser = userService.login(user.getPhoneNumber(), user.getPassword());
-        if (foundUser != null) {
-            return "登录成功，昵称: " + foundUser.getNickname(); // 返回成功消息和昵称
-        } else {
-            return "登录失败，手机号或密码错误"; // 返回失败消息
-        }
+    public ResponseEntity<?> login(@RequestBody User user) {
+        Map<String, Object> result = userService.login(user.getPhoneNumber(), user.getPassword());
+        return ResponseEntity.ok(result);
     }
-
+    
     @PostMapping("/register")
     public String register(@RequestBody User user) {
         // 检查手机号是否已存在

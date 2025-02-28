@@ -10,18 +10,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-//@Component
+@Component
 public class JwtTokenUtil {
-    private String secretKey = "your_secret_key";
+    private static final String SECRET_KEY = "your_secret_key";
+    private static final long EXPIRATION_TIME = 86400000; // 24小时
 
     public String generateToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userId.toString())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
 
@@ -35,7 +36,7 @@ public class JwtTokenUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
     }
 
     public Boolean isTokenExpired(String token) {

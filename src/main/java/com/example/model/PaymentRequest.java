@@ -79,4 +79,13 @@ public class PaymentRequest {
     public void setClientIp(String clientIp) {
         this.clientIp = clientIp;
     }
+
+    @Override
+    public String toString() {
+        return "PaymentRequest [userId=" + userId + ", itemIds=" + itemIds + ", paymentMethod=" + paymentMethod
+                + ", payType=" + payType + ", orderNo=" + orderNo + ", totalAmount=" + totalAmount + ", subject="
+                + subject + ", clientIp=" + clientIp + "]";
+    }
+
+    
 }
