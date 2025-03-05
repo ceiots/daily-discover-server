@@ -12,8 +12,28 @@ import com.example.mapper.UserMapper;
 import com.example.model.User;
 import com.example.util.JwtTokenUtil;
 
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
+import org.springframework.beans.factory.annotation.Value;
+
 @Service
 public class UserService {
+    // 新增配置项
+    @Value("${aliyun.sms.accessKeyId}")
+    private String accessKeyId;
+    
+    @Value("${aliyun.sms.accessSecret}")
+    private String accessSecret;
+    
+    @Value("${aliyun.sms.signName}")
+    private String signName;
+    
+    @Value("${aliyun.sms.templateCode}")
+    private String templateCode;
 
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -72,6 +92,8 @@ public class UserService {
     public void register(User user) {
         // 对密码进行加密
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // 设置注册时间为当前时间
+        user.setRegistrationTime(new Date());
         userMapper.registerUser(user);
     }
 
@@ -79,20 +101,56 @@ public class UserService {
         return userMapper.findByPhoneNumber(phoneNumber);
     }
 
-    public String sendResetPasswordCode(String phoneNumber) {
-        // 检查手机号是否存在
+    public Map<String, Object> sendResetPasswordCode(String phoneNumber) {
+        Map<String, Object> result = new HashMap<>();
+        
         if (!isUserExists(phoneNumber)) {
-            return "手机号不存在";
+            result.put("code", 400);
+            result.put("message", "手机号不存在");
+            return result;
         }
-
-        // 生成验证码
+    
         String verificationCode = generateVerificationCode();
         verificationCodes.put(phoneNumber, verificationCode);
+    
+        // 模拟实际发送操作，正式环境应调用短信/邮件服务
+        boolean sendSuccess = sendVerificationCode(phoneNumber, verificationCode);
+        
+        if (sendSuccess) {
+            result.put("code", 200);
+            result.put("message", "验证码已发送，请查收");
+        } else {
+            result.put("code", 500);
+            result.put("message", "验证码发送失败，请重试");
+        }
+        return result;
+    }
+    
+    // 新增模拟发送方法
+    // 修改发送方法
+    private boolean sendVerificationCode(String phoneNumber, String code) {
+        try {
+            DefaultProfile profile = DefaultProfile.getProfile(
+                "cn-shenzhen",
+                accessKeyId,
+                accessSecret);
+            IAcsClient client = new DefaultAcsClient(profile);
 
-        // 发送验证码邮件
-        /* emailUtil.sendEmail("recipient-email@example.com", "密码重置验证码", "您的验证码是：" + verificationCode); */
+            SendSmsRequest request = new SendSmsRequest();
+            request.setPhoneNumbers(phoneNumber);
+            request.setSignName("阿里云短信测试");
+            request.setTemplateCode(templateCode);
+            request.setTemplateParam("{\"code\":\"" + code + "\"}");
 
-        return "验证码已发送，请查收";
+            SendSmsResponse response = client.getAcsResponse(request);
+            System.out.println(String.format("短信signName：%s, 短信templateCode：%s, 短信phoneNumber：%s, 短信code：%s", signName, templateCode, phoneNumber, code));
+            System.out.println("短信发送状态： " + response.getMessage());
+            return "OK".equalsIgnoreCase(response.getCode());
+        } catch (ClientException e) {
+            System.out.println("短信发送失败：" + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public String resetPassword(String phoneNumber, String newPassword, String confirmPassword, String verificationCode) {

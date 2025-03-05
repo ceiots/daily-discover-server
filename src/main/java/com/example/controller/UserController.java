@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.dto.ResetPasswordRequest;
 import com.example.model.User;
 import com.example.service.UserService;
+
+import java.util.Date;
 import java.util.Map;
 
 @RestController
@@ -31,12 +33,14 @@ public class UserController {
         // 检查手机号是否已存在
         User existingUser = userService.findUserByPhoneNumber(user.getPhoneNumber());
         if (existingUser != null) {
-            return "手机号已被注册"; // 返回失败消息
+            return "手机号已被注册";
         }
-
-        // 注册用户
+        
+        // 设置注册时间（可选，Service层已设置）
+        user.setRegistrationTime(new Date());
+        
         userService.register(user);
-        return "注册成功"; // 返回成功消息
+        return "注册成功";
     }
 
     @PostMapping("/forgot-password")
@@ -52,8 +56,8 @@ public class UserController {
 
     @PostMapping("/reset-password-code")
     public ResponseEntity<?> sendResetPasswordCode(@RequestBody ResetPasswordRequest request) {
-        String message = userService.sendResetPasswordCode(request.getPhoneNumber());
-        return ResponseEntity.ok().body(message);
+        Map<String, Object> result = userService.sendResetPasswordCode(request.getPhoneNumber());
+        return ResponseEntity.ok().body(result);
     }
 
     @PostMapping("/reset-password")
