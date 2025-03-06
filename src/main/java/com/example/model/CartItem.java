@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.config.ImageConfig;
 import com.example.util.JsonTypeHandler;
 import lombok.Data;
 import java.util.List;
@@ -37,21 +36,4 @@ public class CartItem {
     private String shopName; // 店铺名称
     private String shopAvatarUrl; // 店铺头像URL
 
-    public String getShopAvatarUrl() {
-        return shopAvatarUrl;
-    }
-
-    public void setShopAvatarUrl(String shopAvatarUrl) {
-        this.shopAvatarUrl = ImageConfig.getFullImageUrl(shopAvatarUrl);
-    }
-
-    @Override
-    public String toString() {
-        return "CartItem [id=" + id + ", userId=" + userId + ", productId=" + productId + ", productName="
-                + productName + ", productImage=" + productImage + ", specifications=" + specifications + ", price="
-                + price + ", quantity=" + quantity + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
-                + ", shopName=" + shopName + ", shopAvatarUrl=" + shopAvatarUrl + "]";
-    }
-
-    
 }

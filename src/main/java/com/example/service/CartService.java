@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.mapper.CartItemMapper;
 import com.example.model.CartItem;
+import com.example.config.ImageConfig;
 
 @Service
 public class CartService {
@@ -15,19 +16,27 @@ public class CartService {
     private CartItemMapper cartItemMapper;
 
     public List<CartItem> getCartItems(Long userId) {
-        return cartItemMapper.getCartItemsByUserId(userId);
+        List<CartItem> items = cartItemMapper.getCartItemsByUserId(userId);
+        // 添加动态拼接逻辑
+        items.forEach(item -> {
+            item.setProductImage(ImageConfig.getFullImageUrl(item.getProductImage()));
+            item.setShopAvatarUrl(ImageConfig.getFullImageUrl(item.getShopAvatarUrl()));
+        });
+        return items;
     }
 
     public void addCartItem(CartItem cartItem) {
-        // Check if the item already exists in the cart
         CartItem existingItem = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
         if (existingItem != null) {
-            // If it exists, increase the quantity
             existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
             cartItemMapper.updateCartItemQuantity(existingItem.getId(), existingItem.getQuantity());
         } else {
-            /* cartItem.setProduct_image(cartItem.getShopAvatarUrl().replaceFirst("http://[^/]+\\.r5\\.cpolar\\.top", ""));
-            cartItem.setShopAvatarUrl(cartItem.getShopAvatarUrl().replaceFirst("http://[^/]+\\.r5\\.cpolar\\.top", "")); */
+            // 新增URL处理逻辑
+            String cleanImageUrl = cartItem.getProductImage().replaceFirst("^https?://[^/]+\\.r5\\.cpolar\\.top", "");
+            cartItem.setProductImage(cleanImageUrl);
+
+            String cleanShopAvatarUrl = cartItem.getShopAvatarUrl().replaceFirst("^https?://[^/]+\\.r5\\.cpolar\\.top", "");
+            cartItem.setShopAvatarUrl(cleanShopAvatarUrl);
             cartItemMapper.addCartItem(cartItem);
         }
     }
@@ -40,5 +49,8 @@ public class CartService {
     public void deleteCartItem(Long itemId) {
         // Remove the item from the cart
         cartItemMapper.deleteCartItem(itemId);
+    }
+    public int getCartItemCount(Long userId) {
+        return cartItemMapper.getCartItemsByUserId(userId).size();
     }
 }

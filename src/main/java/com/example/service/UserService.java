@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +19,14 @@ import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
-import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class UserService {
     // 新增配置项
-    @Value("${aliyun.sms.accessKeyId}")
+    //@Value("${aliyun.sms.accessKeyId}")
     private String accessKeyId;
     
-    @Value("${aliyun.sms.accessSecret}")
+    //@Value("${aliyun.sms.accessSecret}")
     private String accessSecret;
     
     @Value("${aliyun.sms.signName}")
@@ -143,8 +143,7 @@ public class UserService {
             request.setTemplateParam("{\"code\":\"" + code + "\"}");
 
             SendSmsResponse response = client.getAcsResponse(request);
-            System.out.println(String.format("短信signName：%s, 短信templateCode：%s, 短信phoneNumber：%s, 短信code：%s", signName, templateCode, phoneNumber, code));
-            System.out.println("短信发送状态： " + response.getMessage());
+           
             return "OK".equalsIgnoreCase(response.getCode());
         } catch (ClientException e) {
             System.out.println("短信发送失败：" + e.getMessage());

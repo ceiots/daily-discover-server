@@ -3,6 +3,7 @@ package com.example.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +26,6 @@ public class CartController {
 
     @GetMapping("/{userId}")
     public List<CartItem> getCartItems(@PathVariable Long userId) {
-       
         List<CartItem> cartItems = cartService.getCartItems(userId);
         return cartItems;
     }
@@ -44,5 +44,13 @@ public class CartController {
     @DeleteMapping("/delete/{itemId}")
     public void deleteCartItem(@PathVariable Long itemId) {
         cartService.deleteCartItem(itemId);
+    }
+
+    @GetMapping("/{userId}/count")
+    public ResponseEntity<Integer> getCartItemCount(@PathVariable("userId") Long userId) { // 显式声明路径变量名称
+        System.out.println("Getting cart item count for user: " + userId);
+        int count = cartService.getCartItemCount(userId);
+        System.out.println("Cart item count: " + count);
+        return ResponseEntity.ok(count);
     }
 }

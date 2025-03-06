@@ -62,8 +62,18 @@ public class UserController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        String message = userService.resetPassword(request.getPhoneNumber(), request.getNewPassword(),
-                request.getConfirmPassword(), request.getVerificationCode());
+        // Add null check for request body
+        if (request == null) {
+            return ResponseEntity.badRequest().body("请求体不能为空");
+        }
+        
+        // Add parameter validation
+        String message = userService.resetPassword(
+            request.getPhoneNumber(), 
+            request.getNewPassword(),
+            request.getConfirmPassword(), 
+            request.getVerificationCode()
+        );
         return ResponseEntity.ok().body(message);
     }
 
