@@ -89,6 +89,7 @@ public class OrderController {
     // 假设添加一个创建订单的接口
     @PostMapping("/create")
     public CommonResult<Order> createOrder(@RequestBody Order order) {
+        System.out.println("createOrder"+order);
         // 参数校验
         if (order == null) {
             logger.error("创建订单时，订单信息为空");
