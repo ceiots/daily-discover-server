@@ -64,6 +64,7 @@ public class UserService {
         
         // 生成JWT令牌
         String token = jwtTokenUtil.generateToken(user.getId());
+        System.out.println("token: " + token);
         
         // 构建返回结果
         result.put("code", 200);
