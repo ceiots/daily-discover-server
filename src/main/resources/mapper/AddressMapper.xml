@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.AddressMapper">
+
+    <!-- 插入地址 -->
+    <insert id="insertAddress" parameterType="com.example.model.Address">
+        INSERT INTO address (name, phone, address, `default`, user_id)
+        VALUES (#{name}, #{phone}, #{address}, #{default}, #{user.id})
+    </insert>
+
+    <!-- 其他方法的映射保持不变 -->
+
+</mapper>

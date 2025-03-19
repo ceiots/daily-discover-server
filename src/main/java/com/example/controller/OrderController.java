@@ -4,6 +4,8 @@ import com.example.dto.PaymentInfo;
 import com.example.model.Order;
 import com.example.service.OrderService;
 import com.example.common.api.CommonResult;
+import com.example.dto.AddressDto;
+import com.example.dto.OrderCreateDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.ArrayList;
+import java.math.BigDecimal;
 
+/**
+ * 订单控制器类，处理订单相关的 HTTP 请求
+ */
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
@@ -21,6 +28,12 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    /**
+     * 获取用户的订单列表
+     * @param status 订单状态
+     * @param request HTTP 请求
+     * @return 通用结果，包含订单列表
+     */
     @GetMapping("/user")
     public CommonResult<List<Order>> getUserOrders(
             @RequestParam(required = false) Integer status,
@@ -29,6 +42,11 @@ public class OrderController {
         return CommonResult.success(orderService.getUserOrders(userId, status));
     }
 
+    /**
+     * 取消订单
+     * @param orderId 订单 ID
+     * @return 通用结果
+     */
     @PostMapping("/{orderId}/cancel")
     public CommonResult<Void> cancelOrder(@PathVariable Long orderId) {
         // 参数校验
@@ -48,7 +66,13 @@ public class OrderController {
         }
     }
 
-    // 新增支付接口
+    /**
+     * 支付订单
+     * @param orderId 订单 ID
+     * @param paymentInfo 支付信息
+     * @param request HTTP 请求
+     * @return 通用结果
+     */
     @PostMapping("/{orderId}/pay")
     public CommonResult<Void> payOrder(
             @PathVariable Long orderId,
@@ -75,7 +99,10 @@ public class OrderController {
         }
     }
 
-    // 假设添加一个获取所有订单的接口
+    /**
+     * 获取所有订单
+     * @return 通用结果，包含所有订单列表
+     */
     @GetMapping("/all")
     public CommonResult<List<Order>> getAllOrders() {
         try {
@@ -86,24 +113,73 @@ public class OrderController {
         }
     }
 
-    // 假设添加一个创建订单的接口
+    /**
+     * 创建订单
+     * @param orderCreateDto 订单创建 DTO
+     * @return 通用结果，包含创建好的订单
+     */
     @PostMapping("/create")
-    public CommonResult<Order> createOrder(@RequestBody Order order) {
-        System.out.println("createOrder"+order);
-        // 参数校验
-        if (order == null) {
+    public CommonResult<Order> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
+        logger.info("创建订单，参数：{}", orderCreateDto);
+        
+        if (orderCreateDto == null) {
             logger.error("创建订单时，订单信息为空");
             return CommonResult.failed("订单信息不能为空");
         }
+
         try {
-            return CommonResult.success(orderService.createOrder(order));
+            Order order = new Order();
+            order.setUserId(orderCreateDto.getUserId());
+            order.setOrderNumber(orderCreateDto.getOrderNo());
+            
+            List<Order.OrderItem> orderItems = new ArrayList<>();
+            for (List<Long> item : orderCreateDto.getItems()) { // 从前端传递的 items 中获取商品信息
+                Order.OrderItem orderItem = new Order.OrderItem();
+                orderItem.setProductId(item.getId());
+                orderItem.setQuantity(item.getQuantity());
+                orderItem.setPrice(BigDecimal.valueOf(item.getPrice()));
+                orderItem.setSubtotal(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
+                orderItems.add(orderItem);
+            }
+            order.setItems(orderItems);
+            
+            order.setPaymentAmount(orderCreateDto.getTotalAmount());
+            order.setPaymentMethod(orderCreateDto.getPayType());
+            order.setStatus(0);
+
+            AddressDto addressDto = orderCreateDto.getAddress();
+            if (addressDto != null) {
+                order.setShippingAddress(
+                    String.format("%s %s %s", 
+                        addressDto.getName(),
+                        addressDto.getPhone(),
+                        addressDto.getAddress()
+                    )
+                );
+            }
+
+            Order createdOrder = orderService.createOrder(order, addressDto);
+            logger.info("订单创建成功，订单号：{}", createdOrder.getOrderNumber());
+            return CommonResult.success(createdOrder);
+            
         } catch (Exception e) {
             logger.error("创建订单时发生异常", e);
-            return CommonResult.failed("创建订单失败，请稍后重试");
+            return CommonResult.failed("创建订单失败：" + e.getMessage());
         }
     }
 
-    // 新增获取指定订单详情的接口
+    // 获取商品价格的方法（需要实现）
+    private BigDecimal getProductPrice(Long productId) {
+        // TODO: 调用商品服务获取价格
+        // 这里临时返回一个固定价格
+        return BigDecimal.valueOf(99.99);
+    }
+
+    /**
+     * 获取指定订单详情
+     * @param orderId 订单 ID
+     * @return 通用结果，包含订单详情
+     */
     @GetMapping("/{orderId}")
     public CommonResult<Order> getOrderById(@PathVariable Long orderId) {
         // 参数校验
@@ -127,7 +203,7 @@ public class OrderController {
 
     /**
      * 记录订单检索尝试的日志
-     * @param orderId 订单ID
+     * @param orderId 订单 ID
      */
     private void logOrderRetrievalAttempt(Long orderId) {
         logger.info("尝试获取订单详情，订单ID: {}", orderId);
