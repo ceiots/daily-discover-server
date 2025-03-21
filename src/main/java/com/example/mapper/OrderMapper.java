@@ -5,6 +5,7 @@ import com.example.model.OrderItem;
 import com.example.util.OrderStatusTypeHandler;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Select;
@@ -125,4 +126,5 @@ public interface OrderMapper {
     // 新增根据订单ID和状态更新订单状态的方法
     @Update("UPDATE orders SET status = #{status} WHERE id = #{orderId}")
     void updateOrderStatus(Long orderId, Integer status);
+    
 }

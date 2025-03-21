@@ -74,8 +74,9 @@ public interface OrderAddrMapper {
      * 插入收货信息
      * @param orderAddr 收货信息
      */
+    // 修改参数引用，通过 orderAddr 对象引用其属性
     @Insert("INSERT INTO order_addr (user_id, address, contact_name, contact_phone, is_default) " +
-            "VALUES (#{userId}, #{address}, #{contactName}, #{contactPhone}, #{isDefault})")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+            "VALUES (#{orderAddr.userId}, #{orderAddr.address}, #{orderAddr.contactName}, #{orderAddr.contactPhone}, #{orderAddr.isDefault})")
+    @Options(useGeneratedKeys = true, keyProperty = "orderAddr.id", keyColumn = "id")
     void insert(@Param("orderAddr") OrderAddr orderAddr);
 }
