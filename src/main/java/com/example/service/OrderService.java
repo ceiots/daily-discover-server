@@ -1,9 +1,7 @@
 package com.example.service;
 
 import com.example.dto.PaymentInfo;
-import com.example.mapper.AddressMapper;
 import com.example.mapper.OrderMapper;
-import com.example.model.Address;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.dto.AddressDto;
@@ -29,9 +27,6 @@ public class OrderService {
     private OrderMapper orderMapper;
 
     @Autowired
-    private AddressMapper addressMapper;
-
-    @Autowired
     private InventoryService inventoryService;
 
     @Autowired
@@ -48,13 +43,7 @@ public class OrderService {
         try {
             // 处理地址信息
             if (addressDto != null) {
-                Address address = new Address();
-                address.setName(addressDto.getName());
-                address.setPhone(addressDto.getPhone());
-                address.setAddress(addressDto.getAddress());
-                address.setDefault(false); // 默认不设为默认地址
-                address.setUserId(order.getUserId()); // 设置用户ID
-                addressMapper.insertAddress(address);
+                handleAddressInfo(order, addressDto);
             }
     
             // 计算订单总金额
@@ -181,4 +170,23 @@ public class OrderService {
     public static final int ORDER_STATUS_PENDING_PAYMENT = 1;
     public static final int ORDER_STATUS_PAID = 2;
     public static final int ORDER_STATUS_CANCELED = 3;
+
+    /**
+     * 处理订单的地址信息
+     * @param order 订单对象
+     * @param addressDto 地址信息
+     */
+    private void handleAddressInfo(Order order, AddressDto addressDto) {
+        OrderAddr orderAddr = new OrderAddr();
+        // 确保字段名称统一
+        orderAddr.setName(addressDto.getName());
+        orderAddr.setPhone(addressDto.getPhone());
+        orderAddr.setAddress(addressDto.getAddress());
+        orderAddr.setIsDefault(false); // 默认不设为默认地址
+        orderAddr.setUserId(order.getUserId()); // 设置用户ID
+        orderAddrService.insertOrderAddr(orderAddr); // 调用 OrderAddrService 的插入方法
+    
+        // 插入后获取插入地址的ID
+        order.setOrderAddrId(orderAddr.getOrderAddrId()); // 设置订单的收货地址ID
+    }
 }

@@ -21,7 +21,7 @@ import java.math.BigDecimal;
  * 订单控制器类，处理订单相关的 HTTP 请求
  */
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/order")
 public class OrderController {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);

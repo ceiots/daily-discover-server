@@ -78,4 +78,17 @@ public class OrderAddrService {
         // 再设置指定地址为默认地址
         orderAddrMapper.setDefaultAddr(userId, orderAddrId);
     }
+
+    /**
+     * 插入收货信息
+     * @param orderAddr 收货信息
+     */
+    @Transactional
+    public void insertOrderAddr(OrderAddr orderAddr) {
+        if (orderAddr.getIsDefault()) {
+            // 如果设置为默认地址，先取消该用户的所有默认地址
+            orderAddrMapper.cancelDefaultAddr(orderAddr.getUserId());
+        }
+        orderAddrMapper.insert(orderAddr);
+    }
 }

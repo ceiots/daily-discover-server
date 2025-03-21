@@ -2,6 +2,7 @@ package com.example.mapper;
 
 import com.example.model.OrderAddr;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Insert;
@@ -68,4 +69,13 @@ public interface OrderAddrMapper {
      */
     @Update("UPDATE order_addr SET is_default = 0 WHERE user_id = #{userId}")
     void cancelDefaultAddr(@Param("userId") Long userId);
+
+    /**
+     * 插入收货信息
+     * @param orderAddr 收货信息
+     */
+    @Insert("INSERT INTO order_addr (user_id, address, contact_name, contact_phone, is_default) " +
+            "VALUES (#{userId}, #{address}, #{contactName}, #{contactPhone}, #{isDefault})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    void insert(@Param("orderAddr") OrderAddr orderAddr);
 }

@@ -6,11 +6,8 @@ import lombok.Data;
 public class OrderAddr {
     private Long orderAddrId;
     private Long userId;
-    private String province;
-    private String city;
-    private String area;
-    private String addr;
-    private String consignee;
-    private String mobile;
     private Boolean isDefault;
+    private String name;
+    private String phone;
+    private String address;
 }
