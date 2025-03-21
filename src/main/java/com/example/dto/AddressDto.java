@@ -9,8 +9,4 @@ public class AddressDto {
     private String phone;
     private String address;
     private boolean isDefault;
-    private String city;
-    private String area;
-    private String addr;
-    private String consignee;
 }

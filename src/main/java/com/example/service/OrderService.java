@@ -5,8 +5,6 @@ import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.dto.AddressDto;
-import com.example.service.InventoryService;
-import com.example.service.OrderAddrService; // 新增导入
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -25,9 +21,6 @@ public class OrderService {
 
     @Autowired
     private OrderMapper orderMapper;
-
-    @Autowired
-    private InventoryService inventoryService;
 
     @Autowired
     private OrderAddrService orderAddrService; // 新增注入
@@ -60,6 +53,7 @@ public class OrderService {
             order.setStatus(ORDER_STATUS_PENDING_PAYMENT); 
             order.setCreatedAt(new Date());
             orderMapper.insert(order);
+            System.out.println("订单创建成功，订单号：" + order.getOrderNumber());
     
             // 保存订单商品项
             if (order.getItems() != null && !order.getItems().isEmpty()) {

@@ -9,11 +9,13 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Select;
 
+import org.apache.ibatis.annotations.Param;
+
 public interface OrderMapper {
     // 定义常量
     String INSERT_ORDER_SQL = "INSERT INTO orders (user_id, product_ids, status, created_at) " +
-            "VALUES (#{userId}, #{productIds,typeHandler=com.example.config.ListTypeHandler}, " +
-            "#{shippingAddress}, #{status}, #{createdAt})";
+            "VALUES (#{order.userId}, #{order.productIds,typeHandler=com.example.config.ListTypeHandler}, " +
+            "#{order.status}, #{order.createdAt})";
     String UPDATE_ORDER_STATUS_SQL = "UPDATE orders SET status = #{status}, payment_method = #{paymentMethod}, " +
             "payment_amount = #{paymentAmount}, payment_time = #{paymentTime} " +
             "WHERE id = #{id}";

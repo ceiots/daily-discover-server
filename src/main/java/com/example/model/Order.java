@@ -19,8 +19,6 @@ public class Order {
     private Long orderAddrId; // 新增字段，关联收货信息
     // 修改status字段类型为int
     private int status; 
-    // 新增shippingAddress属性
-    private String shippingAddress; 
 
     // 计算订单总金额的方法
     public BigDecimal calculateTotalAmount() {

@@ -150,16 +150,6 @@ public class OrderController {
             order.setStatus(OrderService.ORDER_STATUS_PENDING_PAYMENT); // 使用常量设置订单状态
     
             AddressDto addressDto = orderCreateDto.getAddress();
-            if (addressDto != null) {
-                order.setShippingAddress(
-                    String.format("%s %s %s", 
-                        addressDto.getName(),
-                        addressDto.getPhone(),
-                        addressDto.getAddress()
-                    )
-                );
-            }
-    
             Order createdOrder = orderService.createOrder(order, addressDto);
             logger.info("订单创建成功，订单号：{}", createdOrder.getOrderNumber());
             return CommonResult.success(createdOrder);
