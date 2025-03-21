@@ -7,12 +7,11 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
-import com.example.model.Order;
 import org.apache.ibatis.annotations.Select;
 
 public interface OrderMapper {
     // 定义常量
-    String INSERT_ORDER_SQL = "INSERT INTO orders (user_id, product_ids, shipping_address, status, created_at) " +
+    String INSERT_ORDER_SQL = "INSERT INTO orders (user_id, product_ids, status, created_at) " +
             "VALUES (#{userId}, #{productIds,typeHandler=com.example.config.ListTypeHandler}, " +
             "#{shippingAddress}, #{status}, #{createdAt})";
     String UPDATE_ORDER_STATUS_SQL = "UPDATE orders SET status = #{status}, payment_method = #{paymentMethod}, " +
@@ -80,8 +79,8 @@ public interface OrderMapper {
         insert(order);
     }
 
-    // 新增 getUserOrders 方法，与 findByUserIdAndStatus 功能类似
-    @Select(SELECT_ORDERS_BY_USER_ID_AND_STATUS_SQL)
+    // 新增 getUserOrders 方法
+    @Select("SELECT * FROM orders WHERE user_id = #{userId} ORDER BY create_time DESC")
     @Results({
             @Result(property = "statusStr", column = "status",
                     typeHandler = OrderStatusTypeHandler.class),
@@ -91,7 +90,20 @@ public interface OrderMapper {
             @Result(property = "items", column = "id",
                     many = @Many(select = "findItemsByOrderId"))
     })
-    List<Order> getUserOrders(@Param("userId") Long userId, @Param("status") Integer status);
+    List<Order> getUserOrders(@Param("userId") Long userId);
+
+    // 新增 getUserOrdersByStatus 方法
+    @Select("SELECT * FROM orders WHERE user_id = #{userId} AND status = #{status} ORDER BY create_time DESC")
+    @Results({
+            @Result(property = "statusStr", column = "status",
+                    typeHandler = OrderStatusTypeHandler.class),
+            @Result(property = "paymentTime", column = "payment_time"),
+            @Result(property = "paymentMethod", column = "payment_method"),
+            @Result(property = "paymentAmount", column = "payment_amount"),
+            @Result(property = "items", column = "id",
+                    many = @Many(select = "findItemsByOrderId"))
+    })
+    List<Order> getUserOrdersByStatus(@Param("userId") Long userId, @Param("status") Integer status);
 
     @Select("SELECT * FROM orders WHERE id = #{orderId}")
     @Results({
@@ -103,4 +115,12 @@ public interface OrderMapper {
                     many = @Many(select = "findItemsByOrderId"))
     })
     Order getOrderById(Long orderId);
+    
+    // 新增插入订单商品项的方法
+    @Insert("INSERT INTO order_item (order_id, product_id, quantity, price) VALUES (#{orderId}, #{productId}, #{quantity}, #{price})")
+    void insertOrderItem(OrderItem orderItem);
+    
+    // 新增根据订单ID和状态更新订单状态的方法
+    @Update("UPDATE orders SET status = #{status} WHERE id = #{orderId}")
+    void updateOrderStatus(Long orderId, Integer status);
 }

@@ -1,6 +1,7 @@
 package com.example.mapper;
 
 import com.example.model.Address;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -25,7 +26,8 @@ public interface AddressMapper {
      * @param address 地址实体
      * @return 插入的记录数
      */
-    int insertAddress(Address address);
+    @Insert("INSERT INTO address (name, phone, address, is_default, user_id) VALUES (#{name}, #{phone}, #{address}, #{isDefault}, #{userId})")
+    void insertAddress(Address address);
 
     /**
      * 根据ID更新地址

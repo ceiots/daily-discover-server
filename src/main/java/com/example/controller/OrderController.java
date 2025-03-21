@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.dto.PaymentInfo;
 import com.example.model.Order;
+import com.example.model.OrderItem;
 import com.example.service.OrderService;
 import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
@@ -126,27 +127,28 @@ public class OrderController {
             logger.error("创建订单时，订单信息为空");
             return CommonResult.failed("订单信息不能为空");
         }
-
+    
         try {
             Order order = new Order();
             order.setUserId(orderCreateDto.getUserId());
             order.setOrderNumber(orderCreateDto.getOrderNo());
-            
-            List<Order.OrderItem> orderItems = new ArrayList<>();
-            for (List<Long> item : orderCreateDto.getItems()) { // 从前端传递的 items 中获取商品信息
-                Order.OrderItem orderItem = new Order.OrderItem();
+    
+            List<OrderItem> orderItems = new ArrayList<>();
+            for (OrderCreateDto.OrderItemDto item : orderCreateDto.getItems()) {
+                OrderItem orderItem = new OrderItem();
                 orderItem.setProductId(item.getId());
                 orderItem.setQuantity(item.getQuantity());
-                orderItem.setPrice(BigDecimal.valueOf(item.getPrice()));
-                orderItem.setSubtotal(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
+                orderItem.setPrice(item.getPrice()); 
+                orderItem.setSubtotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+                orderItem.setSpecifications(item.getSpecifications());
                 orderItems.add(orderItem);
             }
             order.setItems(orderItems);
-            
+    
             order.setPaymentAmount(orderCreateDto.getTotalAmount());
             order.setPaymentMethod(orderCreateDto.getPayType());
-            order.setStatus(0);
-
+            order.setStatus(OrderService.ORDER_STATUS_PENDING_PAYMENT); // 使用常量设置订单状态
+    
             AddressDto addressDto = orderCreateDto.getAddress();
             if (addressDto != null) {
                 order.setShippingAddress(
@@ -157,7 +159,7 @@ public class OrderController {
                     )
                 );
             }
-
+    
             Order createdOrder = orderService.createOrder(order, addressDto);
             logger.info("订单创建成功，订单号：{}", createdOrder.getOrderNumber());
             return CommonResult.success(createdOrder);
@@ -166,13 +168,6 @@ public class OrderController {
             logger.error("创建订单时发生异常", e);
             return CommonResult.failed("创建订单失败：" + e.getMessage());
         }
-    }
-
-    // 获取商品价格的方法（需要实现）
-    private BigDecimal getProductPrice(Long productId) {
-        // TODO: 调用商品服务获取价格
-        // 这里临时返回一个固定价格
-        return BigDecimal.valueOf(99.99);
     }
 
     /**

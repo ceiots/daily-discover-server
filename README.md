@@ -129,17 +129,6 @@ CREATE TABLE config (
 -- 插入初始数据
 INSERT INTO config (`key`, `value`) VALUES ('image_prefix', 'http://1f582ab5.r5.cpolar.top');
 
-
-# 电商订单相关
-CREATE TABLE orders (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    product_ids JSON NOT NULL,
-    shipping_address VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 # 电商库存相关
 CREATE TABLE inventory (
     product_id BIGINT PRIMARY KEY,
