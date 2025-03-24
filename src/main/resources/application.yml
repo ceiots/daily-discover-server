@@ -1,2 +1,13 @@
 jwt:
   secret: "c8e6eca7e31d89e8e6eca7e31d89c8e6eca7e31d89c8e6eca7e31d89c8e6eca7"  # 至少64字节(512位)的密钥 
+
+spring:
+  datasource:
+    # ... 其他数据源配置 ...
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.model 

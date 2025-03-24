@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.model.OrderItem;
+import com.example.model.OrderItemMapper;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,9 @@ public class OrderService {
 
     @Autowired
     private OrderMapper orderMapper;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     @Autowired
     private OrderAddrService orderAddrService; // 新增注入
@@ -101,7 +106,8 @@ public class OrderService {
                 throw new IllegalArgumentException("关联的订单不存在，订单 ID: " + orderId);
             }
             // 执行插入 order_item 记录的逻辑
-            orderMapper.insertOrderItem(item);
+            System.out.println("插入订单商品项：" + item);
+            orderItemMapper.insertOrderItem(item);
         }
     }
 

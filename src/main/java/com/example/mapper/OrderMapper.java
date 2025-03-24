@@ -8,11 +8,9 @@ import java.util.List;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Param;
 
+@Mapper
 public interface OrderMapper {
     // 定义常量
-    // 新增插入订单的 SQL 常量
-    String INSERT_ORDER_SQL = "INSERT INTO orders (user_id, order_number, payment_amount, payment_method, status, created_at, order_addr_id) " +
-            "VALUES (#{order.userId}, #{order.orderNumber}, #{order.paymentAmount}, #{order.paymentMethod}, #{order.status}, #{order.createdAt}, #{order.orderAddrId})";
     String UPDATE_ORDER_STATUS_SQL = "UPDATE orders SET status = #{status}, payment_method = #{paymentMethod}, " +
             "payment_amount = #{paymentAmount}, payment_time = #{paymentTime} " +
             "WHERE id = #{id}";
@@ -27,9 +25,10 @@ public interface OrderMapper {
     String CANCEL_ORDER_SQL = "UPDATE orders SET status = -1 WHERE id = #{orderId}"; // 假设 -1 表示订单已取消
 
     
-    
     // 新增插入订单的方法
-    @Insert(INSERT_ORDER_SQL)
+    @Insert("INSERT INTO orders (user_id, order_number, payment_amount, payment_method, status, created_at, order_addr_id) " +
+            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{status}, #{createdAt}, #{orderAddrId})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrder(Order order);
 
     @Update(UPDATE_ORDER_STATUS_SQL)
@@ -113,8 +112,21 @@ public interface OrderMapper {
     Order getOrderById(Long orderId);
     
     // 新增插入订单商品项的方法
-    @Insert("INSERT INTO order_item (order_id, product_id, quantity, price) VALUES (#{orderId}, #{productId}, #{quantity}, #{price})")
+    @Insert("INSERT INTO order_item (order_id, product_id, quantity, price, subtotal) VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrderItem(OrderItem orderItem);
+    
+    // 根据订单 ID 查询订单商品项
+    @Select("SELECT * FROM order_item WHERE order_id = #{orderId}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "orderId", column = "order_id"),
+        @Result(property = "productId", column = "product_id"),
+        @Result(property = "quantity", column = "quantity"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "subtotal", column = "subtotal")
+    })
+    List<OrderItem> findOrderItemsByOrderId(Long orderId);
     
     // 新增根据订单ID和状态更新订单状态的方法
     @Update("UPDATE orders SET status = #{status} WHERE id = #{orderId}")

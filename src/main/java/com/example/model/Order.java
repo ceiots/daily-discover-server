@@ -9,16 +9,18 @@ import java.util.List;
 @Data
 public class Order {
     private Long id;
-    private Long userId;
-    private String orderNumber;
-    private Date createdAt;
-    private String paymentMethod;
-    private BigDecimal paymentAmount;
-    private Date paymentTime;
+    private Long userId;           // 对应数据库 user_id
+    private String orderNumber;    // 对应数据库 order_number
+    private Date createdAt;        // 对应数据库 created_at
+    private String paymentMethod;  // 对应数据库 payment_method
+    private BigDecimal paymentAmount; // 对应数据库 payment_amount
+    private Date paymentTime;      // 对应数据库 payment_time
+    private Long orderAddrId;      // 对应数据库 order_addr_id
+    private Integer status;        // 对应数据库 status
+    private String shippingAddress; // 对应数据库 shipping_address
     private List<OrderItem> items;
-    private Long orderAddrId; // 新增字段，关联收货信息
-    // 修改status字段类型为int
-    private int status; 
+    
+    // getter/setter 方法已经由 @Data 注解生成
 
     // 计算订单总金额的方法
     public BigDecimal calculateTotalAmount() {
