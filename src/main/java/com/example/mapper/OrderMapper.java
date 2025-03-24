@@ -4,19 +4,15 @@ import com.example.model.Order;
 import com.example.model.OrderItem;
 import com.example.util.OrderStatusTypeHandler;
 import org.apache.ibatis.annotations.*;
-
-import java.util.Date;
 import java.util.List;
-
 import org.apache.ibatis.annotations.Select;
-
 import org.apache.ibatis.annotations.Param;
 
 public interface OrderMapper {
     // 定义常量
-    String INSERT_ORDER_SQL = "INSERT INTO orders (user_id, product_ids, status, created_at) " +
-            "VALUES (#{order.userId}, #{order.productIds,typeHandler=com.example.config.ListTypeHandler}, " +
-            "#{order.status}, #{order.createdAt})";
+    // 新增插入订单的 SQL 常量
+    String INSERT_ORDER_SQL = "INSERT INTO orders (user_id, order_number, payment_amount, payment_method, status, created_at, order_addr_id) " +
+            "VALUES (#{order.userId}, #{order.orderNumber}, #{order.paymentAmount}, #{order.paymentMethod}, #{order.status}, #{order.createdAt}, #{order.orderAddrId})";
     String UPDATE_ORDER_STATUS_SQL = "UPDATE orders SET status = #{status}, payment_method = #{paymentMethod}, " +
             "payment_amount = #{paymentAmount}, payment_time = #{paymentTime} " +
             "WHERE id = #{id}";
@@ -30,8 +26,11 @@ public interface OrderMapper {
     String SELECT_ALL_ORDERS_SQL = "SELECT * FROM orders";
     String CANCEL_ORDER_SQL = "UPDATE orders SET status = -1 WHERE id = #{orderId}"; // 假设 -1 表示订单已取消
 
+    
+    
+    // 新增插入订单的方法
     @Insert(INSERT_ORDER_SQL)
-    void insert(Order order);
+    void insertOrder(Order order);
 
     @Update(UPDATE_ORDER_STATUS_SQL)
     void updateOrderStatus(Order order);
@@ -76,12 +75,6 @@ public interface OrderMapper {
 
     @Update(CANCEL_ORDER_SQL)
     void cancelOrder(Long orderId);
-
-    // 为了保持一致性，将 insert 方法重命名为 createOrder
-    default void createOrder(Order order) {
-        insert(order);
-    }
-
     // 新增 getUserOrders 方法
     @Select("SELECT * FROM orders WHERE user_id = #{userId} ORDER BY create_time DESC")
     @Results({

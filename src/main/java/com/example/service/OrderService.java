@@ -52,8 +52,9 @@ public class OrderService {
             // 使用常量设置订单状态
             order.setStatus(ORDER_STATUS_PENDING_PAYMENT); 
             order.setCreatedAt(new Date());
-            System.out.println("订单创建开始"+order);
-            orderMapper.insert(order);
+            System.out.println("订单创建开始" + order);
+            // 插入订单数据
+            orderMapper.insertOrder(order); // 调用 Mapper 方法
             System.out.println("订单创建成功，订单号：" + order.getOrderNumber());
     
             // 保存订单商品项
@@ -180,8 +181,9 @@ public class OrderService {
         orderAddr.setIsDefault(false); // 默认不设为默认地址
         orderAddr.setUserId(order.getUserId()); // 设置用户ID
         orderAddrService.insertOrderAddr(orderAddr); // 调用 OrderAddrService 的插入方法
-    
+        System.out.println("订单地址信息处理完成"+orderAddr.getOrderAddrId());
         // 插入后获取插入地址的ID
         order.setOrderAddrId(orderAddr.getOrderAddrId()); // 设置订单的收货地址ID
     }
+
 }
