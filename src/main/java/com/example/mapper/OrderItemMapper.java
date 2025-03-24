@@ -1,7 +1,6 @@
 package com.example.mapper;
 
 import com.example.model.OrderItem;
-import com.example.model.Specification;
 import org.apache.ibatis.annotations.*;
 import java.util.List;
 
@@ -9,9 +8,10 @@ import java.util.List;
 public interface OrderItemMapper {
     
     @Insert("INSERT INTO order_item (order_id, product_id, quantity, price, subtotal, specifications) " +
-            "VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal}, #{specifications,typeHandler=com.example.handler.SpecificationTypeHandler})")
+            "VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal}, " +
+            "#{specifications,typeHandler=com.example.handler.SpecificationTypeHandler})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
-    void insert(OrderItem orderItem);
+    void insertOrderItem(OrderItem orderItem);
 
     @Select("SELECT * FROM order_item WHERE order_id = #{orderId}")
     @Results({
@@ -22,7 +22,7 @@ public interface OrderItemMapper {
         @Result(property = "price", column = "price"),
         @Result(property = "subtotal", column = "subtotal"),
         @Result(property = "specifications", column = "specifications", 
-                typeHandler = com.example.handler.SpecificationTypeHandler.class)
+                typeHandler = com.example.util.SpecificationsTypeHandler.class)
     })
     List<OrderItem> findByOrderId(Long orderId);
 

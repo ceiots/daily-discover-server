@@ -6,6 +6,7 @@ spring:
     # ... 其他数据源配置 ...
 
 mybatis:
+  type-handlers-package: com.example.util
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

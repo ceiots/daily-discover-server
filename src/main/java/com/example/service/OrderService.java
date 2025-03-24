@@ -4,12 +4,12 @@ import com.example.dto.PaymentInfo;
 import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
+import com.example.model.OrderItem;
 import com.example.dto.AddressDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.example.model.OrderItem;
-import com.example.model.OrderItemMapper;
+import com.example.mapper.OrderItemMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,16 +98,12 @@ public class OrderService {
     }
 
     // 插入订单商品项的方法
-    public void insertOrderItems(List<OrderItem> orderItems) {
-        for (OrderItem item : orderItems) {
-            Long orderId = item.getOrderId();
-            Order order = getOrderById(orderId);
-            if (order == null) {
-                throw new IllegalArgumentException("关联的订单不存在，订单 ID: " + orderId);
+    private void insertOrderItems(List<OrderItem> items) {
+        if (items != null && !items.isEmpty()) {
+            for (OrderItem item : items) {
+                System.out.println("插入订单商品项：" + item);
+                orderItemMapper.insertOrderItem(item);  // 使用 insertOrderItem 方法
             }
-            // 执行插入 order_item 记录的逻辑
-            System.out.println("插入订单商品项：" + item);
-            orderItemMapper.insertOrderItem(item);
         }
     }
 
