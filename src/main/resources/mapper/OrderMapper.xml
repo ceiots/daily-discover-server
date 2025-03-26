@@ -23,7 +23,7 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.example.model.Order" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO orders (
+        INSERT INTO order (
             user_id, order_number, created_at, payment_method, 
             payment_amount, status, shipping_address, order_addr_id
         ) VALUES (
