@@ -97,6 +97,9 @@ public class OrderService {
         return orderMapper.getOrderById(orderId);
     }
 
+    public Order getOrderByNo(String orderNo) {
+        return orderMapper.findByOrderNo(orderNo);
+    }
     // 插入订单商品项的方法
     private void insertOrderItems(List<OrderItem> items) {
         if (items != null && !items.isEmpty()) {

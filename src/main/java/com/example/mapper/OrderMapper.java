@@ -134,4 +134,12 @@ public interface OrderMapper {
     @Update("UPDATE order SET status = #{status} WHERE id = #{orderId}")
     void updateOrderStatus(Long orderId, Integer status);
     
-}
+    @Select("SELECT * FROM `order` WHERE order_number = #{orderNo}")
+    @Results({
+        @Result(property = "statusStr", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "items", column = "id",
+                many = @Many(select = "findItemsByOrderId"))
+    })
+    Order findByOrderNo(String orderNo);
+}    
