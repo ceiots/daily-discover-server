@@ -98,7 +98,14 @@ public class OrderService {
     }
 
     public Order getOrderByNo(String orderNo) {
-        return orderMapper.findByOrderNo(orderNo);
+        try {
+            // 假设这里是从数据库查询订单的逻辑
+            return orderRepository.findByOrderNo(orderNo);
+        } catch (Exception e) {
+            // 打印异常信息，方便排查
+            logger.error("获取订单详情失败，订单号: {}", orderNo, e);
+            throw e;
+        }
     }
     // 插入订单商品项的方法
     private void insertOrderItems(List<OrderItem> items) {
