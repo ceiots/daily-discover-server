@@ -196,7 +196,7 @@ public class OrderController {
     }
 
 
-    // 修改接口路径，保持URI语义一致性
+  // 修改接口路径，保持URI语义一致性
     @GetMapping("/{orderNo}")
     public ResponseEntity<Order> getOrderByNo(@PathVariable String orderNo) {
         Order order = orderService.getOrderByNo(orderNo);
