@@ -195,7 +195,8 @@ public class OrderController {
         logger.info("尝试获取订单详情，订单ID: {}", orderId);
     }
 
-    @GetMapping("/orders/{orderNo}")
+    // 修改接口路径，保持URI语义一致性
+    @GetMapping("/{orderNo}")
     public ResponseEntity<Order> getOrderByNo(@PathVariable String orderNo) {
         Order order = orderService.getOrderByNo(orderNo);
         if (order == null) {
