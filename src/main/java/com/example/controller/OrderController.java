@@ -162,32 +162,6 @@ public class OrderController {
     }
 
     /**
-     * 获取指定订单详情
-     * @param orderId 订单 ID
-     * @return 通用结果，包含订单详情
-     */
-    @GetMapping("/{orderId}")
-    public CommonResult<Order> getOrderById(@PathVariable Long orderId) {
-        // 参数校验
-        if (orderId == null) {
-            logger.error("获取订单详情时，订单ID为空");
-            return CommonResult.failed("订单ID不能为空");
-        }
-        try {
-            // 调用额外的方法，这里假设记录一个信息日志
-            logOrderRetrievalAttempt(orderId);
-            Order order = orderService.getOrderById(orderId);
-            if (order == null) {
-                return CommonResult.failed("未找到该订单");
-            }
-            return CommonResult.success(order);
-        } catch (Exception e) {
-            logger.error("获取订单详情时发生异常，订单ID: {}", orderId, e);
-            return CommonResult.failed("获取订单详情失败，请稍后重试");
-        }
-    }
-
-    /**
      * 记录订单检索尝试的日志
      * @param orderId 订单 ID
      */
@@ -199,6 +173,7 @@ public class OrderController {
   // 修改接口路径，保持URI语义一致性
     @GetMapping("/{orderNo}")
     public ResponseEntity<Order> getOrderByNo(@PathVariable String orderNo) {
+        System.out.println("Received request to get order by number: " + orderNo);
         Order order = orderService.getOrderByNo(orderNo);
         if (order == null) {
             return ResponseEntity.notFound().build();
