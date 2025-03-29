@@ -18,10 +18,9 @@ public class Order {
     private Long orderAddrId;      // 对应数据库 order_addr_id
     private Integer status;        // 对应数据库 status
     private String shippingAddress; // 对应数据库 shipping_address
+    private String statusStr;      // 添加状态描述字段
     private List<OrderItem> items;
     
-    // getter/setter 方法已经由 @Data 注解生成
-
     // 计算订单总金额的方法
     public BigDecimal calculateTotalAmount() {
         BigDecimal total = BigDecimal.ZERO;

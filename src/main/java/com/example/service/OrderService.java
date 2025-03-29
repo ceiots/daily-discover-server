@@ -163,7 +163,11 @@ public class OrderService {
         }
         // 这里可以添加更多支付逻辑，如调用支付接口等
         order.setStatus(ORDER_STATUS_PAID); 
+        // 设置支付时间为当前时间
+        order.setPaymentTime(new Date()); 
         orderMapper.updateOrderStatus(orderId, ORDER_STATUS_PAID);
+        // 更新支付时间
+        orderMapper.updatePaymentTime(orderId, order.getPaymentTime()); 
     }
 
     /**

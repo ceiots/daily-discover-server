@@ -4,6 +4,8 @@ import com.example.model.Order;
 import com.example.model.OrderItem;
 import com.example.util.OrderStatusTypeHandler;
 import org.apache.ibatis.annotations.*;
+import com.example.util.SpecificationsTypeHandler; // 新增导入语句
+import java.util.Date;
 import java.util.List;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Param;
@@ -59,6 +61,16 @@ public interface OrderMapper {
     // 添加缺失的常量定义
     String SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL = "SELECT * FROM order_item WHERE order_id = #{orderId}";
     @Select(SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL)
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "orderId", column = "order_id"),
+        @Result(property = "productId", column = "product_id"),
+        @Result(property = "quantity", column = "quantity"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "subtotal", column = "subtotal"),
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class)
+    })
     List<OrderItem> findItemsByOrderId(Long orderId);
 
     // 新增方法
@@ -142,4 +154,8 @@ public interface OrderMapper {
                 many = @Many(select = "findItemsByOrderId"))
     })
     Order findByOrderNo(String orderNo);
+    
+    // 新增更新支付时间的方法
+    @Update("UPDATE `order` SET payment_time = #{paymentTime} WHERE id = #{orderId}")
+    void updatePaymentTime(@Param("orderId") Long orderId, @Param("paymentTime") Date paymentTime);
 }
