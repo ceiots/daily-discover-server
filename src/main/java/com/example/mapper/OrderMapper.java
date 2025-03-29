@@ -142,4 +142,4 @@ public interface OrderMapper {
                 many = @Many(select = "findItemsByOrderId"))
     })
     Order findByOrderNo(String orderNo);
-}    
+}
