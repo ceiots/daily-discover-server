@@ -29,8 +29,8 @@ public interface OrderMapper {
     String CANCEL_ORDER_SQL = "UPDATE `order` SET status = -1 WHERE id = #{orderId}";
     
     // 修改insertOrder方法
-    @Insert("INSERT INTO `order` (user_id, order_number, payment_amount, payment_method, status, created_at, order_addr_id) " +
-            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{status}, #{createdAt}, #{orderAddrId})")
+    @Insert("INSERT INTO `order` (user_id, order_number, payment_amount, payment_method, payment_time, status, created_at, order_addr_id) " +
+            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, {paymentTime}, #{status}, #{createdAt}, #{orderAddrId})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrder(Order order);
     @Update(UPDATE_ORDER_STATUS_SQL)
@@ -148,6 +148,8 @@ public interface OrderMapper {
     
     @Select("SELECT * FROM `order` WHERE order_number = #{orderNo}")
     @Results({
+        // 显式映射 id 字段
+        @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
                 typeHandler = OrderStatusTypeHandler.class),
         @Result(property = "items", column = "id",
@@ -156,6 +158,9 @@ public interface OrderMapper {
     Order findByOrderNo(String orderNo);
     
     // 新增更新支付时间的方法
-    @Update("UPDATE `order` SET payment_time = #{paymentTime} WHERE id = #{orderId}")
+    @Update("UPDATE orders SET payment_time = #{paymentTime} WHERE id = #{orderId}")
     void updatePaymentTime(@Param("orderId") Long orderId, @Param("paymentTime") Date paymentTime);
+
+    @Update("UPDATE orders SET payment_method = #{paymentMethod} WHERE id = #{orderId}")
+    void updatePaymentMethod(@Param("orderId") Long orderId, @Param("paymentMethod") String paymentMethod);
 }

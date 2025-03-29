@@ -69,39 +69,6 @@ public class OrderController {
     }
 
     /**
-     * 支付订单
-     * @param orderId 订单 ID
-     * @param paymentInfo 支付信息
-     * @param request HTTP 请求
-     * @return 通用结果
-     */
-    @PostMapping("/{orderId}/pay")
-    public CommonResult<Void> payOrder(
-            @PathVariable Long orderId,
-            @RequestBody PaymentInfo paymentInfo,
-            HttpServletRequest request) {
-        // 参数校验
-        if (orderId == null) {
-            logger.error("支付订单时，订单ID为空");
-            return CommonResult.failed("订单ID不能为空");
-        }
-        if (paymentInfo == null) {
-            logger.error("支付订单时，支付信息为空");
-            return CommonResult.failed("支付信息不能为空");
-        }
-        try {
-            Long userId = (Long) request.getAttribute("userId");
-            orderService.payOrder(orderId, userId, paymentInfo);
-            logger.info("订单ID为 {} 的订单已成功支付", orderId);
-            return CommonResult.success(null);
-        } catch (Exception e) {
-            // 异常处理
-            logger.error("支付订单时发生异常，订单ID: {}", orderId, e);
-            return CommonResult.failed("支付订单失败，请稍后重试");
-        }
-    }
-
-    /**
      * 获取所有订单
      * @return 通用结果，包含所有订单列表
      */
@@ -148,6 +115,7 @@ public class OrderController {
     
             order.setPaymentAmount(orderCreateDto.getTotalAmount());
             order.setPaymentMethod(orderCreateDto.getPayType());
+            order.setPaymentTime(new Date());
             order.setStatus(OrderService.ORDER_STATUS_PENDING_PAYMENT); // 使用常量设置订单状态
     
             AddressDto addressDto = orderCreateDto.getAddress();
@@ -168,6 +136,7 @@ public class OrderController {
         try {
             System.out.println("Received request to get order by number: " + orderNo);
             Order order = orderService.getOrderByNo(orderNo);
+            System.out.println("Order retrieved: " + order);
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }
