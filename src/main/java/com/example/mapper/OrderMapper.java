@@ -30,7 +30,7 @@ public interface OrderMapper {
     
     // 修改insertOrder方法
     @Insert("INSERT INTO `order` (user_id, order_number, payment_amount, payment_method, payment_time, status, created_at, order_addr_id) " +
-            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, {paymentTime}, #{status}, #{createdAt}, #{orderAddrId})")
+            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{paymentTime}, #{status}, #{createdAt}, #{orderAddrId})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrder(Order order);
     @Update(UPDATE_ORDER_STATUS_SQL)

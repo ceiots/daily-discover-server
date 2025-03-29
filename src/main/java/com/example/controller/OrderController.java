@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
 import java.math.BigDecimal;
 
 /**
@@ -136,7 +137,7 @@ public class OrderController {
         try {
             System.out.println("Received request to get order by number: " + orderNo);
             Order order = orderService.getOrderByNo(orderNo);
-            System.out.println("Order retrieved: " + order);
+           
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }
