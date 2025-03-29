@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.HttpStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.ArrayList;
@@ -159,14 +159,6 @@ public class OrderController {
             logger.error("创建订单时发生异常", e);
             return CommonResult.failed("创建订单失败：" + e.getMessage());
         }
-    }
-
-    /**
-     * 记录订单检索尝试的日志
-     * @param orderId 订单 ID
-     */
-    private void logOrderRetrievalAttempt(Long orderId) {
-        logger.info("尝试获取订单详情，订单ID: {}", orderId);
     }
 
 
