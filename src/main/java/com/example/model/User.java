@@ -6,7 +6,6 @@ public class User {
     private Long id;
     private String phoneNumber;
     private String password;
-    private String name;
     private String memberLevel;
     private String avatar;
     private Date registrationTime;
@@ -36,14 +35,6 @@ public class User {
     
     public void setPassword(String password) {
         this.password = password;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public void setName(String name) {
-        this.name = name;
     }
     
     public String getMemberLevel() {

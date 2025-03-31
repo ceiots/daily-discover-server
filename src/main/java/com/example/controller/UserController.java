@@ -1,22 +1,22 @@
 package com.example.controller;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.config.ImageConfig;
 import com.example.dto.ResetPasswordRequest;
 import com.example.model.User;
 import com.example.service.UserService;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/user")
@@ -86,10 +86,19 @@ public class UserController {
         if (user != null) {
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("id", user.getId());
-            userInfo.put("name", user.getName());
+            userInfo.put("nickname", user.getNickname());
             userInfo.put("phoneNumber", user.getPhoneNumber());
-            userInfo.put("memberLevel", user.getMemberLevel());
-            userInfo.put("avatar", user.getAvatar());
+            userInfo.put("memberLevel", user.getMemberLevel() != null ? user.getMemberLevel() : "普通会员");
+            
+            // 处理头像路径
+            String avatar = user.getAvatar();
+            if (avatar != null && !avatar.startsWith("http")) {
+                // 如果不是完整URL，可以在这里添加处理逻辑
+                // 例如，可以添加相对路径前缀
+                avatar = ImageConfig.getFullImageUrl(avatar);
+            }
+            userInfo.put("avatar", avatar);
+            
             return ResponseEntity.ok(userInfo);
         }
         return ResponseEntity.notFound().build();

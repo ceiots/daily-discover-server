@@ -38,34 +38,94 @@ public class OrderController {
      * @return 通用结果，包含订单列表
      */
     @GetMapping("/user")
-    public CommonResult<List<Order>> getUserOrders(
-            @RequestParam(required = false) Integer status,
+    public ResponseEntity<List<Order>> getUserOrders(
+            @RequestParam(required = false, defaultValue = "all") String status,
             HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
-        return CommonResult.success(orderService.getUserOrders(userId, status));
+        try {
+            // 从请求头或会话中获取用户ID
+            Long userId = (Long) request.getAttribute("userId");
+            if (userId == null) {
+                // 如果在请求属性中没有找到，尝试从请求参数中获取
+                String userIdStr = request.getParameter("userId");
+                if (userIdStr != null && !userIdStr.isEmpty()) {
+                    userId = Long.parseLong(userIdStr);
+                }
+            }
+            
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            
+            // 调用服务层方法获取订单列表
+            List<Order> orders = orderService.getUserOrders(userId, status);
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            logger.error("获取用户订单列表时发生异常，状态: {}", status, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * 取消订单
      * @param orderId 订单 ID
-     * @return 通用结果
+     * @return 操作结果
      */
     @PostMapping("/{orderId}/cancel")
-    public CommonResult<Void> cancelOrder(@PathVariable Long orderId) {
+    public ResponseEntity<String> cancelOrder(
+            @PathVariable Long orderId,
+            HttpServletRequest request) {
+        try {
+            // 从请求头或会话中获取用户ID
+            Long userId = (Long) request.getAttribute("userId");
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户未登录");
+            }
+            
+            // 调用服务方法取消订单
+            boolean success = orderService.cancelOrder(orderId, userId);
+            if (success) {
+                logger.info("订单ID为 {} 的订单已成功取消", orderId);
+                return ResponseEntity.ok("订单取消成功");
+            } else {
+                logger.warn("取消订单失败，订单ID: {}, 用户ID: {}", orderId, userId);
+                return ResponseEntity.badRequest().body("取消订单失败，可能订单状态已变更或不属于当前用户");
+            }
+        } catch (Exception e) {
+            logger.error("取消订单时发生异常，订单ID: {}", orderId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("取消订单失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 支付订单
+     * @param orderId 订单 ID
+     * @param paymentInfo 支付信息
+     * @param request HTTP 请求
+     * @return 通用结果
+     */
+    @PostMapping("/{orderId}/pay")
+    public CommonResult<Void> payOrder(
+            @PathVariable Long orderId,
+            @RequestBody PaymentInfo paymentInfo,
+            HttpServletRequest request) {
         // 参数校验
         if (orderId == null) {
-            logger.error("取消订单时，订单ID为空");
+            logger.error("支付订单时，订单ID为空");
             return CommonResult.failed("订单ID不能为空");
         }
+        if (paymentInfo == null) {
+            logger.error("支付订单时，支付信息为空");
+            return CommonResult.failed("支付信息不能为空");
+        }
         try {
-            // 调用服务方法取消订单
-            orderService.cancelOrder(orderId);
-            logger.info("订单ID为 {} 的订单已成功取消", orderId);
+            Long userId = (Long) request.getAttribute("userId");
+            orderService.payOrder(orderId, userId, paymentInfo);
+            logger.info("订单ID为 {} 的订单已成功支付", orderId);
             return CommonResult.success(null);
         } catch (Exception e) {
             // 异常处理
-            logger.error("取消订单时发生异常，订单ID: {}", orderId, e);
-            return CommonResult.failed("取消订单失败，请稍后重试");
+            logger.error("支付订单时发生异常，订单ID: {}", orderId, e);
+            return CommonResult.failed("支付订单失败，请稍后重试");
         }
     }
 
@@ -137,7 +197,6 @@ public class OrderController {
         try {
             System.out.println("Received request to get order by number: " + orderNo);
             Order order = orderService.getOrderByNo(orderNo);
-           
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }

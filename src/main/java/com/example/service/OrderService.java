@@ -6,6 +6,7 @@ import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
 import com.example.dto.AddressDto;
+import com.example.config.ImageConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +22,24 @@ import java.util.*;
 public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
+    // 订单状态常量
+    public static final int ORDER_STATUS_PENDING_PAYMENT = 0; // 待付款
+    public static final int ORDER_STATUS_PENDING_DELIVERY = 1; // 待发货
+    public static final int ORDER_STATUS_PENDING_RECEIPT = 2; // 待收货
+    public static final int ORDER_STATUS_COMPLETED = 3; // 已完成
+    public static final int ORDER_STATUS_CANCELLED = 4; // 已取消
+
     @Autowired
     private OrderMapper orderMapper;
+    
+    @Autowired
+    private ImageConfig imageConfig;
 
     @Autowired
     private OrderItemMapper orderItemMapper;
 
     @Autowired
-    private OrderAddrService orderAddrService; // 新增注入
+    private OrderAddrService orderAddrService;
 
     /**
      * 创建订单
@@ -120,12 +131,18 @@ public class OrderService {
     /**
      * 获取用户的订单列表
      * @param userId 用户ID
-     * @param status 订单状态
+     * @param status 订单状态，如果为"all"则查询所有状态
      * @return 订单列表
      */
-    public List<Order> getUserOrders(Long userId, Integer status) {
-        if (status != null) {
-            return orderMapper.getUserOrdersByStatus(userId, status);
+    public List<Order> getUserOrders(Long userId, String status) {
+        if (status != null && !"all".equals(status)) {
+            try {
+                Integer statusCode = Integer.parseInt(status);
+                return orderMapper.getUserOrdersByStatus(userId, statusCode);
+            } catch (NumberFormatException e) {
+                logger.warn("无效的订单状态值: {}", status);
+                return orderMapper.getUserOrders(userId);
+            }
         } else {
             return orderMapper.getUserOrders(userId);
         }
@@ -134,16 +151,33 @@ public class OrderService {
     /**
      * 取消订单
      * @param orderId 订单ID
+     * @param userId 用户ID
+     * @return 是否成功取消
      */
     @Transactional
-    public void cancelOrder(Long orderId) {
+    public boolean cancelOrder(Long orderId, Long userId) {
         Order order = getOrderById(orderId);
         if (order == null) {
-            throw new IllegalArgumentException("订单不存在，订单ID: " + orderId);
+            logger.warn("订单不存在，订单ID: {}", orderId);
+            return false;
         }
-        // 这里可以添加更多取消订单的逻辑，如更新库存等
-        order.setStatus(ORDER_STATUS_CANCELED); 
-        orderMapper.updateOrderStatus(orderId, ORDER_STATUS_CANCELED);
+        
+        // 验证订单是否属于该用户
+        if (!order.getUserId().equals(userId)) {
+            logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, userId);
+            return false;
+        }
+        
+        // 只有待付款状态的订单可以取消
+        if (order.getStatus() != ORDER_STATUS_PENDING_PAYMENT) {
+            logger.warn("订单状态不允许取消，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
+            return false;
+        }
+        
+        // 更新订单状态为已取消
+        order.setStatus(ORDER_STATUS_CANCELLED);
+        orderMapper.updateOrderStatus(orderId, ORDER_STATUS_CANCELLED);
+        return true;
     }
 
     /**
@@ -162,10 +196,10 @@ public class OrderService {
             throw new IllegalArgumentException("用户无权支付该订单，订单ID: " + orderId);
         }
         // 这里可以添加更多支付逻辑，如调用支付接口等
-        order.setStatus(ORDER_STATUS_PAID); 
+        order.setStatus(ORDER_STATUS_PENDING_DELIVERY); // 修改为待发货状态
         // 设置支付时间为当前时间
         order.setPaymentTime(new Date()); 
-        orderMapper.updateOrderStatus(orderId, ORDER_STATUS_PAID);
+        orderMapper.updateOrderStatus(orderId, ORDER_STATUS_PENDING_DELIVERY);
         // 更新支付时间
         orderMapper.updatePaymentTime(orderId, order.getPaymentTime()); 
     }
@@ -178,10 +212,9 @@ public class OrderService {
         return orderMapper.getAllOrders();
     }
 
-    // 新增订单状态常量
-    public static final int ORDER_STATUS_PENDING_PAYMENT = 1;
-    public static final int ORDER_STATUS_PAID = 2;
-    public static final int ORDER_STATUS_CANCELED = 3;
+    // 删除这里的重复定义
+    // public static final int ORDER_STATUS_PAID = 2;
+    // public static final int ORDER_STATUS_CANCELED = 3;
 
     /**
      * 处理订单的地址信息
@@ -202,4 +235,5 @@ public class OrderService {
         order.setOrderAddrId(orderAddr.getOrderAddrId()); // 设置订单的收货地址ID
     }
 
+    // 删除重复的常量定义
 }

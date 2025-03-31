@@ -4,11 +4,9 @@ import com.example.model.Order;
 import com.example.model.OrderItem;
 import com.example.util.OrderStatusTypeHandler;
 import org.apache.ibatis.annotations.*;
-import com.example.util.SpecificationsTypeHandler; // 新增导入语句
+import com.example.util.SpecificationsTypeHandler;
 import java.util.Date;
 import java.util.List;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface OrderMapper {
@@ -23,8 +21,9 @@ public interface OrderMapper {
     String SELECT_ORDERS_BY_USER_ID_AND_STATUS_SQL = "<script>" +
             "SELECT * FROM `order` WHERE user_id = #{userId} " +
             "<when test='status != null'> AND status = #{status} </when>" +
-            "ORDER BY create_time DESC" +
+            "ORDER BY created_at DESC" +
             "</script>";
+    
     String SELECT_ALL_ORDERS_SQL = "SELECT * FROM `order`";
     String CANCEL_ORDER_SQL = "UPDATE `order` SET status = -1 WHERE id = #{orderId}";
     
@@ -33,6 +32,7 @@ public interface OrderMapper {
             "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{paymentTime}, #{status}, #{createdAt}, #{orderAddrId})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrder(Order order);
+    
     @Update(UPDATE_ORDER_STATUS_SQL)
     void updateOrderStatus(Order order);
 
@@ -45,21 +45,9 @@ public interface OrderMapper {
     })
     Order findById(Long orderId);
 
-    @Select(SELECT_ORDERS_BY_USER_ID_AND_STATUS_SQL)
-    @Results({
-            @Result(property = "statusStr", column = "status",
-                    typeHandler = OrderStatusTypeHandler.class),
-            @Result(property = "paymentTime", column = "payment_time"),
-            @Result(property = "paymentMethod", column = "payment_method"),
-            @Result(property = "paymentAmount", column = "payment_amount"),
-            @Result(property = "items", column = "id",
-                    many = @Many(select = "findItemsByOrderId"))
-    })
-    List<Order> findByUserIdAndStatus(@Param("userId") Long userId,
-                                      @Param("status") Integer status);
-
     // 添加缺失的常量定义
     String SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL = "SELECT * FROM order_item WHERE order_id = #{orderId}";
+    
     @Select(SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL)
     @Results({
         @Result(property = "id", column = "id"),
@@ -73,7 +61,7 @@ public interface OrderMapper {
     })
     List<OrderItem> findItemsByOrderId(Long orderId);
 
-    // 新增方法
+    // 获取所有订单
     @Select(SELECT_ALL_ORDERS_SQL)
     @Results({
             @Result(property = "statusStr", column = "status",
@@ -88,7 +76,8 @@ public interface OrderMapper {
 
     @Update(CANCEL_ORDER_SQL)
     void cancelOrder(Long orderId);
-    // 新增 getUserOrders 方法
+    
+    // 获取用户所有订单
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
     @Results({
             @Result(property = "statusStr", column = "status",
@@ -101,7 +90,7 @@ public interface OrderMapper {
     })
     List<Order> getUserOrders(@Param("userId") Long userId);
 
-    // 新增 getUserOrdersByStatus 方法
+    // 根据状态获取用户订单
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
     @Results({
             @Result(property = "statusStr", column = "status",
@@ -114,6 +103,7 @@ public interface OrderMapper {
     })
     List<Order> getUserOrdersByStatus(@Param("userId") Long userId, @Param("status") Integer status);
 
+    // 根据ID获取订单
     @Select("SELECT * FROM `order` WHERE id = #{orderId}")
     @Results({
             @Result(property = "status", column = "status"),
@@ -125,12 +115,12 @@ public interface OrderMapper {
     })
     Order getOrderById(Long orderId);
     
-    // 新增插入订单商品项的方法
+    // 插入订单商品项
     @Insert("INSERT INTO order_item (order_id, product_id, quantity, price, subtotal) VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrderItem(OrderItem orderItem);
     
-    // 根据订单 ID 查询订单商品项
+    // 根据订单ID查询订单商品项
     @Select("SELECT * FROM order_item WHERE order_id = #{orderId}")
     @Results({
         @Result(property = "id", column = "id"),
@@ -140,15 +130,15 @@ public interface OrderMapper {
         @Result(property = "price", column = "price"),
         @Result(property = "subtotal", column = "subtotal")
     })
-    List<OrderItem> findOrderItemsByOrderId(Long orderId);
+    List<OrderItem> findOrderItemsByOrderId(@Param("orderId") Long orderId);
     
-    // 新增根据订单ID和状态更新订单状态的方法
+    // 更新订单状态
     @Update("UPDATE `order` SET status = #{status} WHERE id = #{orderId}")
-    void updateOrderStatus(Long orderId, Integer status);
+    void updateOrderStatus(@Param("orderId") Long orderId, @Param("status") Integer status);
     
+    // 根据订单号查询订单
     @Select("SELECT * FROM `order` WHERE order_number = #{orderNo}")
     @Results({
-        // 显式映射 id 字段
         @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
                 typeHandler = OrderStatusTypeHandler.class),
@@ -157,10 +147,21 @@ public interface OrderMapper {
     })
     Order findByOrderNo(String orderNo);
     
-    // 新增更新支付时间的方法
+    // 更新支付时间
     @Update("UPDATE `order` SET payment_time = #{paymentTime} WHERE id = #{orderId}")
     void updatePaymentTime(@Param("orderId") Long orderId, @Param("paymentTime") Date paymentTime);
 
+    // 更新支付方式
     @Update("UPDATE `order` SET payment_method = #{paymentMethod} WHERE id = #{orderId}")
     void updatePaymentMethod(@Param("orderId") Long orderId, @Param("paymentMethod") String paymentMethod);
+    
+    /**
+     * 取消订单
+     * @param orderId 订单ID
+     * @param userId 用户ID（用于验证权限）
+     * @param status 更新的状态值
+     * @return 影响的行数
+     */
+    @Update("UPDATE `order` SET status = #{status} WHERE id = #{orderId} AND user_id = #{userId}")
+    int cancelOrder(@Param("orderId") Long orderId, @Param("userId") Long userId, @Param("status") Integer status);
 }

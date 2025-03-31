@@ -23,7 +23,7 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.example.model.Order" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO order (
+        INSERT INTO `order` (
             user_id, order_number, created_at, payment_method, 
             payment_amount, status, shipping_address, order_addr_id
         ) VALUES (
@@ -31,4 +31,66 @@
             #{paymentAmount}, #{status}, #{shippingAddress}, #{orderAddrId}
         )
     </insert>
+
+     <select id="findByUserIdAndStatus" resultType="com.example.model.Order">
+        SELECT 
+            o.id,
+            o.order_no as orderNo,
+            o.user_id as userId,
+            o.status,
+            CASE 
+                WHEN o.status = 0 THEN '待付款'
+                WHEN o.status = 1 THEN '待发货'
+                WHEN o.status = 2 THEN '待收货'
+                WHEN o.status = 3 THEN '已完成'
+                WHEN o.status = 4 THEN '已取消'
+                ELSE '未知状态'
+            END as statusText,
+            o.total_amount as totalAmount,
+            o.create_time as createTime,
+            o.pay_time as payTime,
+            o.ship_time as shipTime,
+            o.complete_time as completeTime,
+            o.cancel_time as cancelTime,
+            o.shop_name as shopName
+        FROM 
+            `order` o
+        WHERE 
+            o.user_id = #{userId}
+            <if test="status != null and status != 'all'">
+                AND o.status = #{status}
+            </if>
+        ORDER BY 
+            o.create_time DESC
+    </select>
+    
+    <!-- 根据订单ID查询订单项 -->
+    <select id="findOrderItemsByOrderId" resultType="com.example.model.OrderItem">
+        SELECT 
+            oi.id,
+            oi.order_id as orderId,
+            oi.product_id as productId,
+            oi.product_name as productName,
+            oi.product_image as productImage,
+            oi.price,
+            oi.quantity,
+            oi.specs,
+            oi.attributes
+        FROM 
+            order_items oi
+        WHERE 
+            oi.order_id = #{orderId}
+    </select>
+    
+    <!-- 取消订单 -->
+    <update id="cancelOrder">
+        UPDATE `order`
+        SET 
+            status = 4,
+            cancel_time = NOW()
+        WHERE 
+            id = #{orderId}
+            AND user_id = #{userId}
+            AND status = 0
+    </update>
 </mapper> 
