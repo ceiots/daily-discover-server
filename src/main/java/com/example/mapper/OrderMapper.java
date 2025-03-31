@@ -89,7 +89,7 @@ public interface OrderMapper {
     @Update(CANCEL_ORDER_SQL)
     void cancelOrder(Long orderId);
     // 新增 getUserOrders 方法
-    @Select("SELECT * FROM order WHERE user_id = #{userId} ORDER BY create_time DESC")
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
     @Results({
             @Result(property = "statusStr", column = "status",
                     typeHandler = OrderStatusTypeHandler.class),
@@ -102,7 +102,7 @@ public interface OrderMapper {
     List<Order> getUserOrders(@Param("userId") Long userId);
 
     // 新增 getUserOrdersByStatus 方法
-    @Select("SELECT * FROM order WHERE user_id = #{userId} AND status = #{status} ORDER BY create_time DESC")
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
     @Results({
             @Result(property = "statusStr", column = "status",
                     typeHandler = OrderStatusTypeHandler.class),
@@ -114,7 +114,7 @@ public interface OrderMapper {
     })
     List<Order> getUserOrdersByStatus(@Param("userId") Long userId, @Param("status") Integer status);
 
-    @Select("SELECT * FROM order WHERE id = #{orderId}")
+    @Select("SELECT * FROM `order` WHERE id = #{orderId}")
     @Results({
             @Result(property = "status", column = "status"),
             @Result(property = "paymentTime", column = "payment_time"),
@@ -143,7 +143,7 @@ public interface OrderMapper {
     List<OrderItem> findOrderItemsByOrderId(Long orderId);
     
     // 新增根据订单ID和状态更新订单状态的方法
-    @Update("UPDATE order SET status = #{status} WHERE id = #{orderId}")
+    @Update("UPDATE `order` SET status = #{status} WHERE id = #{orderId}")
     void updateOrderStatus(Long orderId, Integer status);
     
     @Select("SELECT * FROM `order` WHERE order_number = #{orderNo}")
@@ -158,9 +158,9 @@ public interface OrderMapper {
     Order findByOrderNo(String orderNo);
     
     // 新增更新支付时间的方法
-    @Update("UPDATE orders SET payment_time = #{paymentTime} WHERE id = #{orderId}")
+    @Update("UPDATE `order` SET payment_time = #{paymentTime} WHERE id = #{orderId}")
     void updatePaymentTime(@Param("orderId") Long orderId, @Param("paymentTime") Date paymentTime);
 
-    @Update("UPDATE orders SET payment_method = #{paymentMethod} WHERE id = #{orderId}")
+    @Update("UPDATE `order` SET payment_method = #{paymentMethod} WHERE id = #{orderId}")
     void updatePaymentMethod(@Param("orderId") Long orderId, @Param("paymentMethod") String paymentMethod);
 }

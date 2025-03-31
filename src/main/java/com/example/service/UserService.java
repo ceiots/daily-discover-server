@@ -193,4 +193,13 @@ public class UserService {
         // 更新数据库中的密码
         userMapper.updatePassword(phoneNumber, hashedPassword);
     }
+    
+    /**
+     * 根据用户ID查询用户信息
+     * @param userId 用户ID
+     * @return 用户对象，如果不存在则返回null
+     */
+    public User findUserById(Long userId) {
+        return userMapper.findById(userId);
+    }
 }

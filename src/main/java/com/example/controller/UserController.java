@@ -13,7 +13,10 @@ import com.example.model.User;
 import com.example.service.UserService;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/user")
@@ -77,4 +80,18 @@ public class UserController {
         return ResponseEntity.ok().body(message);
     }
 
+    @GetMapping("/info")
+    public ResponseEntity<?> getUserInfo(@RequestParam Long userId) {
+        User user = userService.findUserById(userId);
+        if (user != null) {
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", user.getId());
+            userInfo.put("name", user.getName());
+            userInfo.put("phoneNumber", user.getPhoneNumber());
+            userInfo.put("memberLevel", user.getMemberLevel());
+            userInfo.put("avatar", user.getAvatar());
+            return ResponseEntity.ok(userInfo);
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

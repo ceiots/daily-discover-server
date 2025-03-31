@@ -22,4 +22,11 @@ public interface UserMapper {
     User findByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 
     void updatePassword(@Param("phoneNumber") String phoneNumber, @Param("password") String password);
+    
+    /**
+     * 根据ID查询用户
+     * @param id 用户ID
+     * @return 用户对象
+     */
+    User findById(@Param("id") Long id);
 }
