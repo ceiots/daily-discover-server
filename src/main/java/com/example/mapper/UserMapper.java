@@ -11,14 +11,14 @@ import com.example.model.User;
 @Mapper
 public interface UserMapper {
 
-    @Select("SELECT * FROM users WHERE phone_number = #{phone_number} AND password = #{password}")
+    @Select("SELECT * FROM user WHERE phone_number = #{phone_number} AND password = #{password}")
     User findByPhoneNumberAndPassword(@Param("phone_number") String phone_number, @Param("password") String password);
 
-    @Insert("INSERT INTO users (phone_number, password, nickname) VALUES (#{phoneNumber}, #{password}, #{nickname})")
+    @Insert("INSERT INTO user (phone_number, password, nickname) VALUES (#{phoneNumber}, #{password}, #{nickname})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void registerUser(User user);
 
-    @Select("SELECT * FROM users WHERE phone_number = #{phoneNumber}")
+    @Select("SELECT * FROM user WHERE phone_number = #{phoneNumber}")
     User findByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 
     void updatePassword(@Param("phoneNumber") String phoneNumber, @Param("password") String password);

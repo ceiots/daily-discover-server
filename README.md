@@ -104,16 +104,6 @@ VALUES
 (1, '张明', '/images/avatar/avatar2.jpg', '作为书法爱好者，这套文房四宝的品质让我很惊喜。', 4.0, '2023-06-10');
 
 
-## 用户表 
-CREATE TABLE users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    phone_number VARCHAR(15) NOT NULL UNIQUE, -- 手机号码
-    password VARCHAR(255) NOT NULL, -- 密码（建议使用哈希存储）
-    nickname VARCHAR(50), -- 昵称
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
 CREATE TABLE demo.recommendation_categories (
     recommendation_id BIGINT NOT NULL,
     category_id BIGINT NOT NULL,
