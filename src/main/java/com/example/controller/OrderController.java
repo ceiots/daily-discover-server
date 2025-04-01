@@ -45,10 +45,11 @@ public class OrderController {
            
             // 从请求头或会话中获取用户ID
             Long userId = (Long) request.getAttribute("userId");
-            System.out.println("userId:"+userId);
+            System.out.println("从请求头或会话中获取userId:"+userId);
             if (userId == null) {
                 // 如果在请求属性中没有找到，尝试从请求参数中获取
                 String userIdStr = request.getParameter("userId");
+                System.out.println("从请求参数中获取userId:"+userId);
                 if (userIdStr != null && !userIdStr.isEmpty()) {
                     userId = Long.parseLong(userIdStr);
                 }
