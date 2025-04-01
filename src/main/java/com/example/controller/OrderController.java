@@ -227,4 +227,42 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * 根据用户ID获取订单列表，支持分页和状态筛选
+     * @param userId 用户ID
+     * @param status 订单状态，整数类型
+     * @param page 页码，默认第0页
+     * @param size 每页数量，默认10条
+     * @param sort 排序字段，默认按创建时间降序
+     * @return 通用结果，包含订单列表
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<CommonResult<Page<Order>>> getUserOrdersById(
+            @PathVariable Long userId,
+            @RequestParam(required = false, defaultValue = "0") Integer status,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
+            @RequestParam(required = false, defaultValue = "createdAt,desc") String sort) {
+        try {
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            
+            // 处理排序
+            String[] sortParams = sort.split(",");
+            Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            String sortField = sortParams[0];
+            Pageable pageable = PageRequest.of(page, size, direction, sortField);
+
+            // 调用服务层方法获取订单列表
+            Page<Order> orders = orderService.getUserOrdersById(userId, status, pageable);
+
+            // 返回成功响应
+            return ResponseEntity.ok(CommonResult.success(orders));
+        } catch (Exception e) {
+            logger.error("获取用户订单列表时发生异常，用户ID: {}, 状态: {}", userId, status, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

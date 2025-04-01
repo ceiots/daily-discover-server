@@ -239,4 +239,19 @@ public class OrderService {
     }
 
     // 删除重复的常量定义
+
+    /**
+     * 根据用户ID获取订单列表，支持分页和状态筛选
+     * @param userId 用户ID
+     * @param status 订单状态，整数类型
+     * @param pageable 分页参数
+     * @return 分页后的订单列表
+     */
+    public Page<Order> getUserOrdersById(Long userId, Integer status, Pageable pageable) {
+        if (status != null && status != 0) { // 0表示全部
+            return orderMapper.getUserOrdersByIdAndStatus(userId, status, pageable);
+        } else {
+            return orderMapper.getUserOrdersById(userId, pageable);
+        }
+    }
 }

@@ -1,15 +1,24 @@
 package com.example.mapper;
 
-import com.example.model.Order;
-import com.example.model.OrderItem;
-import com.example.util.OrderStatusTypeHandler;
-import org.apache.ibatis.annotations.*;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Many;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Result;
+import org.apache.ibatis.annotations.Results;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.example.model.Order;
+import com.example.model.OrderItem;
+import com.example.util.OrderStatusTypeHandler;
 import com.example.util.SpecificationsTypeHandler;
-import java.util.Date;
-import java.util.List;
 
 @Mapper
 public interface OrderMapper {
@@ -148,6 +157,50 @@ public interface OrderMapper {
                 many = @Many(select = "findItemsByOrderId"))
     })
     Order findByOrderNo(String orderNo);
+    
+    // 根据用户ID获取订单列表
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "statusStr", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "items", column = "id",
+                many = @Many(select = "findItemsByOrderId"))
+    })
+    List<Order> getUserOrdersById(Long userId);
+    
+    // 根据用户ID和状态获取订单列表
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "statusStr", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "items", column = "id",
+                many = @Many(select = "findItemsByOrderId"))
+    })
+    List<Order> getUserOrdersByIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
+    
+    // 根据用户ID获取订单列表（分页）
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY ${pageable.sort}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "statusStr", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "items", column = "id",
+                many = @Many(select = "findItemsByOrderId"))
+    })
+    Page<Order> getUserOrdersById(@Param("userId") Long userId, @Param("pageable") Pageable pageable);
+    
+    // 根据用户ID和状态获取订单列表（分页）
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY ${pageable.sort}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "statusStr", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "items", column = "id",
+                many = @Many(select = "findItemsByOrderId"))
+    })
+    Page<Order> getUserOrdersByIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status, @Param("pageable") Pageable pageable);
     
     // 更新支付时间
     @Update("UPDATE `order` SET payment_time = #{paymentTime} WHERE id = #{orderId}")
