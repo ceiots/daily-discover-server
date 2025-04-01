@@ -10,6 +10,9 @@ import com.example.config.ImageConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.example.mapper.OrderItemMapper;
 
 import org.springframework.stereotype.Service;
@@ -134,17 +137,17 @@ public class OrderService {
      * @param status 订单状态，如果为"all"则查询所有状态
      * @return 订单列表
      */
-    public List<Order> getUserOrders(Long userId, String status) {
+    public Page<Order> getUserOrders(Long userId, String status, Pageable pageable) {
         if (status != null && !"all".equals(status)) {
             try {
                 Integer statusCode = Integer.parseInt(status);
-                return orderMapper.getUserOrdersByStatus(userId, statusCode);
+                return orderMapper.getUserOrdersByStatus(userId, statusCode, pageable);
             } catch (NumberFormatException e) {
                 logger.warn("无效的订单状态值: {}", status);
-                return orderMapper.getUserOrders(userId);
+                return orderMapper.getUserOrders(userId, pageable);
             }
         } else {
-            return orderMapper.getUserOrders(userId);
+            return orderMapper.getUserOrders(userId, pageable);
         }
     }
 

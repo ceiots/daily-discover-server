@@ -4,6 +4,9 @@ import com.example.model.Order;
 import com.example.model.OrderItem;
 import com.example.util.OrderStatusTypeHandler;
 import org.apache.ibatis.annotations.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.example.util.SpecificationsTypeHandler;
 import java.util.Date;
 import java.util.List;
@@ -78,7 +81,7 @@ public interface OrderMapper {
     void cancelOrder(Long orderId);
     
     // 获取用户所有订单
-    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY ${pageable.sort}")
     @Results({
             @Result(property = "statusStr", column = "status",
                     typeHandler = OrderStatusTypeHandler.class),
@@ -88,10 +91,9 @@ public interface OrderMapper {
             @Result(property = "items", column = "id",
                     many = @Many(select = "findItemsByOrderId"))
     })
-    List<Order> getUserOrders(@Param("userId") Long userId);
+    Page<Order> getUserOrders(@Param("userId") Long userId, @Param("pageable") Pageable pageable);
 
-    // 根据状态获取用户订单
-    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY ${pageable.sort}")
     @Results({
             @Result(property = "statusStr", column = "status",
                     typeHandler = OrderStatusTypeHandler.class),
@@ -101,7 +103,7 @@ public interface OrderMapper {
             @Result(property = "items", column = "id",
                     many = @Many(select = "findItemsByOrderId"))
     })
-    List<Order> getUserOrdersByStatus(@Param("userId") Long userId, @Param("status") Integer status);
+    Page<Order> getUserOrdersByStatus(@Param("userId") Long userId, @Param("status") Integer status, @Param("pageable") Pageable pageable);
 
     // 根据ID获取订单
     @Select("SELECT * FROM `order` WHERE id = #{orderId}")
