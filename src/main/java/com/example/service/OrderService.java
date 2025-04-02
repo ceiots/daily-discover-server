@@ -141,6 +141,7 @@ public class OrderService {
         if (status != null && !"all".equals(status)) {
             try {
                 Integer statusCode = Integer.parseInt(status);
+                System.out.println("getUserOrders statusCode:" + pageable);
                 return orderMapper.getUserOrdersByStatus(userId, statusCode, pageable);
             } catch (NumberFormatException e) {
                 logger.warn("无效的订单状态值: {}", status);
@@ -248,10 +249,32 @@ public class OrderService {
      * @return 分页后的订单列表
      */
     public Page<Order> getUserOrdersById(Long userId, Integer status, Pageable pageable) {
+        System.out.println(status +" getUserOrdersById:" + pageable);
+        
+        List<Order> orders;
+        int total;
+        
         if (status != null && status != 0) { // 0表示全部
-            return orderMapper.getUserOrdersByIdAndStatus(userId, status, pageable);
+            orders = orderMapper.getUserOrdersByIdAndStatusWithPage(userId, status);
+            total = orderMapper.countOrdersByUserIdAndStatus(userId, status);
         } else {
-            return orderMapper.getUserOrdersById(userId, pageable);
+            orders = orderMapper.getUserOrdersByIdWithPage(userId);
+            total = orderMapper.countOrdersByUserId(userId);
         }
+        
+        // 手动分页
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), orders.size());
+        
+        // 防止索引越界
+        if (start >= orders.size()) {
+            return new org.springframework.data.domain.PageImpl<>(
+                new ArrayList<>(), pageable, total);
+        }
+        
+        List<Order> pageContent = orders.subList(start, end);
+        
+        // 创建 Page 对象
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, total);
     }
 }

@@ -1,12 +1,12 @@
 package com.example.controller;
 
-import com.example.dto.PaymentInfo;
-import com.example.model.Order;
-import com.example.model.OrderItem;
-import com.example.service.OrderService;
-import com.example.common.api.CommonResult;
-import com.example.dto.AddressDto;
-import com.example.dto.OrderCreateDto;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +14,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Date;
-import java.math.BigDecimal;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.common.api.CommonResult;
+import com.example.dto.AddressDto;
+import com.example.dto.OrderCreateDto;
+import com.example.dto.PaymentInfo;
+import com.example.model.Order;
+import com.example.model.OrderItem;
+import com.example.service.OrderService;
 
 /**
  * 订单控制器类，处理订单相关的 HTTP 请求
@@ -49,7 +58,7 @@ public class OrderController {
             @RequestParam(required = false, defaultValue = "all") String status,
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "createdAt,desc") String sort,
+            @RequestParam(required = false, defaultValue = "created_at,desc") String sort,
             HttpServletRequest request) {
         try {
             // 从请求头或会话中获取用户ID
@@ -73,6 +82,7 @@ public class OrderController {
             Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             String sortField = sortParams[0];
             Pageable pageable = PageRequest.of(page, size, direction, sortField);
+            System.out.println(pageable.getSort() + " pageable:" + pageable);
 
             // 调用服务层方法获取订单列表
             Page<Order> orders = orderService.getUserOrders(userId, status, pageable);
@@ -234,7 +244,6 @@ public class OrderController {
      * @param status 订单状态，整数类型
      * @param page 页码，默认第0页
      * @param size 每页数量，默认10条
-     * @param sort 排序字段，默认按创建时间降序
      * @return 通用结果，包含订单列表
      */
     @GetMapping("/user/{userId}")
@@ -242,18 +251,14 @@ public class OrderController {
             @PathVariable Long userId,
             @RequestParam(required = false, defaultValue = "0") Integer status,
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "createdAt,desc") String sort) {
+            @RequestParam(required = false, defaultValue = "10") int size) {
         try {
             if (userId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             
-            // 处理排序
-            String[] sortParams = sort.split(",");
-            Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            String sortField = sortParams[0];
-            Pageable pageable = PageRequest.of(page, size, direction, sortField);
+            // 创建不带排序的分页对象
+            Pageable pageable = PageRequest.of(page, size);
 
             // 调用服务层方法获取订单列表
             Page<Order> orders = orderService.getUserOrdersById(userId, status, pageable);

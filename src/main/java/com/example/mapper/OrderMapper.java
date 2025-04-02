@@ -180,8 +180,8 @@ public interface OrderMapper {
     })
     List<Order> getUserOrdersByIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
     
-    // 根据用户ID获取订单列表（分页）
-    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY ${pageable.sort}")
+    // 根据用户ID获取订单列表（分页）- 修改返回类型为 List
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
@@ -189,10 +189,10 @@ public interface OrderMapper {
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
-    Page<Order> getUserOrdersById(@Param("userId") Long userId, @Param("pageable") Pageable pageable);
+    List<Order> getUserOrdersByIdWithPage(@Param("userId") Long userId);
     
-    // 根据用户ID和状态获取订单列表（分页）
-    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY ${pageable.sort}")
+    // 根据用户ID和状态获取订单列表（分页）- 修改返回类型为 List
+    @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
@@ -200,7 +200,7 @@ public interface OrderMapper {
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
-    Page<Order> getUserOrdersByIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status, @Param("pageable") Pageable pageable);
+    List<Order> getUserOrdersByIdAndStatusWithPage(@Param("userId") Long userId, @Param("status") Integer status);
     
     // 更新支付时间
     @Update("UPDATE `order` SET payment_time = #{paymentTime} WHERE id = #{orderId}")
@@ -219,4 +219,11 @@ public interface OrderMapper {
      */
     @Update("UPDATE `order` SET status = #{status} WHERE id = #{orderId} AND user_id = #{userId}")
     int cancelOrder(@Param("orderId") Long orderId, @Param("userId") Long userId, @Param("status") Integer status);
+
+    // 添加计数方法
+    @Select("SELECT COUNT(*) FROM `order` WHERE user_id = #{userId}")
+    int countOrdersByUserId(@Param("userId") Long userId);
+
+    @Select("SELECT COUNT(*) FROM `order` WHERE user_id = #{userId} AND status = #{status}")
+    int countOrdersByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
 }
