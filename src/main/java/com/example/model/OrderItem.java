@@ -15,6 +15,10 @@ public class OrderItem {
     private BigDecimal price;
     private BigDecimal subtotal;
     private List<Specification> specifications; // 新增属性，关联商品规格
+    private String name;
+    private String image;
+    private String specs;
+    private String attributes;
 
     // 新增 getter 和 setter 方法
     public List<Specification> getSpecifications() {
@@ -24,4 +28,5 @@ public class OrderItem {
     public void setSpecifications(List<Specification> specifications) {
         this.specifications = specifications;
     }
+
 }

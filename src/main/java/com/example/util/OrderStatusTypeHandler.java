@@ -22,16 +22,36 @@ public class OrderStatusTypeHandler extends BaseTypeHandler<String> {
 
     @Override
     public String getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return rs.getString(columnName);
+        int status = rs.getInt(columnName);
+        return getStatusText(status);
     }
 
     @Override
     public String getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return rs.getString(columnIndex);
+        int status = rs.getInt(columnIndex);
+        return getStatusText(status);
     }
 
     @Override
     public String getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return cs.getString(columnIndex);
+        int status = cs.getInt(columnIndex);
+        return getStatusText(status);
+    }
+
+    private String getStatusText(int status) {
+        switch (status) {
+            case 1:
+                return "待付款";
+            case 2:
+                return "待发货";
+            case 3:
+                return "待收货";
+            case 4:
+                return "已完成";
+            case 5:
+                return "已取消";
+            default:
+                return "未知状态";
+        }
     }
 }

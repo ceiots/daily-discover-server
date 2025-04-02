@@ -60,18 +60,6 @@ public interface OrderMapper {
     // 添加缺失的常量定义
     String SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL = "SELECT * FROM order_item WHERE order_id = #{orderId}";
     
-    @Select(SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL)
-    @Results({
-        @Result(property = "id", column = "id"),
-        @Result(property = "orderId", column = "order_id"),
-        @Result(property = "productId", column = "product_id"),
-        @Result(property = "quantity", column = "quantity"),
-        @Result(property = "price", column = "price"),
-        @Result(property = "subtotal", column = "subtotal"),
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class)
-    })
-    List<OrderItem> findItemsByOrderId(Long orderId);
 
     // 获取所有订单
     @Select(SELECT_ALL_ORDERS_SQL)
@@ -117,7 +105,10 @@ public interface OrderMapper {
     // 根据ID获取订单
     @Select("SELECT * FROM `order` WHERE id = #{orderId}")
     @Results({
+            @Result(property = "id", column = "id"),
             @Result(property = "status", column = "status"),
+            @Result(property = "statusStr", column = "status", 
+                    typeHandler = OrderStatusTypeHandler.class),
             @Result(property = "paymentTime", column = "payment_time"),
             @Result(property = "paymentMethod", column = "payment_method"),
             @Result(property = "paymentAmount", column = "payment_amount"),
@@ -180,23 +171,37 @@ public interface OrderMapper {
     })
     List<Order> getUserOrdersByIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
     
-    // 根据用户ID获取订单列表（分页）- 修改返回类型为 List
+    // 根据用户ID获取订单列表（分页）- 修改返回结果映射
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
                 typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "statusText", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "paymentTime", column = "payment_time"),
+        @Result(property = "paymentMethod", column = "payment_method"),
+        @Result(property = "paymentAmount", column = "payment_amount"),
+        @Result(property = "totalAmount", column = "payment_amount"),
+        @Result(property = "date", column = "created_at"),
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
     List<Order> getUserOrdersByIdWithPage(@Param("userId") Long userId);
     
-    // 根据用户ID和状态获取订单列表（分页）- 修改返回类型为 List
+    // 根据用户ID和状态获取订单列表（分页）- 修改返回结果映射
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
                 typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "statusText", column = "status", 
+                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "paymentTime", column = "payment_time"),
+        @Result(property = "paymentMethod", column = "payment_method"),
+        @Result(property = "paymentAmount", column = "payment_amount"),
+        @Result(property = "totalAmount", column = "payment_amount"),
+        @Result(property = "date", column = "created_at"),
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
@@ -226,4 +231,25 @@ public interface OrderMapper {
 
     @Select("SELECT COUNT(*) FROM `order` WHERE user_id = #{userId} AND status = #{status}")
     int countOrdersByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
+
+    // 修改订单项查询，关联产品表获取更多信息
+    @Select("SELECT oi.*, p.title as name, p.imageUrl as image, " +
+            "p.specifications as specs " +
+            "FROM order_item oi " +
+            "LEFT JOIN recommendations p ON oi.product_id = p.id " +
+            "WHERE oi.order_id = #{orderId}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "orderId", column = "order_id"),
+        @Result(property = "productId", column = "product_id"),
+        @Result(property = "quantity", column = "quantity"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "subtotal", column = "subtotal"),
+        @Result(property = "name", column = "name"),
+        @Result(property = "image", column = "image"),
+        @Result(property = "specs", column = "specs"),
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class)
+    })
+    List<OrderItem> findItemsByOrderId(Long orderId);
 }

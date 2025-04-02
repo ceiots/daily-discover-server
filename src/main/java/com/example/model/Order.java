@@ -21,6 +21,13 @@ public class Order {
     private String statusStr;      // 添加状态描述字段
     private List<OrderItem> items;
     
+    // 添加前端需要的字段
+    private String shopName;
+    private String statusText;
+    private String date;
+    private String countdown;
+    private BigDecimal totalAmount;
+    
     // 计算订单总金额的方法
     public BigDecimal calculateTotalAmount() {
         BigDecimal total = BigDecimal.ZERO;
@@ -31,4 +38,5 @@ public class Order {
         }
         return total;
     }
+
 }

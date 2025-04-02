@@ -6,7 +6,6 @@ import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
 import com.example.dto.AddressDto;
-import com.example.config.ImageConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -35,8 +35,6 @@ public class OrderService {
     @Autowired
     private OrderMapper orderMapper;
     
-    @Autowired
-    private ImageConfig imageConfig;
 
     @Autowired
     private OrderItemMapper orderItemMapper;
@@ -260,6 +258,50 @@ public class OrderService {
         } else {
             orders = orderMapper.getUserOrdersByIdWithPage(userId);
             total = orderMapper.countOrdersByUserId(userId);
+        }
+        
+        // 处理订单数据，添加前端需要的字段
+        for (Order order : orders) {
+            System.out.println("getUserOrdersById:" + order);
+            // 设置店铺名称 - 使用第一个商品的店铺名称
+            if (order.getItems() != null && !order.getItems().isEmpty()) {
+                OrderItem firstItem = order.getItems().get(0);
+                // 从商品表中获取店铺名称
+                if (firstItem.getProductId() != null) {
+                    // 这里可以从商品的shopName属性获取，或者设置一个默认值
+                    order.setShopName("默认店铺"); // 如果没有关联店铺表，可以设置默认值
+                }
+            }
+            
+            // 格式化日期
+            if (order.getCreatedAt() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                order.setDate(sdf.format(order.getCreatedAt()));
+            }
+            
+            // 设置倒计时（对于待付款订单）- 添加空值检查
+            if (order.getStatus() != null && order.getStatus() == ORDER_STATUS_PENDING_PAYMENT) {
+                order.setCountdown("30分钟"); // 示例倒计时
+            }
+            
+            // 确保 totalAmount 不为 null
+            if (order.getPaymentAmount() == null) {
+                order.setPaymentAmount(BigDecimal.ZERO);
+            }
+            
+            // 处理订单项数据
+            if (order.getItems() != null) {
+                for (OrderItem item : order.getItems()) {
+                    if (item.getPrice() == null) {
+                        item.setPrice(BigDecimal.ZERO);
+                    }
+                    
+                    // 设置商品属性
+                    if (item.getSpecifications() != null) {
+                        item.setAttributes("默认属性"); // 如果没有属性字段，可以设置默认值
+                    }
+                }
+            }
         }
         
         // 手动分页
