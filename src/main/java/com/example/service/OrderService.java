@@ -5,6 +5,7 @@ import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
+import com.example.config.ImageConfig;
 import com.example.dto.AddressDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,11 @@ public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     // 订单状态常量
-    public static final int ORDER_STATUS_PENDING_PAYMENT = 0; // 待付款
-    public static final int ORDER_STATUS_PENDING_DELIVERY = 1; // 待发货
-    public static final int ORDER_STATUS_PENDING_RECEIPT = 2; // 待收货
-    public static final int ORDER_STATUS_COMPLETED = 3; // 已完成
-    public static final int ORDER_STATUS_CANCELLED = 4; // 已取消
+    public static final int ORDER_STATUS_PENDING_PAYMENT = 1; // 待付款
+    public static final int ORDER_STATUS_PENDING_DELIVERY = 2; // 待发货
+    public static final int ORDER_STATUS_PENDING_RECEIPT = 3; // 待收货
+    public static final int ORDER_STATUS_COMPLETED = 4; // 已完成
+    public static final int ORDER_STATUS_CANCELLED = 5; // 已取消
 
     @Autowired
     private OrderMapper orderMapper;
@@ -264,14 +265,15 @@ public class OrderService {
         for (Order order : orders) {
             System.out.println("getUserOrdersById:" + order);
             // 设置店铺名称 - 使用第一个商品的店铺名称
-            if (order.getItems() != null && !order.getItems().isEmpty()) {
+           /*  if (order.getItems() != null && !order.getItems().isEmpty()) {
                 OrderItem firstItem = order.getItems().get(0);
                 // 从商品表中获取店铺名称
                 if (firstItem.getProductId() != null) {
                     // 这里可以从商品的shopName属性获取，或者设置一个默认值
                     order.setShopName("默认店铺"); // 如果没有关联店铺表，可以设置默认值
                 }
-            }
+            } */
+            order.setImageUrl(ImageConfig.getFullImageUrl(order.getImageUrl()));
             
             // 格式化日期
             if (order.getCreatedAt() != null) {

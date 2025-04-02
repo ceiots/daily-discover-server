@@ -19,6 +19,7 @@ public class OrderCreateDto {
     @Data
     public static class OrderItemDto {
         private Long id;
+        private Long productId;
         private Integer quantity;
         private BigDecimal price;
         private List<Specification> specifications; // 添加规格信息字段

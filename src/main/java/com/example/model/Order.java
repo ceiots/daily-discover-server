@@ -23,6 +23,7 @@ public class Order {
     
     // 添加前端需要的字段
     private String shopName;
+    private String imageUrl;
     private String statusText;
     private String date;
     private String countdown;

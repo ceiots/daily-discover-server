@@ -234,7 +234,7 @@ public interface OrderMapper {
 
     // 修改订单项查询，关联产品表获取更多信息
     @Select("SELECT oi.*, p.title as name, p.imageUrl as image, " +
-            "p.specifications as specs " +
+            "p.specifications as specs, p.shopName " +
             "FROM order_item oi " +
             "LEFT JOIN recommendations p ON oi.product_id = p.id " +
             "WHERE oi.order_id = #{orderId}")
