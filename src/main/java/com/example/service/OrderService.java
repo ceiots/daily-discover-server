@@ -263,7 +263,7 @@ public class OrderService {
         
         // 处理订单数据，添加前端需要的字段
         for (Order order : orders) {
-            System.out.println("getUserOrdersById:" + order);
+            System.out.println("getUserOrdersById11:" + order);
             // 设置店铺名称 - 使用第一个商品的店铺名称
            /*  if (order.getItems() != null && !order.getItems().isEmpty()) {
                 OrderItem firstItem = order.getItems().get(0);
