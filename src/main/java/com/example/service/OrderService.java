@@ -110,13 +110,18 @@ public class OrderService {
         return orderMapper.getOrderById(orderId);
     }
 
-    public Order getOrderByNo(String orderNo) {
+    /**
+     * 根据订单号获取订单
+     * @param orderNumber 订单号
+     * @return 订单对象
+     */
+    public Order getOrderByNumber(String orderNumber) {
         try {
             // 修改为使用 OrderMapper 进行查询
-            return orderMapper.findByOrderNo(orderNo);
+            return orderMapper.findByOrderNumber(orderNumber);
         } catch (Exception e) {
             // 打印异常信息，方便排查
-            logger.error("获取订单详情失败，订单号: {}", orderNo, e);
+            logger.error("获取订单详情失败，订单号: {}", orderNumber, e);
             throw e;
         }
     }
@@ -262,17 +267,11 @@ public class OrderService {
         }
         
         // 处理订单数据，添加前端需要的字段
-        for (Order order : orders) {
-            System.out.println("getUserOrdersById11:" + order);
-            // 设置店铺名称 - 使用第一个商品的店铺名称
-           /*  if (order.getItems() != null && !order.getItems().isEmpty()) {
-                OrderItem firstItem = order.getItems().get(0);
-                // 从商品表中获取店铺名称
-                if (firstItem.getProductId() != null) {
-                    // 这里可以从商品的shopName属性获取，或者设置一个默认值
-                    order.setShopName("默认店铺"); // 如果没有关联店铺表，可以设置默认值
-                }
-            } */
+        Iterator<Order> iterator = orders.iterator();
+        while (iterator.hasNext()) {
+            Order order = iterator.next();
+            System.out.println("处理前的订单: " + order);
+            
             order.setImageUrl(ImageConfig.getFullImageUrl(order.getImageUrl()));
             
             // 格式化日期
@@ -283,17 +282,22 @@ public class OrderService {
             
             // 设置倒计时（对于待付款订单）- 添加空值检查
             if (order.getStatus() != null && order.getStatus() == ORDER_STATUS_PENDING_PAYMENT) {
-                order.setCountdown("30分钟"); // 示例倒计时
+                order.setCountdown("30分钟");
             }
+            
+            System.out.println("getUserOrdersById3:" + order);
             
             // 确保 totalAmount 不为 null
             if (order.getPaymentAmount() == null) {
                 order.setPaymentAmount(BigDecimal.ZERO);
             }
+            order.setTotalAmount(order.getPaymentAmount());
             
             // 处理订单项数据
             if (order.getItems() != null) {
-                for (OrderItem item : order.getItems()) {
+                Iterator<OrderItem> itemIterator = order.getItems().iterator();
+                while (itemIterator.hasNext()) {
+                    OrderItem item = itemIterator.next();
                     if (item.getPrice() == null) {
                         item.setPrice(BigDecimal.ZERO);
                     }

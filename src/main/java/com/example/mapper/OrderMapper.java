@@ -139,7 +139,7 @@ public interface OrderMapper {
     void updateOrderStatus(@Param("orderId") Long orderId, @Param("status") Integer status);
     
     // 根据订单号查询订单
-    @Select("SELECT * FROM `order` WHERE order_number = #{orderNo}")
+    @Select("SELECT * FROM `order` WHERE order_number = #{orderNumber}")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "statusStr", column = "status", 
@@ -147,7 +147,7 @@ public interface OrderMapper {
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
-    Order findByOrderNo(String orderNo);
+    Order findByOrderNumber(String orderNumber);
     
     // 根据用户ID获取订单列表
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")

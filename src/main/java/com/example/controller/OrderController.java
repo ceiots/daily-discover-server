@@ -222,18 +222,23 @@ public class OrderController {
 
 
   // 修改接口路径，保持URI语义一致性
-    @GetMapping("/{orderNo}")
-    public ResponseEntity<Order> getOrderByNo(@PathVariable String orderNo) {
+    /**
+     * 根据订单号获取订单详情
+     * @param orderNumber 订单号
+     * @return 订单详情
+     */
+    @GetMapping("/{orderNumber}")
+    public ResponseEntity<Order> getOrderByNumber(@PathVariable String orderNumber) {
         try {
-            System.out.println("Received request to get order by number: " + orderNo);
-            Order order = orderService.getOrderByNo(orderNo);
+            System.out.println("Received request to get order by number: " + orderNumber);
+            Order order = orderService.getOrderByNumber(orderNumber);
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(order);
         } catch (Exception e) {
             // 打印详细的异常信息
-            logger.error("获取订单详情时发生异常，订单号: {}", orderNo, e);
+            logger.error("获取订单详情时发生异常，订单号: {}", orderNumber, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
