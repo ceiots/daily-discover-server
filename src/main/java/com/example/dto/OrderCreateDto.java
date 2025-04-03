@@ -12,7 +12,7 @@ public class OrderCreateDto {
     private Long userId;
     private String orderNo;
     private BigDecimal totalAmount;
-    private String payType;
+    private Integer payType;
     private AddressDto address;
     private List<OrderItemDto> items;
 

@@ -16,7 +16,9 @@ public class OrderItem {
     private BigDecimal subtotal;
     private List<Specification> specifications; // 新增属性，关联商品规格
     private String name;
-    private String image;
+    private String imageUrl;
+    private String shopAvatarUrl;
+    private String shopName;
     private String specs;
     private String attributes;
 

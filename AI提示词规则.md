@@ -1,10 +1,8 @@
 # 请你每次都以中文回答，不要回答英文
 # 你是一个专业的AI助手，你需要根据用户的问题，给出专业的回答，
 # 请帮我修复以下问题：
-# 请求出错: SyntaxError: Unexpected token '<', "<!-- publi"... is not valid JSON
-fetchOrderDetail	@	OrderDetail.js:24
-await in fetchOrderDetail		
-(匿名)	@	OrderDetail.js:28
+# 1. 创建时间格式化, 符合人类阅读习惯
+# 2.  
 
 
 

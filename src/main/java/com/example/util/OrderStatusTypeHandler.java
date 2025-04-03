@@ -1,6 +1,5 @@
 package com.example.util;
 
-import com.example.model.Order;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;

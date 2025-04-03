@@ -1,6 +1,5 @@
 package com.example.service;
 
-import com.example.dto.PaymentInfo;
 import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
@@ -9,6 +8,7 @@ import com.example.config.ImageConfig;
 import com.example.dto.AddressDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,9 +33,13 @@ public class OrderService {
     public static final int ORDER_STATUS_COMPLETED = 4; // 已完成
     public static final int ORDER_STATUS_CANCELLED = 5; // 已取消
 
+    // 支付方式常量
+    public static final int PAYMENT_METHOD_ALIPAY = 1; // 支付宝
+    public static final int PAYMENT_METHOD_WECHAT = 2; // 微信支付
+    public static final int PAYMENT_METHOD_CREDIT_CARD = 3; // 信用卡支付
+
     @Autowired
     private OrderMapper orderMapper;
-    
 
     @Autowired
     private OrderItemMapper orderItemMapper;
@@ -118,7 +122,8 @@ public class OrderService {
     public Order getOrderByNumber(String orderNumber) {
         try {
             // 修改为使用 OrderMapper 进行查询
-            return orderMapper.findByOrderNumber(orderNumber);
+            Order order = orderMapper.findByOrderNumber(orderNumber);
+            return processOrderData(order);
         } catch (Exception e) {
             // 打印异常信息，方便排查
             logger.error("获取订单详情失败，订单号: {}", orderNumber, e);
@@ -218,11 +223,10 @@ public class OrderService {
      * @return 分页后的订单列表
      */
     public Page<Order> getUserOrdersById(Long userId, Integer status, Pageable pageable) {
-        System.out.println(status +" getUserOrdersById:" + pageable);
-        
+    
         List<Order> orders;
         int total;
-        
+    
         if (status != null && status != 0) { // 0表示全部
             orders = orderMapper.getUserOrdersByIdAndStatusWithPage(userId, status);
             total = orderMapper.countOrdersByUserIdAndStatus(userId, status);
@@ -230,64 +234,168 @@ public class OrderService {
             orders = orderMapper.getUserOrdersByIdWithPage(userId);
             total = orderMapper.countOrdersByUserId(userId);
         }
-        
-        // 处理订单数据，添加前端需要的字段
-        Iterator<Order> iterator = orders.iterator();
-        while (iterator.hasNext()) {
-            Order order = iterator.next();
-            System.out.println("处理前的订单: " + order);
-            
-            order.setImageUrl(ImageConfig.getFullImageUrl(order.getImageUrl()));
-            
-            // 格式化日期
-            if (order.getCreatedAt() != null) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                order.setDate(sdf.format(order.getCreatedAt()));
-            }
-            
-            // 设置倒计时（对于待付款订单）- 添加空值检查
-            if (order.getStatus() != null && order.getStatus() == ORDER_STATUS_PENDING_PAYMENT) {
-                order.setCountdown("30分钟");
-            }
-            
-            System.out.println("getUserOrdersById3:" + order);
-            
-            // 确保 totalAmount 不为 null
-            if (order.getPaymentAmount() == null) {
-                order.setPaymentAmount(BigDecimal.ZERO);
-            }
-            order.setTotalAmount(order.getPaymentAmount());
-            
-            // 处理订单项数据
-            if (order.getItems() != null) {
-                Iterator<OrderItem> itemIterator = order.getItems().iterator();
-                while (itemIterator.hasNext()) {
-                    OrderItem item = itemIterator.next();
-                    if (item.getPrice() == null) {
-                        item.setPrice(BigDecimal.ZERO);
-                    }
-                    
-                    // 设置商品属性
-                    if (item.getSpecifications() != null) {
-                        item.setAttributes("默认属性"); // 如果没有属性字段，可以设置默认值
-                    }
-                }
+    
+        // 处理订单数据
+        if (orders != null) {
+            for (int i = 0; i < orders.size(); i++) {
+                Order originalOrder = orders.get(i);
+                // 调用 processOrderData 方法处理订单数据
+                Order processedOrder = processOrderData(originalOrder);
+                orders.set(i, processedOrder);
             }
         }
-        
+       
+        System.out.println("getUserOrdersById orders:" + orders);
+    
         // 手动分页
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), orders.size());
-        
+    
         // 防止索引越界
         if (start >= orders.size()) {
             return new org.springframework.data.domain.PageImpl<>(
-                new ArrayList<>(), pageable, total);
+                    new ArrayList<>(), pageable, total);
         }
-        
+    
         List<Order> pageContent = orders.subList(start, end);
-        
+    
         // 创建 Page 对象
         return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, total);
     }
+
+    /**
+     * 处理订单数据，添加前端需要的字段
+     * @param order 订单对象
+     * @return 处理后的订单对象，如果传入的订单对象为 null，则返回 null
+     */
+    public Order processOrderData(Order order) {
+        if (order == null) {
+            return null;
+        }
+        // 打印原始订单数据
+        System.out.println("原始订单: " + order);
+
+        // 格式化日期
+        if (order.getCreatedAt() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = sdf.format(order.getCreatedAt());
+            order.setDate(formattedDate);
+            System.out.println("设置日期: " + formattedDate);
+        }
+        
+        // 设置状态文本
+        if (order.getStatus() != null) {
+            int status = order.getStatus();
+
+            // 设置状态文本
+            String statusText;
+            switch (status) {
+                case ORDER_STATUS_PENDING_PAYMENT:
+                    statusText = "待付款";
+                    // 设置倒计时（对于待付款订单）
+                    order.setCountdown("30分钟");
+                    System.out.println("设置倒计时: 30分钟");
+                    break;
+                case ORDER_STATUS_PENDING_DELIVERY:
+                    statusText = "待发货";
+                    break;
+                case ORDER_STATUS_PENDING_RECEIPT:
+                    statusText = "待收货";
+                    break;
+                case ORDER_STATUS_COMPLETED:
+                    statusText = "已完成";
+                    break;
+                case ORDER_STATUS_CANCELLED:
+                    statusText = "已取消";
+                    break;
+                default:
+                    statusText = "未知状态";
+            }
+            order.setStatusText(statusText);
+            System.out.println("设置状态文本: " + statusText);
+        }
+
+        // 设置支付金额
+        if (order.getPaymentAmount() == null) {
+            order.setPaymentAmount(BigDecimal.ZERO);
+        }
+        System.out.println("设置支付金额: " + order.getPaymentAmount());
+
+        // 处理订单项并计算总金额
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<OrderItem> processedItems = new ArrayList<>();
+
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            System.out.println("处理订单项，数量: " + order.getItems().size());
+
+            for (OrderItem item : order.getItems()) {
+                OrderItem processedItem = new OrderItem();
+                BeanUtils.copyProperties(item, processedItem);
+                
+                // 设置图片URL
+                if (processedItem.getImageUrl() != null) {
+                    String fullImageUrl = ImageConfig.getFullImageUrl(processedItem.getImageUrl());
+                    processedItem.setImageUrl(fullImageUrl);
+                }
+
+                // 设置店铺URL
+                if (processedItem.getShopAvatarUrl() != null) {
+                    processedItem.setShopAvatarUrl(ImageConfig.getFullImageUrl(processedItem.getShopAvatarUrl()));
+                }
+
+                // 设置价格
+                if (processedItem.getPrice() == null) {
+                    processedItem.setPrice(BigDecimal.ZERO);
+                }
+
+                // 设置小计
+                if (processedItem.getSubtotal() != null) {
+                    totalAmount = totalAmount.add(processedItem.getSubtotal());
+                }
+
+                // 设置商品属性
+                processedItem.setAttributes("默认属性");
+
+                processedItems.add(processedItem);
+                System.out.println("处理订单项: " + processedItem.getName() + ", 价格: " + processedItem.getPrice());
+            }
+        }
+
+        // 设置总金额
+        order.setTotalAmount(totalAmount);
+
+        // 设置处理后的订单项
+        order.setItems(processedItems);
+
+        // 处理支付方式
+        if (order.getPaymentMethod() != null) {
+            // 从订单对象中获取支付方式代码，并通过 getPaymentMethodText 方法转换为对应的文字描述
+            String paymentMethodDescription = getPaymentMethodText(order.getPaymentMethod());
+            // 将支付方式的文字描述设置到订单对象中
+            order.setPaymentMethodText(paymentMethodDescription);
+            System.out.println("设置支付方式文本: " + paymentMethodDescription);
+        }
+
+        return order;
+    }
+
+    /**
+     * 根据支付方式代码获取支付方式文字描述
+     * @param paymentMethod 支付方式代码
+     * @return 支付方式文字描述
+     */
+    private String getPaymentMethodText(int paymentMethod) {
+        switch (paymentMethod) {
+            case PAYMENT_METHOD_ALIPAY:
+                return "支付宝";
+            case PAYMENT_METHOD_WECHAT:
+                return "微信支付";
+            case PAYMENT_METHOD_CREDIT_CARD:
+                return "信用卡支付";
+            default:
+                return "未知支付方式";
+        }
+    }
+
+    // ... 其他方法 ...
 }

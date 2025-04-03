@@ -61,27 +61,13 @@ public interface OrderMapper {
     String SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL = "SELECT * FROM order_item WHERE order_id = #{orderId}";
     
 
-    // 获取所有订单
-    @Select(SELECT_ALL_ORDERS_SQL)
-    @Results({
-            @Result(property = "statusStr", column = "status",
-                    typeHandler = OrderStatusTypeHandler.class),
-            @Result(property = "paymentTime", column = "payment_time"),
-            @Result(property = "paymentMethod", column = "payment_method"),
-            @Result(property = "paymentAmount", column = "payment_amount"),
-            @Result(property = "items", column = "id",
-                    many = @Many(select = "findItemsByOrderId"))
-    })
-    List<Order> getAllOrders();
-
     @Update(CANCEL_ORDER_SQL)
     void cancelOrder(Long orderId);
     
     // 获取用户所有订单
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY ${pageable.sort}")
     @Results({
-            @Result(property = "statusStr", column = "status",
-                    typeHandler = OrderStatusTypeHandler.class),
+            @Result(property = "status", column = "status"),
             @Result(property = "paymentTime", column = "payment_time"),
             @Result(property = "paymentMethod", column = "payment_method"),
             @Result(property = "paymentAmount", column = "payment_amount"),
@@ -92,8 +78,7 @@ public interface OrderMapper {
 
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY ${pageable.sort}")
     @Results({
-            @Result(property = "statusStr", column = "status",
-                    typeHandler = OrderStatusTypeHandler.class),
+            @Result(property = "status", column = "status"),
             @Result(property = "paymentTime", column = "payment_time"),
             @Result(property = "paymentMethod", column = "payment_method"),
             @Result(property = "paymentAmount", column = "payment_amount"),
@@ -107,8 +92,6 @@ public interface OrderMapper {
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "status", column = "status"),
-            @Result(property = "statusStr", column = "status", 
-                    typeHandler = OrderStatusTypeHandler.class),
             @Result(property = "paymentTime", column = "payment_time"),
             @Result(property = "paymentMethod", column = "payment_method"),
             @Result(property = "paymentAmount", column = "payment_amount"),
@@ -142,8 +125,7 @@ public interface OrderMapper {
     @Select("SELECT * FROM `order` WHERE order_number = #{orderNumber}")
     @Results({
         @Result(property = "id", column = "id"),
-        @Result(property = "statusStr", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "status", column = "status"),
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
@@ -153,8 +135,7 @@ public interface OrderMapper {
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
-        @Result(property = "statusStr", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "status", column = "status"),
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
@@ -164,8 +145,7 @@ public interface OrderMapper {
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
-        @Result(property = "statusStr", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "status", column = "status"),
         @Result(property = "items", column = "id",
                 many = @Many(select = "findItemsByOrderId"))
     })
@@ -175,10 +155,8 @@ public interface OrderMapper {
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
-        @Result(property = "statusStr", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
-        @Result(property = "statusText", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
+        @Result(property = "status", column = "status"),
+        @Result(property = "createdAt", column = "created_at"),
         @Result(property = "paymentTime", column = "payment_time"),
         @Result(property = "paymentMethod", column = "payment_method"),
         @Result(property = "paymentAmount", column = "payment_amount"),
@@ -193,10 +171,6 @@ public interface OrderMapper {
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
     @Results({
         @Result(property = "id", column = "id"),
-        @Result(property = "statusStr", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
-        @Result(property = "statusText", column = "status", 
-                typeHandler = OrderStatusTypeHandler.class),
         @Result(property = "paymentTime", column = "payment_time"),
         @Result(property = "paymentMethod", column = "payment_method"),
         @Result(property = "paymentAmount", column = "payment_amount"),
@@ -233,20 +207,22 @@ public interface OrderMapper {
     int countOrdersByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
 
     // 修改订单项查询，关联产品表获取更多信息
-    @Select("SELECT oi.*, p.title as name, p.imageUrl as image, " +
-            "p.specifications as specs, p.shopName " +
+    @Select("SELECT oi.*, p.title as name, p.imageUrl, " +
+            "p.specifications as specs, p.shopName, p.shopAvatarUrl " +
             "FROM order_item oi " +
             "LEFT JOIN recommendations p ON oi.product_id = p.id " +
             "WHERE oi.order_id = #{orderId}")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "orderId", column = "order_id"),
+        @Result(property = "shopName", column = "shopName"),
+        @Result(property = "shopAvatarUrl", column = "shopAvatarUrl"),
         @Result(property = "productId", column = "product_id"),
         @Result(property = "quantity", column = "quantity"),
         @Result(property = "price", column = "price"),
         @Result(property = "subtotal", column = "subtotal"),
         @Result(property = "name", column = "name"),
-        @Result(property = "image", column = "image"),
+        @Result(property = "imageUrl", column = "imageUrl"),
         @Result(property = "specs", column = "specs"),
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class)

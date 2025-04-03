@@ -132,8 +132,9 @@ public class OrderController {
     @GetMapping("/{orderNumber}")
     public ResponseEntity<Order> getOrderByNumber(@PathVariable String orderNumber) {
         try {
-            System.out.println("Received request to get order by number: " + orderNumber);
+            
             Order order = orderService.getOrderByNumber(orderNumber);
+            System.out.println("Received request to get order by number: " + order);
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }
