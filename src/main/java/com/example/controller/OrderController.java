@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
 import com.example.dto.OrderCreateDto;
-import com.example.dto.PaymentInfo;
 import com.example.model.Order;
 import com.example.model.OrderItem;
 import com.example.service.OrderService;
@@ -43,57 +42,6 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
-
-    /**
-     * 获取用户的订单列表
-     * @param status 订单状态
-     * @param page 页码，默认第 0 页
-     * @param size 每页数量，默认 10 条
-     * @param sort 排序字段，默认按创建时间降序
-     * @param request HTTP 请求
-     * @return 通用结果，包含订单列表
-     */
-    @GetMapping("/user")
-    public ResponseEntity<CommonResult<Page<Order>>> getUserOrders(
-            @RequestParam(required = false, defaultValue = "all") String status,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "created_at,desc") String sort,
-            HttpServletRequest request) {
-        try {
-            // 从请求头或会话中获取用户ID
-            Long userId = (Long) request.getAttribute("userId");
-            System.out.println("从请求头或会话中获取userId:" + userId);
-            if (userId == null) {
-                // 如果在请求属性中没有找到，尝试从请求参数中获取
-                String userIdStr = request.getParameter("userId");
-                System.out.println("从请求参数中获取userId:" + userIdStr);
-                if (userIdStr != null && !userIdStr.isEmpty()) {
-                    userId = Long.parseLong(userIdStr);
-                }
-            }
-
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            // 处理排序
-            String[] sortParams = sort.split(",");
-            Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            String sortField = sortParams[0];
-            Pageable pageable = PageRequest.of(page, size, direction, sortField);
-            System.out.println(pageable.getSort() + " pageable:" + pageable);
-
-            // 调用服务层方法获取订单列表
-            Page<Order> orders = orderService.getUserOrders(userId, status, pageable);
-
-            // 返回成功响应
-            return ResponseEntity.ok(CommonResult.success(orders));
-        } catch (Exception e) {
-            logger.error("获取用户订单列表时发生异常，状态: {}", status, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     /**
      * 取消订单
@@ -126,52 +74,6 @@ public class OrderController {
         }
     }
 
-    /**
-     * 支付订单
-     * @param orderId 订单 ID
-     * @param paymentInfo 支付信息
-     * @param request HTTP 请求
-     * @return 通用结果
-     */
-    @PostMapping("/{orderId}/pay")
-    public CommonResult<Void> payOrder(
-            @PathVariable Long orderId,
-            @RequestBody PaymentInfo paymentInfo,
-            HttpServletRequest request) {
-        // 参数校验
-        if (orderId == null) {
-            logger.error("支付订单时，订单ID为空");
-            return CommonResult.failed("订单ID不能为空");
-        }
-        if (paymentInfo == null) {
-            logger.error("支付订单时，支付信息为空");
-            return CommonResult.failed("支付信息不能为空");
-        }
-        try {
-            Long userId = (Long) request.getAttribute("userId");
-            orderService.payOrder(orderId, userId, paymentInfo);
-            logger.info("订单ID为 {} 的订单已成功支付", orderId);
-            return CommonResult.success(null);
-        } catch (Exception e) {
-            // 异常处理
-            logger.error("支付订单时发生异常，订单ID: {}", orderId, e);
-            return CommonResult.failed("支付订单失败，请稍后重试");
-        }
-    }
-
-    /**
-     * 获取所有订单
-     * @return 通用结果，包含所有订单列表
-     */
-    @GetMapping("/all")
-    public CommonResult<List<Order>> getAllOrders() {
-        try {
-            return CommonResult.success(orderService.getAllOrders());
-        } catch (Exception e) {
-            logger.error("获取所有订单时发生异常", e);
-            return CommonResult.failed("获取所有订单失败，请稍后重试");
-        }
-    }
 
     /**
      * 创建订单

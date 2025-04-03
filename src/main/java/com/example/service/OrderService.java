@@ -188,41 +188,6 @@ public class OrderService {
         return true;
     }
 
-    /**
-     * 支付订单
-     * @param orderId 订单ID
-     * @param userId 用户ID
-     * @param paymentInfo 支付信息
-     */
-    @Transactional
-    public void payOrder(Long orderId, Long userId, PaymentInfo paymentInfo) {
-        Order order = getOrderById(orderId);
-        if (order == null) {
-            throw new IllegalArgumentException("订单不存在，订单ID: " + orderId);
-        }
-        if (!order.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("用户无权支付该订单，订单ID: " + orderId);
-        }
-        // 这里可以添加更多支付逻辑，如调用支付接口等
-        order.setStatus(ORDER_STATUS_PENDING_DELIVERY); // 修改为待发货状态
-        // 设置支付时间为当前时间
-        order.setPaymentTime(new Date()); 
-        orderMapper.updateOrderStatus(orderId, ORDER_STATUS_PENDING_DELIVERY);
-        // 更新支付时间
-        orderMapper.updatePaymentTime(orderId, order.getPaymentTime()); 
-    }
-
-    /**
-     * 获取所有订单
-     * @return 所有订单列表
-     */
-    public List<Order> getAllOrders() {
-        return orderMapper.getAllOrders();
-    }
-
-    // 删除这里的重复定义
-    // public static final int ORDER_STATUS_PAID = 2;
-    // public static final int ORDER_STATUS_CANCELED = 3;
 
     /**
      * 处理订单的地址信息
