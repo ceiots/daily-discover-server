@@ -1,8 +1,8 @@
 # 请你每次都以中文回答，不要回答英文
 # 你是一个专业的AI助手，你需要根据用户的问题，给出专业的回答，
-# 请帮我修复以下问题：
-# 1. 创建时间格式化, 符合人类阅读习惯
-# 2.  
+# 请帮我完成以下问题：
+# 完善服务层与mapper层，实现订单地址查询功能，
+# 相关代码OrderAddrMapper.java，OrderAddrService.java，OrderAddrController.java，OrderAddr.java，OrderAddrMapper.xml，OrderAddrService.xml，
 
 
 
@@ -12,4 +12,4 @@
 # 3. 使用Mybatis(基于注解映射非mapper.xml) + mysql风格(所有建表都不要使用FOREIGN KEY)，要给出相关sql语句
 # 4. 实体不使用内部类
 # 5. 修改时只给出相关涉及到的代码，不要给出其他无关的代码, 并且需我们自己去验证代码是否正确，不要直接应用代码
-# 6. 主要相关文件：订单详情前端OrderList.js，订单详情后端OrderController.java，OrderService.java, OrderMapper.java
+# 6. 主要相关文件：订单详情前端OrderList.js，订单详情后端OrderController.java，OrderService.java, OrderMapper.java，

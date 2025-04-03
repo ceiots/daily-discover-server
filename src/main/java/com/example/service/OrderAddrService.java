@@ -89,6 +89,6 @@ public class OrderAddrService {
             // 如果设置为默认地址，先取消该用户的所有默认地址
             orderAddrMapper.cancelDefaultAddr(orderAddr.getUserId());
         }
-        orderAddrMapper.insert(orderAddr);
+        orderAddrMapper.save(orderAddr);
     }
 }

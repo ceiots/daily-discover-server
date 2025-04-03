@@ -33,8 +33,9 @@ public interface OrderAddrMapper {
      * 保存收货信息
      * @param orderAddr 收货信息
      */
-    @Insert("INSERT INTO order_addr (user_id, address, contact_name, contact_phone, is_default, ...) " +
-            "VALUES (#{orderAddr.userId}, #{orderAddr.address}, #{orderAddr.contactName}, #{orderAddr.contactPhone}, #{orderAddr.isDefault}, ...)")
+    @Insert("INSERT INTO order_addr (user_id, address, name, phone, is_default) " +
+            "VALUES (#{orderAddr.userId}, #{orderAddr.address}, #{orderAddr.name}, #{orderAddr.phone}, #{orderAddr.isDefault})")
+    @Options(useGeneratedKeys = true, keyProperty = "orderAddr.orderAddrId", keyColumn = "order_addr_id")
     void save(@Param("orderAddr") OrderAddr orderAddr);
 
     /**
@@ -42,8 +43,8 @@ public interface OrderAddrMapper {
      * @param orderAddr 收货信息
      */
     @Update("UPDATE order_addr " +
-            "SET user_id = #{orderAddr.userId}, address = #{orderAddr.address}, contact_name = #{orderAddr.contactName}, " +
-            "contact_phone = #{orderAddr.contactPhone}, is_default = #{orderAddr.isDefault}, ... " +
+            "SET user_id = #{orderAddr.userId}, address = #{orderAddr.address}, name = #{orderAddr.name}, " +
+            "phone = #{orderAddr.phone}, is_default = #{orderAddr.isDefault} " +
             "WHERE order_addr_id = #{orderAddr.orderAddrId}")
     void update(@Param("orderAddr") OrderAddr orderAddr);
 
@@ -51,7 +52,7 @@ public interface OrderAddrMapper {
      * 根据收货信息ID删除收货信息
      * @param orderAddrId 收货信息ID
      */
-    @Delete("DELETE FROM order_addr WHERE orderAddrId = #{orderAddrId}")
+    @Delete("DELETE FROM order_addr WHERE order_addr_id = #{orderAddrId}")
     void deleteById(@Param("orderAddrId") Long orderAddrId);
 
     /**
@@ -70,13 +71,7 @@ public interface OrderAddrMapper {
     @Update("UPDATE order_addr SET is_default = 0 WHERE user_id = #{userId}")
     void cancelDefaultAddr(@Param("userId") Long userId);
 
-    /**
-     * 插入收货信息
-     * @param orderAddr 收货信息
-     */
-    // 修改参数引用，通过 orderAddr 对象引用其属性
-    @Insert("INSERT INTO order_addr (user_id, address, name, phone, is_default) " +
-            "VALUES (#{orderAddr.userId}, #{orderAddr.address}, #{orderAddr.name}, #{orderAddr.phone}, #{orderAddr.isDefault})")
-    @Options(useGeneratedKeys = true, keyProperty = "orderAddr.orderAddrId", keyColumn = "order_addr_id")
-    void insert(@Param("orderAddr") OrderAddr orderAddr);
+    // 根据订单ID查询订单地址
+    @Select("SELECT * FROM order_addr WHERE order_id = #{orderId}")
+    OrderAddr getAddressByOrderId(Long orderId);
 }

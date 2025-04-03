@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
+import com.example.model.OrderWithAddress;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -28,7 +28,9 @@ import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
 import com.example.dto.OrderCreateDto;
 import com.example.model.Order;
+import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
+import com.example.service.OrderAddrService;
 import com.example.service.OrderService;
 
 /**
@@ -42,6 +44,10 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderAddrService orderAddrService;
+    /**
 
     /**
      * 取消订单
@@ -125,26 +131,31 @@ public class OrderController {
 
   // 修改接口路径，保持URI语义一致性
     /**
-     * 根据订单号获取订单详情
+     * 根据订单号获取订单详情，包含收货信息
      * @param orderNumber 订单号
-     * @return 订单详情
+     * @return 包含订单详情和收货信息的响应实体
      */
     @GetMapping("/{orderNumber}")
-    public ResponseEntity<Order> getOrderByNumber(@PathVariable String orderNumber) {
+    public ResponseEntity<OrderWithAddress> getOrderByNumber(@PathVariable String orderNumber) {
         try {
-            
+            // 调用服务层方法获取订单信息
             Order order = orderService.getOrderByNumber(orderNumber);
-            System.out.println("Received request to get order by number: " + order);
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(order);
+            // 假设 orderService 中有方法可以获取收货信息
+            OrderAddr oderAddr = orderAddrService.getByOrderAddrId(order.getOrderAddrId());
+         
+            // 封装订单和收货信息到自定义的响应对象中
+            OrderWithAddress orderWithAddress = new OrderWithAddress(order, oderAddr);
+            return ResponseEntity.ok(orderWithAddress);
         } catch (Exception e) {
             // 打印详细的异常信息
             logger.error("获取订单详情时发生异常，订单号: {}", orderNumber, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     /**
      * 根据用户ID获取订单列表，支持分页和状态筛选
