@@ -293,8 +293,7 @@ public class OrderService {
                 case ORDER_STATUS_PENDING_PAYMENT:
                     statusText = "待付款";
                     // 设置倒计时（对于待付款订单）
-                    order.setCountdown("30分钟");
-                    System.out.println("设置倒计时: 30分钟");
+                    order.setCountdown("1800");
                     break;
                 case ORDER_STATUS_PENDING_DELIVERY:
                     statusText = "待发货";
