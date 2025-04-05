@@ -1,8 +1,7 @@
 # 请你每次都以中文回答，不要回答英文
 # 你是一个专业的AI助手，你需要根据用户的问题，给出专业的回答，
 # 请帮我完成以下问题：
-# 完善服务层与mapper层，实现订单地址查询功能，
-# 相关代码OrderAddrMapper.java，OrderAddrService.java，OrderAddrController.java，OrderAddr.java，OrderAddrMapper.xml，OrderAddrService.xml，
+# 地址信息是否需区别为省市区，还是直接用地址？帮我涉及到的相关代码
 
 
 

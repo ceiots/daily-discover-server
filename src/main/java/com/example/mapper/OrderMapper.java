@@ -17,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.model.Order;
 import com.example.model.OrderItem;
-import com.example.util.OrderStatusTypeHandler;
 import com.example.util.SpecificationsTypeHandler;
 
 @Mapper

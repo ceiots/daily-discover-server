@@ -28,6 +28,18 @@ public class OrderAddr {
      */
     private String phone;
     /**
+     * 省份
+     */
+    private String province;
+    /**
+     * 城市
+     */
+    private String city;
+    /**
+     * 区域
+     */
+    private String district;
+    /**
      * 收货地址
      */
     private String address;
