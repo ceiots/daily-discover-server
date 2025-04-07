@@ -11,7 +11,7 @@ import com.example.util.JsonTypeHandler;
 import lombok.Data;
 import java.util.List;
 
-@Data // 自动生成Getters and Setters
+@Data
 @TableName(value = "cart_items", autoResultMap = true)
 public class CartItem {
     @TableId(type = IdType.AUTO)

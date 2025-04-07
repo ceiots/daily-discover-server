@@ -38,30 +38,27 @@ public class CartService {
             return;
         }
 
-        CartItem existingItem = findExistingCartItem(cartItem);
-        System.out.println("Adding cart existingItem: " + cartItem);
-        if (existingItem != null) {
-            updateExistingCartItem(existingItem, cartItem);
-        } else {
-            addNewCartItem(cartItem);
+        // 先根据user_id和product_id查询所有符合条件的商品
+        List<CartItem> existingItems = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
+        CartItem existingItem = null;
+        for (CartItem item : existingItems) {
+            if (item.getSpecifications().equals(cartItem.getSpecifications())) {
+                existingItem = item;
+                break;
+            }
         }
-    }
 
-    private CartItem findExistingCartItem(CartItem cartItem) {
-        return cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
-    }
-
-    private void updateExistingCartItem(CartItem existingItem, CartItem newItem) {
-        int newQuantity = existingItem.getQuantity() + newItem.getQuantity();
-        existingItem.setQuantity(newQuantity);
-        cartItemMapper.updateCartItemQuantity(existingItem.getId(), newQuantity);
-        logger.info("Updated cart item quantity for item ID: {}", existingItem.getId());
-    }
-
-    private void addNewCartItem(CartItem cartItem) {
-        cleanImageUrls(cartItem);
-        cartItemMapper.addCartItem(cartItem);
-        logger.info("Added new cart item with product ID: {}", cartItem.getProductId());
+        if (existingItem != null) {
+            // 如果商品已存在，更新商品数量
+            int newQuantity = existingItem.getQuantity() + cartItem.getQuantity();
+            cartItemMapper.updateCartItemQuantity(existingItem.getId(), newQuantity);
+            logger.info("Updated cart item quantity with product ID: {} to {}", cartItem.getProductId(), newQuantity);
+        } else {
+            // 如果商品不存在，新增商品到购物车
+            cleanImageUrls(cartItem);
+            cartItemMapper.addCartItem(cartItem);
+            logger.info("Added cart item with product ID: {}", cartItem.getProductId());
+        }
     }
 
     private void cleanImageUrls(CartItem cartItem) {

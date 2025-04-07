@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.scheduling.annotation.EnableScheduling;
-//@EnableTransactionManagement
+@EnableTransactionManagement
 @SpringBootApplication
 @MapperScan("com.example.mapper")
 @EnableScheduling
