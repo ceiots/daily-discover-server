@@ -28,6 +28,10 @@ public interface CartItemMapper {
     void addCartItem(CartItem cartItem);
 
     @Select("SELECT * FROM cart_items WHERE user_id = #{userId} AND product_id = #{productId}")
+    @Results({
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class)
+    })
     CartItem findByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);
 
     @Update("UPDATE cart_items SET quantity = #{quantity},  specifications = #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler} WHERE user_id = #{userId} AND product_id = #{productId}")

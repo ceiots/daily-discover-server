@@ -32,7 +32,7 @@ public class CartController {
 
     @PostMapping("/add")
     public void addCartItem(@RequestBody CartItem cartItem) {
-        System.out.println("Adding cart item: " + cartItem);
+        
         cartService.addCartItem(cartItem);
     }
 
