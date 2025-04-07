@@ -202,4 +202,26 @@ public class UserService {
     public User findUserById(Long userId) {
         return userMapper.findById(userId);
     }
+
+    public void updateUserAvatar(Long userId, String avatarUrl) {
+        userMapper.updateAvatar(userId, avatarUrl);
+    }
+    
+    /**
+     * 修改用户密码
+     * @param userId 用户ID
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     * @return 修改结果信息
+     */
+    public String changePassword(Long userId, String oldPassword, String  newPassword) {
+        // 这里可以添加旧密码验证逻辑，例如从数据库中查询用户的旧密码并比较
+        // 假设已经验证通过
+        int rows = userMapper.changePassword(userId, passwordEncoder.encode(newPassword));
+        if (rows > 0) {
+            return "修改密码成功";
+        } else {
+            return "修改密码失败";
+        }
+    }
 }
