@@ -80,15 +80,29 @@ public class OrderAddrService {
     }
 
     /**
-     * 插入收货信息
-     * @param orderAddr 收货信息
+     * 根据用户 ID 获取默认收货地址信息
+     * @param userId 用户 ID
+     * @return 收货地址信息
      */
-    @Transactional
-    public void insertOrderAddr(OrderAddr orderAddr) {
-        if (orderAddr.getIsDefault()) {
-            // 如果设置为默认地址，先取消该用户的所有默认地址
-            orderAddrMapper.cancelDefaultAddr(orderAddr.getUserId());
-        }
-        orderAddrMapper.save(orderAddr);
+    public OrderAddr getDefaultByUserId(Long userId) {
+        return orderAddrMapper.getDefaultByUserId(userId);
+    }
+
+    /**
+     * 根据用户 ID 获取所有收货地址信息
+     * @param userId 用户 ID
+     * @return 收货地址信息列表
+     */
+    public List<OrderAddr> getAllByUserId(Long userId) {
+        return orderAddrMapper.getAllByUserId(userId);
+    }
+
+    /**
+     * 根据订单ID查询订单地址
+     * @param orderId 订单ID
+     * @return 订单地址信息
+     */
+    public OrderAddr getAddressByOrderId(Long orderId) {
+        return orderAddrMapper.getAddressByOrderId(orderId);
     }
 }

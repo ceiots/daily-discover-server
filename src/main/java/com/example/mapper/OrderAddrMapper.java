@@ -71,7 +71,23 @@ public interface OrderAddrMapper {
     @Update("UPDATE order_addr SET is_default = 0 WHERE user_id = #{userId}")
     void cancelDefaultAddr(@Param("userId") Long userId);
 
+    /**
+     * 根据用户 ID 获取默认收货地址信息
+     * @param userId 用户 ID
+     * @return 收货地址信息
+     */
+    @Select("SELECT * FROM order_addr WHERE user_id = #{userId} AND is_default = 1")
+    OrderAddr getDefaultByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据用户 ID 获取所有收货地址信息
+     * @param userId 用户 ID
+     * @return 收货地址信息列表
+     */
+    @Select("SELECT * FROM order_addr WHERE user_id = #{userId}")
+    List<OrderAddr> getAllByUserId(@Param("userId") Long userId);
+
     // 根据订单ID查询订单地址
     @Select("SELECT * FROM order_addr WHERE order_id = #{orderId}")
-    OrderAddr getAddressByOrderId(Long orderId);
+    OrderAddr getAddressByOrderId(@Param("orderId") Long orderId);
 }

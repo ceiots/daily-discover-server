@@ -16,17 +16,6 @@ public class OrderAddrController {
     private OrderAddrService orderAddrService;
 
     /**
-     * 获取用户的收货信息列表
-     * @param userId 用户ID
-     * @return 收货信息列表
-     */
-    @GetMapping("/list")
-    public CommonResult<List<OrderAddr>> listByUserId(@RequestParam("userId") Long userId) {
-        List<OrderAddr> orderAddrList = orderAddrService.listByUserId(userId);
-        return CommonResult.success(orderAddrList);
-    }
-
-    /**
      * 根据收货信息ID获取收货信息
      * @param orderAddrId 收货信息ID
      * @return 收货信息
@@ -80,5 +69,27 @@ public class OrderAddrController {
     public CommonResult<Void> setDefaultAddr(@RequestParam("userId") Long userId, @RequestParam("orderAddrId") Long orderAddrId) {
         orderAddrService.setDefaultAddr(userId, orderAddrId);
         return CommonResult.success(null);
+    }
+
+    /**
+     * 根据用户 ID 获取默认收货地址信息
+     * @param userId 用户 ID
+     * @return 收货地址信息
+     */
+    @GetMapping("/getDefaultByUserId")
+    public CommonResult<OrderAddr> getDefaultByUserId(@RequestParam("userId") Long userId) {
+        OrderAddr orderAddr = orderAddrService.getDefaultByUserId(userId);
+        return CommonResult.success(orderAddr);
+    }
+
+    /**
+     * 根据用户 ID 获取所有收货地址信息
+     * @param userId 用户 ID
+     * @return 收货地址信息列表
+     */
+    @GetMapping("/getAllByUserId")
+    public CommonResult<List<OrderAddr>> getAllByUserId(@RequestParam("userId") Long userId) {
+        List<OrderAddr> orderAddrList = orderAddrService.getAllByUserId(userId);
+        return CommonResult.success(orderAddrList);
     }
 }
