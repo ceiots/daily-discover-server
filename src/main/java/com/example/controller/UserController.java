@@ -137,7 +137,7 @@ public class UserController {
             Files.write(filePath, file.getBytes());
     
             // 构建完整的文件路径
-            String avatarUrl = filePath.toString();
+            String avatarUrl = "/images/avatar/" + fileName;
     
             // 调用 UserService 更新用户头像
             userService.updateUserAvatar(userId, avatarUrl);
