@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.example.mapper.OrderAddrMapper;
 import com.example.mapper.OrderItemMapper;
 
 import org.springframework.stereotype.Service;
@@ -40,6 +41,9 @@ public class OrderService {
 
     @Autowired
     private OrderMapper orderMapper;
+
+    @Autowired
+    private OrderAddrMapper orderAddrMapper;
 
     @Autowired
     private OrderItemMapper orderItemMapper;
@@ -205,9 +209,13 @@ public class OrderService {
         orderAddr.setName(addressDto.getName());
         orderAddr.setPhone(addressDto.getPhone());
         orderAddr.setAddress(addressDto.getAddress());
+        orderAddr.setProvince(addressDto.getProvince());
+        orderAddr.setCity(addressDto.getCity());
+        orderAddr.setDistrict(addressDto.getDistrict());
         orderAddr.setIsDefault(false); // 默认不设为默认地址
         orderAddr.setUserId(order.getUserId()); // 设置用户ID
-        orderAddrService.insertOrderAddr(orderAddr); // 调用 OrderAddrService 的插入方法
+        orderAddrMapper.save(orderAddr); //
+        
         System.out.println("订单地址信息处理完成"+orderAddr.getOrderAddrId());
         // 插入后获取插入地址的ID
         order.setOrderAddrId(orderAddr.getOrderAddrId()); // 设置订单的收货地址ID

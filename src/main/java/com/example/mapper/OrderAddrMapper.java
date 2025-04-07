@@ -32,11 +32,12 @@ public interface OrderAddrMapper {
     /**
      * 保存收货信息
      * @param orderAddr 收货信息
+     * @return 插入操作影响的行数，通常插入成功返回 1
      */
-    @Insert("INSERT INTO order_addr (user_id, address, name, phone, is_default) " +
-            "VALUES (#{orderAddr.userId}, #{orderAddr.address}, #{orderAddr.name}, #{orderAddr.phone}, #{orderAddr.isDefault})")
+    @Insert("INSERT INTO order_addr (user_id, address, name, phone, is_default, province, city, district) " +
+            "VALUES (#{orderAddr.userId}, #{orderAddr.address}, #{orderAddr.name}, #{orderAddr.phone}, #{orderAddr.isDefault}, #{orderAddr.province}, #{orderAddr.city}, #{orderAddr.district})")
     @Options(useGeneratedKeys = true, keyProperty = "orderAddr.orderAddrId", keyColumn = "order_addr_id")
-    void save(@Param("orderAddr") OrderAddr orderAddr);
+    int save(@Param("orderAddr") OrderAddr orderAddr);
 
     /**
      * 更新收货信息
@@ -44,7 +45,7 @@ public interface OrderAddrMapper {
      */
     @Update("UPDATE order_addr " +
             "SET user_id = #{orderAddr.userId}, address = #{orderAddr.address}, name = #{orderAddr.name}, " +
-            "phone = #{orderAddr.phone}, is_default = #{orderAddr.isDefault} " +
+            "phone = #{orderAddr.phone}, is_default = #{orderAddr.isDefault}, province = #{orderAddr.province}, city = #{orderAddr.city}, district = #{orderAddr.district} " +
             "WHERE order_addr_id = #{orderAddr.orderAddrId}")
     void update(@Param("orderAddr") OrderAddr orderAddr);
 
