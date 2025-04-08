@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.mapper.UserMapper;
 import com.example.model.User;
@@ -214,14 +215,17 @@ public class UserService {
      * @param newPassword 新密码
      * @return 修改结果信息
      */
-    public String changePassword(Long userId, String oldPassword, String  newPassword) {
+    @Transactional
+    public String changePassword(Long userId, String oldPassword, String newPassword) {
         // 这里可以添加旧密码验证逻辑，例如从数据库中查询用户的旧密码并比较
         // 假设已经验证通过
-        int rows = userMapper.changePassword(userId, passwordEncoder.encode(newPassword));
+        int rows = userMapper.changePassword(userId, newPassword);
         if (rows > 0) {
             return "修改密码成功";
         } else {
             return "修改密码失败";
         }
     }
+
+   
 }
