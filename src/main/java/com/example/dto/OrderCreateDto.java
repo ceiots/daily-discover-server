@@ -20,6 +20,10 @@ public class OrderCreateDto {
     public static class OrderItemDto {
         private Long id;
         private Long productId;
+        private String name;
+        private String imageUrl;
+        private String shopAvatarUrl;
+        private String shopName;
         private Integer quantity;
         private BigDecimal price;
         private List<Specification> specifications; // 添加规格信息字段

@@ -105,6 +105,10 @@ public class OrderController {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProductId(item.getId());
                 orderItem.setQuantity(item.getQuantity());
+                orderItem.setName(item.getName());
+                orderItem.setImageUrl(item.getImageUrl());
+                orderItem.setShopAvatarUrl(item.getShopAvatarUrl());
+                orderItem.setShopName(item.getShopName());
                 orderItem.setPrice(item.getPrice()); 
                 orderItem.setSubtotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
                 orderItem.setSpecifications(item.getSpecifications());
@@ -145,6 +149,7 @@ public class OrderController {
             }
             // 假设 orderService 中有方法可以获取收货信息
             OrderAddr oderAddr = orderAddrService.getByOrderAddrId(order.getOrderAddrId());
+            System.out.println("获取到的收货信息：" + oderAddr);
          
             // 封装订单和收货信息到自定义的响应对象中
             OrderWithAddress orderWithAddress = new OrderWithAddress(order, oderAddr);

@@ -200,6 +200,7 @@ public class UserService {
      * @param userId 用户ID
      * @return 用户对象，如果不存在则返回null
      */
+    // 移除 @Transactional 注解
     public User findUserById(Long userId) {
         return userMapper.findById(userId);
     }
