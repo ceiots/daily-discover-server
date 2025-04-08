@@ -78,7 +78,6 @@ public class OrderService {
             // 使用常量设置订单状态
             order.setStatus(ORDER_STATUS_PENDING_PAYMENT); 
             order.setCreatedAt(new Date());
-            System.out.println("订单创建开始1" + order);
             // 插入订单数据
             orderMapper.insertOrder(order); // 调用 Mapper 方法
             System.out.println("订单创建成功，订单号：" + order.getOrderNumber());
@@ -127,6 +126,7 @@ public class OrderService {
         try {
             // 修改为使用 OrderMapper 进行查询
             Order order = orderMapper.findByOrderNumber(orderNumber);
+            System.out.println("获取查询订单：" + order);
             return processOrderData(order);
         } catch (Exception e) {
             // 打印异常信息，方便排查

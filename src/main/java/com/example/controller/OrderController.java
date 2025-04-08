@@ -88,7 +88,7 @@ public class OrderController {
      */
     @PostMapping("/create")
     public CommonResult<Order> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
-        logger.info("创建订单，参数：{}", orderCreateDto);
+        logger.info("创建的订单，参数：{}", orderCreateDto);
         
         if (orderCreateDto == null) {
             logger.error("创建订单时，订单信息为空");
@@ -103,7 +103,7 @@ public class OrderController {
             List<OrderItem> orderItems = new ArrayList<>();
             for (OrderCreateDto.OrderItemDto item : orderCreateDto.getItems()) {
                 OrderItem orderItem = new OrderItem();
-                orderItem.setProductId(item.getId());
+                orderItem.setProductId(item.getProductId());
                 orderItem.setQuantity(item.getQuantity());
                 orderItem.setName(item.getName());
                 orderItem.setImageUrl(item.getImageUrl());
