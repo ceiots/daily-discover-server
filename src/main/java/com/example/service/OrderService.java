@@ -4,6 +4,7 @@ import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
+import com.example.util.DateUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -81,7 +83,9 @@ public class OrderService {
     
             // 使用常量设置订单状态
             order.setStatus(ORDER_STATUS_PENDING_PAYMENT); 
-            order.setCreatedAt(new Date());
+             // 调用抽取的公共方法
+             Date date = DateUtils.convertLocalDateTimeToDate(LocalDateTime.now());
+            order.setCreatedAt(date);
             // 插入订单数据
             orderMapper.insertOrder(order); // 调用 Mapper 方法
             System.out.println("订单创建成功，订单号：" + order.getOrderNumber());

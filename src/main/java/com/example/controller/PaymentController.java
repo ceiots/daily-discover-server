@@ -1,6 +1,8 @@
 package com.example.controller;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import com.example.common.api.CommonResult;
 import com.example.model.PaymentRequest;
 import com.example.model.PaymentResult;
 import com.example.service.PaymentService;
+import com.example.util.DateUtils;
 import com.example.service.OrderService;
 import com.example.model.Order;
 
@@ -40,10 +43,12 @@ public class PaymentController {
         PaymentResult paymentResult = paymentService.processPayment(paymentRequest);
         if (paymentResult.isSuccess()) {
             // 支付成功，更新订单信息和状态
-            Date paymentTime = new Date(); // 使用当前时间作为支付时间
             Order order = new Order();
             order.setOrderNumber(paymentRequest.getOrderNo());
             order.setStatus(OrderService.ORDER_STATUS_PENDING_DELIVERY); // 使用常量表示已支付/待发货状态
+
+            // 调用抽取的公共方法
+            Date paymentTime = DateUtils.convertLocalDateTimeToDate(LocalDateTime.now());
             order.setPaymentTime(paymentTime);
             
             // 设置支付方式，根据前端传入的支付方式转换

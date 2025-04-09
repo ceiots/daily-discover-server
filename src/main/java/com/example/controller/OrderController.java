@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import com.example.model.OrderWithAddress;
-import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.time.LocalDateTime;
 import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
 import com.example.dto.OrderCreateDto;
@@ -32,6 +30,9 @@ import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
 import com.example.service.OrderAddrService;
 import com.example.service.OrderService;
+import com.example.util.DateUtils;
+
+import java.sql.Timestamp;
 
 /**
  * 订单控制器类，处理订单相关的 HTTP 请求
@@ -84,14 +85,14 @@ public class OrderController {
                 orderItems.add(orderItem);
             }
             order.setItems(orderItems);
-            order.setCreatedAt(new Date());
+            
             order.setPaymentAmount(orderCreateDto.getTotalAmount());
             order.setPaymentMethod(orderCreateDto.getPayType());
-            order.setStatus(OrderService.ORDER_STATUS_PENDING_DELIVERY); // 使用常量设置订单状态
+            order.setStatus(OrderService.ORDER_STATUS_PENDING_DELIVERY); // Use constant to set order status
     
             AddressDto addressDto = orderCreateDto.getAddress();
             Order createdOrder = orderService.createOrder(order, addressDto);
-            logger.info("订单创建成功，订单号：{}", createdOrder.getOrderNumber());
+            logger.info("订单创建成功，订单号：{}", createdOrder);
             return CommonResult.success(createdOrder);
             
         } catch (Exception e) {
@@ -100,8 +101,7 @@ public class OrderController {
         }
     }
 
-
-  // 修改接口路径，保持URI语义一致性
+    // 修改接口路径，保持URI语义一致性
     /**
      * 根据订单号获取订单详情，包含收货信息
      * @param orderNumber 订单号
@@ -128,7 +128,6 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     /**
      * 根据用户ID获取订单列表，支持分页和状态筛选
@@ -162,4 +161,6 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+   
 }
