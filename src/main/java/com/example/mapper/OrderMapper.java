@@ -229,14 +229,9 @@ public interface OrderMapper {
      * @param order 订单对象
      */
     @Update("UPDATE `order` SET " +
-            "user_id = #{userId}, " +
-            "order_number = #{orderNumber}, " +
-            "payment_amount = #{paymentAmount}, " +
             "payment_method = #{paymentMethod}, " +
             "payment_time = #{paymentTime}, " +
-            "status = #{status}, " +
-            "created_at = #{createdAt}, " +
-            "order_addr_id = #{orderAddrId} " +
+            "status = #{status} " +
             "WHERE id = #{id}")
     void updateOrder(Order order);
 }

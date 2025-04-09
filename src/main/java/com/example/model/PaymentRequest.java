@@ -7,10 +7,9 @@ import lombok.Data;
 @Data
 public class PaymentRequest {
     private Long userId;
-    private List<Long> itemIds;
     private String paymentMethod;
     private String paymentPassword;
-    private String paymentAmount;
+    private BigDecimal paymentAmount;
     private String status;
     
     // 新增属性

@@ -421,6 +421,7 @@ public class OrderService {
     
         // 设置ID
         order.setId(existingOrder.getId());
+        System.out.println("订单信息：" + order);
     
         // 更新订单信息
         orderMapper.updateOrder(order);

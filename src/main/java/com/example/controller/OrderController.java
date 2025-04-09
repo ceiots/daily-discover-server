@@ -84,10 +84,9 @@ public class OrderController {
                 orderItems.add(orderItem);
             }
             order.setItems(orderItems);
-    
+            order.setCreatedAt(new Date());
             order.setPaymentAmount(orderCreateDto.getTotalAmount());
             order.setPaymentMethod(orderCreateDto.getPayType());
-            order.setPaymentTime(new Date());
             order.setStatus(OrderService.ORDER_STATUS_PENDING_DELIVERY); // 使用常量设置订单状态
     
             AddressDto addressDto = orderCreateDto.getAddress();
