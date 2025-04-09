@@ -49,37 +49,6 @@ public class OrderController {
     private OrderAddrService orderAddrService;
     /**
 
-    /**
-     * 取消订单
-     * @param orderId 订单 ID
-     * @return 操作结果
-     */
-    @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<String> cancelOrder(
-            @PathVariable Long orderId,
-            HttpServletRequest request) {
-        try {
-            // 从请求头或会话中获取用户ID
-            Long userId = (Long) request.getAttribute("userId");
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户未登录");
-            }
-            
-            // 调用服务方法取消订单
-            boolean success = orderService.cancelOrder(orderId, userId);
-            if (success) {
-                logger.info("订单ID为 {} 的订单已成功取消", orderId);
-                return ResponseEntity.ok("订单取消成功");
-            } else {
-                logger.warn("取消订单失败，订单ID: {}, 用户ID: {}", orderId, userId);
-                return ResponseEntity.badRequest().body("取消订单失败，可能订单状态已变更或不属于当前用户");
-            }
-        } catch (Exception e) {
-            logger.error("取消订单时发生异常，订单ID: {}", orderId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("取消订单失败，请稍后重试");
-        }
-    }
-
 
     /**
      * 创建订单
