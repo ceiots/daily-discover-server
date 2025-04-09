@@ -23,9 +23,7 @@ import com.example.util.SpecificationsTypeHandler;
 public interface OrderMapper {
     // 定义常量
     // 修改所有SQL语句中的order表名为`order`
-    String UPDATE_ORDER_STATUS_SQL = "UPDATE `order` SET status = #{status}, payment_method = #{paymentMethod}, " +
-            "payment_amount = #{paymentAmount}, payment_time = #{paymentTime} " +
-            "WHERE id = #{id}";
+    String UPDATE_ORDER_STATUS_SQL = "UPDATE `order` SET status = #{status} WHERE id = #{id}";
     
     String SELECT_ORDER_BY_ID_SQL = "SELECT * FROM `order` WHERE id = #{orderId}";
     
@@ -44,8 +42,6 @@ public interface OrderMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrder(Order order);
     
-    @Update(UPDATE_ORDER_STATUS_SQL)
-    void updateOrderStatus(Order order);
 
     @Select(SELECT_ORDER_BY_ID_SQL)
     @Results({
@@ -117,8 +113,8 @@ public interface OrderMapper {
     List<OrderItem> findOrderItemsByOrderId(@Param("orderId") Long orderId);
     
     // 更新订单状态
-    @Update("UPDATE `order` SET status = #{status} WHERE id = #{orderId}")
-    void updateOrderStatus(@Param("orderId") Long orderId, @Param("status") Integer status);
+    @Update("UPDATE `order` SET status = #{status} WHERE order_number = #{orderNumber}")
+    void updateOrderStatus(@Param("orderNumber") String orderNumber, @Param("status") Integer status);
     
     // 根据订单号查询订单
     @Select("SELECT * FROM `order` WHERE order_number = #{orderNumber}")
@@ -227,4 +223,20 @@ public interface OrderMapper {
                 typeHandler = SpecificationsTypeHandler.class)
     })
     List<OrderItem> findItemsByOrderId(Long orderId);
+    
+    /**
+     * 更新订单信息
+     * @param order 订单对象
+     */
+    @Update("UPDATE `order` SET " +
+            "user_id = #{userId}, " +
+            "order_number = #{orderNumber}, " +
+            "payment_amount = #{paymentAmount}, " +
+            "payment_method = #{paymentMethod}, " +
+            "payment_time = #{paymentTime}, " +
+            "status = #{status}, " +
+            "created_at = #{createdAt}, " +
+            "order_addr_id = #{orderAddrId} " +
+            "WHERE id = #{id}")
+    void updateOrder(Order order);
 }

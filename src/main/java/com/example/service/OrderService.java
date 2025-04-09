@@ -4,6 +4,9 @@ import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.OrderAddr;
 import com.example.model.OrderItem;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.example.config.ImageConfig;
 import com.example.dto.AddressDto;
 import org.slf4j.Logger;
@@ -23,6 +26,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+@Slf4j
 @Service
 public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
@@ -109,12 +113,12 @@ public class OrderService {
 
     /**
      * 根据订单 ID 获取订单
-     * @param orderId 订单 ID
+     * @param orderNumber 订单 ID
      * @return 订单对象
      */
-    public Order getOrderById(Long orderId) {
+    public Order getOrderById(String orderNumber) {
         // 这里假设你有一个 OrderMapper 来操作数据库
-        return orderMapper.getOrderById(orderId);
+        return orderMapper.findByOrderNumber(orderNumber);
     }
 
     /**
@@ -167,33 +171,32 @@ public class OrderService {
 
     /**
      * 取消订单
-     * @param orderId 订单ID
+     * @param orderNumber 订单ID
      * @param userId 用户ID
      * @return 是否成功取消
      */
     @Transactional
-    public boolean cancelOrder(Long orderId, Long userId) {
-        Order order = getOrderById(orderId);
+    public boolean cancelOrder(String orderNumber, Long userId) {
+        Order order = getOrderById(orderNumber);
         if (order == null) {
-            logger.warn("订单不存在，订单ID: {}", orderId);
+            logger.warn("订单不存在，订单ID: {}", orderNumber);
             return false;
         }
         
         // 验证订单是否属于该用户
         if (!order.getUserId().equals(userId)) {
-            logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, userId);
+            logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderNumber, userId);
             return false;
         }
         
         // 只有待付款状态的订单可以取消
         if (order.getStatus() != ORDER_STATUS_PENDING_PAYMENT) {
-            logger.warn("订单状态不允许取消，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
+            logger.warn("订单状态不允许取消，订单ID: {}, 当前状态: {}", orderNumber, order.getStatus());
             return false;
         }
         
         // 更新订单状态为已取消
-        order.setStatus(ORDER_STATUS_CANCELLED);
-        orderMapper.updateOrderStatus(orderId, ORDER_STATUS_CANCELLED);
+        orderMapper.updateOrderStatus(orderNumber, ORDER_STATUS_CANCELLED);
         return true;
     }
 
@@ -404,5 +407,42 @@ public class OrderService {
         }
     }
 
+    /**
+     * 更新订单信息
+     * @param order 订单对象
+     */
+    @Transactional
+    public void updateOrder(Order order) {
+        Order existingOrder = orderMapper.findByOrderNumber(order.getOrderNumber());
+        if (existingOrder == null) {
+            log.error("订单不存在：{}", order.getOrderNumber());
+            throw new RuntimeException("订单不存在");
+        }
+    
+        // 设置ID
+        order.setId(existingOrder.getId());
+    
+        // 更新订单信息
+        orderMapper.updateOrder(order);
+        log.info("订单信息已更新：{}", order.getOrderNumber());
+    }
+
+    /**
+     * 更新订单状态
+     * @param orderNumber 订单号
+     * @param status 订单状态
+     * @return 是否成功更新
+     */
+    @Transactional
+    public boolean updateOrderStatus(String orderNumber, int status) {
+        try {
+            // 假设这里有一个方法可以根据订单号更新订单状态
+            orderMapper.updateOrderStatus(orderNumber, status);
+            return true;
+        } catch (Exception e) {
+            logger.error("更新订单状态失败，订单号: {}, 状态: {}", orderNumber, status, e);
+            return false;
+        }
+    }
     // ... 其他方法 ...
 }
