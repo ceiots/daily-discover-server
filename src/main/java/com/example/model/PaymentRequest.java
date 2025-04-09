@@ -14,8 +14,6 @@ public class PaymentRequest {
     private BigDecimal totalAmount;
     private String subject;
     private String clientIp;
-
-    // Getters and Setters
     public Long getUserId() {
         return userId;
     }
