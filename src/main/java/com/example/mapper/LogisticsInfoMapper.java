@@ -3,6 +3,7 @@ package com.example.mapper;
 import com.example.model.LogisticsInfo;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -60,6 +61,24 @@ public interface LogisticsInfoMapper {
      */
     @Update("UPDATE logistics_info SET status = #{status} WHERE id = #{id}")
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+    
+    /**
+     * 更新发货时间
+     */
+    @Update("UPDATE logistics_info SET shipping_time = #{shippingTime} WHERE id = #{id}")
+    int updateShippingTime(@Param("id") Long id, @Param("shippingTime") Date shippingTime);
+    
+    /**
+     * 更新预计送达时间
+     */
+    @Update("UPDATE logistics_info SET estimated_delivery_time = #{estimatedDeliveryTime} WHERE id = #{id}")
+    int updateEstimatedDeliveryTime(@Param("id") Long id, @Param("estimatedDeliveryTime") Date estimatedDeliveryTime);
+    
+    /**
+     * 更新实际送达时间
+     */
+    @Update("UPDATE logistics_info SET actual_delivery_time = #{actualDeliveryTime} WHERE id = #{id}")
+    int updateActualDeliveryTime(@Param("id") Long id, @Param("actualDeliveryTime") Date actualDeliveryTime);
     
     /**
      * 删除物流信息

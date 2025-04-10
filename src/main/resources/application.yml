@@ -1,14 +1,17 @@
 jwt:
   secret: "c8e6eca7e31d89e8e6eca7e31d89c8e6eca7e31d89c8e6eca7e31d89c8e6eca7"  # 至少64字节(512位)的密钥 
 
-spring:
-  datasource:
-    # ... 其他数据源配置 ...
-
 mybatis:
   type-handlers-package: com.example.util
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.example.model 
+  type-aliases-package: com.example.model
+
+# 物流API配置
+logistics:
+  kdniao:
+    app-id: test1234567  # 快递鸟应用ID，测试环境使用固定值
+    app-key: 12345678    # 快递鸟应用密钥，测试环境使用固定值
+    api-url: http://api.kdniao.com/Ebusiness/EbusinessOrderHandle.aspx  # 快递鸟API地址

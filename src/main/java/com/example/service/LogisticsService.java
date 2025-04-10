@@ -13,10 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * 物流服务
@@ -39,6 +41,9 @@ public class LogisticsService {
     
     @Autowired
     private OrderAddrService orderAddrService;
+    
+    @Autowired
+    private ThirdPartyLogisticsService thirdPartyLogisticsService;
 
     /**
      * 根据ID查询物流信息
@@ -83,6 +88,169 @@ public class LogisticsService {
             setStatusText(logisticsInfo);
         }
         return logisticsInfo;
+    }
+    
+    /**
+     * 根据订单ID获取实时物流信息
+     * 先从数据库获取基本信息，再从第三方API获取最新轨迹
+     */
+    public Map<String, Object> getRealTimeLogisticsInfoByOrderId(Long orderId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        // 从数据库获取基本物流信息
+        LogisticsInfo logisticsInfo = logisticsInfoMapper.findByOrderId(orderId);
+        if (logisticsInfo == null) {
+            result.put("success", false);
+            result.put("message", "未找到物流信息");
+            return result;
+        }
+        
+        // 查询物流轨迹（获取本地存储的轨迹）
+        List<LogisticsTrack> localTracks = logisticsTrackMapper.findByLogisticsId(logisticsInfo.getId());
+        
+        // 从第三方API获取最新轨迹
+        List<LogisticsTrack> apiTracks = thirdPartyLogisticsService.queryLogisticsTrack(
+                logisticsInfo.getCompanyCode(), 
+                logisticsInfo.getTrackingNumber()
+        );
+        
+        // 如果API返回了轨迹，则更新本地数据库并使用API轨迹
+        if (apiTracks != null && !apiTracks.isEmpty()) {
+            // 保存API返回的轨迹到数据库
+            updateLogisticsTracksFromThirdParty(logisticsInfo.getId(), apiTracks);
+            logisticsInfo.setTracks(apiTracks);
+            
+            // 根据最新的API轨迹更新物流状态
+            updateLogisticsStatusFromTracks(logisticsInfo, apiTracks);
+        } else {
+            // 如果API没有返回轨迹，则使用本地轨迹
+            logisticsInfo.setTracks(localTracks);
+        }
+        
+        // 设置状态文本
+        setStatusText(logisticsInfo);
+        
+        // 格式化物流信息，生成前端需要的数据结构
+        result.put("success", true);
+        result.put("data", formatLogisticsInfoForFrontend(logisticsInfo));
+        
+        return result;
+    }
+    
+    /**
+     * 更新第三方API返回的物流轨迹
+     */
+    @Transactional
+    public void updateLogisticsTracksFromThirdParty(Long logisticsId, List<LogisticsTrack> apiTracks) {
+        if (apiTracks == null || apiTracks.isEmpty()) {
+            return;
+        }
+        
+        try {
+            // 先删除旧的轨迹数据
+            logisticsTrackMapper.deleteByLogisticsId(logisticsId);
+            
+            // 保存新的轨迹数据
+            for (LogisticsTrack track : apiTracks) {
+                track.setLogisticsId(logisticsId);
+                logisticsTrackMapper.insert(track);
+            }
+        } catch (Exception e) {
+            log.error("更新物流轨迹异常", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 根据轨迹更新物流状态
+     */
+    private void updateLogisticsStatusFromTracks(LogisticsInfo logisticsInfo, List<LogisticsTrack> tracks) {
+        if (tracks == null || tracks.isEmpty()) {
+            return;
+        }
+        
+        // 获取最新的轨迹状态
+        LogisticsTrack latestTrack = tracks.get(0);
+        String statusCode = latestTrack.getStatusCode();
+        
+        // 根据状态码更新物流状态
+        Integer newStatus = mapTrackStatusToLogisticsStatus(statusCode);
+        if (newStatus != null && !newStatus.equals(logisticsInfo.getStatus())) {
+            // 更新物流状态
+            logisticsInfoMapper.updateStatus(logisticsInfo.getId(), newStatus);
+            logisticsInfo.setStatus(newStatus);
+            
+            // 更新发货、送达时间
+            if (newStatus == 1 && logisticsInfo.getShippingTime() == null) {
+                // 已发货状态，更新发货时间
+                logisticsInfo.setShippingTime(latestTrack.getTrackTime());
+                logisticsInfoMapper.updateShippingTime(logisticsInfo.getId(), latestTrack.getTrackTime());
+            } else if (newStatus == 3 && logisticsInfo.getActualDeliveryTime() == null) {
+                // 已签收状态，更新送达时间
+                logisticsInfo.setActualDeliveryTime(latestTrack.getTrackTime());
+                logisticsInfoMapper.updateActualDeliveryTime(logisticsInfo.getId(), latestTrack.getTrackTime());
+            }
+        }
+    }
+    
+    /**
+     * 将轨迹状态码映射为物流状态
+     */
+    private Integer mapTrackStatusToLogisticsStatus(String statusCode) {
+        switch (statusCode) {
+            case "COLLECTED":
+                return 1; // 已发货
+            case "IN_TRANSIT":
+                return 2; // 运输中
+            case "DELIVERING":
+                return 2; // 运输中
+            case "DELIVERED":
+                return 3; // 已签收
+            case "EXCEPTION":
+                return 4; // 异常
+            default:
+                return null;
+        }
+    }
+    
+    /**
+     * 格式化物流信息用于前端显示
+     */
+    private Map<String, Object> formatLogisticsInfoForFrontend(LogisticsInfo logisticsInfo) {
+        Map<String, Object> result = new HashMap<>();
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        
+        // 基本信息
+        result.put("id", logisticsInfo.getId());
+        result.put("orderId", logisticsInfo.getOrderId());
+        result.put("company", logisticsInfo.getCompanyName());
+        result.put("number", logisticsInfo.getTrackingNumber());
+        result.put("status", logisticsInfo.getStatus());
+        result.put("statusText", logisticsInfo.getStatusText());
+        
+        // 如果有轨迹，获取最新的轨迹信息作为概要
+        if (logisticsInfo.getTracks() != null && !logisticsInfo.getTracks().isEmpty()) {
+            LogisticsTrack latestTrack = logisticsInfo.getTracks().get(0);
+            result.put("detail", latestTrack.getDescription());
+            result.put("lastUpdate", dateFormat.format(latestTrack.getTrackTime()));
+        }
+        
+        // 格式化物流轨迹
+        List<Map<String, Object>> timeline = new ArrayList<>();
+        if (logisticsInfo.getTracks() != null) {
+            for (LogisticsTrack track : logisticsInfo.getTracks()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("time", dateFormat.format(track.getTrackTime()));
+                item.put("status", track.getStatus());
+                item.put("location", track.getLocation());
+                item.put("description", track.getDescription());
+                timeline.add(item);
+            }
+        }
+        result.put("timeline", timeline);
+        
+        return result;
     }
 
     /**

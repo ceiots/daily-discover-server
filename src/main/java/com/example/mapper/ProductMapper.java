@@ -11,26 +11,34 @@ public interface ProductMapper {
 
     @Insert("INSERT INTO recommendations (title, imageUrl, shopName, price, soldCount, " +
             "shopAvatarUrl, specifications, product_details, purchase_notices, " +
-            "storeDescription, created_at, category_id) " +
+            "created_at, category_id, shop_id) " +
             "VALUES (#{title}, #{imageUrl}, #{shopName}, #{price}, #{soldCount}, " +
             "#{shopAvatarUrl}, #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
             "#{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
             "#{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
-            "#{storeDescription}, #{createdAt}, #{categoryId})")
+            "#{createdAt}, #{categoryId}, #{shopId})")
     void insert(Product product);
 
-    @Select("SELECT * FROM recommendations")
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
         @Result(property = "productDetails", column = "product_details", 
                 typeHandler = ProductDetailsTypeHandler.class),
         @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class)
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
     })
     List<Product> getAllProducts();
 
-    @Select("SELECT * FROM recommendations WHERE id = #{id}")
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.id = #{id}")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
@@ -40,43 +48,63 @@ public interface ProductMapper {
                 typeHandler = PurchaseNoticesTypeHandler.class),
         @Result(property = "comments", column = "id", 
                 many = @Many(select = "getCommentsByProductId")),
-        @Result(property = "storeDescription", column = "storeDescription") // 确保映射
+        @Result(property = "storeDescription", column = "shop_description"), // 修改此处，从 shop_description 读取
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo")
     })
     Product findById(Long id);
 
-    @Select("SELECT * FROM recommendations WHERE category_id = #{categoryId}")
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.category_id = #{categoryId}")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
         @Result(property = "productDetails", column = "product_details", 
                 typeHandler = ProductDetailsTypeHandler.class),
         @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class)
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
     })
     List<Product> findByCategoryId(Long categoryId);
 
-    @Select("SELECT * FROM recommendations ORDER BY RAND() LIMIT 10")
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "ORDER BY RAND() LIMIT 10")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
         @Result(property = "productDetails", column = "product_details", 
                 typeHandler = ProductDetailsTypeHandler.class),
         @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class)
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
     })
     List<Product> findRandom();
 
-    @Select("SELECT * FROM recommendations WHERE title LIKE CONCAT('%', #{keyword}, '%')")
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.title LIKE CONCAT('%', #{keyword}, '%')")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
         @Result(property = "productDetails", column = "product_details", 
                 typeHandler = ProductDetailsTypeHandler.class),
         @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class)
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
     })
     List<Product> searchProducts(String keyword);
 
     @Select("SELECT userName, userAvatarUrl, content, rating, date FROM comments WHERE recommendation_id = #{productId}")
     List<Comment> getCommentsByProductId(Long productId);
-} 
+}

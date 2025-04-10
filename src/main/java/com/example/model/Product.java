@@ -44,6 +44,9 @@ public class Product {
     @TableField(exist = false)
     private List<Comment> comments;
 
+    // 新增店铺ID字段
+    private Long shopId; 
+
     public String getImageUrl() {
         return imageUrl;
     }
@@ -59,5 +62,4 @@ public class Product {
     public void setShopAvatarUrl(String shopAvatarUrl) {
         this.shopAvatarUrl = ImageConfig.getImagePrefix() + shopAvatarUrl;
     }
-
 }

@@ -17,7 +17,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/logistics")
+@RequestMapping("/logistics")
 public class LogisticsController {
 
     @Autowired
@@ -61,6 +61,19 @@ public class LogisticsController {
             result.put("success", false);
             result.put("message", "未找到物流信息");
         }
+        
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 根据订单ID查询实时物流信息
+     * 先从数据库获取基本信息，再从第三方API获取最新轨迹
+     */
+    @GetMapping("/realtime/order/{orderId}")
+    public ResponseEntity<Map<String, Object>> getRealTimeLogisticsByOrderId(@PathVariable Long orderId) {
+        log.info("查询订单实时物流信息，订单ID: {}", orderId);
+        
+        Map<String, Object> result = logisticsService.getRealTimeLogisticsInfoByOrderId(orderId);
         
         return ResponseEntity.ok(result);
     }

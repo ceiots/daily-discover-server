@@ -201,11 +201,12 @@ public interface OrderMapper {
     @Select("SELECT COUNT(*) FROM `order` WHERE user_id = #{userId} AND status = #{status}")
     int countOrdersByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
 
-    // 修改订单项查询，关联产品表获取更多信息
+    // 修改订单项查询，关联产品表和店铺表获取更多信息
     @Select("SELECT oi.*, p.title as name, p.imageUrl, " +
-            "p.specifications as specs, p.shopName, p.shopAvatarUrl " +
+            "p.specifications as specs, s.shop_name as shopName, s.shop_logo as shopAvatarUrl " +
             "FROM order_item oi " +
             "LEFT JOIN recommendations p ON oi.product_id = p.id " +
+            "LEFT JOIN shop s ON p.shop_id = s.id " + // 关联 shop 表
             "WHERE oi.order_id = #{orderId}")
     @Results({
         @Result(property = "id", column = "id"),
