@@ -25,86 +25,6 @@ USE demo;
 
 # db建表语句
 
-# 历史的今天 SQL
-CREATE TABLE events (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
-    category VARCHAR(100) NOT NULL,
-    date DATE NOT NULL,
-    event_date DATE NOT NULL,
-    imageUrl VARCHAR(255) NOT NULL
-);
-
-INSERT INTO events (title, description, category, date, imageUrl) VALUES
-('1965 年：百科全书《辞海》第一版正式出版', '《辞海》是我国最具权威性的大型综合性辞书，对传播中国传统文化、促进中外文化交流发挥了重要作用。第一版的出版是中国辞书编纂史上的重要里程碑。', '文化', '1965-01-15', '/images/event1.jpg'),
-('1004 年：景德镇正式建镇', '北宋景德年间，景德镇正式建镇，开启了千年制瓷史。景德镇凭借优质的瓷土资源和精湛的制瓷工艺，成为了世界瓷都。', '历史', '1004-01-15', '/images/event2.jpg'),
-('138 年：张骞出使西域', '汉武帝派遣张骞出使西域，开辟了连接中国与中亚、西亚的贸易通道，这就是著名的“丝绸之路”的开端。', '贸易', '0138-01-15', '/images/event3.jpg');
-
--- 创建 categories 表
-CREATE TABLE categories (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    imageUrl VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE `recommendations` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `imageUrl` varchar(255) NOT NULL,
-  `shopName` varchar(255) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `soldCount` int NOT NULL,
-  `shopAvatarUrl` varchar(255) DEFAULT NULL,
-  `specifications` JSON DEFAULT NULL COMMENT '规格参数',
-  `productDetails` TEXT DEFAULT NULL,
-  `purchaseNotice` TEXT DEFAULT NULL COMMENT '购买须知',
-  `storeDescription` varchar(255) NULL COMMENT '店铺描述',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `category_id` BIGINT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1;
-
--- 插入示例数据到 categories 表
-INSERT INTO categories (name, imageUrl) VALUES
-('端午节', '/images/categories/categories1.jpg'),
-('考古发现', '/images/categories/categories2.jpg'),
-('文化艺术', '/images/categories/categories3.jpg'),
-('年货专区', '/images/categories/categories4.jpg');
-
--- 插入示例数据到 recommendations 表
-INSERT INTO demo.recommendations
-(id, title, imageUrl, shopName, price, soldCount, shopAvatarUrl)
-VALUES(1, '【新品首发】纯手工宣纸文房四宝套装', '/images/product/product1.jpg', '墨香阁旗舰店', 299.00, 2300, '/images/shop/shop1.jpg'),
-(2, '景德镇手绘青花瓷茶具套装', '/images/product/product2.jpg', '品茗轩旗舰店', 468.00, 1800, '/images/shop/shop2.jpg'),
-(3, '陕西发现首个完整西周时期贵族墓园', '/images/product/product3.jpg', '国家文物局', 300.00, 220, '/images/shop/shop3.jpg');
-
-
-##
--- 创建 comments 表
-CREATE TABLE comments (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    recommendation_id BIGINT NOT NULL,
-    userName VARCHAR(255) NOT NULL,
-    userAvatarUrl VARCHAR(255),
-    content TEXT NOT NULL,
-    rating DECIMAL(2, 1) NOT NULL,
-    date DATE NOT NULL
-);
-
-
-INSERT INTO comments (recommendation_id, userName, userAvatarUrl, content, rating, date)
-VALUES 
-(1, '李雯雯', '/images/avatar/avatar1.jpg', '宣纸质量非常好，毛笔也很顺滑。', 5.0, '2023-06-15'),
-(1, '张明', '/images/avatar/avatar2.jpg', '作为书法爱好者，这套文房四宝的品质让我很惊喜。', 4.0, '2023-06-10');
-
-
-CREATE TABLE demo.recommendation_categories (
-    recommendation_id BIGINT NOT NULL,
-    category_id BIGINT NOT NULL,
-    PRIMARY KEY (recommendation_id, category_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 # 配置表
 CREATE TABLE config (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -112,16 +32,205 @@ CREATE TABLE config (
     `value` VARCHAR(255) NOT NULL
 );
 -- 插入初始数据
-INSERT INTO config (`key`, `value`) VALUES ('image_prefix', 'http://1f582ab5.r5.cpolar.top');
+INSERT INTO config (`key`, `value`) VALUES ('image_prefix', 'https://dailydiscover.top/');
 
-# 电商库存相关
-CREATE TABLE inventory (
-    product_id BIGINT PRIMARY KEY,
-    stock INT NOT NULL
+# 事件表
+CREATE TABLE events (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(100),
+    event_date DATETIME NOT NULL,
+    image_url VARCHAR(255),
+    INDEX idx_event_date (event_date)
 );
 
-# 电商物流相关
-CREATE TABLE deliveries (
-    order_id BIGINT PRIMARY KEY,
-    status VARCHAR(50) NOT NULL
+# 用户表
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    phone_number VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    member_level VARCHAR(50),
+    avatar VARCHAR(255),
+    registration_time DATETIME,
+    nickname VARCHAR(100),
+    INDEX idx_phone (phone_number)
+);
+
+# 商品表 (recommendations)
+CREATE TABLE recommendations (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    image_url VARCHAR(255),
+    shop_name VARCHAR(255),
+    price DECIMAL(10,2) NOT NULL,
+    sold_count INT DEFAULT 0,
+    shop_avatar_url VARCHAR(255),
+    specifications JSON,
+    product_details JSON,
+    purchase_notices JSON,
+    store_description TEXT,
+    created_at DATETIME,
+    category_id BIGINT,
+    deleted TINYINT(1) DEFAULT 0,
+    shop_id BIGINT,
+    INDEX idx_category (category_id),
+    INDEX idx_shop (shop_id)
+);
+
+# 分类表
+CREATE TABLE categories (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    image_url VARCHAR(255)
+);
+
+# 订单表
+CREATE TABLE orders (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    order_number VARCHAR(50) NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL,
+    payment_method INT,
+    payment_amount DECIMAL(10,2),
+    payment_time DATETIME,
+    order_addr_id BIGINT,
+    status INT NOT NULL DEFAULT 0,
+    shipping_address TEXT,
+    INDEX idx_user (user_id),
+    INDEX idx_order_number (order_number),
+    INDEX idx_status (status)
+);
+
+# 订单项表
+CREATE TABLE order_items (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    product_image VARCHAR(255),
+    price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL,
+    specs TEXT,
+    attributes TEXT,
+    INDEX idx_order (order_id),
+    INDEX idx_product (product_id)
+);
+
+# 订单地址表
+CREATE TABLE order_addr (
+    order_addr_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    province VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    district VARCHAR(100) NOT NULL,
+    address TEXT NOT NULL,
+    INDEX idx_user (user_id)
+);
+
+# 物流信息表
+CREATE TABLE logistics_info (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_id BIGINT NOT NULL UNIQUE,
+    tracking_number VARCHAR(100) NOT NULL,
+    company_code VARCHAR(50) NOT NULL,
+    company_name VARCHAR(100) NOT NULL,
+    status INT DEFAULT 0,
+    shipping_time DATETIME,
+    estimated_delivery_time DATETIME,
+    actual_delivery_time DATETIME,
+    receiver_name VARCHAR(100),
+    receiver_phone VARCHAR(20),
+    receiver_address TEXT,
+    INDEX idx_order (order_id),
+    INDEX idx_tracking_number (tracking_number)
+);
+
+# 物流轨迹表
+CREATE TABLE logistics_track (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    logistics_id BIGINT NOT NULL,
+    track_time DATETIME NOT NULL,
+    location VARCHAR(255),
+    description TEXT,
+    status VARCHAR(100),
+    status_code VARCHAR(50),
+    operator VARCHAR(100),
+    operator_phone VARCHAR(20),
+    INDEX idx_logistics (logistics_id),
+    INDEX idx_track_time (track_time)
+);
+
+# 物流公司表
+CREATE TABLE logistics_company (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    short_name VARCHAR(50),
+    phone VARCHAR(20),
+    website VARCHAR(255),
+    logo VARCHAR(255),
+    enabled BOOLEAN DEFAULT TRUE,
+    sort INT DEFAULT 0,
+    remark TEXT
+);
+
+# 购物车表
+CREATE TABLE cart_items (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    product_image VARCHAR(255),
+    specifications JSON,
+    price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    shop_name VARCHAR(255),
+    shop_avatar_url VARCHAR(255),
+    INDEX idx_user (user_id),
+    INDEX idx_product (product_id)
+);
+
+# 评论表
+CREATE TABLE comments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    product_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    user_name VARCHAR(100) NOT NULL,
+    user_avatar_url VARCHAR(255),
+    content TEXT NOT NULL,
+    rating DECIMAL(2,1) NOT NULL,
+    date DATETIME NOT NULL,
+    INDEX idx_product (product_id),
+    INDEX idx_user (user_id)
+);
+
+# 省份表
+CREATE TABLE provinces (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL
+);
+
+# 城市表
+CREATE TABLE cities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    province_code VARCHAR(20) NOT NULL,
+    INDEX idx_province (province_code)
+);
+
+# 区县表
+CREATE TABLE districts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    city_code VARCHAR(20) NOT NULL,
+    INDEX idx_city (city_code)
 );

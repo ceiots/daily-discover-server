@@ -1,21 +1,28 @@
 package com.example.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 @Data
 public class OrderItem {
     private Long id;
-    private Long orderId; // 关联的订单 ID
+    private Long orderId;
     private Long productId;
-    private Integer quantity;
+    private String productName;
+    private String productImage;
     private BigDecimal price;
-    private BigDecimal subtotal;
-    private List<Specification> specifications; // 新增属性，关联商品规格
+    private Integer quantity;
+    private String specs;
+    private String attributes;
 
+    private String shopAvatarUrl;
+    private String imageUrl;
+    private String shopName;
+    private BigDecimal subtotal;
+    private List<Specification> specifications;
+    private String name;
     // 新增 getter 和 setter 方法
     public List<Specification> getSpecifications() {
         return specifications;
@@ -24,4 +31,5 @@ public class OrderItem {
     public void setSpecifications(List<Specification> specifications) {
         this.specifications = specifications;
     }
+
 }
