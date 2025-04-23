@@ -2,6 +2,8 @@ package com.example.model;
 
 import java.util.Date;
 
+import org.jsoup.Jsoup;
+
 import com.example.config.ImageConfig;
 
 public class Event {
@@ -9,8 +11,9 @@ public class Event {
     private String title;
     private String description;
     private String category;
-    private Date date; // 使用 Date 类型来存储日期
+    private Date eventDate; // 使用 Date 类型来存储日期
     private String imageUrl;
+    private String plainDescription;
 
     // Getters and Setters
     public Long getId() {
@@ -45,19 +48,36 @@ public class Event {
         this.category = category;
     }
 
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
+  
     public String getImageUrl() {
         return imageUrl;
     }
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
+    }
+
+     // 获取不含HTML标签的纯文本描述
+     public String getPlainDescription() {
+        if (plainDescription == null && description != null) {
+            // 生成纯文本描述 (最多80字符)
+            plainDescription = Jsoup.parse(description).text();
+            if (plainDescription.length() > 80) {
+                plainDescription = plainDescription.substring(0, 77) + "...";
+            }
+        }
+        return plainDescription;
+    }
+
+    public void setPlainDescription(String plainDescription) {
+        this.plainDescription = plainDescription;
+    }
+
+    public Date getEventDate() {
+        return eventDate;
+    }
+
+    public void setEventDate(Date eventDate) {
+        this.eventDate = eventDate;
     }
 }

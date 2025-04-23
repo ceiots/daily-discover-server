@@ -10,15 +10,18 @@ CREATE TABLE config (
 INSERT INTO config (`key`, `value`) VALUES ('image_prefix', 'https://dailydiscover.top/');
 
 # 事件表
-CREATE TABLE events (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    category VARCHAR(100),
-    event_date DATETIME NOT NULL,
-    image_url VARCHAR(255),
-    INDEX idx_event_date (event_date)
-);
+-- demo.events definition
+
+CREATE TABLE `events` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `event_date` date NOT NULL,
+  `image_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_event_date` (`event_date`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 # 用户表
 CREATE TABLE users (

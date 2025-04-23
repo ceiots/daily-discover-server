@@ -87,6 +87,11 @@
             <version>2.2.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.15.3</version>
+        </dependency>
         <!-- WebClient 相关依赖 -->
         <!-- <dependency>
             <groupId>org.springframework.boot</groupId>
