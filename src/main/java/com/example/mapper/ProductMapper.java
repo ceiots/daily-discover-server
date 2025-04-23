@@ -2,6 +2,7 @@ package com.example.mapper;
 
 import com.example.model.Product;
 import com.example.model.Comment;
+import com.example.model.Shop;
 import org.apache.ibatis.annotations.*;
 import com.example.util.*;
 import java.util.List;
@@ -31,7 +32,9 @@ public interface ProductMapper {
                 typeHandler = PurchaseNoticesTypeHandler.class),
         @Result(property = "shopName", column = "shop_name"),
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> getAllProducts();
 
@@ -48,9 +51,11 @@ public interface ProductMapper {
                 typeHandler = PurchaseNoticesTypeHandler.class),
         @Result(property = "comments", column = "id", 
                 many = @Many(select = "getCommentsByProductId")),
-        @Result(property = "storeDescription", column = "shop_description"), // 修改此处，从 shop_description 读取
+        @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo")
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     Product findById(Long id);
 
@@ -67,7 +72,9 @@ public interface ProductMapper {
                 typeHandler = PurchaseNoticesTypeHandler.class),
         @Result(property = "shopName", column = "shop_name"),
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> findByCategoryId(Long categoryId);
 
@@ -84,7 +91,9 @@ public interface ProductMapper {
                 typeHandler = PurchaseNoticesTypeHandler.class),
         @Result(property = "shopName", column = "shop_name"),
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> findRandom();
 
@@ -101,7 +110,9 @@ public interface ProductMapper {
                 typeHandler = PurchaseNoticesTypeHandler.class),
         @Result(property = "shopName", column = "shop_name"),
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description") // 修改此处，从 shop_description 读取
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> searchProducts(String keyword);
 

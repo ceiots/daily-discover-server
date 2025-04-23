@@ -44,8 +44,12 @@ public class Product {
     @TableField(exist = false)
     private List<Comment> comments;
 
-    // 新增店铺ID字段
+    // 店铺ID字段
     private Long shopId; 
+    
+    // 店铺关联对象
+    @TableField(exist = false)
+    private Shop shop;
 
     public String getImageUrl() {
         return imageUrl;

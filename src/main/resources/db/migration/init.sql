@@ -1,4 +1,3 @@
-
 # db建表语句
 
 # 配置表
@@ -209,4 +208,19 @@ CREATE TABLE districts (
     name VARCHAR(100) NOT NULL,
     city_code VARCHAR(20) NOT NULL,
     INDEX idx_city (city_code)
+);
+
+# 店铺表
+CREATE TABLE shop (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    shop_name VARCHAR(100) NOT NULL,
+    shop_logo VARCHAR(255),
+    shop_description TEXT,
+    user_id BIGINT,
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(100),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    status TINYINT DEFAULT 1 COMMENT '1-正常 0-禁用',
+    INDEX idx_user (user_id)
 );

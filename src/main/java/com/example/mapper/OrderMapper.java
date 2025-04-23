@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Many;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.One;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Result;
@@ -221,7 +222,9 @@ public interface OrderMapper {
         @Result(property = "imageUrl", column = "imageUrl"),
         @Result(property = "specs", column = "specs"),
         @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class)
+                typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "shop", column = "p.shop_id",
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<OrderItem> findItemsByOrderId(Long orderId);
     
