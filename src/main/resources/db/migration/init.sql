@@ -24,7 +24,7 @@ CREATE TABLE `events` (
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 # 用户表
-CREATE TABLE users (
+CREATE TABLE user (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     phone_number VARCHAR(20) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -39,10 +39,10 @@ CREATE TABLE users (
 CREATE TABLE recommendations (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
-    image_url VARCHAR(255),
+    imageUrl VARCHAR(255),
     shop_name VARCHAR(255),
     price DECIMAL(10,2) NOT NULL,
-    sold_count INT DEFAULT 0,
+    soldCount INT DEFAULT 0,
     shop_avatar_url VARCHAR(255),
     specifications JSON,
     product_details JSON,
