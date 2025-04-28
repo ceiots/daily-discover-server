@@ -5,7 +5,7 @@ mybatis:
   type-handlers-package: com.example.util
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.example.model
 

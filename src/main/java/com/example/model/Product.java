@@ -18,38 +18,44 @@ public class Product {
     private Long id;
     private String title;
     private String imageUrl;
-    private String shopName;
     private BigDecimal price;
     private Integer soldCount;
-    private String shopAvatarUrl;
-    
+
     // 规格参数，使用JSON存储
     @TableField(typeHandler = JsonTypeHandler.class)
     private List<Specification> specifications;
-    
+
     // 商品详情，支持图文
     @TableField(typeHandler = JsonTypeHandler.class)
     private List<ProductDetail> productDetails;
-    
+
     // 购买须知
     @TableField(typeHandler = JsonTypeHandler.class)
     private List<PurchaseNotice> purchaseNotices;
-    
+
     private String storeDescription;
     private Date createdAt;
     private Long categoryId;
     private Integer deleted;
-    
+
     // 用户评论
     @TableField(exist = false)
     private List<Comment> comments;
 
     // 店铺ID字段
-    private Long shopId; 
-    
+    private Long shopId;
+
     // 店铺关联对象
     @TableField(exist = false)
     private Shop shop;
+
+    // 店铺名称
+    @TableField(exist = false)
+    private String shopName;
+
+    // 店铺头像URL
+    @TableField(exist = false)
+    private String shopAvatarUrl;
 
     public String getImageUrl() {
         return imageUrl;
@@ -59,11 +65,4 @@ public class Product {
         this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
     }
 
-    public String getShopAvatarUrl() {
-        return shopAvatarUrl;
-    }
-
-    public void setShopAvatarUrl(String shopAvatarUrl) {
-        this.shopAvatarUrl = ImageConfig.getImagePrefix() + shopAvatarUrl;
-    }
 }

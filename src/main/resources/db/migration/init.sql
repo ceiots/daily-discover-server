@@ -40,14 +40,12 @@ CREATE TABLE recommendations (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
     imageUrl VARCHAR(255),
-    shop_name VARCHAR(255),
     price DECIMAL(10,2) NOT NULL,
+    stock INT DEFAULT 0,
     soldCount INT DEFAULT 0,
-    shop_avatar_url VARCHAR(255),
     specifications JSON,
     product_details JSON,
     purchase_notices JSON,
-    store_description TEXT,
     created_at DATETIME,
     category_id BIGINT,
     deleted TINYINT(1) DEFAULT 0,
@@ -60,11 +58,11 @@ CREATE TABLE recommendations (
 CREATE TABLE categories (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
-    image_url VARCHAR(255)
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 );
 
 # 订单表
-CREATE TABLE orders (
+CREATE TABLE order (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
     order_number VARCHAR(50) NOT NULL UNIQUE,
