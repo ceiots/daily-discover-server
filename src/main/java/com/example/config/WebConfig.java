@@ -29,10 +29,11 @@ public class WebConfig implements WebMvcConfigurer {
         logger.info("Adding CORS mappings");
         registry.addMapping("/**")
             //.allowedOrigins("http://localhost:3000")
-            .allowedOrigins("*")
+            .allowedOrigins("http://localhost:3000", "https://daily-discover.vercel.app", "https://dailydiscover.top")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(false);
+                .exposedHeaders("Authorization")
+                .allowCredentials(true);
 
     }
 }

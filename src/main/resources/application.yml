@@ -15,3 +15,13 @@ logistics:
     app-id: test1234567  # 快递鸟应用ID，测试环境使用固定值
     app-key: 12345678    # 快递鸟应用密钥，测试环境使用固定值
     api-url: http://api.kdniao.com/Ebusiness/EbusinessOrderHandle.aspx  # 快递鸟API地址
+
+# SSH远程服务器配置
+ssh:
+  remote:
+    host: "2409:8a55:3490:8cb0:9889:19eb:5557:5139"
+    user: "sshuser"
+    port: 22
+    base-path: "/E:/media"
+    content-path: "/E:/media/content"
+    private-key-path: "/C:/Users/ceiots/.ssh/id_ed25519" # 如果使用私钥认证，设置私钥路径
