@@ -4,6 +4,9 @@ package com.example.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -30,10 +33,23 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
             //.allowedOrigins("http://localhost:3000")
             .allowedOrigins("http://localhost:3000", "https://daily-discover.vercel.app", "https://dailydiscover.top")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
-                .exposedHeaders("Authorization")
+                .exposedHeaders("Authorization", "Content-Disposition", "Content-Length")
+                .maxAge(3600)  // 预检请求的缓存时间（秒）
                 .allowCredentials(true);
-
+    }
+    
+    /**
+     * 配置内嵌的Tomcat服务器，设置请求体大小限制
+     */
+    @Bean
+    public ConfigurableServletWebServerFactory webServerFactory() {
+        TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
+        factory.addConnectorCustomizers(connector -> {
+            connector.setMaxPostSize(100 * 1024 * 1024); // 设置为100MB
+            connector.setMaxSavePostSize(100 * 1024 * 1024); // 设置为100MB
+        });
+        return factory;
     }
 }

@@ -37,8 +37,6 @@ public class ContentController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
     
-    @Autowired
-    private SshUtil sshUtil;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -272,13 +270,13 @@ public class ContentController {
     
     /**
      * 上传图片
-     * @param file 图片文件
+     * @param file 图片文件，可以是单个文件或多个文件
      * @param token JWT令牌
-     * @return 通用结果，包含图片URL
+     * @return 通用结果，包含图片URL列表
      */
     @PostMapping("/upload")
-    public CommonResult<Map<String, String>> uploadImage(
-            @RequestParam("file") MultipartFile file,
+    public CommonResult<Map<String, Object>> uploadImage(
+            @RequestParam("file") MultipartFile[] files,
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
@@ -290,37 +288,66 @@ public class ContentController {
                 return CommonResult.unauthorized(null);
             }
             
-            if (file.isEmpty()) {
+            if (files.length == 0) {
                 return CommonResult.failed("上传的文件为空");
             }
             
-            // 生成唯一的文件名
-            String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+            // 存储所有上传成功的图片URL
+            List<String> successUrls = new ArrayList<>();
+            List<Map<String, String>> errorFiles = new ArrayList<>();
             
-            try {
-                // 尝试本地保存文件
-                String imageUrl = saveFileLocally(file, fileName);
-                if (imageUrl != null) {
-                    // 本地保存成功
-                    Map<String, String> result = new HashMap<>();
-                    result.put("url", imageUrl);
-                    return CommonResult.success(result);
+            // 处理每个文件
+            for (MultipartFile file : files) {
+                if (file.isEmpty()) {
+                    continue;
                 }
                 
-                // 如果本地保存失败，尝试远程上传
-                // 确保远程目录存在
-                //sshUtil.ensureRemoteDirectoryExists();
-                
-                // 上传文件到远程服务器
-                // String imageUrl = sshUtil.uploadFile(file, fileName);
-                
-                Map<String, String> result = new HashMap<>();
-                result.put("url", imageUrl);
-                
+                try {
+                    // 生成唯一的文件名
+                    String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+                    
+                    // 尝试本地保存文件
+                    String imageUrl = saveFileLocally(file, fileName);
+                    if (imageUrl != null) {
+                        // 本地保存成功
+                        successUrls.add(imageUrl);
+                    } else {
+                        // 保存失败，记录错误
+                        Map<String, String> errorFile = new HashMap<>();
+                        errorFile.put("name", file.getOriginalFilename());
+                        errorFile.put("error", "文件保存失败");
+                        errorFiles.add(errorFile);
+                    }
+                } catch (Exception e) {
+                    // 处理单个文件上传失败
+                    log.error("上传单个文件失败: {}", file.getOriginalFilename(), e);
+                    Map<String, String> errorFile = new HashMap<>();
+                    errorFile.put("name", file.getOriginalFilename());
+                    errorFile.put("error", e.getMessage());
+                    errorFiles.add(errorFile);
+                }
+            }
+            
+            // 构建返回结果
+            Map<String, Object> result = new HashMap<>();
+            
+            if (successUrls.isEmpty() && !errorFiles.isEmpty()) {
+                // 所有文件都上传失败
+                return CommonResult.failed("所有文件上传失败");
+            } else if (!successUrls.isEmpty() && !errorFiles.isEmpty()) {
+                // 部分文件上传成功
+                result.put("urls", successUrls);
+                result.put("errorFiles", errorFiles);
+                result.put("partialSuccess", true);
+                // 返回第一个成功上传的URL作为主URL
+                result.put("url", successUrls.get(0));
                 return CommonResult.success(result);
-            } catch (Exception e) {
-                log.error("上传图片到远程服务器失败", e);
-                return CommonResult.failed("上传图片到远程服务器失败：" + e.getMessage());
+            } else {
+                // 所有文件都上传成功
+                result.put("urls", successUrls);
+                // 返回第一个上传的URL作为主URL
+                result.put("url", successUrls.get(0));
+                return CommonResult.success(result);
             }
         } catch (Exception e) {
             log.error("上传图片时发生异常", e);
@@ -336,14 +363,32 @@ public class ContentController {
      */
     private String saveFileLocally(MultipartFile file, String fileName) {
         try {
+            // 获取当前日期，用于创建文件夹层级
+            Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH) + 1; // 月份从0开始，需要+1
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            
+            // 构建目录结构：基础目录/年/月/日/
+            String baseDir = "E:/media/content/";
+            String dateDir = year + "/" + (month < 10 ? "0" + month : month) + "/" + (day < 10 ? "0" + day : day) + "/";
+            String uploadDir = baseDir + dateDir;
+            
             // 检查上传目录是否存在，不存在则创建
-            String uploadDir = "E:/media/content/";
             File dir = new File(uploadDir);
             if (!dir.exists()) {
                 // 创建目录结构
                 if (!dir.mkdirs()) {
-                    log.error("无法创建上传目录: {}", uploadDir);
-                    return null;
+                    log.error("无法创建按日期分层的上传目录: {}", uploadDir);
+                    
+                    // 如果创建日期目录失败，回退到基础目录
+                    log.info("尝试使用基础目录保存文件");
+                    dir = new File(baseDir);
+                    if (!dir.exists() && !dir.mkdirs()) {
+                        log.error("无法创建基础上传目录: {}", baseDir);
+                        return null;
+                    }
+                    dateDir = ""; // 重置日期目录路径
                 }
             }
             
@@ -354,7 +399,7 @@ public class ContentController {
             log.info("文件已成功保存到本地: {}", destFile.getAbsolutePath());
             
             // 返回URL
-            return "https://dailydiscover.top/media/content/" + fileName;
+            return "https://dailydiscover.top/media/content/" + dateDir + fileName;
         } catch (IOException e) {
             log.error("本地保存文件失败", e);
             return null;
