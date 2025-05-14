@@ -58,7 +58,7 @@ public class SshUtil {
             uploadFileToRemoteServer(tempFile.toFile(), remoteFileName);
             
             // 返回可访问的URL
-            return "/images/content/" + remoteFileName;
+            return "https://dailydiscover.top/media/content/" + remoteFileName;
         } finally {
             // 删除临时文件
             Files.deleteIfExists(tempFile);
@@ -92,9 +92,27 @@ public class SshUtil {
         try {
             // 如果使用私钥认证
             if (privateKeyPath != null && !privateKeyPath.isEmpty()) {
-                // 添加私钥
-                jsch.addIdentity(privateKeyPath);
-                log.info("使用私钥认证: {}", privateKeyPath);
+                try {
+                    // 转换路径格式，将/替换为平台特定的分隔符
+                    String normalizedPath = privateKeyPath;
+                    if (privateKeyPath.startsWith("/")) {
+                        normalizedPath = privateKeyPath.substring(1); // 移除开头的/
+                    }
+                    Path path = Paths.get(normalizedPath);
+                    File keyFile = path.toFile();
+                    
+                    if (!keyFile.exists()) {
+                        log.error("私钥文件不存在: {}", keyFile.getAbsolutePath());
+                        throw new FileNotFoundException("私钥文件不存在: " + keyFile.getAbsolutePath());
+                    }
+                    
+                    // 添加私钥
+                    jsch.addIdentity(keyFile.getAbsolutePath());
+                    log.info("使用私钥认证: {}", keyFile.getAbsolutePath());
+                } catch (Exception e) {
+                    log.error("加载私钥失败", e);
+                    throw new JSchException("加载私钥失败: " + e.getMessage(), e);
+                }
             }
             
             // 创建SSH会话
@@ -122,30 +140,49 @@ public class SshUtil {
             
             channelSftp = (ChannelSftp) channel;
             
-            // 确保远程目录存在
+            // 确保E盘存在
+            String baseDrive = "E:\\";
+            String mediaFolder = "media";
+            String contentFolder = "content";
+            
             try {
-                channelSftp.stat(remoteBasePath);
-                log.info("远程基础目录已存在: {}", remoteBasePath);
+                channelSftp.cd(baseDrive);
+                log.info("E盘存在");
+            } catch (SftpException e) {
+                log.error("无法访问E盘，请确保E盘存在并有访问权限");
+                throw e;
+            }
+            
+            // 确保media文件夹存在
+            try {
+                channelSftp.cd(mediaFolder);
+                log.info("media文件夹已存在");
             } catch (SftpException e) {
                 if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                    channelSftp.mkdir(remoteBasePath);
-                    log.info("创建远程基础目录: {}", remoteBasePath);
+                    channelSftp.mkdir(mediaFolder);
+                    channelSftp.cd(mediaFolder);
+                    log.info("创建media文件夹成功");
+                } else {
+                    throw e;
                 }
             }
             
+            // 确保content文件夹存在
             try {
-                channelSftp.stat(remoteContentPath);
-                log.info("远程内容目录已存在: {}", remoteContentPath);
+                channelSftp.cd(contentFolder);
+                log.info("content文件夹已存在");
             } catch (SftpException e) {
                 if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                    channelSftp.mkdir(remoteContentPath);
-                    log.info("创建远程内容目录: {}", remoteContentPath);
+                    channelSftp.mkdir(contentFolder);
+                    channelSftp.cd(contentFolder);
+                    log.info("创建content文件夹成功");
+                } else {
+                    throw e;
                 }
             }
             
             // 上传文件
             fis = new FileInputStream(file);
-            channelSftp.cd(remoteContentPath);
             channelSftp.put(fis, remoteFileName);
             log.info("文件上传成功: {}", remoteFileName);
         } catch (FileNotFoundException e) {
@@ -186,9 +223,27 @@ public class SshUtil {
         try {
             // 如果使用私钥认证
             if (privateKeyPath != null && !privateKeyPath.isEmpty()) {
-                // 添加私钥
-                jsch.addIdentity(privateKeyPath);
-                log.info("使用私钥认证: {}", privateKeyPath);
+                try {
+                    // 转换路径格式，将/替换为平台特定的分隔符
+                    String normalizedPath = privateKeyPath;
+                    if (privateKeyPath.startsWith("/")) {
+                        normalizedPath = privateKeyPath.substring(1); // 移除开头的/
+                    }
+                    Path path = Paths.get(normalizedPath);
+                    File keyFile = path.toFile();
+                    
+                    if (!keyFile.exists()) {
+                        log.error("私钥文件不存在: {}", keyFile.getAbsolutePath());
+                        throw new FileNotFoundException("私钥文件不存在: " + keyFile.getAbsolutePath());
+                    }
+                    
+                    // 添加私钥
+                    jsch.addIdentity(keyFile.getAbsolutePath());
+                    log.info("使用私钥认证: {}", keyFile.getAbsolutePath());
+                } catch (Exception e) {
+                    log.error("加载私钥失败", e);
+                    throw new JSchException("加载私钥失败: " + e.getMessage(), e);
+                }
             }
             
             // 创建SSH会话
@@ -216,24 +271,44 @@ public class SshUtil {
             
             channelSftp = (ChannelSftp) channel;
             
-            // 确保远程目录存在
+            // 确保E盘存在
+            String baseDrive = "E:\\";
+            String mediaFolder = "media";
+            String contentFolder = "content";
+            
             try {
-                channelSftp.stat(remoteBasePath);
-                log.info("远程基础目录已存在: {}", remoteBasePath);
+                channelSftp.cd(baseDrive);
+                log.info("E盘存在");
+            } catch (SftpException e) {
+                log.error("无法访问E盘，请确保E盘存在并有访问权限");
+                throw e;
+            }
+            
+            // 确保media文件夹存在
+            try {
+                channelSftp.cd(mediaFolder);
+                log.info("media文件夹已存在");
             } catch (SftpException e) {
                 if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                    channelSftp.mkdir(remoteBasePath);
-                    log.info("创建远程基础目录: {}", remoteBasePath);
+                    channelSftp.mkdir(mediaFolder);
+                    channelSftp.cd(mediaFolder);
+                    log.info("创建media文件夹成功");
+                } else {
+                    throw e;
                 }
             }
             
+            // 确保content文件夹存在
             try {
-                channelSftp.stat(remoteContentPath);
-                log.info("远程内容目录已存在: {}", remoteContentPath);
+                channelSftp.cd(contentFolder);
+                log.info("content文件夹已存在");
             } catch (SftpException e) {
                 if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                    channelSftp.mkdir(remoteContentPath);
-                    log.info("创建远程内容目录: {}", remoteContentPath);
+                    channelSftp.mkdir(contentFolder);
+                    channelSftp.cd(contentFolder);
+                    log.info("创建content文件夹成功");
+                } else {
+                    throw e;
                 }
             }
             

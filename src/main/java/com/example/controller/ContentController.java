@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -297,23 +298,66 @@ public class ContentController {
             String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
             
             try {
+                // 尝试本地保存文件
+                String imageUrl = saveFileLocally(file, fileName);
+                if (imageUrl != null) {
+                    // 本地保存成功
+                    Map<String, String> result = new HashMap<>();
+                    result.put("url", imageUrl);
+                    return CommonResult.success(result);
+                }
+                
+                // 如果本地保存失败，尝试远程上传
                 // 确保远程目录存在
-                sshUtil.ensureRemoteDirectoryExists();
+                //sshUtil.ensureRemoteDirectoryExists();
                 
                 // 上传文件到远程服务器
-                String imageUrl = sshUtil.uploadFile(file, fileName);
+                // String imageUrl = sshUtil.uploadFile(file, fileName);
                 
                 Map<String, String> result = new HashMap<>();
                 result.put("url", imageUrl);
                 
                 return CommonResult.success(result);
-            } catch (JSchException | SftpException e) {
+            } catch (Exception e) {
                 log.error("上传图片到远程服务器失败", e);
                 return CommonResult.failed("上传图片到远程服务器失败：" + e.getMessage());
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("上传图片时发生异常", e);
             return CommonResult.failed("上传图片失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 本地保存文件
+     * @param file 要保存的文件
+     * @param fileName 文件名
+     * @return 访问URL，保存失败则返回null
+     */
+    private String saveFileLocally(MultipartFile file, String fileName) {
+        try {
+            // 检查上传目录是否存在，不存在则创建
+            String uploadDir = "E:/media/content/";
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                // 创建目录结构
+                if (!dir.mkdirs()) {
+                    log.error("无法创建上传目录: {}", uploadDir);
+                    return null;
+                }
+            }
+            
+            // 保存文件
+            File destFile = new File(dir, fileName);
+            file.transferTo(destFile);
+            
+            log.info("文件已成功保存到本地: {}", destFile.getAbsolutePath());
+            
+            // 返回URL
+            return "https://dailydiscover.top/media/content/" + fileName;
+        } catch (IOException e) {
+            log.error("本地保存文件失败", e);
+            return null;
         }
     }
     

@@ -22,6 +22,6 @@ ssh:
     host: "2409:8a55:3490:8cb0:9889:19eb:5557:5139"
     user: "sshuser"
     port: 22
-    base-path: "/E:/media"
-    content-path: "/E:/media/content"
-    private-key-path: "/C:/Users/ceiots/.ssh/id_ed25519" # 如果使用私钥认证，设置私钥路径
+    base-path: "E:\\media"
+    content-path: "E:\\media\\content"
+    private-key-path: "C:\\Users\\ceiots\\.ssh\\id_ed25519" # 如果使用私钥认证，设置私钥路径
