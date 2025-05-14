@@ -6,6 +6,7 @@ import com.example.model.Content;
 import com.example.service.ContentService;
 import com.example.util.JwtTokenUtil;
 import com.example.util.SshUtil;
+import com.example.util.UserIdExtractor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,40 +36,10 @@ public class ContentController {
     private ContentService contentService;
     
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-    
+    private UserIdExtractor userIdExtractor;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    /**
-     * 从Authorization头或userId头中提取用户ID
-     * @param token JWT令牌 (可选)
-     * @param userIdHeader 用户ID请求头 (可选)
-     * @return 用户ID，如果无法提取则返回null
-     */
-    private Long extractUserId(String token, String userIdHeader) {
-        // 尝试从userId请求头中提取
-        if (userIdHeader != null && !userIdHeader.isEmpty()) {
-            try {
-                return Long.parseLong(userIdHeader);
-            } catch (NumberFormatException e) {
-                log.warn("无效的userId请求头: {}", userIdHeader);
-            }
-        }
-        
-        // 尝试从JWT令牌中提取
-        if (token != null && !token.isEmpty()) {
-            // 处理Bearer token格式
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-            Long userId = jwtTokenUtil.extractUserId(token);
-            log.debug("从token中提取的userId: {}", userId);
-            return userId;
-        }
-        
-        return null;
-    }
     
     /**
      * 创建/更新内容
@@ -82,7 +53,7 @@ public class ContentController {
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
-            Long userId = extractUserId(token, userIdHeader);
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
                 return CommonResult.unauthorized(null);
             }
@@ -107,7 +78,7 @@ public class ContentController {
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
-            Long userId = extractUserId(token, userIdHeader);
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
                 return CommonResult.unauthorized(null);
             }
@@ -182,7 +153,7 @@ public class ContentController {
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @RequestParam(required = false) Integer status) {
         try {
-            Long userId = extractUserId(token, userIdHeader);
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
                 return CommonResult.unauthorized(null);
             }
@@ -251,7 +222,7 @@ public class ContentController {
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
-            Long userId = extractUserId(token, userIdHeader);
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
                 return CommonResult.unauthorized(null);
             }
@@ -280,7 +251,7 @@ public class ContentController {
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
-            Long userId = extractUserId(token, userIdHeader);
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             System.out.println("userId: " + userId);
             
             // 如果仍然没有userId，返回未授权错误
@@ -418,7 +389,7 @@ public class ContentController {
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
-            Long userId = extractUserId(token, userIdHeader);
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
                 return CommonResult.unauthorized(null);
             }

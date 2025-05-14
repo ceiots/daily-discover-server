@@ -32,4 +32,8 @@ public class ProductService {
     public List<Product> searchProducts(String keyword) {
         return productMapper.searchProducts(keyword);
     }
+
+    public List<Product> getProductsByUserId(Long userId) {
+        return productMapper.findByUserId(userId);
+    }
 } 
