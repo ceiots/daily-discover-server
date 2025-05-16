@@ -1,14 +1,11 @@
-// CategoryMapper.java
 package com.example.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.model.Category;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
 
-import java.util.List;
+/**
+ * 商品分类数据库操作
+ */
+public interface CategoryMapper extends BaseMapper<Category> {
 
-@Mapper
-public interface CategoryMapper {
-    @Select("SELECT * FROM categories") // 假设您有一个 categories 表
-    List<Category> getAllCategories();
-}
+} 

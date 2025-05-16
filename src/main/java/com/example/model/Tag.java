@@ -1,21 +1,19 @@
 package com.example.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
- * 商品分类
+ * 商品标签
  */
-@TableName(value = "product_categories")
+@TableName(value = "product_tags")
 @Data
-public class Category implements Serializable {
+public class Tag implements Serializable {
 
     /**
      * ID
@@ -24,29 +22,24 @@ public class Category implements Serializable {
     private Long id;
 
     /**
-     * 分类名称
+     * 标签名称
      */
     private String name;
 
     /**
-     * 父分类ID
+     * 关联的分类ID
      */
-    private Long parentId;
+    private Long categoryId;
 
     /**
-     * 分类层级，1为顶级
+     * 标签颜色
      */
-    private Integer level;
+    private String color;
 
     /**
-     * 排序值
+     * 热度值
      */
-    private Integer sortOrder;
-
-    /**
-     * 分类图标
-     */
-    private String icon;
+    private Integer hot;
 
     /**
      * 状态：1-启用，0-禁用
@@ -68,12 +61,5 @@ public class Category implements Serializable {
      */
     private Date updatedAt;
 
-    /**
-     * 子分类列表（非数据库字段）
-     */
-    @TableField(exist = false)
-    private List<Category> children;
-
-    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 } 
