@@ -17,6 +17,12 @@ spring:
       max-request-size: 100MB   # 单次请求最大大小
       enabled: true             # 开启文件上传
 
+# 文件上传配置
+file:
+  upload:
+    local-path: E:\\media\\         # 本地上传路径
+    base-url: https://dailydiscover.top/media/       # 文件访问基础URL
+
 # 物流API配置
 logistics:
   kdniao:

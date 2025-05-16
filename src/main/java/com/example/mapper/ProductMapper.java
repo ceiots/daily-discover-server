@@ -137,4 +137,45 @@ public interface ProductMapper {
                 one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> findByUserId(Long userId);
+    
+    /**
+     * 根据店铺ID获取商品列表
+     */
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.shop_id = #{shopId}")
+    @Results({
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "productDetails", column = "product_details", 
+                typeHandler = ProductDetailsTypeHandler.class),
+        @Result(property = "purchaseNotices", column = "purchase_notices", 
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+    })
+    List<Product> findByShopId(Long shopId);
+    
+    /**
+     * 更新商品
+     */
+    @Update("UPDATE recommendations SET " +
+            "title = #{title}, " +
+            "price = #{price}, " +
+            "category_id = #{categoryId}, " +
+            "specifications = #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
+            "product_details = #{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
+            "purchase_notices = #{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler} " +
+            "WHERE id = #{id}")
+    void update(Product product);
+    
+    /**
+     * 设置商品为已删除状态（逻辑删除）
+     */
+    @Update("UPDATE recommendations SET deleted = 1 WHERE id = #{id}")
+    void deleteById(Long id);
 }
