@@ -53,10 +53,6 @@ public class Category implements Serializable {
      */
     private Integer status;
 
-    /**
-     * 创建用户 id
-     */
-    private Long userId;
 
     /**
      * 创建时间

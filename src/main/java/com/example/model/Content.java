@@ -21,4 +21,6 @@ public class Content {
     private Integer viewCount; // 浏览次数
     private Integer likeCount; // 点赞次数
     private Integer commentCount; // 评论次数
+    private Integer auditStatus; // 0-待审核，1-审核通过，2-审核不通过
+    private String auditRemark; // 审核备注
 } 

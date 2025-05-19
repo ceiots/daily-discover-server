@@ -14,4 +14,6 @@ public class ContentDto {
     private List<String> images; // 图片URL列表
     private List<String> tags; // 标签列表
     private Integer status; // 状态：0草稿，1已发布
+    private Integer auditStatus; // 0-待审核，1-审核通过，2-审核不通过
+    private String auditRemark; // 审核备注
 } 

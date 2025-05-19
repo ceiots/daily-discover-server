@@ -31,7 +31,7 @@ public class ContentServiceImpl implements ContentService {
      */
     @Override
     @Transactional
-    public Content saveContent(ContentDto contentDto, Long userId) {
+    public Content saveContent(ContentDto contentDto, Long userId) throws JsonProcessingException {
         Content content = convertDtoToEntity(contentDto);
         content.setUserId(userId);
         content.setStatus(1); // 1表示已发布
@@ -60,7 +60,7 @@ public class ContentServiceImpl implements ContentService {
      */
     @Override
     @Transactional
-    public Content saveDraft(ContentDto contentDto, Long userId) {
+    public Content saveDraft(ContentDto contentDto, Long userId) throws JsonProcessingException {
         Content content = convertDtoToEntity(contentDto);
         content.setUserId(userId);
         content.setStatus(0); // 0表示草稿
@@ -109,13 +109,45 @@ public class ContentServiceImpl implements ContentService {
     }
     
     /**
+     * 根据用户ID、状态和审核状态获取内容列表
+     */
+    @Override
+    public List<Content> getContentsByUserIdAndStatusAndAuditStatus(Long userId, Integer status, Integer auditStatus) {
+        return contentMapper.findByUserIdAndStatusAndAuditStatus(userId, status, auditStatus);
+    }
+    
+    /**
+     * 根据用户ID和审核状态获取内容列表
+     */
+    @Override
+    public List<Content> getContentsByUserIdAndAuditStatus(Long userId, Integer auditStatus) {
+        return contentMapper.findByUserIdAndAuditStatus(userId, auditStatus);
+    }
+
+    /**
      * 获取所有已发布的内容
      */
     @Override
     public List<Content> getAllPublishedContents() {
         return contentMapper.findAllPublished();
     }
-    
+
+    /**
+     * 获取所有已发布且审核通过的内容
+     */
+    @Override
+    public List<Content> getPublishedAndApprovedContents() {
+        return contentMapper.findPublishedAndApproved();
+    }
+
+    /**
+     * 获取所有待审核的内容
+     */
+    @Override
+    public List<Content> getPendingAuditContents() {
+        return contentMapper.findPendingAudit();
+    }
+
     /**
      * 删除内容
      */
@@ -144,6 +176,22 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void incrementLikeCount(Long id) {
         contentMapper.incrementLikeCount(id);
+    }
+    
+    /**
+     * 审核内容
+     */
+    @Override
+    @Transactional
+    public Content auditContent(Long id, Integer auditStatus, String auditRemark) {
+        Content content = contentMapper.findById(id);
+        if (content != null) {
+            content.setAuditStatus(auditStatus);
+            content.setAuditRemark(auditRemark);
+            content.setUpdatedAt(new Date());
+            contentMapper.update(content);
+        }
+        return content;
     }
     
     /**

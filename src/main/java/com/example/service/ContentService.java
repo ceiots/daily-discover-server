@@ -1,7 +1,15 @@
 package com.example.service;
 
 import com.example.dto.ContentDto;
+import com.example.mapper.ContentMapper;
 import com.example.model.Content;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -10,12 +18,12 @@ import java.util.List;
 public interface ContentService {
     
     /**
-     * 保存内容（创建新内容或更新已有内容）
+     * 保存内容（发布）
      * @param contentDto 内容DTO
      * @param userId 用户ID
      * @return 保存后的内容对象
      */
-    Content saveContent(ContentDto contentDto, Long userId);
+    Content saveContent(ContentDto contentDto, Long userId) throws JsonProcessingException;
     
     /**
      * 根据ID获取内容
@@ -25,14 +33,14 @@ public interface ContentService {
     Content getContentById(Long id);
     
     /**
-     * 根据用户ID获取内容列表
+     * 根据用户ID获取所有内容
      * @param userId 用户ID
      * @return 内容列表
      */
     List<Content> getContentsByUserId(Long userId);
     
     /**
-     * 根据用户ID和状态获取内容列表
+     * 根据用户ID和状态获取内容
      * @param userId 用户ID
      * @param status 状态
      * @return 内容列表
@@ -40,10 +48,39 @@ public interface ContentService {
     List<Content> getContentsByUserIdAndStatus(Long userId, Integer status);
     
     /**
+     * 根据用户ID和审核状态获取内容
+     * @param userId 用户ID
+     * @param auditStatus 审核状态
+     * @return 内容列表
+     */
+    List<Content> getContentsByUserIdAndAuditStatus(Long userId, Integer auditStatus);
+    
+    /**
+     * 根据用户ID、状态和审核状态获取内容
+     * @param userId 用户ID
+     * @param status 状态
+     * @param auditStatus 审核状态
+     * @return 内容列表
+     */
+    List<Content> getContentsByUserIdAndStatusAndAuditStatus(Long userId, Integer status, Integer auditStatus);
+    
+    /**
      * 获取所有已发布的内容
      * @return 内容列表
      */
     List<Content> getAllPublishedContents();
+    
+    /**
+     * 获取所有已发布且审核通过的内容
+     * @return 内容列表
+     */
+    List<Content> getPublishedAndApprovedContents();
+    
+    /**
+     * 获取所有待审核的内容
+     * @return 内容列表
+     */
+    List<Content> getPendingAuditContents();
     
     /**
      * 删除内容
@@ -71,5 +108,14 @@ public interface ContentService {
      * @param userId 用户ID
      * @return 保存后的内容对象
      */
-    Content saveDraft(ContentDto contentDto, Long userId);
+    Content saveDraft(ContentDto contentDto, Long userId) throws JsonProcessingException;
+    
+    /**
+     * 审核内容
+     * @param id 内容ID
+     * @param auditStatus 审核状态
+     * @param auditRemark 审核备注
+     * @return 审核后的内容对象
+     */
+    Content auditContent(Long id, Integer auditStatus, String auditRemark);
 } 

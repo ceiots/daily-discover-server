@@ -33,7 +33,6 @@ public class Product {
     @TableField(typeHandler = JsonTypeHandler.class)
     private List<PurchaseNotice> purchaseNotices;
 
-    private String storeDescription;
     private Date createdAt;
     private Long categoryId;
     private Integer deleted;
@@ -48,17 +47,16 @@ public class Product {
     // 店铺ID字段
     private Long shopId;
 
-    // 店铺关联对象
-    @TableField(exist = false)
-    private Shop shop;
+    private Integer auditStatus; // 0-待审核, 1-审核通过, 2-审核拒绝
+    private String auditRemark; // 审核备注
+    private Date updateTime;
 
-    // 店铺名称
-    @TableField(exist = false)
-    private String shopName;
 
-    // 店铺头像URL
-    @TableField(exist = false)
-    private String shopAvatarUrl;
+    private BigDecimal originalPrice;
+    private Long parentCategoryId;
+    private Long grandCategoryId;
+    private List<String> images;
+    private List<Long> tagIds;
 
     public String getImageUrl() {
         return imageUrl;

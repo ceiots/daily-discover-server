@@ -10,19 +10,21 @@ import java.util.List;
 @Mapper
 public interface ProductMapper {
 
-    @Insert("INSERT INTO recommendations (title, imageUrl, shopName, price, soldCount, " +
+    @Insert("INSERT INTO recommendations (title, imageUrl, price, soldCount, " +
             "shopAvatarUrl, specifications, product_details, purchase_notices, " +
-            "created_at, category_id, shop_id, user_id) " +
-            "VALUES (#{title}, #{imageUrl}, #{shopName}, #{price}, #{soldCount}, " +
+            "created_at, category_id, parent_category_id, grand_category_id, shop_id, user_id, audit_status, audit_remark) " +
+            "VALUES (#{title}, #{imageUrl}, #{price}, #{soldCount}, " +
             "#{shopAvatarUrl}, #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
             "#{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
             "#{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
-            "#{createdAt}, #{categoryId}, #{shopId}, #{userId})")
+            "#{createdAt}, #{categoryId}, #{parentCategoryId}, #{grandCategoryId}, #{shopId}, #{userId}, #{auditStatus}, #{auditRemark})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(Product product);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
             "FROM recommendations r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id")
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.deleted = 0 AND r.audit_status = 1")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
@@ -34,7 +36,12 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "parentCategoryId", column = "parent_category_id"),
+        @Result(property = "grandCategoryId", column = "grand_category_id"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "auditRemark", column = "audit_remark")
     })
     List<Product> getAllProducts();
 
@@ -167,9 +174,13 @@ public interface ProductMapper {
             "title = #{title}, " +
             "price = #{price}, " +
             "category_id = #{categoryId}, " +
+            "parent_category_id = #{parentCategoryId}, " +
+            "grand_category_id = #{grandCategoryId}, " +
             "specifications = #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
             "product_details = #{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
-            "purchase_notices = #{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler} " +
+            "purchase_notices = #{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
+            "audit_status = #{auditStatus}, " +
+            "audit_remark = #{auditRemark} " +
             "WHERE id = #{id}")
     void update(Product product);
     
@@ -178,4 +189,37 @@ public interface ProductMapper {
      */
     @Update("UPDATE recommendations SET deleted = 1 WHERE id = #{id}")
     void deleteById(Long id);
+
+    /**
+     * 添加审核接口
+     */
+    @Update("UPDATE recommendations SET audit_status = #{auditStatus}, audit_remark = #{auditRemark} WHERE id = #{id}")
+    void updateAuditStatus(@Param("id") Long id, @Param("auditStatus") Integer auditStatus, @Param("auditRemark") String auditRemark);
+
+    /**
+     * 获取待审核的商品列表（管理员使用）
+     */
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.deleted = 0 AND r.audit_status = 0")
+    @Results({
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "productDetails", column = "product_details", 
+                typeHandler = ProductDetailsTypeHandler.class),
+        @Result(property = "purchaseNotices", column = "purchase_notices", 
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "parentCategoryId", column = "parent_category_id"),
+        @Result(property = "grandCategoryId", column = "grand_category_id"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "auditRemark", column = "audit_remark")
+    })
+    List<Product> findPendingAuditProducts();
 }

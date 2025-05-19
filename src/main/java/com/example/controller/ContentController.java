@@ -58,6 +58,9 @@ public class ContentController {
                 return CommonResult.unauthorized(null);
             }
             
+            // 设置内容为待审核状态
+            contentDto.setAuditStatus(0); // 0-待审核
+            
             Content content = contentService.saveContent(contentDto, userId);
             return CommonResult.success(content);
         } catch (Exception e) {
@@ -82,6 +85,9 @@ public class ContentController {
             if (userId == null) {
                 return CommonResult.unauthorized(null);
             }
+            
+            // 草稿不需要审核
+            contentDto.setAuditStatus(null);
             
             Content content = contentService.saveDraft(contentDto, userId);
             return CommonResult.success(content);
@@ -133,6 +139,8 @@ public class ContentController {
             result.put("viewCount", content.getViewCount());
             result.put("likeCount", content.getLikeCount());
             result.put("commentCount", content.getCommentCount());
+            result.put("auditStatus", content.getAuditStatus());
+            result.put("auditRemark", content.getAuditRemark());
             
             return CommonResult.success(result);
         } catch (Exception e) {
@@ -151,7 +159,8 @@ public class ContentController {
     public CommonResult<List<Map<String, Object>>> getUserContents(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
-            @RequestParam(required = false) Integer status) {
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Integer auditStatus) {
         try {
             Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
@@ -159,8 +168,14 @@ public class ContentController {
             }
             
             List<Content> contents;
-            if (status != null) {
+            
+            // 根据参数决定查询方式
+            if (status != null && auditStatus != null) {
+                contents = contentService.getContentsByUserIdAndStatusAndAuditStatus(userId, status, auditStatus);
+            } else if (status != null) {
                 contents = contentService.getContentsByUserIdAndStatus(userId, status);
+            } else if (auditStatus != null) {
+                contents = contentService.getContentsByUserIdAndAuditStatus(userId, auditStatus);
             } else {
                 contents = contentService.getContentsByUserId(userId);
             }
@@ -199,6 +214,8 @@ public class ContentController {
                 item.put("viewCount", content.getViewCount());
                 item.put("likeCount", content.getLikeCount());
                 item.put("commentCount", content.getCommentCount());
+                item.put("auditStatus", content.getAuditStatus());
+                item.put("auditRemark", content.getAuditRemark());
                 
                 result.add(item);
             }
@@ -414,7 +431,8 @@ public class ContentController {
     @GetMapping("/public")
     public CommonResult<List<Map<String, Object>>> getPublicContents() {
         try {
-            List<Content> contents = contentService.getAllPublishedContents();
+            // 获取已发布且审核通过的内容
+            List<Content> contents = contentService.getPublishedAndApprovedContents();
             
             List<Map<String, Object>> result = new ArrayList<>();
             for (Content content : contents) {
@@ -458,6 +476,97 @@ public class ContentController {
         } catch (Exception e) {
             log.error("获取公开内容列表时发生异常", e);
             return CommonResult.failed("获取公开内容列表失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 内容审核接口 (管理员使用)
+     */
+    @PostMapping("/{id}/audit")
+    public CommonResult<Content> auditContent(
+            @PathVariable Long id,
+            @RequestParam Integer auditStatus,
+            @RequestParam(required = false) String auditRemark,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        try {
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            if (userId == null) {
+                return CommonResult.unauthorized(null);
+            }
+            
+            // TODO: 应当进行管理员权限检查
+            
+            Content content = contentService.auditContent(id, auditStatus, auditRemark);
+            if (content == null) {
+                return CommonResult.failed("内容不存在");
+            }
+            
+            return CommonResult.success(content);
+        } catch (Exception e) {
+            log.error("审核内容时发生异常", e);
+            return CommonResult.failed("审核内容失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取待审核内容列表 (管理员使用)
+     */
+    @GetMapping("/pending-audit")
+    public CommonResult<List<Map<String, Object>>> getPendingAuditContents(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        try {
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            if (userId == null) {
+                return CommonResult.unauthorized(null);
+            }
+            
+            // TODO: 应当进行管理员权限检查
+            
+            List<Content> contents = contentService.getPendingAuditContents();
+            
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Content content : contents) {
+                // 将JSON字符串转换为List
+                List<String> images = new ArrayList<>();
+                List<String> tags = new ArrayList<>();
+                
+                if (content.getImages() != null && !content.getImages().isEmpty()) {
+                    try {
+                        images = objectMapper.readValue(content.getImages(), new TypeReference<List<String>>() {});
+                    } catch (JsonProcessingException e) {
+                        log.error("解析images JSON失败", e);
+                    }
+                }
+                
+                if (content.getTags() != null && !content.getTags().isEmpty()) {
+                    try {
+                        tags = objectMapper.readValue(content.getTags(), new TypeReference<List<String>>() {});
+                    } catch (JsonProcessingException e) {
+                        log.error("解析tags JSON失败", e);
+                    }
+                }
+                
+                // 构建返回结果
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", content.getId());
+                item.put("userId", content.getUserId());
+                item.put("title", content.getTitle());
+                item.put("content", content.getContent());
+                item.put("images", images);
+                item.put("tags", tags);
+                item.put("status", content.getStatus());
+                item.put("createdAt", content.getCreatedAt());
+                item.put("auditStatus", content.getAuditStatus());
+                
+                result.add(item);
+            }
+            
+            return CommonResult.success(result);
+        } catch (Exception e) {
+            log.error("获取待审核内容列表时发生异常", e);
+            return CommonResult.failed("获取待审核内容列表失败：" + e.getMessage());
         }
     }
 } 
