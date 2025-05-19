@@ -15,7 +15,7 @@ public class ImageConfigUpdater {
     @Autowired
     private ImageConfig imageConfig;
 
-    @Scheduled(fixedRate = 60000) // 每分钟更新一次
+    //@Scheduled(fixedRate = 60000) // 每分钟更新一次
     public void updateImagePrefix() {
         String newPrefix = configService.getImagePrefix();
         imageConfig.setImagePrefix(newPrefix);

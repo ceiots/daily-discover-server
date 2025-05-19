@@ -24,10 +24,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.common.api.CommonResult;
 import com.example.model.Product;
+import com.example.model.ProductDetail;
 import com.example.model.Shop;
+import com.example.model.Specification;
 import com.example.service.ProductService;
 import com.example.service.ShopService;
 import com.example.util.UserIdExtractor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -253,8 +256,9 @@ public class ProductController {
     public CommonResult<Product> createProduct(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
-            @RequestBody Product product) {
+            @RequestBody Map<String, Object> requestBody) {
         try {
+            System.out.println("createProduct: " + requestBody);
             Long userId = userIdExtractor.extractUserId(token, userIdHeader);
             if (userId == null) {
                 return CommonResult.unauthorized(null);
@@ -271,6 +275,11 @@ public class ProductController {
                 return CommonResult.failed("您的店铺当前状态不允许创建商品");
             }
             
+            // 将requestBody转换为Product对象
+            ObjectMapper objectMapper = new ObjectMapper();
+            Product product = objectMapper.convertValue(requestBody, Product.class);
+            System.out.println("product: " + product);
+            
             // 设置商品关联信息
             product.setUserId(userId);
             product.setShopId(shop.getId());
@@ -280,6 +289,69 @@ public class ProductController {
             // 如果有多个图片，使用第一张作为主图
             if (product.getImages() != null && !product.getImages().isEmpty()) {
                 product.setImageUrl(product.getImages().get(0));
+            }
+            
+            // 对规格参数进行处理
+            if (product.getSpecifications() != null) {
+                for (int i = 0; i < product.getSpecifications().size(); i++) {
+                    Specification spec = product.getSpecifications().get(i);
+                    if (spec.getValues() == null) {
+                        spec.setValues(new ArrayList<>());
+                    }
+                }
+            }
+            
+            // 如果details字段映射成功但productDetails为空，则将details赋值给productDetails
+            if (product.getDetails() != null && (product.getProductDetails() == null || product.getProductDetails().isEmpty())) {
+                product.setProductDetails(product.getDetails());
+            }
+            // 备用处理：如果JsonProperty映射失败，从requestBody中获取details
+            else if (product.getProductDetails() == null && requestBody.containsKey("details") && requestBody.get("details") instanceof List) {
+                List<Map<String, Object>> details = (List<Map<String, Object>>) requestBody.get("details");
+                System.out.println("details: " + details);
+                List<ProductDetail> productDetails = new ArrayList<>();
+                for (Map<String, Object> detail : details) {
+                    ProductDetail pd = new ProductDetail();
+                    pd.setType((String) detail.get("type"));
+                    pd.setContent((String) detail.get("content"));
+                    
+                    // 处理sort，确保是Integer类型
+                    Object sortObj = detail.get("sort");
+                    if (sortObj != null) {
+                        if (sortObj instanceof Integer) {
+                            pd.setSort((Integer) sortObj);
+                        } else if (sortObj instanceof Number) {
+                            pd.setSort(((Number) sortObj).intValue());
+                        } else {
+                            pd.setSort(0); // 默认值
+                        }
+                    } else {
+                        pd.setSort(0); // 默认值
+                    }
+                    
+                    productDetails.add(pd);
+                }
+                product.setProductDetails(productDetails);
+            }
+            
+            // 确保stock字段有值
+            if (requestBody.containsKey("stock")) {
+                Object stockObj = requestBody.get("stock");
+                if (stockObj instanceof Number) {
+                    Integer stock = ((Number) stockObj).intValue();
+                    product.setStock(stock);
+                } else if (stockObj instanceof String) {
+                    try {
+                        Integer stock = Integer.parseInt((String)stockObj);
+                        product.setStock(stock);
+                    } catch (NumberFormatException e) {
+                        product.setStock(0); // 默认值
+                    }
+                } else {
+                    product.setStock(0); // 默认值
+                }
+            } else {
+                product.setStock(0); // 默认值
             }
             
             Product createdProduct = productService.createProduct(product);

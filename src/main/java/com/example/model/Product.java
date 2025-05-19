@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.config.ImageConfig;
 import com.example.util.JsonTypeHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +21,7 @@ public class Product {
     private String imageUrl;
     private BigDecimal price;
     private Integer soldCount;
+    private Integer stock; // 添加库存字段
 
     // 规格参数，使用JSON存储
     @TableField(typeHandler = JsonTypeHandler.class)
@@ -28,6 +30,11 @@ public class Product {
     // 商品详情，支持图文
     @TableField(typeHandler = JsonTypeHandler.class)
     private List<ProductDetail> productDetails;
+    
+    // 添加details字段，映射到productDetails
+    @JsonProperty("details")
+    @TableField(exist = false)
+    private List<ProductDetail> details;
 
     // 购买须知
     @TableField(typeHandler = JsonTypeHandler.class)
@@ -58,12 +65,5 @@ public class Product {
     private List<String> images;
     private List<Long> tagIds;
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
-    }
 
 }

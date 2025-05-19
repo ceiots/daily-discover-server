@@ -10,11 +10,10 @@ import java.util.List;
 @Mapper
 public interface ProductMapper {
 
-    @Insert("INSERT INTO recommendations (title, imageUrl, price, soldCount, " +
-            "shopAvatarUrl, specifications, product_details, purchase_notices, " +
+        @Insert("INSERT INTO recommendations (title, imageUrl, price, soldCount, stock, " + "specifications, product_details, purchase_notices, " +
             "created_at, category_id, parent_category_id, grand_category_id, shop_id, user_id, audit_status, audit_remark) " +
-            "VALUES (#{title}, #{imageUrl}, #{price}, #{soldCount}, " +
-            "#{shopAvatarUrl}, #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
+            "VALUES (#{title}, #{imageUrl}, #{price}, #{soldCount}, #{stock}, " +
+            "#{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
             "#{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
             "#{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
             "#{createdAt}, #{categoryId}, #{parentCategoryId}, #{grandCategoryId}, #{shopId}, #{userId}, #{auditStatus}, #{auditRemark})")
@@ -173,6 +172,7 @@ public interface ProductMapper {
     @Update("UPDATE recommendations SET " +
             "title = #{title}, " +
             "price = #{price}, " +
+            "stock = #{stock}, " +
             "category_id = #{categoryId}, " +
             "parent_category_id = #{parentCategoryId}, " +
             "grand_category_id = #{grandCategoryId}, " +
