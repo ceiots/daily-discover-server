@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.config.ImageConfig;
 import com.example.util.JsonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
@@ -53,6 +54,20 @@ public class Product {
 
     // 店铺ID字段
     private Long shopId;
+    
+    // 店铺相关信息
+    @TableField(exist = false)
+    private String shopName;
+    
+    @TableField(exist = false)
+    private String shopAvatarUrl;
+    
+    @TableField(exist = false)
+    private String storeDescription;
+
+    // 添加shop属性，用于与Shop对象建立关联
+    @TableField(exist = false)
+    private Shop shop;
 
     private Integer auditStatus; // 0-待审核, 1-审核通过, 2-审核拒绝
     private String auditRemark; // 审核备注
