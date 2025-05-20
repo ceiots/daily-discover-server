@@ -49,7 +49,30 @@ public class ProductController {
     private UserIdExtractor userIdExtractor;
 
     @GetMapping("")
-    public List<Product> getAllProducts() {
+    public CommonResult<Map<String, Object>> getAllProducts(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        try {
+            List<Product> products = productService.getProductsWithPagination(page, size);
+            int total = productService.countApprovedProducts();
+            int totalPages = (int) Math.ceil((double) total / size);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("content", products);
+            result.put("totalElements", total);
+            result.put("totalPages", totalPages);
+            result.put("number", page);
+            result.put("size", size);
+            
+            return CommonResult.success(result);
+        } catch (Exception e) {
+            log.error("获取商品列表时发生异常", e);
+            return CommonResult.failed("获取商品列表失败：" + e.getMessage());
+        }
+    }
+
+    @GetMapping("/all")
+    public List<Product> getAllProductsWithoutPaging() {
         return productService.getAllProducts();
     }
 

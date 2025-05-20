@@ -111,4 +111,13 @@ public class ProductService {
     public List<Product> getPendingAuditProducts() {
         return productMapper.findPendingAuditProducts();
     }
+
+    public List<Product> getProductsWithPagination(int page, int size) {
+        int offset = page * size;
+        return productMapper.getProductsWithPagination(size, offset);
+    }
+    
+    public int countApprovedProducts() {
+        return productMapper.countApprovedProducts();
+    }
 }

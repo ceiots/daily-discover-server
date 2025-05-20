@@ -23,7 +23,8 @@ public interface ProductMapper {
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
             "FROM recommendations r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.deleted = 0 AND r.audit_status = 1")
+            "WHERE r.deleted = 0 AND r.audit_status = 1 " +
+            "LIMIT #{limit} OFFSET #{offset}")
     @Results({
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
@@ -42,7 +43,7 @@ public interface ProductMapper {
         @Result(property = "auditStatus", column = "audit_status"),
         @Result(property = "auditRemark", column = "audit_remark")
     })
-    List<Product> getAllProducts();
+    List<Product> getProductsWithPagination(@Param("limit") int limit, @Param("offset") int offset);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
             "FROM recommendations r " +
@@ -87,6 +88,7 @@ public interface ProductMapper {
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
             "FROM recommendations r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.deleted = 0 AND r.audit_status = 1 " +
             "ORDER BY RAND() LIMIT 10")
     @Results({
         @Result(property = "specifications", column = "specifications", 
@@ -222,4 +224,31 @@ public interface ProductMapper {
         @Result(property = "auditRemark", column = "audit_remark")
     })
     List<Product> findPendingAuditProducts();
+
+    @Select("SELECT COUNT(*) FROM recommendations r WHERE r.deleted = 0 AND r.audit_status = 1")
+    int countApprovedProducts();
+    
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.deleted = 0 AND r.audit_status = 1")
+    @Results({
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "productDetails", column = "product_details", 
+                typeHandler = ProductDetailsTypeHandler.class),
+        @Result(property = "purchaseNotices", column = "purchase_notices", 
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "parentCategoryId", column = "parent_category_id"),
+        @Result(property = "grandCategoryId", column = "grand_category_id"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "auditRemark", column = "audit_remark")
+    })
+    List<Product> getAllProducts();
 }
