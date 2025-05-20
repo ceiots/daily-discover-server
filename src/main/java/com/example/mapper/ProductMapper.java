@@ -169,6 +169,28 @@ public interface ProductMapper {
     List<Product> findByShopId(Long shopId);
     
     /**
+     * 根据店铺ID获取已审核通过的商品列表
+     */
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.shop_id = #{shopId} AND r.deleted = 0 AND r.audit_status = 1")
+    @Results({
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "productDetails", column = "product_details", 
+                typeHandler = ProductDetailsTypeHandler.class),
+        @Result(property = "purchaseNotices", column = "purchase_notices", 
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+    })
+    List<Product> findApprovedByShopId(Long shopId);
+    
+    /**
      * 更新商品
      */
     @Update("UPDATE recommendations SET " +

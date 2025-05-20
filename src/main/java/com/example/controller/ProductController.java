@@ -77,8 +77,38 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public Product getProduct(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public CommonResult<Product> getProduct(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        try {
+            if (id == null) {
+                return CommonResult.failed("商品ID不能为空");
+            }
+            
+            // 获取当前用户ID，可能为null
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            
+            // 根据权限获取商品信息
+            Product product = productService.getProductByIdWithPermission(id, userId);
+            
+            if (product == null) {
+                return CommonResult.failed("商品不存在或无权查看");
+            }
+            
+            // 如果商品未通过审核，加入提示信息
+            if (product.getAuditStatus() != null && product.getAuditStatus() != 1) {
+                log.info("访问未通过审核的商品, id: {}, status: {}, userId: {}", 
+                        id, product.getAuditStatus(), userId);
+                // 此处可以添加产品状态的特殊标记
+                product.setAuditRemark("该商品正在审核中，仅您可见");
+            }
+            
+            return CommonResult.success(product);
+        } catch (Exception e) {
+            log.error("获取商品详情时发生异常, id: {}", id, e);
+            return CommonResult.failed("获取商品详情失败，请稍后重试");
+        }
     }
 
     @GetMapping("/category/{categoryId}")
@@ -121,9 +151,30 @@ public class ProductController {
      * 根据店铺ID获取商品列表
      */
     @GetMapping("/shop/{shopId}")
-    public CommonResult<List<Product>> getProductsByShopId(@PathVariable Long shopId) {
+    public CommonResult<List<Product>> getProductsByShopId(
+            @PathVariable Long shopId,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
         try {
-            List<Product> products = productService.getProductsByShopId(shopId);
+            // 尝试获取用户ID，判断是否是店铺拥有者
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            
+            // 获取店铺信息
+            Shop shop = shopService.getShopById(shopId);
+            if (shop == null) {
+                return CommonResult.failed("店铺不存在");
+            }
+            
+            List<Product> products;
+            
+            // 如果当前用户是店铺拥有者，返回包括待审核商品在内的所有商品
+            if (userId != null && userId.equals(shop.getUserId())) {
+                products = productService.getProductsByShopId(shopId);
+            } else {
+                // 否则只返回审核通过的商品
+                products = productService.getProductsByShopId(shopId);
+            }
+            
             return CommonResult.success(products);
         } catch (Exception e) {
             log.error("获取店铺商品列表时发生异常", e);

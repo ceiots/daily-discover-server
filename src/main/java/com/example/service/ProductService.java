@@ -29,8 +29,41 @@ public class ProductService {
         return productMapper.getAllProducts();
     }
 
+    /**
+     * 获取商品详情，不管状态
+     */
     public Product getProductById(Long id) {
         return productMapper.findById(id);
+    }
+    
+    /**
+     * 根据ID获取商品，需要考虑查询者是否为商品拥有者
+     * @param id 商品ID
+     * @param userId 当前用户ID，如果为null表示未登录用户
+     * @return 商品信息或null
+     */
+    public Product getProductByIdWithPermission(Long id, Long userId) {
+        Product product = productMapper.findById(id);
+        
+        // 商品不存在，返回null
+        if (product == null) {
+            return null;
+        }
+        
+        // 商品已通过审核，任何人都可以查看
+        if (product.getAuditStatus() != null && product.getAuditStatus() == 1) {
+            return product;
+        }
+        
+        // 商品未通过审核，但当前用户是商品拥有者，可以查看
+        if (userId != null && product.getUserId().equals(userId)) {
+            return product;
+        }
+        
+        // TODO: 如果需要管理员权限判断，可以在此处添加
+        
+        // 其他情况（未通过审核且不是拥有者），返回null
+        return null;
     }
 
     public List<Product> getProductsByCategoryId(Long categoryId) {
@@ -45,12 +78,18 @@ public class ProductService {
         return productMapper.searchProducts(keyword);
     }
     
+    /**
+     * 获取用户创建的所有商品，包括待审核、已审核和审核未通过的商品
+     */
     public List<Product> getProductsByUserId(Long userId) {
         return productMapper.findByUserId(userId);
     }
     
+    /**
+     * 获取店铺下的商品，只返回已通过审核的
+     */
     public List<Product> getProductsByShopId(Long shopId) {
-        return productMapper.findByShopId(shopId);
+        return productMapper.findApprovedByShopId(shopId);
     }
     
     /**
