@@ -54,7 +54,7 @@ public class Event {
     }
 
     public void setImageUrl(String imageUrl) {
-        this.imageUrl = ImageConfig.getImagePrefix() + imageUrl;
+        this.imageUrl = imageUrl;
     }
 
      // 获取不含HTML标签的纯文本描述
