@@ -39,4 +39,9 @@ public interface AiChatService {
      * 创建新会话
      */
     String createNewSession(Long userId);
+    
+    /**
+     * 创建访客会话（无需用户ID）
+     */
+    String createGuestSession();
 } 

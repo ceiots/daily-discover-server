@@ -128,7 +128,14 @@ public class OllamaService {
                             .map(line -> {
                                 try {
                                     JSONObject jsonResponse = new JSONObject(line);
-                                    return jsonResponse.optString("response", "");
+                                    // 获取原始响应内容
+                                    String content = jsonResponse.optString("response", "");
+                                    // 确保不包含event:message前缀
+                                    if (content.contains("event:message")) {
+                                        content = content.replaceAll("event:message[^\\s]*", "");
+                                    }
+                                    System.out.println(line + " content: " + content);
+                                    return content;
                                 } catch (Exception e) {
                                     log.warn("Failed to parse streaming response JSON: {}", line);
                                     return "";
@@ -140,7 +147,12 @@ public class OllamaService {
                     chunk -> {
                         try {
                             completeResponse.append(chunk);
-                            onNext.accept(chunk);
+                            // 确保不包含event:message前缀
+                            String cleanChunk = chunk;
+                            if (cleanChunk.contains("event:message")) {
+                                cleanChunk = cleanChunk.replaceAll("event:message[^\\s]*", "");
+                            }
+                            onNext.accept(cleanChunk);
                         } catch (Exception e) {
                             log.error("Error processing streaming response chunk", e);
                             onError.accept(e);
@@ -171,60 +183,6 @@ public class OllamaService {
     }
     
     /**
-     * 非流式聊天，直接返回完整响应
-     */
-    public CompletableFuture<String> asyncChat(String prompt) {
-        log.info("Sending chat request to Ollama: {}", prompt);
-        
-        // 构造请求体
-        JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "deepseek-r1:1.5b");
-        jsonBody.put("prompt", prompt);
-        jsonBody.put("stream", false);
-        
-        // 使用本地回退响应
-        if (ollamaApiUrl == null || ollamaApiUrl.isEmpty()) {
-            log.warn("Ollama API URL not configured, using fallback response");
-            return CompletableFuture.completedFuture(generateFallbackResponse(prompt));
-        }
-        
-        CompletableFuture<String> future = new CompletableFuture<>();
-        
-        try {
-            // 发送 POST 请求
-            webClient.post()
-                .uri(ollamaApiUrl+"/generate")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + ollamaApiKey)
-                .bodyValue(jsonBody.toString())
-                .retrieve()
-                .bodyToMono(String.class)
-                .subscribe(
-                    response -> {
-                        try {
-                            JSONObject jsonResponse = new JSONObject(response);
-                            String result = jsonResponse.optString("response", "");
-                            log.info("Received response from Ollama: {}", result.substring(0, Math.min(50, result.length())));
-                            future.complete(result);
-                        } catch (Exception e) {
-                            log.error("Error parsing response", e);
-                            future.complete(generateFallbackResponse(prompt));
-                        }
-                    },
-                    error -> {
-                        log.error("Error calling Ollama API", error);
-                        future.complete(generateFallbackResponse(prompt));
-                    }
-                );
-        } catch (Exception e) {
-            log.error("Error during API call", e);
-            future.complete(generateFallbackResponse(prompt));
-        }
-        
-        return future;
-    }
-    
-    /**
      * 生成本地回退响应（当Ollama服务不可用时）
      */
     private String generateFallbackResponse(String prompt) {
@@ -243,5 +201,135 @@ public class OllamaService {
         
         // 通用回复
         return "感谢您的提问。您对" + prompt + "的问题很有价值。我们会不断改进服务，为您提供更准确的信息。您还有其他问题吗？";
+    }
+
+    /**
+     * 创建SSE流式聊天响应
+     * @param prompt 用户问题
+     * @param emitter SSE发射器
+     */
+    public void streamChatSSE(String prompt, SseEmitter emitter) {
+        log.info("Starting SSE stream chat with prompt: {}", prompt);
+        
+        // 构造请求体
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("model", "deepseek-r1:1.5b");
+        jsonBody.put("prompt", prompt);
+        jsonBody.put("stream", true);
+        
+        // 检查API URL配置
+        if (ollamaApiUrl == null || ollamaApiUrl.isEmpty()) {
+            log.warn("Ollama API URL not configured, using default URL");
+            ollamaApiUrl = "http://localhost:11434/api"; // 设置默认API地址
+        }
+        
+        System.out.println("使用大模型API: " + ollamaApiUrl);
+        
+        try {
+            // 发送 POST 请求
+            webClient.post()
+                .uri(ollamaApiUrl+"/generate")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, ollamaApiKey != null ? "Bearer " + ollamaApiKey : "")
+                .bodyValue(jsonBody.toString())
+                .retrieve()
+                .bodyToFlux(String.class)
+                .flatMap(response -> {
+                    System.out.println("收到API响应: " + response);
+                    return Flux.fromIterable(Arrays.asList(response.split("\n")))
+                            .filter(line -> !line.trim().isEmpty())
+                            .map(line -> {
+                                try {
+                                    JSONObject jsonResponse = new JSONObject(line);
+                                    // 获取原始响应内容
+                                    String content = jsonResponse.optString("response", "");
+                                    // 确保不包含event:message前缀
+                                    if (content.contains("event:message")) {
+                                        content = content.replaceAll("event:message[^\\s]*", "");
+                                    }
+                                    
+                                    // 去除<think>标签
+                                    if (content.contains("<think>")) {
+                                        content = content.replaceAll("<think>.*?</think>", "");
+                                    }
+                                    
+                                    /* System.out.println("处理后的内容: " + content); */
+                                    
+                                    // 为每个字符创建单独的SSE事件
+                                    JSONObject result = new JSONObject();
+                                    result.put("data", content);
+                                    return result.toString();
+                                } catch (Exception e) {
+                                    log.warn("Failed to parse streaming response JSON: {}", line);
+                                    // 尝试直接使用行数据
+                                    if (!line.trim().isEmpty()) {
+                                        JSONObject result = new JSONObject();
+                                        String cleanLine = line;
+                                        // 确保不包含event:message前缀
+                                        if (cleanLine.contains("event:message")) {
+                                            cleanLine = cleanLine.replaceAll("event:message[^\\s]*", "");
+                                        }
+                                        // 去除<think>标签
+                                        if (cleanLine.contains("<think>")) {
+                                            cleanLine = cleanLine.replaceAll("<think>.*?</think>", "");
+                                        }
+                                        result.put("data", cleanLine);
+                                        return result.toString();
+                                    }
+                                    return "";
+                                }
+                            })
+                            .filter(text -> !text.isEmpty());
+                })
+                .subscribe(
+                    chunk -> {
+                        try {
+                            // 发送每个chunk作为SSE事件
+                            emitter.send(chunk, MediaType.APPLICATION_JSON);
+                        } catch (Exception e) {
+                            log.error("Error sending SSE chunk", e);
+                            emitter.completeWithError(e);
+                        }
+                    },
+                    error -> {
+                        log.error("Error during streaming SSE API call", error);
+                        
+                        // 发送错误通知
+                        try {
+                            JSONObject errorJson = new JSONObject();
+                            errorJson.put("error", "连接AI服务失败: " + error.getMessage());
+                            emitter.send(errorJson.toString(), MediaType.APPLICATION_JSON);
+                            emitter.send(SseEmitter.event().name("complete").data("[DONE]"));
+                            emitter.complete();
+                        } catch (Exception e) {
+                            emitter.completeWithError(e);
+                        }
+                    },
+                    () -> {
+                        try {
+                            log.info("SSE streaming chat completed");
+                            // 发送完成事件
+                            emitter.send(SseEmitter.event().name("complete").data("[DONE]"));
+                            emitter.complete();
+                        } catch (Exception e) {
+                            log.error("Error completing SSE stream", e);
+                            emitter.completeWithError(e);
+                        }
+                    }
+                );
+        } catch (Exception e) {
+            log.error("Error initiating streaming SSE API call", e);
+            
+            // 发送错误通知
+            try {
+                JSONObject errorJson = new JSONObject();
+                errorJson.put("error", "启动AI服务连接失败: " + e.getMessage());
+                emitter.send(errorJson.toString(), MediaType.APPLICATION_JSON);
+                emitter.send(SseEmitter.event().name("complete").data("[DONE]"));
+                emitter.complete();
+            } catch (Exception ex) {
+                emitter.completeWithError(ex);
+            }
+        }
     }
 }

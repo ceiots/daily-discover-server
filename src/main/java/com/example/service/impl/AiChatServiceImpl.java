@@ -24,6 +24,10 @@ public class AiChatServiceImpl implements AiChatService {
     
     @Override
     public AiChatRecord saveChatRecord(Long userId, String message, String type, String sessionId) {
+        if (userId == null) {
+            return null;
+        }
+        
         AiChatRecord record = new AiChatRecord();
         record.setUserId(userId);
         record.setMessage(message);
@@ -84,6 +88,11 @@ public class AiChatServiceImpl implements AiChatService {
     @Override
     public String createNewSession(Long userId) {
         return UUID.randomUUID().toString();
+    }
+    
+    @Override
+    public String createGuestSession() {
+        return "guest-" + UUID.randomUUID().toString();
     }
     
     /**

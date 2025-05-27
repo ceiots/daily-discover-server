@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 
 @Slf4j
 @RestController
@@ -53,53 +54,6 @@ public class AiController {
         return ollamaService.generateArticle(prompt);
     }
 
-    /**
-     * 智能AI聊天接口
-     */
-    @PostMapping("/chat")
-    public CommonResult<String> chatWithAI(@RequestBody Map<String, String> requestBody,
-                                           @RequestHeader(value = "Authorization", required = false) String token,
-                                           @RequestHeader(value = "userId", required = false) String userIdHeader) {
-        try {
-            String prompt = requestBody.get("prompt");
-            if (prompt == null || prompt.trim().isEmpty()) {
-                return CommonResult.failed("提问内容不能为空");
-            }
-            
-            // 获取用户ID
-            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
-            
-            // 获取或创建会话ID
-            String sessionId = requestBody.get("sessionId");
-            if (sessionId == null || sessionId.trim().isEmpty()) {
-                sessionId = aiChatService.createNewSession(userId);
-            }
-            
-            // 保存用户提问记录
-            aiChatService.saveChatRecord(userId, prompt, "user", sessionId);
-
-            // 使用Ollama服务进行聊天
-            String aiResponse;
-            try {
-                aiResponse = ollamaService.asyncChat(prompt).get();
-                
-                // 移除think标签
-                aiResponse = removeThinkTags(aiResponse);
-                
-                // 保存AI回复记录
-                aiChatService.saveChatRecord(userId, aiResponse, "ai", sessionId);
-                
-                return CommonResult.success(aiResponse);
-            } catch (Exception e) {
-                log.error("调用Ollama服务失败", e);
-                return CommonResult.failed("本地模型服务暂时不可用，请稍后再试");
-            }
-        } catch (Exception e) {
-            log.error("AI聊天出错", e);
-            return CommonResult.failed("AI服务暂时不可用，请稍后再试");
-        }
-    }
-    
     /**
      * 流式AI聊天接口，支持Markdown格式
      */
@@ -376,4 +330,104 @@ public class AiController {
 
         return descriptions.getOrDefault(theme, "发现生活中的美好，精选优质商品，提升生活品质");
     }
+
+    /**
+     * SSE流式AI聊天接口，支持Markdown格式
+     * 真正的逐字逐句流式输出
+     */
+    @GetMapping(value = "/chat/stream/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamChatWithSSE(@RequestParam("prompt") String prompt,
+                                        @RequestParam(value = "sessionId", required = false) String sessionId,
+                                        @RequestHeader(value = "Authorization", required = false) String token,
+                                        @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        if (prompt == null || prompt.trim().isEmpty()) {
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().data("提问内容不能为空").name("error"));
+                emitter.complete();
+            } catch (Exception e) {
+                emitter.completeWithError(e);
+            }
+            return emitter;
+        }
+        
+        try {
+            // 创建SSE发射器，设置更长的超时时间
+            SseEmitter emitter = new SseEmitter(600000L); // 10分钟超时
+            
+            // 设置超时和完成回调
+            emitter.onTimeout(() -> {
+                log.warn("SSE流式聊天超时");
+                try {
+                    emitter.send(SseEmitter.event().name("complete").data("[DONE]"));
+                    emitter.complete();
+                } catch (Exception e) {
+                    log.error("发送超时消息失败", e);
+                }
+            });
+            
+            emitter.onCompletion(() -> {
+                log.info("SSE流式聊天完成");
+            });
+            
+            // 尝试获取用户ID - 可能为null
+            Long userId = null;
+            boolean isGuestMode = false;
+            
+            try {
+                userId = userIdExtractor.extractUserId(token, userIdHeader);
+                
+                // 确定是否为访客模式
+                isGuestMode = (userId == null);
+                log.info("用户模式: {}", isGuestMode ? "访客" : "登录用户");
+                
+                // 处理会话ID
+                if (sessionId == null || sessionId.trim().isEmpty()) {
+                    if (isGuestMode) {
+                        sessionId = aiChatService.createGuestSession();
+                        log.info("创建访客会话: {}", sessionId);
+                    } else {
+                        sessionId = aiChatService.createNewSession(userId);
+                        log.info("创建用户会话: {}", sessionId);
+                    }
+                }
+                
+                // 只有在非访客模式下才保存聊天记录
+                if (!isGuestMode) {
+                    final String finalSessionId = sessionId;
+                    aiChatService.saveChatRecord(userId, prompt, "user", finalSessionId);
+                    log.info("已保存用户聊天记录");
+                }
+            } catch (Exception e) {
+                log.warn("处理用户信息失败，将使用访客模式: {}", e.getMessage());
+                isGuestMode = true;
+            }
+            
+            // 发送模式信息
+            try {
+                JSONObject modeInfo = new JSONObject();
+                modeInfo.put("mode", isGuestMode ? "guest" : "user");
+                modeInfo.put("sessionId", sessionId);
+                emitter.send(SseEmitter.event().name("info").data(modeInfo.toString()));
+            } catch (Exception e) {
+                log.warn("发送模式信息失败", e);
+            }
+            
+            // 使用Ollama服务进行SSE流式聊天
+            ollamaService.streamChatSSE(prompt, emitter);
+            
+            return emitter;
+        } catch (Exception e) {
+            log.error("初始化SSE流式聊天失败", e);
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().data("服务器错误: " + e.getMessage()).name("error"));
+                emitter.complete();
+            } catch (Exception ex) {
+                emitter.completeWithError(ex);
+            }
+            return emitter;
+        }
+    }
 }
+
