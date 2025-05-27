@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +39,7 @@ public class OllamaService {
     public SseEmitter generateArticle(String prompt) {
         // 构造请求体
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "deepseek-r1");
+        jsonBody.put("model", "deepseek-r1:1.5b");
         jsonBody.put("prompt", prompt);
         jsonBody.put("stream", true);
 
@@ -87,6 +88,89 @@ public class OllamaService {
     }
     
     /**
+     * 流式聊天API，支持回调处理
+     * @param prompt 用户问题
+     * @param onNext 每次接收到数据的回调
+     * @param onError 错误处理回调
+     * @param onComplete 完成时的回调
+     */
+    public void streamChat(String prompt, Consumer<String> onNext, Consumer<Throwable> onError, Runnable onComplete) {
+        log.info("Starting stream chat with prompt: {}", prompt);
+        
+        // 构造请求体
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("model", "deepseek-r1:1.5b");
+        jsonBody.put("prompt", prompt);
+        jsonBody.put("stream", true);
+        
+        // 使用本地回退响应
+        if (ollamaApiUrl == null || ollamaApiUrl.isEmpty()) {
+            log.warn("Ollama API URL not configured, using fallback response");
+            onNext.accept(generateFallbackResponse(prompt));
+            onComplete.run();
+            return;
+        }
+        
+        try {
+            StringBuilder completeResponse = new StringBuilder();
+            
+            // 发送 POST 请求
+            webClient.post()
+                .uri(ollamaApiUrl+"/generate")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + ollamaApiKey)
+                .bodyValue(jsonBody.toString())
+                .retrieve()
+                .bodyToFlux(String.class)
+                .flatMap(response -> {
+                    return Flux.fromIterable(Arrays.asList(response.split("\n")))
+                            .filter(line -> !line.trim().isEmpty())
+                            .map(line -> {
+                                try {
+                                    JSONObject jsonResponse = new JSONObject(line);
+                                    return jsonResponse.optString("response", "");
+                                } catch (Exception e) {
+                                    log.warn("Failed to parse streaming response JSON: {}", line);
+                                    return "";
+                                }
+                            })
+                            .filter(text -> !text.isEmpty());
+                })
+                .subscribe(
+                    chunk -> {
+                        try {
+                            completeResponse.append(chunk);
+                            onNext.accept(chunk);
+                        } catch (Exception e) {
+                            log.error("Error processing streaming response chunk", e);
+                            onError.accept(e);
+                        }
+                    },
+                    error -> {
+                        log.error("Error during streaming API call", error);
+                        if (completeResponse.length() > 0) {
+                            // 如果已经有部分响应，则发送完整响应
+                            onNext.accept(completeResponse.toString());
+                            onComplete.run();
+                        } else {
+                            // 否则发送回退响应
+                            onNext.accept(generateFallbackResponse(prompt));
+                            onComplete.run();
+                        }
+                    },
+                    () -> {
+                        log.info("Streaming chat completed");
+                        onComplete.run();
+                    }
+                );
+        } catch (Exception e) {
+            log.error("Error initiating streaming API call", e);
+            onNext.accept(generateFallbackResponse(prompt));
+            onComplete.run();
+        }
+    }
+    
+    /**
      * 非流式聊天，直接返回完整响应
      */
     public CompletableFuture<String> asyncChat(String prompt) {
@@ -94,7 +178,7 @@ public class OllamaService {
         
         // 构造请求体
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "deepseek-r1");
+        jsonBody.put("model", "deepseek-r1:1.5b");
         jsonBody.put("prompt", prompt);
         jsonBody.put("stream", false);
         

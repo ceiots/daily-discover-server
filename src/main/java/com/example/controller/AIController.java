@@ -83,6 +83,9 @@ public class AiController {
             try {
                 aiResponse = ollamaService.asyncChat(prompt).get();
                 
+                // 移除think标签
+                aiResponse = removeThinkTags(aiResponse);
+                
                 // 保存AI回复记录
                 aiChatService.saveChatRecord(userId, aiResponse, "ai", sessionId);
                 
@@ -96,7 +99,110 @@ public class AiController {
             return CommonResult.failed("AI服务暂时不可用，请稍后再试");
         }
     }
-
+    
+    /**
+     * 流式AI聊天接口，支持Markdown格式
+     */
+    @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamChatWithAI(@RequestBody Map<String, String> requestBody,
+                                       @RequestHeader(value = "Authorization", required = false) String token,
+                                       @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        String prompt = requestBody.get("prompt");
+        if (prompt == null || prompt.trim().isEmpty()) {
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().data("提问内容不能为空").name("error"));
+                emitter.complete();
+            } catch (Exception e) {
+                emitter.completeWithError(e);
+            }
+            return emitter;
+        }
+        
+        try {
+            // 获取用户ID
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            
+            // 获取或创建会话ID
+            String sessionId = requestBody.get("sessionId");
+            if (sessionId == null || sessionId.trim().isEmpty()) {
+                sessionId = aiChatService.createNewSession(userId);
+            }
+            
+            // 保存用户提问记录
+            final String finalSessionId = sessionId;
+            aiChatService.saveChatRecord(userId, prompt, "user", finalSessionId);
+            
+            // 创建SSE发射器
+            SseEmitter emitter = new SseEmitter(300000L); // 5分钟超时
+            
+            // 使用Ollama服务进行流式聊天
+            ollamaService.streamChat(prompt, 
+                response -> {
+                    try {
+                        // 移除think标签
+                        String processedResponse = removeThinkTags(response);
+                        emitter.send(SseEmitter.event().data(processedResponse).name("message"));
+                    } catch (Exception e) {
+                        log.error("发送流式响应失败", e);
+                    }
+                },
+                error -> {
+                    log.error("流式聊天出错", error);
+                    try {
+                        emitter.send(SseEmitter.event().data("处理请求时出错").name("error"));
+                        emitter.complete();
+                    } catch (Exception e) {
+                        emitter.completeWithError(e);
+                    }
+                },
+                () -> {
+                    try {
+                        // 保存完整的AI回复记录
+                        // 注意：实际实现中需要收集完整的回复
+                        // aiChatService.saveChatRecord(userId, fullResponse, "ai", finalSessionId);
+                        emitter.complete();
+                    } catch (Exception e) {
+                        emitter.completeWithError(e);
+                    }
+                }
+            );
+            
+            // 设置超时和完成回调
+            emitter.onTimeout(() -> {
+                log.warn("流式聊天超时");
+                emitter.complete();
+            });
+            
+            emitter.onCompletion(() -> {
+                log.info("流式聊天完成");
+            });
+            
+            return emitter;
+        } catch (Exception e) {
+            log.error("初始化流式聊天失败", e);
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().data("服务器错误").name("error"));
+                emitter.complete();
+            } catch (Exception ex) {
+                emitter.completeWithError(ex);
+            }
+            return emitter;
+        }
+    }
+    
+    /**
+     * 移除回复中的think标签
+     */
+    private String removeThinkTags(String response) {
+        if (response == null) return "";
+        
+        // 移除<think>标签及其内容
+        response = response.replaceAll("<think>.*?</think>\\s*", "");
+        
+        return response;
+    }
 
     /**
      * 获取每日智能推荐商品

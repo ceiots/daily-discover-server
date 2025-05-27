@@ -33,11 +33,6 @@ public interface AiChatRecordDao {
     List<AiChatRecord> selectBySessionId(@Param("sessionId") String sessionId);
     
     /**
-     * 标记聊天记录为收藏
-     */
-    int markAsFavorite(@Param("id") Long id, @Param("isFavorite") Boolean isFavorite);
-    
-    /**
      * 删除聊天记录
      */
     int deleteById(@Param("id") Long id);

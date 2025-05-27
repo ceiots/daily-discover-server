@@ -8,14 +8,13 @@
         <result column="type" property="type" />
         <result column="create_time" property="createTime" />
         <result column="session_id" property="sessionId" />
-        <result column="is_favorite" property="isFavorite" />
     </resultMap>
     
     <insert id="insert" parameterType="com.example.model.AiChatRecord" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO ai_chat_record (
-            user_id, message, type, create_time, session_id, is_favorite
+            user_id, message, type, create_time, session_id
         ) VALUES (
-            #{userId}, #{message}, #{type}, #{createTime}, #{sessionId}, #{isFavorite}
+            #{userId}, #{message}, #{type}, #{createTime}, #{sessionId}
         )
     </insert>
     
@@ -38,12 +37,6 @@
         WHERE session_id = #{sessionId}
         ORDER BY create_time ASC
     </select>
-    
-    <update id="markAsFavorite">
-        UPDATE ai_chat_record
-        SET is_favorite = #{isFavorite}
-        WHERE id = #{id}
-    </update>
     
     <delete id="deleteById">
         DELETE FROM ai_chat_record
