@@ -29,15 +29,14 @@ public class WebConfig implements WebMvcConfigurer {
     
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        logger.info("Adding CORS mappings");
+        logger.info("Adding CORS mappings with credentials");
         registry.addMapping("/**")
-            //.allowedOrigins("http://localhost:3000")
-            .allowedOrigins("http://localhost:3000", "https://daily-discover.vercel.app", "https://dailydiscover.top")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                .allowedHeaders("*")
-                .exposedHeaders("Authorization", "Content-Disposition", "Content-Length")
-                .maxAge(3600)  // 预检请求的缓存时间（秒）
-                .allowCredentials(true);
+            .allowedOriginPatterns("*") // 通配符和allowCredentials(true)不能同时使用
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+            .allowedHeaders("*")
+            .exposedHeaders("Authorization", "Content-Disposition", "Content-Length")
+            .maxAge(3600)  // 预检请求的缓存时间（秒）
+            .allowCredentials(false); // 允许携带凭证
     }
     
     /**

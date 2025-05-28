@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.example.model.ChatMessage;
 import com.example.service.OllamaService;
@@ -48,6 +49,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/ai")
+@CrossOrigin(origins = {"http://localhost:3000", "https://dailydiscover.top"}, 
+             allowCredentials = "true", 
+             allowedHeaders = "*")
 public class AiController {
 
     @Autowired
@@ -64,24 +68,6 @@ public class AiController {
     
     @Autowired
     private AiChatService aiChatService;
-
-    @PostMapping(value = "/generate-article", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter generateArticle(@RequestBody String prompt) {
-        return ollamaService.generateArticle(prompt);
-    }
-
-    
-    /**
-     * 移除回复中的think标签
-     */
-    private String removeThinkTags(String response) {
-        if (response == null) return "";
-        
-        // 移除<think>标签及其内容
-        response = response.replaceAll("<think>.*?</think>\\s*", "");
-        
-        return response;
-    }
 
     /**
      * 获取每日智能推荐商品
@@ -120,20 +106,6 @@ public class AiController {
         }
     }
 
-
-    /**
-     * 获取快速问题列表
-     */
-    @GetMapping("/quick-questions")
-    public CommonResult<List<String>> getQuickQuestions() {
-        try {
-            List<String> questions = aiChatService.getQuickQuestions();
-            return CommonResult.success(questions);
-        } catch (Exception e) {
-            log.error("获取快速问题失败", e);
-            return CommonResult.failed("获取快速问题失败：" + e.getMessage());
-        }
-    }
 
     /**
      * 获取AI历史聊天记录
@@ -256,177 +228,7 @@ public class AiController {
         return descriptions.getOrDefault(theme, "发现生活中的美好，精选优质商品，提升生活品质");
     }
 
-    /**
-     * 使用WebFlux实现的SSE流式AI聊天接口，支持Markdown格式
-     * 真正的逐字逐句流式输出，使用Reactor响应式流
-     */
-    @GetMapping(value = "/chat/stream/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> streamChatWithSSE(
-            @RequestParam("prompt") String prompt,
-            @RequestParam(value = "sessionId", required = false) String sessionId,
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "userId", required = false) String userIdHeader) {
-        
-        if (prompt == null || prompt.trim().isEmpty()) {
-            return Flux.just(ServerSentEvent.<String>builder()
-                    .event("error")
-                    .data("提问内容不能为空")
-                    .build());
-        }
-        
-        // 创建Sink，用于向流中推送数据，使用多播模式和更小的缓冲区
-        Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().directBestEffort();
-        
-        // 创建心跳事件流，每5秒发送一次心跳保持连接
-        Flux<ServerSentEvent<String>> heartbeat = Flux.interval(Duration.ofSeconds(5))
-                .map(i -> ServerSentEvent.<String>builder()
-                        .event("heartbeat")
-                        .data("ping")
-                        .build());
-        
-        try {
-            // 处理会话和用户信息
-            CompletableFuture.runAsync(() -> {
-                try {
-                    // 尝试获取用户ID - 可能为null
-                    Long userId = null;
-                    boolean isGuestMode = false;
-                    
-                    try {
-                        userId = userIdExtractor.extractUserId(token, userIdHeader);
-                        
-                        // 确定是否为访客模式
-                        isGuestMode = (userId == null);
-                        log.info("用户模式: {}", isGuestMode ? "访客" : "登录用户");
-                        
-                        // 处理会话ID
-                        String finalSessionId = sessionId;
-                        if (finalSessionId == null || finalSessionId.trim().isEmpty()) {
-                            if (isGuestMode) {
-                                finalSessionId = aiChatService.createGuestSession();
-                                log.info("创建访客会话: {}", finalSessionId);
-                            } else {
-                                finalSessionId = aiChatService.createNewSession(userId);
-                                log.info("创建用户会话: {}", finalSessionId);
-                            }
-                        }
-                        
-                        // 只有在非访客模式下才保存聊天记录
-                        if (!isGuestMode) {
-                            aiChatService.saveChatRecord(userId, prompt, "user", finalSessionId);
-                            log.info("已保存用户聊天记录");
-                        }
-                        
-                        // 发送会话信息
-                        JSONObject modeInfo = new JSONObject();
-                        modeInfo.put("mode", isGuestMode ? "guest" : "user");
-                        modeInfo.put("sessionId", finalSessionId);
-                        
-                        sink.tryEmitNext(ServerSentEvent.<String>builder()
-                                .event("info")
-                                .data(modeInfo.toString())
-                                .build());
-                        
-                        // 调用Ollama服务进行流式聊天，使用响应式方式
-                        ollamaService.streamChatWithReactor(prompt, text -> {
-                            // 每当收到新的文本块，立即发送到客户端，不积累
-                            if (text != null && !text.isEmpty()) {
-                                // 将文本块包装成JSON格式
-                                JSONObject dataObj = new JSONObject();
-                                dataObj.put("data", text);
-                                
-                                // 发送到流中，使用非阻塞方式
-                                Sinks.EmitResult result = sink.tryEmitNext(ServerSentEvent.<String>builder()
-                                        .event("message")
-                                        .data(dataObj.toString())
-                                        .build());
-                                
-                                if (result.isFailure()) {
-                                    log.warn("发送数据块失败: {}", result);
-                                }
-                            }
-                        }, error -> {
-                            // 处理错误
-                            log.error("流式聊天出错: {}", error.getMessage());
-                            JSONObject errorObj = new JSONObject();
-                            errorObj.put("error", error.getMessage());
-                            
-                            sink.tryEmitNext(ServerSentEvent.<String>builder()
-                                    .event("error")
-                                    .data(errorObj.toString())
-                                    .build());
-                            
-                            sink.tryEmitNext(ServerSentEvent.<String>builder()
-                                    .event("complete")
-                                    .data("[DONE]")
-                                    .build());
-                            
-                            sink.tryEmitComplete();
-                        }, () -> {
-                            // 处理完成
-                            log.info("流式聊天完成");
-                            
-                            // 发送完成事件
-                            sink.tryEmitNext(ServerSentEvent.<String>builder()
-                                    .event("complete")
-                                    .data("[DONE]")
-                                    .build());
-                            
-                            // 完成流
-                            sink.tryEmitComplete();
-                        });
-                        
-                    } catch (Exception e) {
-                        log.warn("处理用户信息失败，将使用访客模式: {}", e.getMessage());
-                        
-                        // 发送错误信息
-                        sink.tryEmitNext(ServerSentEvent.<String>builder()
-                                .event("error")
-                                .data("处理用户信息失败: " + e.getMessage())
-                                .build());
-                        
-                        sink.tryEmitComplete();
-                    }
-                } catch (Exception e) {
-                    log.error("处理SSE流失败", e);
-                    sink.tryEmitError(e);
-                }
-            });
-            
-            // 合并数据流和心跳流，确保连接不会因为长时间没有数据而断开
-            return Flux.merge(sink.asFlux(), heartbeat)
-                    // 禁用背压缓冲，确保数据立即发送
-                    .onBackpressureDrop(event -> log.warn("丢弃事件，客户端处理速度过慢"))
-                    // 添加小延迟，确保事件不会堆积
-                    .delayElements(Duration.ofMillis(5))
-                    // 添加超时处理
-                    .timeout(Duration.ofMinutes(10))
-                    // 捕获超时异常
-                    .onErrorResume(e -> {
-                        log.error("SSE流超时或出错: {}", e.getMessage());
-                        return Flux.just(ServerSentEvent.<String>builder()
-                                .event("error")
-                                .data("连接超时或发生错误: " + e.getMessage())
-                                .build(),
-                                ServerSentEvent.<String>builder()
-                                .event("complete")
-                                .data("[DONE]")
-                                .build());
-                    });
-            
-        } catch (Exception e) {
-            log.error("初始化SSE流式聊天失败", e);
-            return Flux.just(ServerSentEvent.<String>builder()
-                    .event("error")
-                    .data("服务器错误: " + e.getMessage())
-                    .build(),
-                    ServerSentEvent.<String>builder()
-                    .event("complete")
-                    .data("[DONE]")
-                    .build());
-        }
-    }
-
+  
     @MessageMapping("/chat-ws")
     public void handleChat(ChatMessage message, Principal principal, 
                          SimpMessageHeaderAccessor headerAccessor) {
@@ -478,16 +280,18 @@ public class AiController {
      * 基于用户输入，使用Ollama生成相关推荐话题
      */
     @PostMapping("/get-suggestions")
+    @CrossOrigin(origins = {"http://localhost:3000", "https://dailydiscover.top"})
     public CommonResult<List<Map<String, String>>> getSuggestions(@RequestBody Map<String, String> request) {
         String userInput = request.getOrDefault("userInput", "今日生活热点");
         log.info("获取推荐话题，输入: {}", userInput);
         
         try {
-            // 构建提示词
+            // 构建提示词 - 明确要求不要包含think标签
             String prompt = String.format(
                 "基于用户的输入：\"%s\"，生成5个相关的推荐话题，每个话题不超过10个字。" +
                 "话题应该与用户输入相关，但更具体或者是延伸内容。" +
                 "只返回话题列表，每行一个话题，不要有编号或其他文字。" +
+                "不要在回复中包含<think>或</think>标签。" +
                 "例如，如果输入是\"健康饮食\"，可能的回复是：\n" +
                 "低碳水饮食指南\n" +
                 "蛋白质摄入建议\n" +
@@ -500,12 +304,22 @@ public class AiController {
             // 调用Ollama服务获取推荐
             String response = ollamaService.generateText(prompt);
             
-            // 解析响应
+            // 解析响应并过滤think标签
             List<String> topics = parseTopics(response);
+            
+            // 过滤掉包含think标签的话题
+            topics = topics.stream()
+                .filter(topic -> !topic.contains("<think>") && !topic.contains("</think>"))
+                .collect(Collectors.toList());
             
             // 限制返回数量
             if (topics.size() > 5) {
                 topics = topics.subList(0, 5);
+            }
+            
+            // 如果过滤后没有话题，返回默认话题
+            if (topics.isEmpty()) {
+                return CommonResult.success(getDefaultTopics());
             }
             
             // 添加图标
