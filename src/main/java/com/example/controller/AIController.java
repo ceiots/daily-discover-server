@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.example.model.ChatMessage;
 import com.example.service.OllamaService;
@@ -24,12 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.security.Principal;
 import java.util.Date;
 
-// 添加WebFlux相关导入
-import org.springframework.http.codec.ServerSentEvent;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
-import java.time.Duration;
 
 import com.example.service.ProductService;
 import com.example.service.AiChatService;
@@ -49,9 +44,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/ai")
-@CrossOrigin(origins = {"http://localhost:3000", "https://dailydiscover.top"}, 
-             allowCredentials = "true", 
-             allowedHeaders = "*")
 public class AiController {
 
     @Autowired
@@ -72,7 +64,7 @@ public class AiController {
     /**
      * 获取每日智能推荐商品
      */
-    @GetMapping("/daily-discovery")
+    @GetMapping("/daily")
     public CommonResult<Map<String, Object>> getDailyDiscovery(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader) {
@@ -280,7 +272,6 @@ public class AiController {
      * 基于用户输入，使用Ollama生成相关推荐话题
      */
     @PostMapping("/get-suggestions")
-    @CrossOrigin(origins = {"http://localhost:3000", "https://dailydiscover.top"})
     public CommonResult<List<Map<String, String>>> getSuggestions(@RequestBody Map<String, String> request) {
         String userInput = request.getOrDefault("userInput", "今日生活热点");
         log.info("获取推荐话题，输入: {}", userInput);
