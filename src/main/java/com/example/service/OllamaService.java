@@ -39,7 +39,7 @@ public class OllamaService {
     public SseEmitter generateArticle(String prompt) {
         // 构造请求体
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "deepseek-r1:1.5b");
+        jsonBody.put("model", "qwen3");
         jsonBody.put("prompt", prompt);
         jsonBody.put("stream", true);
 
@@ -99,7 +99,7 @@ public class OllamaService {
         
         // 构造请求体
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "deepseek-r1:1.5b");
+        jsonBody.put("model", "qwen3");
         jsonBody.put("prompt", prompt);
         jsonBody.put("stream", true);
         
@@ -213,7 +213,7 @@ public class OllamaService {
         
         // 构造请求体
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "deepseek-r1:1.5b");
+        jsonBody.put("model", "qwen3");
         jsonBody.put("prompt", prompt);
         jsonBody.put("stream", true);
         
