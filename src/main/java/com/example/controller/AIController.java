@@ -13,6 +13,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+// 添加WebFlux相关导入
+import org.springframework.http.codec.ServerSentEvent;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
+import java.time.Duration;
+
 import com.example.service.OllamaService;
 import com.example.service.ProductService;
 import com.example.service.AiChatService;
@@ -26,6 +33,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -241,101 +249,165 @@ public class AiController {
     }
 
     /**
-     * SSE流式AI聊天接口，支持Markdown格式
-     * 真正的逐字逐句流式输出
+     * 使用WebFlux实现的SSE流式AI聊天接口，支持Markdown格式
+     * 真正的逐字逐句流式输出，使用Reactor响应式流
      */
     @GetMapping(value = "/chat/stream/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamChatWithSSE(@RequestParam("prompt") String prompt,
-                                        @RequestParam(value = "sessionId", required = false) String sessionId,
-                                        @RequestHeader(value = "Authorization", required = false) String token,
-                                        @RequestHeader(value = "userId", required = false) String userIdHeader) {
+    public Flux<ServerSentEvent<String>> streamChatWithSSE(
+            @RequestParam("prompt") String prompt,
+            @RequestParam(value = "sessionId", required = false) String sessionId,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        
         if (prompt == null || prompt.trim().isEmpty()) {
-            SseEmitter emitter = new SseEmitter();
-            try {
-                emitter.send(SseEmitter.event().data("提问内容不能为空").name("error"));
-                emitter.complete();
-            } catch (Exception e) {
-                emitter.completeWithError(e);
-            }
-            return emitter;
+            return Flux.just(ServerSentEvent.<String>builder()
+                    .event("error")
+                    .data("提问内容不能为空")
+                    .build());
         }
         
+        // 创建Sink，用于向流中推送数据
+        Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().onBackpressureBuffer();
+        
+        // 创建心跳事件流，每15秒发送一次心跳保持连接
+        Flux<ServerSentEvent<String>> heartbeat = Flux.interval(Duration.ofSeconds(15))
+                .map(i -> ServerSentEvent.<String>builder()
+                        .event("heartbeat")
+                        .data("ping")
+                        .build());
+        
         try {
-            // 创建SSE发射器，设置更长的超时时间
-            SseEmitter emitter = new SseEmitter(600000L); // 10分钟超时
-            
-            // 设置超时和完成回调
-            emitter.onTimeout(() -> {
-                log.warn("SSE流式聊天超时");
+            // 处理会话和用户信息
+            CompletableFuture.runAsync(() -> {
                 try {
-                    emitter.send(SseEmitter.event().name("complete").data("[DONE]"));
-                    emitter.complete();
-                } catch (Exception e) {
-                    log.error("发送超时消息失败", e);
-                }
-            });
-            
-            emitter.onCompletion(() -> {
-                log.info("SSE流式聊天完成");
-            });
-            
-            // 尝试获取用户ID - 可能为null
-            Long userId = null;
-            boolean isGuestMode = false;
-            
-            try {
-                userId = userIdExtractor.extractUserId(token, userIdHeader);
-                
-                // 确定是否为访客模式
-                isGuestMode = (userId == null);
-                log.info("用户模式: {}", isGuestMode ? "访客" : "登录用户");
-                
-                // 处理会话ID
-                if (sessionId == null || sessionId.trim().isEmpty()) {
-                    if (isGuestMode) {
-                        sessionId = aiChatService.createGuestSession();
-                        log.info("创建访客会话: {}", sessionId);
-                    } else {
-                        sessionId = aiChatService.createNewSession(userId);
-                        log.info("创建用户会话: {}", sessionId);
+                    // 尝试获取用户ID - 可能为null
+                    Long userId = null;
+                    boolean isGuestMode = false;
+                    
+                    try {
+                        userId = userIdExtractor.extractUserId(token, userIdHeader);
+                        
+                        // 确定是否为访客模式
+                        isGuestMode = (userId == null);
+                        log.info("用户模式: {}", isGuestMode ? "访客" : "登录用户");
+                        
+                        // 处理会话ID
+                        String finalSessionId = sessionId;
+                        if (finalSessionId == null || finalSessionId.trim().isEmpty()) {
+                            if (isGuestMode) {
+                                finalSessionId = aiChatService.createGuestSession();
+                                log.info("创建访客会话: {}", finalSessionId);
+                            } else {
+                                finalSessionId = aiChatService.createNewSession(userId);
+                                log.info("创建用户会话: {}", finalSessionId);
+                            }
+                        }
+                        
+                        // 只有在非访客模式下才保存聊天记录
+                        if (!isGuestMode) {
+                            aiChatService.saveChatRecord(userId, prompt, "user", finalSessionId);
+                            log.info("已保存用户聊天记录");
+                        }
+                        
+                        // 发送会话信息
+                        JSONObject modeInfo = new JSONObject();
+                        modeInfo.put("mode", isGuestMode ? "guest" : "user");
+                        modeInfo.put("sessionId", finalSessionId);
+                        
+                        sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                .event("info")
+                                .data(modeInfo.toString())
+                                .build());
+                        
+                        // 调用Ollama服务进行流式聊天，使用响应式方式
+                        ollamaService.streamChatWithReactor(prompt, text -> {
+                            // 每当收到新的文本块，立即发送到客户端
+                            if (text != null && !text.isEmpty()) {
+                                // 将文本块包装成JSON格式
+                                JSONObject dataObj = new JSONObject();
+                                dataObj.put("data", text);
+                                
+                                // 发送到流中
+                                sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                        .event("message")
+                                        .data(dataObj.toString())
+                                        .build());
+                            }
+                        }, error -> {
+                            // 处理错误
+                            log.error("流式聊天出错: {}", error.getMessage());
+                            JSONObject errorObj = new JSONObject();
+                            errorObj.put("error", error.getMessage());
+                            
+                            sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                    .event("error")
+                                    .data(errorObj.toString())
+                                    .build());
+                            
+                            sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                    .event("complete")
+                                    .data("[DONE]")
+                                    .build());
+                            
+                            sink.tryEmitComplete();
+                        }, () -> {
+                            // 处理完成
+                            log.info("流式聊天完成");
+                            
+                            // 发送完成事件
+                            sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                    .event("complete")
+                                    .data("[DONE]")
+                                    .build());
+                            
+                            // 完成流
+                            sink.tryEmitComplete();
+                        });
+                        
+                    } catch (Exception e) {
+                        log.warn("处理用户信息失败，将使用访客模式: {}", e.getMessage());
+                        
+                        // 发送错误信息
+                        sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("处理用户信息失败: " + e.getMessage())
+                                .build());
+                        
+                        sink.tryEmitComplete();
                     }
+                } catch (Exception e) {
+                    log.error("处理SSE流失败", e);
+                    sink.tryEmitError(e);
                 }
-                
-                // 只有在非访客模式下才保存聊天记录
-                if (!isGuestMode) {
-                    final String finalSessionId = sessionId;
-                    aiChatService.saveChatRecord(userId, prompt, "user", finalSessionId);
-                    log.info("已保存用户聊天记录");
-                }
-            } catch (Exception e) {
-                log.warn("处理用户信息失败，将使用访客模式: {}", e.getMessage());
-                isGuestMode = true;
-            }
+            });
             
-            // 发送模式信息
-            try {
-                JSONObject modeInfo = new JSONObject();
-                modeInfo.put("mode", isGuestMode ? "guest" : "user");
-                modeInfo.put("sessionId", sessionId);
-                emitter.send(SseEmitter.event().name("info").data(modeInfo.toString()));
-            } catch (Exception e) {
-                log.warn("发送模式信息失败", e);
-            }
+            // 合并数据流和心跳流，确保连接不会因为长时间没有数据而断开
+            return Flux.merge(sink.asFlux(), heartbeat)
+                    // 添加超时处理
+                    .timeout(Duration.ofMinutes(10))
+                    // 捕获超时异常
+                    .onErrorResume(e -> {
+                        log.error("SSE流超时或出错: {}", e.getMessage());
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("连接超时或发生错误: " + e.getMessage())
+                                .build(),
+                                ServerSentEvent.<String>builder()
+                                .event("complete")
+                                .data("[DONE]")
+                                .build());
+                    });
             
-            // 使用Ollama服务进行SSE流式聊天
-            ollamaService.streamChatSSE(prompt, emitter);
-            
-            return emitter;
         } catch (Exception e) {
             log.error("初始化SSE流式聊天失败", e);
-            SseEmitter emitter = new SseEmitter();
-            try {
-                emitter.send(SseEmitter.event().data("服务器错误: " + e.getMessage()).name("error"));
-                emitter.complete();
-            } catch (Exception ex) {
-                emitter.completeWithError(ex);
-            }
-            return emitter;
+            return Flux.just(ServerSentEvent.<String>builder()
+                    .event("error")
+                    .data("服务器错误: " + e.getMessage())
+                    .build(),
+                    ServerSentEvent.<String>builder()
+                    .event("complete")
+                    .data("[DONE]")
+                    .build());
         }
     }
 }

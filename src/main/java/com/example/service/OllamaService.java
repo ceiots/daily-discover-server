@@ -9,11 +9,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -330,6 +334,71 @@ public class OllamaService {
             } catch (Exception ex) {
                 emitter.completeWithError(ex);
             }
+        }
+    }
+
+    /**
+     * 使用响应式WebClient进行流式聊天，支持更高效的数据传输
+     * 
+     * @param prompt 用户提问
+     * @param onNext 处理每个文本块的回调
+     * @param onError 处理错误的回调
+     * @param onComplete 处理完成的回调
+     */
+    public void streamChatWithReactor(String prompt, Consumer<String> onNext, Consumer<Throwable> onError, Runnable onComplete) {
+        log.info("开始使用WebClient进行流式聊天");
+        
+        try {
+            // 创建请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "qwen3:4b");
+            requestBody.put("prompt", prompt);
+            requestBody.put("stream", true);
+            
+            
+            // 发送请求并处理流式响应
+            webClient.post()
+                    .uri(ollamaApiUrl + "/generate")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.AUTHORIZATION, ollamaApiKey != null ? "Bearer " + ollamaApiKey : "")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    .publishOn(Schedulers.boundedElastic())
+                    .subscribe(
+                        chunk -> {
+                            try {
+                                // 解析JSON响应
+                                JSONObject jsonResponse = new JSONObject(chunk);
+                                
+                                // 提取生成的文本
+                                if (jsonResponse.has("response")) {
+                                    String text = jsonResponse.getString("response");
+                                    
+                                    // 调用回调处理文本块
+                                    onNext.accept(text);
+                                }
+                                
+                                // 检查是否完成
+                                if (jsonResponse.has("done") && jsonResponse.getBoolean("done")) {
+                                    onComplete.run();
+                                }
+                            } catch (Exception e) {
+                                log.error("处理流式响应块失败", e);
+                            }
+                        },
+                        error -> {
+                            log.error("流式聊天出错", error);
+                            onError.accept(error);
+                        },
+                        () -> {
+                            log.info("流式聊天完成");
+                            onComplete.run();
+                        }
+                    );
+        } catch (Exception e) {
+            log.error("初始化WebClient流式聊天失败", e);
+            onError.accept(e);
         }
     }
 }
