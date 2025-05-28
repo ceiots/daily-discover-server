@@ -167,7 +167,7 @@ public class AiController {
             return CommonResult.failed("清空聊天历史失败：" + e.getMessage());
         }
     }
-    
+
     /**
      * 根据会话ID获取聊天记录
      */
