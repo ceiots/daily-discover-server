@@ -44,6 +44,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/ai")
+@CrossOrigin(
+    origins = {"http://localhost:3000", "https://dailydiscover.top"}, 
+    allowCredentials = "false"
+)
 public class AiController {
 
     @Autowired

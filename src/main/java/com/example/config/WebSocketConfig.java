@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ai/chat-ws")
-                .setAllowedOrigins("*")
+                .setAllowedOrigins("http://localhost:3000", "https://dailydiscover.top")
                 .withSockJS()
                 .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js")
                 .setSessionCookieNeeded(false)
