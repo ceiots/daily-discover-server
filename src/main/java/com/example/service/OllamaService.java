@@ -414,4 +414,66 @@ public class OllamaService {
             onError.accept(e);
         }
     }
+
+    public void streamChatWithWebSocket(String prompt, Consumer<String> onNext, 
+                                       Consumer<Throwable> onError, Runnable onComplete) {
+        log.info("开始使用WebSocket进行流式聊天");
+        
+        try {
+            // 创建请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "qwen3:4b");
+            requestBody.put("prompt", prompt);
+            requestBody.put("stream", true);
+            // 设置小块输出
+            requestBody.put("chunk_size", 5); // 更小的块大小
+            
+            // 发送请求并处理流式响应
+            webClient.post()
+                    .uri(ollamaApiUrl + "/generate")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .header(HttpHeaders.AUTHORIZATION, ollamaApiKey != null ? "Bearer " + ollamaApiKey : "")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    // 禁用预取，确保每个数据块都被单独处理
+                    .limitRate(1, 0)
+                    .subscribe(
+                        chunk -> {
+                            try {
+                                // 解析JSON响应
+                                JSONObject jsonResponse = new JSONObject(chunk);
+                                
+                                // 提取生成的文本
+                                if (jsonResponse.has("response")) {
+                                    String text = jsonResponse.getString("response");
+                                    
+                                    // 立即通过WebSocket发送每个字符
+                                    if (text != null && !text.isEmpty()) {
+                                        onNext.accept(text);
+                                    }
+                                }
+                                
+                                // 检查是否完成
+                                if (jsonResponse.has("done") && jsonResponse.getBoolean("done")) {
+                                    onComplete.run();
+                                }
+                            } catch (Exception e) {
+                                log.error("处理流式响应块失败: {}", e.getMessage());
+                            }
+                        },
+                        error -> {
+                            log.error("流式聊天出错: {}", error.getMessage());
+                            onError.accept(error);
+                        },
+                        () -> {
+                            log.info("流式聊天完成");
+                            onComplete.run();
+                        }
+                    );
+        } catch (Exception e) {
+            log.error("初始化WebSocket流式聊天失败: {}", e.getMessage());
+            onError.accept(e);
+        }
+    }
 }

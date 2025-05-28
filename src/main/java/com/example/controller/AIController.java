@@ -9,41 +9,46 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import com.example.model.ChatMessage;
+import com.example.service.OllamaService;
+import com.example.util.UserIdExtractor;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.security.Principal;
+import java.util.Date;
 
 // 添加WebFlux相关导入
 import org.springframework.http.codec.ServerSentEvent;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 
-import com.example.service.OllamaService;
 import com.example.service.ProductService;
 import com.example.service.AiChatService;
 import com.example.common.api.CommonResult;
 import com.example.model.Product;
-import com.example.util.UserIdExtractor;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 
 @Slf4j
 @RestController
 @RequestMapping("/ai")
 public class AiController {
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     private OllamaService ollamaService;
@@ -417,6 +422,52 @@ public class AiController {
                     .data("[DONE]")
                     .build());
         }
+    }
+
+    @MessageMapping("/chat-ws")
+    public void handleChat(ChatMessage message, Principal principal, 
+                         SimpMessageHeaderAccessor headerAccessor) {
+        String sessionId = headerAccessor.getSessionId();
+        String prompt = message.getContent();
+        
+        log.info("收到WebSocket聊天请求: {}, sessionId: {}", prompt, sessionId);
+        
+        // 每个连接创建唯一的目标
+        String destination = "/topic/messages/" + sessionId;
+        
+        // 使用Ollama服务进行流式聊天
+        ollamaService.streamChatWithWebSocket(prompt, text -> {
+            // 每当收到新的文本块，立即发送到客户端
+            if (text != null && !text.isEmpty()) {
+                ChatMessage response = new ChatMessage();
+                response.setContent(text);
+                response.setType("AI");
+                response.setTimestamp(new Date());
+                response.setSessionId(sessionId);
+                
+                messagingTemplate.convertAndSend(destination, response);
+            }
+        }, error -> {
+            // 处理错误
+            log.error("WebSocket聊天出错: {}", error.getMessage());
+            ChatMessage errorMsg = new ChatMessage();
+            errorMsg.setContent("错误: " + error.getMessage());
+            errorMsg.setType("ERROR");
+            errorMsg.setTimestamp(new Date());
+            errorMsg.setSessionId(sessionId);
+            
+            messagingTemplate.convertAndSend(destination, errorMsg);
+        }, () -> {
+            // 处理完成
+            log.info("WebSocket聊天完成, sessionId: {}", sessionId);
+            ChatMessage completeMsg = new ChatMessage();
+            completeMsg.setContent("[DONE]");
+            completeMsg.setType("COMPLETE");
+            completeMsg.setTimestamp(new Date());
+            completeMsg.setSessionId(sessionId);
+            
+            messagingTemplate.convertAndSend(destination, completeMsg);
+        });
     }
 }
 
