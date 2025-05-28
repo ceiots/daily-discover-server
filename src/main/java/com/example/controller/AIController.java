@@ -266,11 +266,11 @@ public class AiController {
                     .build());
         }
         
-        // 创建Sink，用于向流中推送数据
-        Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().onBackpressureBuffer();
+        // 创建Sink，用于向流中推送数据，使用多播模式和更小的缓冲区
+        Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().directBestEffort();
         
-        // 创建心跳事件流，每15秒发送一次心跳保持连接
-        Flux<ServerSentEvent<String>> heartbeat = Flux.interval(Duration.ofSeconds(15))
+        // 创建心跳事件流，每5秒发送一次心跳保持连接
+        Flux<ServerSentEvent<String>> heartbeat = Flux.interval(Duration.ofSeconds(5))
                 .map(i -> ServerSentEvent.<String>builder()
                         .event("heartbeat")
                         .data("ping")
@@ -321,17 +321,21 @@ public class AiController {
                         
                         // 调用Ollama服务进行流式聊天，使用响应式方式
                         ollamaService.streamChatWithReactor(prompt, text -> {
-                            // 每当收到新的文本块，立即发送到客户端
+                            // 每当收到新的文本块，立即发送到客户端，不积累
                             if (text != null && !text.isEmpty()) {
                                 // 将文本块包装成JSON格式
                                 JSONObject dataObj = new JSONObject();
                                 dataObj.put("data", text);
                                 
-                                // 发送到流中
-                                sink.tryEmitNext(ServerSentEvent.<String>builder()
+                                // 发送到流中，使用非阻塞方式
+                                Sinks.EmitResult result = sink.tryEmitNext(ServerSentEvent.<String>builder()
                                         .event("message")
                                         .data(dataObj.toString())
                                         .build());
+                                
+                                if (result.isFailure()) {
+                                    log.warn("发送数据块失败: {}", result);
+                                }
                             }
                         }, error -> {
                             // 处理错误
@@ -383,6 +387,10 @@ public class AiController {
             
             // 合并数据流和心跳流，确保连接不会因为长时间没有数据而断开
             return Flux.merge(sink.asFlux(), heartbeat)
+                    // 禁用背压缓冲，确保数据立即发送
+                    .onBackpressureDrop(event -> log.warn("丢弃事件，客户端处理速度过慢"))
+                    // 添加小延迟，确保事件不会堆积
+                    .delayElements(Duration.ofMillis(5))
                     // 添加超时处理
                     .timeout(Duration.ofMinutes(10))
                     // 捕获超时异常

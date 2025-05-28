@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Duration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -354,7 +355,11 @@ public class OllamaService {
             requestBody.put("model", "qwen3:4b");
             requestBody.put("prompt", prompt);
             requestBody.put("stream", true);
+            // 设置小块输出
+            requestBody.put("chunk_size", 10);
             
+            
+            log.info("使用大模型API: {}", ollamaApiUrl);
             
             // 发送请求并处理流式响应
             webClient.post()
@@ -364,7 +369,12 @@ public class OllamaService {
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToFlux(String.class)
+                    // 使用boundedElastic线程池处理阻塞操作
                     .publishOn(Schedulers.boundedElastic())
+                    // 禁用预取，确保每个数据块都被单独处理
+                    .limitRate(1, 0)
+                    // 添加小延迟，确保数据流平滑
+                    .delayElements(Duration.ofMillis(5))
                     .subscribe(
                         chunk -> {
                             try {
@@ -375,8 +385,11 @@ public class OllamaService {
                                 if (jsonResponse.has("response")) {
                                     String text = jsonResponse.getString("response");
                                     
-                                    // 调用回调处理文本块
-                                    onNext.accept(text);
+                                    // 调用回调处理文本块，立即发送每个字符
+                                    if (text != null && !text.isEmpty()) {
+                                        log.debug("接收到文本块: {}", text);
+                                        onNext.accept(text);
+                                    }
                                 }
                                 
                                 // 检查是否完成
@@ -384,11 +397,11 @@ public class OllamaService {
                                     onComplete.run();
                                 }
                             } catch (Exception e) {
-                                log.error("处理流式响应块失败", e);
+                                log.error("处理流式响应块失败: {}", e.getMessage());
                             }
                         },
                         error -> {
-                            log.error("流式聊天出错", error);
+                            log.error("流式聊天出错: {}", error.getMessage());
                             onError.accept(error);
                         },
                         () -> {
@@ -397,7 +410,7 @@ public class OllamaService {
                         }
                     );
         } catch (Exception e) {
-            log.error("初始化WebClient流式聊天失败", e);
+            log.error("初始化WebClient流式聊天失败: {}", e.getMessage());
             onError.accept(e);
         }
     }
