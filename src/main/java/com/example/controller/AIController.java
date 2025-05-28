@@ -42,6 +42,9 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONObject;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 @Slf4j
 @RestController
 @RequestMapping("/ai")
@@ -468,6 +471,137 @@ public class AiController {
             
             messagingTemplate.convertAndSend(destination, completeMsg);
         });
+    }
+    
+    /**
+     * 获取推荐话题API
+     * 基于用户输入，使用Ollama生成相关推荐话题
+     */
+    @PostMapping("/get-suggestions")
+    public CommonResult<List<Map<String, String>>> getSuggestions(@RequestBody Map<String, String> request) {
+        String userInput = request.getOrDefault("userInput", "今日生活热点");
+        log.info("获取推荐话题，输入: {}", userInput);
+        
+        try {
+            // 构建提示词
+            String prompt = String.format(
+                "基于用户的输入：\"%s\"，生成5个相关的推荐话题，每个话题不超过10个字。" +
+                "话题应该与用户输入相关，但更具体或者是延伸内容。" +
+                "只返回话题列表，每行一个话题，不要有编号或其他文字。" +
+                "例如，如果输入是\"健康饮食\"，可能的回复是：\n" +
+                "低碳水饮食指南\n" +
+                "蛋白质摄入建议\n" +
+                "素食营养搭配\n" +
+                "水果营养价值\n" +
+                "健康零食选择", 
+                userInput
+            );
+            
+            // 调用Ollama服务获取推荐
+            String response = ollamaService.generateText(prompt);
+            
+            // 解析响应
+            List<String> topics = parseTopics(response);
+            
+            // 限制返回数量
+            if (topics.size() > 5) {
+                topics = topics.subList(0, 5);
+            }
+            
+            // 添加图标
+            List<Map<String, String>> result = new ArrayList<>();
+            for (int i = 0; i < topics.size(); i++) {
+                String topic = topics.get(i);
+                Map<String, String> topicMap = new HashMap<>();
+                topicMap.put("id", "t-" + (i + 1));
+                topicMap.put("text", topic);
+                topicMap.put("icon", getIconForTopic(topic));
+                result.add(topicMap);
+            }
+            
+            return CommonResult.success(result);
+        } catch (Exception e) {
+            log.error("获取推荐话题失败", e);
+            
+            // 返回默认话题
+            List<Map<String, String>> defaultTopics = getDefaultTopics();
+            return CommonResult.success(defaultTopics);
+        }
+    }
+    
+    /**
+     * 解析Ollama返回的话题文本
+     */
+    private List<String> parseTopics(String response) {
+        if (response == null || response.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 按行分割
+        String[] lines = response.split("\\r?\\n");
+        
+        // 过滤空行和格式化
+        return Arrays.stream(lines)
+            .map(String::trim)
+            .filter(line -> !line.isEmpty())
+            .map(line -> {
+                // 移除可能的序号前缀 (如 "1. ", "- ", "• ")
+                return line.replaceAll("^\\d+\\.\\s*|^[-•*]\\s*", "");
+            })
+            .filter(line -> line.length() <= 15) // 限制长度
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 根据话题内容选择合适的图标
+     */
+    private String getIconForTopic(String topic) {
+        // 根据话题关键词选择图标
+        if (topic.contains("健康") || topic.contains("饮食") || topic.contains("营养")) return "apple-alt";
+        if (topic.contains("运动") || topic.contains("健身") || topic.contains("锻炼")) return "dumbbell";
+        if (topic.contains("科技") || topic.contains("数字") || topic.contains("手机")) return "mobile-alt";
+        if (topic.contains("心理") || topic.contains("压力") || topic.contains("情绪")) return "brain";
+        if (topic.contains("睡眠") || topic.contains("休息")) return "moon";
+        if (topic.contains("工作") || topic.contains("效率") || topic.contains("职场")) return "briefcase";
+        if (topic.contains("美食") || topic.contains("烹饪") || topic.contains("菜谱")) return "utensils";
+        if (topic.contains("旅行") || topic.contains("旅游") || topic.contains("出行")) return "plane";
+        if (topic.contains("阅读") || topic.contains("书籍") || topic.contains("知识")) return "book";
+        if (topic.contains("电影") || topic.contains("电视") || topic.contains("娱乐")) return "film";
+        if (topic.contains("音乐") || topic.contains("歌曲")) return "music";
+        if (topic.contains("家居") || topic.contains("装修") || topic.contains("家庭")) return "home";
+        if (topic.contains("时尚") || topic.contains("穿搭") || topic.contains("服装")) return "tshirt";
+        if (topic.contains("育儿") || topic.contains("孩子") || topic.contains("家庭")) return "child";
+        if (topic.contains("宠物") || topic.contains("动物")) return "paw";
+        if (topic.contains("金融") || topic.contains("理财") || topic.contains("投资")) return "money-bill";
+        if (topic.contains("环保") || topic.contains("可持续") || topic.contains("绿色")) return "leaf";
+        
+        // 默认图标
+        return "lightbulb";
+    }
+    
+    /**
+     * 获取默认话题列表（当API调用失败时使用）
+     */
+    private List<Map<String, String>> getDefaultTopics() {
+        List<Map<String, String>> defaultTopics = new ArrayList<>();
+        
+        String[][] topics = {
+            {"1", "今日热点新闻", "newspaper"},
+            {"2", "健康生活指南", "heartbeat"},
+            {"3", "美食推荐", "utensils"},
+            {"4", "数字生活技巧", "mobile-alt"},
+            {"5", "心理健康建议", "brain"}
+        };
+        
+        for (String[] topic : topics) {
+            Map<String, String> topicMap = new HashMap<>();
+            topicMap.put("id", "d-" + topic[0]);
+            topicMap.put("text", topic[1]);
+            topicMap.put("icon", topic[2]);
+            defaultTopics.add(topicMap);
+        }
+        
+        return defaultTopics;
     }
 }
 

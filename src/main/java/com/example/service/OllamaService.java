@@ -22,6 +22,8 @@ import java.time.Duration;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Slf4j
 @Service
 public class OllamaService {
@@ -32,10 +34,15 @@ public class OllamaService {
     @Value("${ollama.api.key}")
     private String ollamaApiKey;
 
-    private final WebClient webClient;
+    @Value("${ollama.model}")
+    private String ollamaModel;
 
-    public OllamaService(WebClient.Builder webClientBuilder) {
+    private final WebClient webClient;
+    private final ObjectMapper objectMapper;
+
+    public OllamaService(WebClient.Builder webClientBuilder, ObjectMapper objectMapper) {
         this.webClient = webClientBuilder.baseUrl(ollamaApiUrl).build();
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -415,64 +422,110 @@ public class OllamaService {
         }
     }
 
-    public void streamChatWithWebSocket(String prompt, Consumer<String> onNext, 
-                                       Consumer<Throwable> onError, Runnable onComplete) {
-        log.info("开始使用WebSocket进行流式聊天");
-        
+    /**
+     * 生成文本（非流式），用于生成推荐话题等短文本内容
+     */
+    public String generateText(String prompt) {
         try {
-            // 创建请求体
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "qwen3:4b");
+            requestBody.put("model", ollamaModel);
+            requestBody.put("prompt", prompt);
+            requestBody.put("stream", false);
+            // 设置较小的温度值，使输出更加确定性
+            requestBody.put("temperature", 0.3);
+            // 设置较小的top_p值，减少随机性
+            requestBody.put("top_p", 0.7);
+            // 设置较小的chunk_size，确保输出格式正确
+            requestBody.put("options", Map.of("chunk_size", 10));
+            
+            log.info("调用Ollama生成文本，提示词: {}", prompt);
+            
+            String response = webClient.post()
+                .uri("/generate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+            
+            // 解析响应
+            Map<String, Object> responseMap = objectMapper.readValue(response, Map.class);
+            String generatedText = (String) responseMap.get("response");
+            
+            log.info("Ollama生成文本成功，长度: {}", generatedText != null ? generatedText.length() : 0);
+            
+            return generatedText;
+        } catch (Exception e) {
+            log.error("调用Ollama生成文本失败", e);
+            return "";
+        }
+    }
+
+    /**
+     * 使用WebSocket进行流式聊天
+     */
+    public void streamChatWithWebSocket(String prompt, Consumer<String> onTextReceived, 
+                                     Consumer<Throwable> onError, Runnable onComplete) {
+        try {
+            // 准备请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", ollamaModel);
             requestBody.put("prompt", prompt);
             requestBody.put("stream", true);
-            // 设置小块输出
-            requestBody.put("chunk_size", 5); // 更小的块大小
+            
+            // 设置较小的chunk_size，确保小数据块输出
+            Map<String, Object> options = new HashMap<>();
+            options.put("chunk_size", 10);
+            requestBody.put("options", options);
+            
+            log.info("调用Ollama流式聊天，提示词: {}", prompt);
             
             // 发送请求并处理流式响应
             webClient.post()
-                    .uri(ollamaApiUrl + "/generate")
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .header(HttpHeaders.AUTHORIZATION, ollamaApiKey != null ? "Bearer " + ollamaApiKey : "")
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToFlux(String.class)
-                    // 禁用预取，确保每个数据块都被单独处理
-                    .limitRate(1, 0)
-                    .subscribe(
-                        chunk -> {
-                            try {
-                                // 解析JSON响应
-                                JSONObject jsonResponse = new JSONObject(chunk);
-                                
-                                // 提取生成的文本
-                                if (jsonResponse.has("response")) {
-                                    String text = jsonResponse.getString("response");
-                                    
-                                    // 立即通过WebSocket发送每个字符
-                                    if (text != null && !text.isEmpty()) {
-                                        onNext.accept(text);
-                                    }
-                                }
-                                
-                                // 检查是否完成
-                                if (jsonResponse.has("done") && jsonResponse.getBoolean("done")) {
-                                    onComplete.run();
-                                }
-                            } catch (Exception e) {
-                                log.error("处理流式响应块失败: {}", e.getMessage());
-                            }
-                        },
-                        error -> {
-                            log.error("流式聊天出错: {}", error.getMessage());
-                            onError.accept(error);
-                        },
-                        () -> {
-                            log.info("流式聊天完成");
-                            onComplete.run();
+                .uri("/generate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToFlux(String.class)
+                .flatMap(chunk -> {
+                    try {
+                        // 解析JSON响应
+                        Map<String, Object> responseMap = objectMapper.readValue(chunk, Map.class);
+                        String text = (String) responseMap.get("response");
+                        
+                        if (text != null && !text.isEmpty()) {
+                            // 调用回调函数处理文本块
+                            onTextReceived.accept(text);
                         }
-                    );
+                        
+                        // 检查是否完成
+                        Boolean done = (Boolean) responseMap.get("done");
+                        if (Boolean.TRUE.equals(done)) {
+                            return Mono.empty();
+                        }
+                        
+                        return Mono.just(chunk);
+                    } catch (Exception e) {
+                        return Mono.error(e);
+                    }
+                })
+                .limitRate(1, 0)  // 禁用预取，确保每个数据块单独处理
+                .delayElements(Duration.ofMillis(10))  // 添加小延迟确保数据流平滑
+                .doOnComplete(onComplete)
+                .doOnError(onError)
+                .subscribe(
+                    chunk -> {}, // 已在flatMap中处理
+                    throwable -> {
+                        log.error("流式聊天出错", throwable);
+                        onError.accept(throwable);
+                    },
+                    () -> {
+                        log.info("流式聊天完成");
+                        onComplete.run();
+                    }
+                );
         } catch (Exception e) {
-            log.error("初始化WebSocket流式聊天失败: {}", e.getMessage());
+            log.error("初始化流式聊天失败", e);
             onError.accept(e);
         }
     }
