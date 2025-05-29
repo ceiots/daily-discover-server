@@ -20,6 +20,9 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import com.example.model.ChatMessage;
 import com.example.service.OllamaService;
@@ -44,6 +47,8 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Profile;
 
 @Slf4j
 @RestController
@@ -432,6 +437,83 @@ public class AiController {
             "/ai/chat-ws (SockJS fallback)"
         });
         return ResponseEntity.ok(status);
+    }
+
+    /**
+     * 使用SSE（Server-Sent Events）流式返回Ollama生成的内容
+     * 前端可以直接调用此API而不需要WebSocket
+     */
+    @PostMapping(value = "/ollama/generate", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public ResponseEntity<Flux<String>> generateWithOllama(@RequestBody Map<String, Object> request) {
+        String prompt = (String) request.getOrDefault("prompt", "");
+        String model = (String) request.getOrDefault("model", ollamaService.getDefaultModel());
+        
+        log.info("收到Ollama生成请求: {}, 模型: {}", prompt, model);
+        
+        // 使用WebFlux的Flux实现流式响应
+        Flux<String> resultFlux = Flux.create(sink -> {
+            try {
+                // 准备请求体
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("model", model);
+                requestBody.put("prompt", prompt);
+                requestBody.put("stream", true);
+                
+                // 设置较小的chunk_size，确保小数据块输出
+                Map<String, Object> options = new HashMap<>();
+                options.put("chunk_size", 10);
+                requestBody.put("options", options);
+                
+                // 发送请求并处理流式响应
+                ollamaService.getWebClient().post()
+                    .uri(ollamaService.getOllamaApiUrl() + "/generate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    .flatMap(chunk -> {
+                        try {
+                            // 尝试解析JSON响应
+                            JSONObject jsonObject = new JSONObject(chunk);
+                            String response = jsonObject.optString("response", "");
+                            boolean done = jsonObject.optBoolean("done", false);
+                            
+                            // 创建新的JSON对象，仅包含我们需要的字段
+                            JSONObject result = new JSONObject();
+                            result.put("response", response);
+                            result.put("done", done);
+                            
+                            // 发送给客户端
+                            sink.next(result.toString());
+                            
+                            // 如果完成，则关闭流
+                            if (done) {
+                                sink.complete();
+                            }
+                            
+                            return Mono.empty();
+                        } catch (Exception e) {
+                            // 如果不是有效的JSON，只返回原始数据
+                            sink.next(chunk);
+                            return Mono.empty();
+                        }
+                    })
+                    .doOnComplete(sink::complete)
+                    .doOnError(sink::error)
+                    .subscribe();
+                
+            } catch (Exception e) {
+                log.error("Ollama生成失败", e);
+                sink.error(e);
+            }
+        });
+        
+        // 设置响应头，允许跨域和指定内容类型
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_STREAM_JSON_VALUE);
+        headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        
+        return new ResponseEntity<>(resultFlux, headers, 200);
     }
 }
 

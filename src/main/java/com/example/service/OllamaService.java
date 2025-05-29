@@ -180,4 +180,25 @@ public class OllamaService {
             onError.accept(e);
         }
     }
+    
+    /**
+     * 获取默认Ollama模型名称
+     */
+    public String getDefaultModel() {
+        return this.ollamaModel;
+    }
+    
+    /**
+     * 获取Ollama API URL
+     */
+    public String getOllamaApiUrl() {
+        return this.ollamaApiUrl;
+    }
+    
+    /**
+     * 获取WebClient实例
+     */
+    public WebClient getWebClient() {
+        return this.webClient;
+    }
 }
