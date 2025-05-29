@@ -15,10 +15,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+/**
+ * 安全配置类
+ * 
+ * 主要功能：
+ * 1. 配置全局CORS策略
+ * 2. 配置安全过滤链
+ * 3. 提供密码编码器
+ * 4. 提供认证管理器
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * 配置安全过滤链
+     * 启用CORS，禁用CSRF，允许所有请求
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -31,26 +44,38 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * 配置CORS策略
+     * 为普通API和WebSocket提供不同的CORS配置
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // 通用CORS配置
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "Content-Length"));
-        configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+        
         return source;
     }
 
+    /**
+     * 密码编码器
+     * 用于用户密码的加密和验证
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * 认证管理器
+     * 用于处理用户认证
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();

@@ -15,21 +15,25 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.http.ResponseEntity;
 
 import com.example.model.ChatMessage;
 import com.example.service.OllamaService;
 import com.example.util.UserIdExtractor;
+import com.example.service.ProductService;
+import com.example.service.AiChatService;
+import com.example.common.api.CommonResult;
+import com.example.model.Product;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.Principal;
 import java.util.Date;
-
-
-import com.example.service.ProductService;
-import com.example.service.AiChatService;
-import com.example.common.api.CommonResult;
-import com.example.model.Product;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -44,10 +48,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/ai")
-@CrossOrigin(
-    origins = {"http://localhost:3000", "https://dailydiscover.top"}, 
-    allowCredentials = "false"
-)
 public class AiController {
 
     @Autowired
@@ -64,6 +64,9 @@ public class AiController {
     
     @Autowired
     private AiChatService aiChatService;
+
+    // 用于存储会话信息的集合
+    private final ConcurrentHashMap<String, WebSocketSession> activeSessions = new ConcurrentHashMap<>();
 
     /**
      * 获取每日智能推荐商品
@@ -411,6 +414,24 @@ public class AiController {
         }
         
         return defaultTopics;
+    }
+
+    /**
+     * 提供WebSocket状态API，客户端可以检查服务是否可用
+     */
+    @GetMapping("/chat-ws/status")
+    public ResponseEntity<?> getWebSocketStatus() {
+        log.info("请求WebSocket状态");
+        Map<String, Object> status = new HashMap<>();
+        status.put("status", "running");
+        status.put("version", "1.0");
+        status.put("serverTime", System.currentTimeMillis());
+        status.put("activeSessions", activeSessions.size());
+        status.put("endpoints", new String[]{
+            "/ai/chat-ws (WebSocket native)",
+            "/ai/chat-ws (SockJS fallback)"
+        });
+        return ResponseEntity.ok(status);
     }
 }
 
