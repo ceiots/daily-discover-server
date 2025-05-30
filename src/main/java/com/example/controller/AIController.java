@@ -448,7 +448,7 @@ public class AiController {
      * 使用SSE（Server-Sent Events）流式返回Ollama生成的内容
      * 前端可以直接调用此API而不需要WebSocket
      */
-    @PostMapping(value = "/ollama/generate", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    @PostMapping(value = "/ollama/generate", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<Flux<String>> generateWithOllama(@RequestBody Map<String, Object> request) {
         String prompt = (String) request.getOrDefault("prompt", "");
         String model = (String) request.getOrDefault("model", ollamaService.getDefaultModel());
@@ -462,24 +462,29 @@ public class AiController {
                 Map<String, Object> requestBody = new HashMap<>();
                 requestBody.put("model", model);
                 requestBody.put("prompt", prompt);
-                requestBody.put("stream", true);
+                requestBody.put("stream", true);  // 启用流式输出
                 
-                // 设置较小的chunk_size，确保小数据块输出
+                // 设置Ollama生成参数
                 Map<String, Object> options = new HashMap<>();
-                options.put("chunk_size", 1); // 设置为最小值1，每个token立即发送
+                options.put("chunk_size", 1);     // 设置较小的分块大小，提高实时性
+                options.put("temperature", 0.7);  // 温度参数，控制生成的创造性
+                options.put("top_p", 0.9);        // 控制输出多样性
                 requestBody.put("options", options);
                 
-                // 配置HTTP客户端，禁用Nagle算法，减少延迟
+                log.info("Ollama请求配置: model={}, stream=true, chunk_size=1, 提示词长度={}", 
+                    model, prompt.length());
+                
+                // 配置HTTP客户端，优化网络性能
                 HttpClient httpClient = HttpClient.create()
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-                    .option(ChannelOption.TCP_NODELAY, true) // 禁用Nagle算法，立即发送小数据包
-                    .option(ChannelOption.SO_KEEPALIVE, true)
-                    // 明确禁用缓冲区，设置为0
+                    .option(ChannelOption.TCP_NODELAY, true)     // 禁用Nagle算法，提高小包传输速度
+                    .option(ChannelOption.SO_KEEPALIVE, true)    // 保持连接活跃
+                    // 优化缓冲区大小，避免延迟
                     .option(ChannelOption.SO_SNDBUF, 1) 
                     .option(ChannelOption.SO_RCVBUF, 1)
-                    .responseTimeout(Duration.ofMinutes(5));
+                    .responseTimeout(Duration.ofMinutes(10));     // 设置较长的超时时间
                 
-                log.info("向Ollama发送请求: {}", prompt.substring(0, Math.min(prompt.length(), 50)) + "...");
+                log.info("开始向Ollama发送请求: {}", prompt.substring(0, Math.min(prompt.length(), 50)) + "...");
                 
                 // 使用自定义HTTP客户端配置创建WebClient
                 ollamaService.getWebClient()
@@ -494,53 +499,37 @@ public class AiController {
                     .bodyToFlux(String.class)
                     // 关键设置：防止发射器缓冲和背压
                     .publishOn(reactor.core.scheduler.Schedulers.immediate())
-                    // 添加字节输出日志，验证响应分块
-                    .doOnNext(rawChunk -> {
-                        log.debug("从Ollama接收数据块: {} 字节", rawChunk.length());
-                    })
                     .flatMap(chunk -> {
                         try {
-                            // 尝试解析JSON响应
+                            // 解析Ollama返回的JSON
                             JSONObject jsonObject = new JSONObject(chunk);
                             String response = jsonObject.optString("response", "");
                             boolean done = jsonObject.optBoolean("done", false);
                             
-                            // 直接传递Ollama原始响应格式，不做分割
-                            // 前端期望的格式是 {"response":"token","done":false}
-                            log.debug("从Ollama接收: response='{}', done={}", response, done);
-                            
-                            // 原样转发Ollama的JSON响应，保持格式一致性
-                            sink.next(chunk);
+                            // 只向前端传递实际的响应文本，不包含JSON结构
+                            if (!response.isEmpty()) {
+                                sink.next(response);
+                            }
                             
                             // 如果完成，则关闭流
                             if (done) {
-                                log.info("Ollama响应完成");
+                                log.info("Ollama响应已完成，流处理结束");
                                 sink.complete();
                             }
                             
                             return Mono.empty();
                         } catch (Exception e) {
-                            log.warn("解析Ollama响应出错: {}", e.getMessage());
-                            // 如果不是有效的JSON，构造一个标准格式响应并发送
-                            try {
-                                JSONObject fallbackResult = new JSONObject();
-                                fallbackResult.put("response", chunk);
-                                fallbackResult.put("done", false);
-                                sink.next(fallbackResult.toString());
-                            } catch (Exception ex) {
-                                log.error("创建回退JSON失败", ex);
-                                sink.next(chunk); // 最后的备选方案，直接发送原始数据
-                            }
+                            log.warn("解析Ollama响应JSON出错: {}, 原始数据: {}", 
+                                e.getMessage(), 
+                                chunk.length() > 50 ? chunk.substring(0, 50) + "..." : chunk);
                             return Mono.empty();
                         }
                     })
                     .doOnComplete(() -> {
-                        log.info("Ollama响应流结束");
-                        sink.complete();
+                        log.info("Ollama响应流正常结束");
                     })
                     .doOnError(error -> {
-                        log.error("处理Ollama响应出错", error);
-                        sink.error(error);
+                        log.error("处理Ollama响应出错: {}", error.getMessage(), error);
                     })
                     .subscribe();
                 
@@ -554,7 +543,7 @@ public class AiController {
         
         // 设置响应头，允许跨域和指定内容类型
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_STREAM_JSON_VALUE);
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
         headers.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate");
         headers.add(HttpHeaders.PRAGMA, "no-cache");
         headers.add(HttpHeaders.EXPIRES, "0");
