@@ -44,34 +44,7 @@ public class OllamaService {
         this.webClient = webClientBuilder.baseUrl(ollamaApiUrl).build();
         this.objectMapper = objectMapper;
     }
-
     
-    
-    
-    
-    /**
-     * 生成本地回退响应（当Ollama服务不可用时）
-     */
-    private String generateFallbackResponse(String prompt) {
-        String promptLower = prompt.toLowerCase();
-        
-        // 关键词匹配，提供基本回复
-        if (promptLower.contains("推荐") || promptLower.contains("好物")) {
-            return "我为您精选了今日好物，您可以在\"每日发现\"区域查看更多推荐商品。这些商品都是根据最新趋势和品质精选的。";
-        } else if (promptLower.contains("天气")) {
-            return "今天天气晴朗，气温在18-25°C之间，非常适合户外活动。建议您适当增减衣物，注意防晒。";
-        } else if (promptLower.contains("健康") || promptLower.contains("饮食")) {
-            return "建议您保持均衡饮食，多摄入蔬果，每天喝足够的水，保持适度运动，这对身体健康非常有益。";
-        } else if (promptLower.contains("效率") || promptLower.contains("工作")) {
-            return "提高工作效率可以尝试番茄工作法，设定明确目标，减少干扰，定期休息，确保充足睡眠。";
-        }
-        
-        // 通用回复
-        return "感谢您的提问。您对" + prompt + "的问题很有价值。我们会不断改进服务，为您提供更准确的信息。您还有其他问题吗？";
-    }
-
-    
-   
 
     /**
      * 生成文本（非流式），用于生成推荐话题等短文本内容
@@ -126,7 +99,7 @@ public class OllamaService {
             
             // 设置较小的chunk_size，确保小数据块输出
             Map<String, Object> options = new HashMap<>();
-            options.put("chunk_size", 10);
+            options.put("chunk_size", 100);
             requestBody.put("options", options);
             
             log.info("调用Ollama流式聊天，提示词: {}", prompt);

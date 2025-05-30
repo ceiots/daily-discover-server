@@ -50,6 +50,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Profile;
 
+import io.netty.channel.ChannelOption;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import reactor.netty.http.client.HttpClient;
+import java.time.Duration;
+
 @Slf4j
 @RestController
 @RequestMapping("/ai")
@@ -461,16 +466,38 @@ public class AiController {
                 
                 // 设置较小的chunk_size，确保小数据块输出
                 Map<String, Object> options = new HashMap<>();
-                options.put("chunk_size", 10);
+                options.put("chunk_size", 1); // 设置为最小值1，每个token立即发送
                 requestBody.put("options", options);
                 
-                // 发送请求并处理流式响应
-                ollamaService.getWebClient().post()
+                // 配置HTTP客户端，禁用Nagle算法，减少延迟
+                HttpClient httpClient = HttpClient.create()
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+                    .option(ChannelOption.TCP_NODELAY, true) // 禁用Nagle算法，立即发送小数据包
+                    .option(ChannelOption.SO_KEEPALIVE, true)
+                    // 明确禁用缓冲区，设置为0
+                    .option(ChannelOption.SO_SNDBUF, 1) 
+                    .option(ChannelOption.SO_RCVBUF, 1)
+                    .responseTimeout(Duration.ofMinutes(5));
+                
+                log.info("向Ollama发送请求: {}", prompt.substring(0, Math.min(prompt.length(), 50)) + "...");
+                
+                // 使用自定义HTTP客户端配置创建WebClient
+                ollamaService.getWebClient()
+                    .mutate()
+                    .clientConnector(new ReactorClientHttpConnector(httpClient))
+                    .build()
+                    .post()
                     .uri(ollamaService.getOllamaApiUrl() + "/generate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToFlux(String.class)
+                    // 关键设置：防止发射器缓冲和背压
+                    .publishOn(reactor.core.scheduler.Schedulers.immediate())
+                    // 添加字节输出日志，验证响应分块
+                    .doOnNext(rawChunk -> {
+                        log.debug("从Ollama接收数据块: {} 字节", rawChunk.length());
+                    })
                     .flatMap(chunk -> {
                         try {
                             // 尝试解析JSON响应
@@ -478,42 +505,68 @@ public class AiController {
                             String response = jsonObject.optString("response", "");
                             boolean done = jsonObject.optBoolean("done", false);
                             
-                            // 创建新的JSON对象，仅包含我们需要的字段
-                            JSONObject result = new JSONObject();
-                            result.put("response", response);
-                            result.put("done", done);
+                            // 直接传递Ollama原始响应格式，不做分割
+                            // 前端期望的格式是 {"response":"token","done":false}
+                            log.debug("从Ollama接收: response='{}', done={}", response, done);
                             
-                            // 发送给客户端
-                            sink.next(result.toString());
+                            // 原样转发Ollama的JSON响应，保持格式一致性
+                            sink.next(chunk);
                             
                             // 如果完成，则关闭流
                             if (done) {
+                                log.info("Ollama响应完成");
                                 sink.complete();
                             }
                             
                             return Mono.empty();
                         } catch (Exception e) {
-                            // 如果不是有效的JSON，只返回原始数据
-                            sink.next(chunk);
+                            log.warn("解析Ollama响应出错: {}", e.getMessage());
+                            // 如果不是有效的JSON，构造一个标准格式响应并发送
+                            try {
+                                JSONObject fallbackResult = new JSONObject();
+                                fallbackResult.put("response", chunk);
+                                fallbackResult.put("done", false);
+                                sink.next(fallbackResult.toString());
+                            } catch (Exception ex) {
+                                log.error("创建回退JSON失败", ex);
+                                sink.next(chunk); // 最后的备选方案，直接发送原始数据
+                            }
                             return Mono.empty();
                         }
                     })
-                    .doOnComplete(sink::complete)
-                    .doOnError(sink::error)
+                    .doOnComplete(() -> {
+                        log.info("Ollama响应流结束");
+                        sink.complete();
+                    })
+                    .doOnError(error -> {
+                        log.error("处理Ollama响应出错", error);
+                        sink.error(error);
+                    })
                     .subscribe();
                 
             } catch (Exception e) {
                 log.error("Ollama生成失败", e);
                 sink.error(e);
             }
-        });
+        }, 
+        // 这里是关键改进，明确指定发射器模式为LATEST，不缓冲数据
+        reactor.core.publisher.FluxSink.OverflowStrategy.LATEST);
         
         // 设置响应头，允许跨域和指定内容类型
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_STREAM_JSON_VALUE);
-        headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        headers.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate");
+        headers.add(HttpHeaders.PRAGMA, "no-cache");
+        headers.add(HttpHeaders.EXPIRES, "0");
+        headers.add(HttpHeaders.CONNECTION, "keep-alive");
+        headers.add("X-Accel-Buffering", "no"); // Nginx特殊头，禁用代理缓冲
         
-        return new ResponseEntity<>(resultFlux, headers, 200);
+        return new ResponseEntity<>(
+            // 使用publishOn进一步确保响应即时处理
+            resultFlux.publishOn(reactor.core.scheduler.Schedulers.immediate()), 
+            headers, 
+            200
+        );
     }
 }
 
