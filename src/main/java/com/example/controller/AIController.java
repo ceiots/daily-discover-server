@@ -77,6 +77,12 @@ public class AiController {
 
     // 用于存储会话信息的集合
     private final ConcurrentHashMap<String, WebSocketSession> activeSessions = new ConcurrentHashMap<>();
+    
+    // 存储正在进行中的生成任务
+    private final ConcurrentHashMap<String, Boolean> ongoingTasks = new ConcurrentHashMap<>();
+    
+    // 存储设备的最新会话ID
+    private final ConcurrentHashMap<String, String> deviceLatestSession = new ConcurrentHashMap<>();
 
     /**
      * 获取每日智能推荐商品
@@ -449,15 +455,63 @@ public class AiController {
      * 前端可以直接调用此API而不需要WebSocket
      */
     @PostMapping(value = "/ollama/generate", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<Flux<String>> generateWithOllama(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Flux<String>> generateWithOllama(
+            @RequestBody Map<String, Object> request,
+            @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
+            @RequestHeader(value = "X-Device-ID", required = false) String deviceId) {
+        
         String prompt = (String) request.getOrDefault("prompt", "");
         String model = (String) request.getOrDefault("model", ollamaService.getDefaultModel());
+        // 从请求体中获取会话信息
+        String requestSessionId = (String) request.getOrDefault("sessionId", sessionId);
+        String requestDeviceId = (String) request.getOrDefault("deviceId", deviceId);
         
-        log.info("收到Ollama生成请求: {}, 模型: {}", prompt, model);
+        log.info("收到Ollama生成请求: 提示词长度={}, 模型: {}, 会话ID: {}, 设备ID: {}", 
+            prompt.length(), model, requestSessionId, requestDeviceId);
+        
+        // 检查并处理设备和会话状态
+        boolean shouldCancel = checkAndUpdateSession(requestDeviceId, requestSessionId);
+        if (shouldCancel) {
+            log.info("发现更新的会话，取消之前的会话: {}", requestSessionId);
+            // 将之前的任务标记为取消
+            ongoingTasks.put(requestSessionId, false);
+        }
+        
+        // 标记当前会话为活跃
+        ongoingTasks.put(requestSessionId, true);
         
         // 使用WebFlux的Flux实现流式响应
         Flux<String> resultFlux = Flux.create(sink -> {
             try {
+                // 定期检查会话状态的线程
+                Thread sessionCheckThread = new Thread(() -> {
+                    try {
+                        while (!sink.isCancelled()) {
+                            // 检查该会话是否已被取消
+                            Boolean isActive = ongoingTasks.get(requestSessionId);
+                            if (isActive == null || !isActive) {
+                                log.info("会话已被取消，中断生成: {}", requestSessionId);
+                                sink.complete();
+                                break;
+                            }
+                            
+                            // 检查是否有新的会话
+                            String latestSession = deviceLatestSession.get(requestDeviceId);
+                            if (latestSession != null && !latestSession.equals(requestSessionId)) {
+                                log.info("发现新会话，中断旧会话: 旧={}, 新={}", requestSessionId, latestSession);
+                                sink.complete();
+                                break;
+                            }
+                            
+                            Thread.sleep(1000); // 每秒检查一次
+                        }
+                    } catch (InterruptedException e) {
+                        log.info("会话检查线程被中断");
+                    }
+                });
+                sessionCheckThread.setDaemon(true);
+                sessionCheckThread.start();
+                
                 // 准备请求体
                 Map<String, Object> requestBody = new HashMap<>();
                 requestBody.put("model", model);
@@ -471,8 +525,8 @@ public class AiController {
                 options.put("top_p", 0.9);        // 控制输出多样性
                 requestBody.put("options", options);
                 
-                log.info("Ollama请求配置: model={}, stream=true, chunk_size=1, 提示词长度={}", 
-                    model, prompt.length());
+                log.info("Ollama请求配置: model={}, stream=true, chunk_size=1, sessionId={}", 
+                    model, requestSessionId);
                 
                 // 配置HTTP客户端，优化网络性能
                 HttpClient httpClient = HttpClient.create()
@@ -501,6 +555,13 @@ public class AiController {
                     .publishOn(reactor.core.scheduler.Schedulers.immediate())
                     .flatMap(chunk -> {
                         try {
+                            // 再次检查会话是否仍然有效
+                            Boolean isActive = ongoingTasks.get(requestSessionId);
+                            if (isActive == null || !isActive) {
+                                log.info("处理响应时检测到会话已取消: {}", requestSessionId);
+                                return Mono.empty();
+                            }
+                            
                             // 解析Ollama返回的JSON
                             JSONObject jsonObject = new JSONObject(chunk);
                             String response = jsonObject.optString("response", "");
@@ -508,12 +569,14 @@ public class AiController {
                             
                             // 只向前端传递实际的响应文本，不包含JSON结构
                             if (!response.isEmpty()) {
+                                System.out.println("Ollama响应: " + response);  
                                 sink.next(response);
                             }
                             
                             // 如果完成，则关闭流
                             if (done) {
-                                log.info("Ollama响应已完成，流处理结束");
+                                log.info("Ollama响应已完成，流处理结束: sessionId={}", requestSessionId);
+                                ongoingTasks.remove(requestSessionId); // 清理任务状态
                                 sink.complete();
                             }
                             
@@ -526,15 +589,22 @@ public class AiController {
                         }
                     })
                     .doOnComplete(() -> {
-                        log.info("Ollama响应流正常结束");
+                        log.info("Ollama响应流正常结束: sessionId={}", requestSessionId);
+                        ongoingTasks.remove(requestSessionId); // 清理任务状态
                     })
                     .doOnError(error -> {
-                        log.error("处理Ollama响应出错: {}", error.getMessage(), error);
+                        log.error("处理Ollama响应出错: {}, sessionId={}", error.getMessage(), requestSessionId, error);
+                        ongoingTasks.remove(requestSessionId); // 清理任务状态
+                    })
+                    .doOnCancel(() -> {
+                        log.info("Ollama响应流被取消: sessionId={}", requestSessionId);
+                        ongoingTasks.remove(requestSessionId); // 清理任务状态
                     })
                     .subscribe();
                 
             } catch (Exception e) {
-                log.error("Ollama生成失败", e);
+                log.error("Ollama生成失败: sessionId={}", requestSessionId, e);
+                ongoingTasks.remove(requestSessionId); // 清理任务状态
                 sink.error(e);
             }
         }, 
@@ -556,6 +626,34 @@ public class AiController {
             headers, 
             200
         );
+    }
+    
+    /**
+     * 检查并更新会话状态
+     * @return 如果需要取消之前的会话，返回true
+     */
+    private boolean checkAndUpdateSession(String deviceId, String sessionId) {
+        if (deviceId == null || sessionId == null) {
+            return false;
+        }
+        
+        boolean shouldCancel = false;
+        String previousSessionId = deviceLatestSession.get(deviceId);
+        
+        // 如果有之前的会话且不同于当前会话
+        if (previousSessionId != null && !previousSessionId.equals(sessionId)) {
+            shouldCancel = true;
+            
+            // 取消之前的会话
+            ongoingTasks.put(previousSessionId, false);
+            log.info("设备有新会话，取消旧会话: 设备={}, 旧会话={}, 新会话={}", 
+                deviceId, previousSessionId, sessionId);
+        }
+        
+        // 更新设备的最新会话
+        deviceLatestSession.put(deviceId, sessionId);
+        
+        return shouldCancel;
     }
 }
 
