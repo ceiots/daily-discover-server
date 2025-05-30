@@ -640,6 +640,13 @@ public class AiController {
         boolean shouldCancel = false;
         String previousSessionId = deviceLatestSession.get(deviceId);
         
+        // 检查会话是否已被标记为过期
+        Boolean isActive = ongoingTasks.get(sessionId);
+        if (isActive != null && !isActive) {
+            log.info("检测到会话已被标记为过期: sessionId={}", sessionId);
+            return false; // 不更新设备最新会话，因为当前会话已过期
+        }
+        
         // 如果有之前的会话且不同于当前会话
         if (previousSessionId != null && !previousSessionId.equals(sessionId)) {
             shouldCancel = true;
@@ -652,8 +659,53 @@ public class AiController {
         
         // 更新设备的最新会话
         deviceLatestSession.put(deviceId, sessionId);
+        // 标记当前会话为活跃
+        ongoingTasks.put(sessionId, true);
         
         return shouldCancel;
+    }
+
+    /**
+     * 处理前端发送的会话过期通知
+     * 当用户刷新页面或关闭浏览器时，前端会调用此API
+     */
+    @PostMapping("/mark-session-expired")
+    public ResponseEntity<Map<String, Object>> markSessionExpired(
+            @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
+            @RequestHeader(value = "X-Device-ID", required = false) String deviceId,
+            @RequestBody(required = false) Map<String, String> requestBody) {
+        
+        // 从请求头或请求体中获取会话ID
+        String targetSessionId = sessionId;
+        if (targetSessionId == null && requestBody != null) {
+            targetSessionId = requestBody.get("sessionId");
+        }
+        
+        log.info("收到会话过期通知: sessionId={}, deviceId={}", targetSessionId, deviceId);
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        if (targetSessionId != null) {
+            // 将会话标记为已取消
+            ongoingTasks.put(targetSessionId, false);
+            
+            // 如果是该设备的最新会话，则从映射中移除
+            if (deviceId != null) {
+                String latestSession = deviceLatestSession.get(deviceId);
+                if (latestSession != null && latestSession.equals(targetSessionId)) {
+                    deviceLatestSession.remove(deviceId);
+                    log.info("已移除设备的最新会话记录: deviceId={}, sessionId={}", deviceId, targetSessionId);
+                }
+            }
+            
+            response.put("status", "success");
+            response.put("message", "会话已标记为过期");
+        } else {
+            response.put("status", "error");
+            response.put("message", "未提供有效的会话ID");
+        }
+        
+        return ResponseEntity.ok(response);
     }
 }
 
