@@ -77,7 +77,7 @@ public class AiController {
 
     // 用于存储会话信息的集合
     private final ConcurrentHashMap<String, WebSocketSession> activeSessions = new ConcurrentHashMap<>();
-    
+
     // 存储正在进行中的生成任务
     private final ConcurrentHashMap<String, Boolean> ongoingTasks = new ConcurrentHashMap<>();
     
@@ -572,15 +572,15 @@ public class AiController {
                                 System.out.println("Ollama响应: " + response);  
                                 sink.next(response);
                             }
-                            
-                            // 如果完成，则关闭流
-                            if (done) {
+                                
+                                // 如果完成，则关闭流
+                                if (done) {
                                 log.info("Ollama响应已完成，流处理结束: sessionId={}", requestSessionId);
                                 ongoingTasks.remove(requestSessionId); // 清理任务状态
-                                sink.complete();
-                            }
-                            
-                            return Mono.empty();
+                                    sink.complete();
+                                }
+                                
+                                return Mono.empty();
                         } catch (Exception e) {
                             log.warn("解析Ollama响应JSON出错: {}, 原始数据: {}", 
                                 e.getMessage(), 
