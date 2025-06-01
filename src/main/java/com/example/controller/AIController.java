@@ -83,6 +83,9 @@ public class AiController {
     
     // 存储设备的最新会话ID
     private final ConcurrentHashMap<String, String> deviceLatestSession = new ConcurrentHashMap<>();
+    
+    // 存储会话对应的请求取消器
+    private final ConcurrentHashMap<String, reactor.core.Disposable> sessionDisposables = new ConcurrentHashMap<>();
 
     /**
      * 获取每日智能推荐商品
@@ -559,6 +562,8 @@ public class AiController {
                             Boolean isActive = ongoingTasks.get(requestSessionId);
                             if (isActive == null || !isActive) {
                                 log.info("处理响应时检测到会话已取消: {}", requestSessionId);
+                                // 立即完成流，确保资源被释放
+                                sink.complete();
                                 return Mono.empty();
                             }
                             
@@ -573,14 +578,12 @@ public class AiController {
                                 sink.next(response);
                             }
                                 
-                                // 如果完成，则关闭流
-                                if (done) {
-                                log.info("Ollama响应已完成，流处理结束: sessionId={}", requestSessionId);
-                                ongoingTasks.remove(requestSessionId); // 清理任务状态
-                                    sink.complete();
-                                }
+                            // 如果完成，则关闭流
+                            if (done) {
+                                sink.complete();
+                            }
                                 
-                                return Mono.empty();
+                            return Mono.empty();
                         } catch (Exception e) {
                             log.warn("解析Ollama响应JSON出错: {}, 原始数据: {}", 
                                 e.getMessage(), 
@@ -589,18 +592,39 @@ public class AiController {
                         }
                     })
                     .doOnComplete(() -> {
-                        log.info("Ollama响应流正常结束: sessionId={}", requestSessionId);
+                        log.info("Ollama响应流结束: sessionId={}", requestSessionId);
                         ongoingTasks.remove(requestSessionId); // 清理任务状态
+                        // 移除请求取消器
+                        reactor.core.Disposable disposable = sessionDisposables.remove(requestSessionId);
+                        if (disposable != null) {
+                            log.info("清理会话的请求取消器: {}", requestSessionId);
+                        }
                     })
                     .doOnError(error -> {
                         log.error("处理Ollama响应出错: {}, sessionId={}", error.getMessage(), requestSessionId, error);
                         ongoingTasks.remove(requestSessionId); // 清理任务状态
+                        // 移除请求取消器
+                        reactor.core.Disposable disposable = sessionDisposables.remove(requestSessionId);
+                        if (disposable != null) {
+                            log.info("清理会话的请求取消器: {}", requestSessionId);
+                        }
                     })
                     .doOnCancel(() -> {
                         log.info("Ollama响应流被取消: sessionId={}", requestSessionId);
                         ongoingTasks.remove(requestSessionId); // 清理任务状态
+                        // 移除请求取消器
+                        reactor.core.Disposable disposable = sessionDisposables.remove(requestSessionId);
+                        if (disposable != null) {
+                            log.info("清理会话的请求取消器: {}", requestSessionId);
+                        }
                     })
-                    .subscribe();
+                    .subscribe(null, null, null, subscription -> {
+                        // 修复类型转换错误：不再尝试强制转换为reactor.core.Disposable
+                        // 而是使用Subscription的cancel方法创建一个Disposable对象
+                        reactor.core.Disposable disposable = () -> subscription.cancel();
+                        sessionDisposables.put(requestSessionId, disposable);
+                        log.info("保存会话的请求取消器: {}", requestSessionId);
+                    });
                 
             } catch (Exception e) {
                 log.error("Ollama生成失败: sessionId={}", requestSessionId, e);
@@ -688,6 +712,18 @@ public class AiController {
         if (targetSessionId != null) {
             // 将会话标记为已取消
             ongoingTasks.put(targetSessionId, false);
+            log.info("会话已被标记为取消: {}", targetSessionId);
+            
+            // 取消正在进行的请求
+            reactor.core.Disposable disposable = sessionDisposables.remove(targetSessionId);
+            if (disposable != null) {
+                try {
+                    disposable.dispose();
+                    log.info("已取消会话的Ollama请求: {}", targetSessionId);
+                } catch (Exception e) {
+                    log.error("取消会话请求时出错: {}", e.getMessage(), e);
+                }
+            }
             
             // 如果是该设备的最新会话，则从映射中移除
             if (deviceId != null) {
@@ -699,7 +735,7 @@ public class AiController {
             }
             
             response.put("status", "success");
-            response.put("message", "会话已标记为过期");
+            response.put("message", "会话已标记为过期并取消相关请求");
         } else {
             response.put("status", "error");
             response.put("message", "未提供有效的会话ID");
