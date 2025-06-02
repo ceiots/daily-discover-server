@@ -618,13 +618,35 @@ public class AiController {
                             log.info("清理会话的请求取消器: {}", requestSessionId);
                         }
                     })
-                    .subscribe(null, null, null, subscription -> {
-                        // 修复类型转换错误：不再尝试强制转换为reactor.core.Disposable
-                        // 而是使用Subscription的cancel方法创建一个Disposable对象
-                        reactor.core.Disposable disposable = () -> subscription.cancel();
-                        sessionDisposables.put(requestSessionId, disposable);
-                        log.info("保存会话的请求取消器: {}", requestSessionId);
-                    });
+                    .subscribe(
+                        // onNext handler
+                        response -> { /* 不需要处理，已在flatMap中处理 */ },
+                        // onError handler
+                        error -> {
+                            log.error("订阅处理中发生错误: {}", error.getMessage());
+                        },
+                        // onComplete handler
+                        () -> {
+                            log.info("订阅完成");
+                        },
+                        // onSubscribe handler - 修复类型转换问题
+                        subscription -> {
+                            // 创建一个包装Disposable，避免直接转换类型
+                            reactor.core.Disposable disposable = new reactor.core.Disposable() {
+                                @Override
+                                public void dispose() {
+                                    subscription.cancel();
+                                }
+                                
+                                @Override
+                                public String toString() {
+                                    return "DisposableWrapper[" + requestSessionId + "]";
+                                }
+                            };
+                            sessionDisposables.put(requestSessionId, disposable);
+                            log.info("保存会话的请求取消器: {}", requestSessionId);
+                        }
+                    );
                 
             } catch (Exception e) {
                 log.error("Ollama生成失败: sessionId={}", requestSessionId, e);
@@ -660,32 +682,38 @@ public class AiController {
         if (deviceId == null || sessionId == null) {
             return false;
         }
-        
         boolean shouldCancel = false;
         String previousSessionId = deviceLatestSession.get(deviceId);
-        
+
         // 检查会话是否已被标记为过期
         Boolean isActive = ongoingTasks.get(sessionId);
         if (isActive != null && !isActive) {
             log.info("检测到会话已被标记为过期: sessionId={}", sessionId);
-            return false; // 不更新设备最新会话，因为当前会话已过期
+            return false;
         }
-        
+
         // 如果有之前的会话且不同于当前会话
         if (previousSessionId != null && !previousSessionId.equals(sessionId)) {
             shouldCancel = true;
-            
             // 取消之前的会话
             ongoingTasks.put(previousSessionId, false);
+
+            // 新增：主动cancel旧流
+            reactor.core.Disposable disposable = sessionDisposables.remove(previousSessionId);
+            if (disposable != null) {
+                disposable.dispose();
+                log.info("主动中止旧会话流: {}", previousSessionId);
+            }
+
             log.info("设备有新会话，取消旧会话: 设备={}, 旧会话={}, 新会话={}", 
                 deviceId, previousSessionId, sessionId);
         }
-        
+
         // 更新设备的最新会话
         deviceLatestSession.put(deviceId, sessionId);
         // 标记当前会话为活跃
         ongoingTasks.put(sessionId, true);
-        
+
         return shouldCancel;
     }
 
