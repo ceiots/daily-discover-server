@@ -183,4 +183,15 @@ public class UserController {
             return ResponseEntity.status(500).body("修改密码失败：" + e.getMessage());
         }
     }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updateUser(@RequestBody User user) {
+        boolean success = userService.updateUser(user);
+        if (success) {
+            return ResponseEntity.ok("资料更新成功");
+        } else {
+            return ResponseEntity.status(500).body("资料更新失败");
+        }
+    }
+
 }
