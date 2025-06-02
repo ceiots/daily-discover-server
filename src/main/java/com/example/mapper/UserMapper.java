@@ -44,4 +44,17 @@ public interface UserMapper {
      */
     @Update("UPDATE user SET password = #{newPassword} WHERE id = #{userId}")
     int changePassword(Long userId, String newPassword);
+    
+    /**
+     * 更新用户信息
+     * @param user 用户对象
+     */
+    @Update("UPDATE user SET " +
+            "phone_number = #{phoneNumber}, " +
+            "nickname = #{nickname}, " +
+            "avatar = #{avatar}, " +
+            "member_level = #{memberLevel}, " +
+            "payment_password = #{paymentPassword} " +
+            "WHERE id = #{id}")
+    void updateUser(User user);
 }

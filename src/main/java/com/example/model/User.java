@@ -10,6 +10,7 @@ public class User {
     private String avatar;
     private Date registrationTime;
     private String nickname;
+    private String paymentPassword; // 支付密码
     
     // 构造函数、getter和setter方法
     
@@ -67,5 +68,13 @@ public class User {
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+    
+    public String getPaymentPassword() {
+        return paymentPassword;
+    }
+    
+    public void setPaymentPassword(String paymentPassword) {
+        this.paymentPassword = paymentPassword;
     }
 }

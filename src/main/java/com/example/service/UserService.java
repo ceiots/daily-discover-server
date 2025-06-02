@@ -228,5 +228,22 @@ public class UserService {
         }
     }
 
-   
+    /**
+     * 更新用户信息
+     * @param user 用户对象
+     * @return 更新是否成功
+     */
+    @Transactional
+    public boolean updateUser(User user) {
+        if (user == null || user.getId() == null) {
+            return false;
+        }
+        try {
+            userMapper.updateUser(user);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
