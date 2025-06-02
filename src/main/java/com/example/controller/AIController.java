@@ -557,6 +557,10 @@ public class AiController {
                     // 关键设置：防止发射器缓冲和背压
                     .publishOn(reactor.core.scheduler.Schedulers.immediate())
                     .flatMap(chunk -> {
+                        if (sink.isCancelled()) {
+                            // 立刻终止，不再处理任何响应
+                            return Mono.empty();
+                        }
                         try {
                             // 再次检查会话是否仍然有效
                             Boolean isActive = ongoingTasks.get(requestSessionId);
@@ -615,21 +619,18 @@ public class AiController {
                         // 移除请求取消器
                         reactor.core.Disposable disposable = sessionDisposables.remove(requestSessionId);
                         if (disposable != null) {
-                            log.info("清理会话的请求取消器: {}", requestSessionId);
+                            disposable.dispose(); // 主动中止Ollama请求
+                            log.info("已主动中止Ollama请求: {}", requestSessionId);
                         }
                     })
                     .subscribe(
-                        // onNext handler
                         response -> { /* 不需要处理，已在flatMap中处理 */ },
-                        // onError handler
                         error -> {
                             log.error("订阅处理中发生错误: {}", error.getMessage());
                         },
-                        // onComplete handler
                         () -> {
                             log.info("订阅完成");
                         },
-                        // onSubscribe handler - 修复类型转换问题
                         subscription -> {
                             // 创建一个包装Disposable，避免直接转换类型
                             reactor.core.Disposable disposable = new reactor.core.Disposable() {
@@ -637,7 +638,6 @@ public class AiController {
                                 public void dispose() {
                                     subscription.cancel();
                                 }
-                                
                                 @Override
                                 public String toString() {
                                     return "DisposableWrapper[" + requestSessionId + "]";
