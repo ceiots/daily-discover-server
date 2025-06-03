@@ -3,11 +3,11 @@ package com.example.model;
 // 定义一个新的类来封装订单和收货信息
 public class OrderWithAddress {
     private Order order;
-    private OrderAddr address;
+    private Address userAddress;
 
-    public OrderWithAddress(Order order, OrderAddr address) {
+    public OrderWithAddress(Order order, Address userAddress) {
         this.order = order;
-        this.address = address;
+        this.userAddress = userAddress;
     }
 
     // Getters and Setters
@@ -19,11 +19,11 @@ public class OrderWithAddress {
         this.order = order;
     }
 
-    public OrderAddr getAddress() {
-        return address;
+    public Address getAddress() {
+        return userAddress;
     }
 
-    public void setAddress(OrderAddr address) {
-        this.address = address;
+    public void setAddress(Address userAddress) {
+        this.userAddress = userAddress;
     }
 }

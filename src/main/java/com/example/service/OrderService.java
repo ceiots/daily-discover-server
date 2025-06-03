@@ -2,7 +2,7 @@ package com.example.service;
 
 import com.example.mapper.OrderMapper;
 import com.example.model.Order;
-import com.example.model.OrderAddr;
+import com.example.model.Address;
 import com.example.model.OrderItem;
 import com.example.util.DateUtils;
 
@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.example.mapper.OrderAddrMapper;
+import com.example.mapper.AddressMapper;
 import com.example.mapper.OrderItemMapper;
 
 import org.springframework.stereotype.Service;
@@ -49,13 +49,13 @@ public class OrderService {
     private OrderMapper orderMapper;
 
     @Autowired
-    private OrderAddrMapper orderAddrMapper;
+    private AddressMapper userAddressMapper;
 
     @Autowired
     private OrderItemMapper orderItemMapper;
 
     @Autowired
-    private OrderAddrService orderAddrService;
+    private AddressService userAddressService;
 
     /**
      * 创建订单
@@ -97,14 +97,6 @@ public class OrderService {
                 for (OrderItem item : orderItems) {
                     item.setOrderId(order.getId()); // 设置订单ID
                     insertOrderItems(Collections.singletonList(item)); // 插入单个商品项
-                }
-            }
-    
-            // 关联收货信息
-            if (order.getOrderAddrId() != null) {
-                OrderAddr orderAddr = orderAddrService.getByOrderAddrId(order.getOrderAddrId());
-                if (orderAddr == null) {
-                    throw new IllegalArgumentException("收货信息不存在");
                 }
             }
     
@@ -211,21 +203,21 @@ public class OrderService {
      * @param addressDto 地址信息
      */
     private void handleAddressInfo(Order order, AddressDto addressDto) {
-        OrderAddr orderAddr = new OrderAddr();
+        Address userAddress = new Address();
         // 确保字段名称统一
-        orderAddr.setName(addressDto.getName());
-        orderAddr.setPhone(addressDto.getPhone());
-        orderAddr.setAddress(addressDto.getAddress());
-        orderAddr.setProvince(addressDto.getProvince());
-        orderAddr.setCity(addressDto.getCity());
-        orderAddr.setDistrict(addressDto.getDistrict());
-        orderAddr.setIsDefault(false); // 默认不设为默认地址
-        orderAddr.setUserId(order.getUserId()); // 设置用户ID
-        orderAddrMapper.save(orderAddr); //
+        userAddress.setName(addressDto.getName());
+        userAddress.setPhone(addressDto.getPhone());
+        userAddress.setAddress(addressDto.getAddress());
+        userAddress.setProvince(addressDto.getProvince());
+        userAddress.setCity(addressDto.getCity());
+        userAddress.setDistrict(addressDto.getDistrict());
+        userAddress.setIsDefault(false); // 默认不设为默认地址
+        userAddress.setUserId(order.getUserId()); // 设置用户ID
+        userAddressMapper.save(userAddress); //
         
-        System.out.println("订单地址信息处理完成"+orderAddr.getOrderAddrId());
+        System.out.println("订单地址信息处理完成"+userAddress);
         // 插入后获取插入地址的ID
-        order.setOrderAddrId(orderAddr.getOrderAddrId()); // 设置订单的收货地址ID
+        order.setAddressId(userAddress.getId()); // 设置订单的收货地址ID
     }
 
     // 删除重复的常量定义

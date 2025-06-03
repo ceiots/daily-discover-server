@@ -26,9 +26,9 @@ import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
 import com.example.dto.OrderCreateDto;
 import com.example.model.Order;
-import com.example.model.OrderAddr;
+import com.example.model.Address;
 import com.example.model.OrderItem;
-import com.example.service.OrderAddrService;
+import com.example.service.AddressService;
 import com.example.service.OrderService;
 import com.example.util.DateUtils;
 
@@ -47,7 +47,7 @@ public class OrderController {
     private OrderService orderService;
 
     @Autowired
-    private OrderAddrService orderAddrService;
+    private AddressService userAddrService;
     /**
 
 
@@ -110,20 +110,16 @@ public class OrderController {
     @GetMapping("/{orderNumber}")
     public ResponseEntity<OrderWithAddress> getOrderByNumber(@PathVariable String orderNumber) {
         try {
-            // 调用服务层方法获取订单信息
             Order order = orderService.getOrderByNumber(orderNumber);
             if (order == null) {
                 return ResponseEntity.notFound().build();
             }
-            // 假设 orderService 中有方法可以获取收货信息
-            OrderAddr oderAddr = orderAddrService.getByOrderAddrId(order.getOrderAddrId());
-            System.out.println("获取到的收货信息：" + oderAddr);
-         
-            // 封装订单和收货信息到自定义的响应对象中
-            OrderWithAddress orderWithAddress = new OrderWithAddress(order, oderAddr);
+            Address userAddress = userAddrService.getById(order.getAddressId());
+            System.out.println("获取到的收货信息：" + userAddress);
+
+            OrderWithAddress orderWithAddress = new OrderWithAddress(order, userAddress);
             return ResponseEntity.ok(orderWithAddress);
         } catch (Exception e) {
-            // 打印详细的异常信息
             logger.error("获取订单详情时发生异常，订单号: {}", orderNumber, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

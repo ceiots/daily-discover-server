@@ -14,7 +14,7 @@ public class Order {
     private Integer paymentMethod;  // 对应数据库 payment_method
     private BigDecimal paymentAmount; // 对应数据库 payment_amount
     private Date paymentTime;      // 对应数据库 payment_time
-    private Long orderAddrId;      // 对应数据库 order_addr_id
+    private Long addressId;        // 对应数据库 address_id
     private Integer status;        // 对应数据库 status
     private String shippingAddress; // 对应数据库 shipping_address
     private List<OrderItem> items;

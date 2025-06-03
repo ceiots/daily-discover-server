@@ -6,11 +6,11 @@ import lombok.Data;
  * 订单收货地址实体类
  */
 @Data
-public class OrderAddr {
+public class Address {
     /**
      * 收货地址ID
      */
-    private Long orderAddrId;
+    private Long id;
     /**
      * 用户ID
      */

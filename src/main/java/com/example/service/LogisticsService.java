@@ -7,7 +7,7 @@ import com.example.model.LogisticsInfo;
 import com.example.model.LogisticsTrack;
 import com.example.model.LogisticsCompany;
 import com.example.model.Order;
-import com.example.model.OrderAddr;
+import com.example.model.Address;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,7 +40,7 @@ public class LogisticsService {
     private OrderService orderService;
     
     @Autowired
-    private OrderAddrService orderAddrService;
+    private AddressService userAddressService;
     
     @Autowired
     private ThirdPartyLogisticsService thirdPartyLogisticsService;
@@ -280,10 +280,12 @@ public class LogisticsService {
         }
         
         // 查询收货地址
-        OrderAddr orderAddr = orderAddrService.getByOrderAddrId(order.getOrderAddrId());
-        if (orderAddr == null) {
-            log.error("收货地址不存在，orderAddrId: {}", order.getOrderAddrId());
-            return null;
+        Address userAddress = null;
+        if (order.getAddressId() != null) {
+            userAddress = userAddressService.getById(order.getAddressId());
+            if (userAddress == null) {
+                throw new IllegalArgumentException("收货信息不存在");
+            }
         }
         
         // 查询物流公司
@@ -303,9 +305,9 @@ public class LogisticsService {
         logisticsInfo.setCompanyCode(companyCode);
         logisticsInfo.setCompanyName(company.getName());
         logisticsInfo.setStatus(0); // 待发货
-        logisticsInfo.setReceiverName(orderAddr.getName());
-        logisticsInfo.setReceiverPhone(orderAddr.getPhone());
-        logisticsInfo.setReceiverAddress(orderAddr.getProvince() + orderAddr.getCity() + orderAddr.getDistrict() + orderAddr.getAddress());
+        logisticsInfo.setReceiverName(userAddress.getName());
+        logisticsInfo.setReceiverPhone(userAddress.getPhone());
+        logisticsInfo.setReceiverAddress(userAddress.getProvince() + userAddress.getCity() + userAddress.getDistrict() + userAddress.getAddress());
         
         // 保存物流信息
         logisticsInfoMapper.insert(logisticsInfo);
