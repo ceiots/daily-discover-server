@@ -104,7 +104,7 @@ public interface ProductMapper {
                 one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> findRandom();
-    
+
     /**
      * 获取指定数量的随机商品
      * @param limit 要返回的商品数量
@@ -149,7 +149,7 @@ public interface ProductMapper {
     })
     List<Product> searchProducts(String keyword);
 
-    @Select("SELECT userName, userAvatarUrl, content, rating, date FROM comments WHERE recommendation_id = #{productId}")
+    @Select("SELECT user_name, user_avatar_url, content, rating, date FROM comments WHERE product_id = #{productId}")
     List<Comment> getCommentsByProductId(Long productId);
     
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +

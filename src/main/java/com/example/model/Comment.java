@@ -24,7 +24,7 @@ public class Comment {
     }
 
     public void setUserAvatarUrl(String userAvatarUrl) {
-        this.userAvatarUrl = ImageConfig.getImagePrefix() + userAvatarUrl;
+        this.userAvatarUrl = userAvatarUrl;
     }
 
     public String getDate() {
