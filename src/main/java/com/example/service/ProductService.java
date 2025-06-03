@@ -73,6 +73,15 @@ public class ProductService {
     public List<Product> getRandomProducts() {
         return productMapper.findRandom();
     }
+    
+    /**
+     * 获取指定数量的随机商品
+     * @param limit 要返回的商品数量
+     * @return 随机商品列表
+     */
+    public List<Product> getRandomProducts(int limit) {
+        return productMapper.findRandomWithLimit(limit);
+    }
 
     public List<Product> searchProducts(String keyword) {
         return productMapper.searchProducts(keyword);

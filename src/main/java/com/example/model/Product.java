@@ -80,5 +80,7 @@ public class Product {
     private List<String> images;
     private List<Long> tagIds;
 
+    // 添加匹配分数字段，用于推荐系统
+    private Integer matchScore;
 
 }

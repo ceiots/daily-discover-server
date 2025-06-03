@@ -85,4 +85,22 @@ public class CategoryController {
             return CommonResult.failed("获取分类树失败：" + e.getMessage());
         }
     }
+    
+    /**
+     * 获取所有可用的商品分类（用于用户偏好设置）
+     * @return 通用结果，包含所有可用的分类
+     */
+    @GetMapping("/all")
+    public CommonResult<List<Category>> getAllCategories() {
+        try {
+            // 获取所有状态为启用的分类
+            CategoryQueryRequest categoryQueryRequest = new CategoryQueryRequest();
+            categoryQueryRequest.setStatus(1); // 假设1表示启用状态
+            List<Category> categories = categoryService.listCategories(categoryQueryRequest);
+            return CommonResult.success(categories);
+        } catch (Exception e) {
+            log.error("获取所有分类失败", e);
+            return CommonResult.failed("获取所有分类失败：" + e.getMessage());
+        }
+    }
 } 

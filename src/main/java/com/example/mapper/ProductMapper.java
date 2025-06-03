@@ -104,6 +104,31 @@ public interface ProductMapper {
                 one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<Product> findRandom();
+    
+    /**
+     * 获取指定数量的随机商品
+     * @param limit 要返回的商品数量
+     * @return 随机商品列表
+     */
+    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
+            "FROM recommendations r " +
+            "LEFT JOIN shop s ON r.shop_id = s.id " +
+            "WHERE r.deleted = 0 AND r.audit_status = 1 " +
+            "ORDER BY RAND() LIMIT #{limit}")
+    @Results({
+        @Result(property = "specifications", column = "specifications", 
+                typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "productDetails", column = "product_details", 
+                typeHandler = ProductDetailsTypeHandler.class),
+        @Result(property = "purchaseNotices", column = "purchase_notices", 
+                typeHandler = PurchaseNoticesTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "shop", column = "shop_id", 
+                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+    })
+    List<Product> findRandomWithLimit(@Param("limit") int limit);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
             "FROM recommendations r " +

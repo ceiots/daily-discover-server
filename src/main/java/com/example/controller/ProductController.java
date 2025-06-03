@@ -29,6 +29,7 @@ import com.example.model.Shop;
 import com.example.model.Specification;
 import com.example.service.ProductService;
 import com.example.service.ShopService;
+import com.example.service.RecommendationService;
 import com.example.util.UserIdExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -47,6 +48,9 @@ public class ProductController {
     
     @Autowired
     private UserIdExtractor userIdExtractor;
+    
+    @Autowired
+    private RecommendationService recommendationService;
 
     @GetMapping("")
     public CommonResult<Map<String, Object>> getAllProducts(
@@ -117,8 +121,9 @@ public class ProductController {
     }
 
     @GetMapping("/random")
-    public List<Product> getRandomProducts() {
-        return productService.getRandomProducts();
+    public List<Product> getRandomProducts(
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        return productService.getRandomProducts(limit);
     }
 
     @GetMapping("/search")
@@ -562,6 +567,27 @@ public class ProductController {
         } catch (Exception e) {
             log.error("获取待审核商品列表时发生异常", e);
             return CommonResult.failed("获取待审核商品列表失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取个性化商品推荐，包含匹配分数和AI洞察
+     */
+    @GetMapping("/recommendations")
+    public CommonResult<Map<String, Object>> getPersonalizedRecommendations(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        try {
+            // 获取用户ID，未登录用户也可以获取推荐，但不会是个性化的
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            
+            // 获取推荐商品列表及相关数据
+            Map<String, Object> recommendationsData = recommendationService.getPersonalizedRecommendations(userId);
+            
+            return CommonResult.success(recommendationsData);
+        } catch (Exception e) {
+            log.error("获取个性化商品推荐时发生异常", e);
+            return CommonResult.failed("获取推荐失败：" + e.getMessage());
         }
     }
 }
