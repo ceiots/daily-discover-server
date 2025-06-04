@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.dto.UpdateCartItemRequest;
 import com.example.model.CartItem;
 import com.example.service.CartService;
+import com.example.common.api.CommonResult;
 @RestController
 @RequestMapping("/cart")
 public class CartController {
@@ -31,8 +32,13 @@ public class CartController {
     }
 
     @PostMapping("/add")
-    public void addCartItem(@RequestBody CartItem cartItem) {
-        cartService.addCartItem(cartItem);
+    public CommonResult<?> addCartItem(@RequestBody CartItem cartItem) {
+        try {
+            cartService.addCartItem(cartItem);
+            return CommonResult.success(null); // 或返回cartItem等
+        } catch (Exception e) {
+            return CommonResult.failed("加入购物车失败: " + e.getMessage());
+        }
     }
 
     @PutMapping("/update/{itemId}")
