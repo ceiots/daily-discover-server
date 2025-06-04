@@ -40,6 +40,7 @@ public class CartService {
 
         // 先根据user_id和product_id查询所有符合条件的商品
         List<CartItem> existingItems = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
+        System.out.println("existingItems: " + existingItems);
         CartItem existingItem = null;
         for (CartItem item : existingItems) {
             if (item.getSpecifications().equals(cartItem.getSpecifications())) {
@@ -55,7 +56,6 @@ public class CartService {
             logger.info("Updated cart item quantity with product ID: {} to {}", cartItem.getProductId(), newQuantity);
         } else {
             // 如果商品不存在，新增商品到购物车
-            cleanImageUrls(cartItem);
             cartItemMapper.addCartItem(cartItem);
             logger.info("Added cart item with product ID: {}", cartItem.getProductId());
         }
