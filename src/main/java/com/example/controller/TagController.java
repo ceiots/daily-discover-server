@@ -142,7 +142,7 @@ public class TagController {
         }
         
         try {
-            Long tagId = tagService.addTag(tag, userId);
+            Long tagId = tagService.addTag(tag);
             return CommonResult.success(tagId);
         } catch (Exception e) {
             log.error("添加标签失败", e);

@@ -33,8 +33,7 @@ public interface UserBehaviorDao {
     /**
      * 根据用户ID和行为类型查询行为记录
      */
-    @Select("SELECT * FROM user_behavior WHERE user_id = #{userId} AND behavior_type = #{behaviorType} " +
-            "ORDER BY behavior_time DESC LIMIT #{limit}")
+    @Select("SELECT * FROM user_behavior WHERE user_id = #{userId} AND behavior_type = #{behaviorType} ORDER BY behavior_time DESC LIMIT #{limit}")
     List<UserBehavior> findByUserIdAndBehaviorType(
             @Param("userId") Long userId, 
             @Param("behaviorType") String behaviorType,

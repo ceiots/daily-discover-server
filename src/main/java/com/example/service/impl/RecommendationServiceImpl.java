@@ -11,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.dao.ProductDao;
-import com.example.dao.UserBrowsingHistoryDao;
+import com.example.dao.UserBehaviorDao;
 import com.example.dao.UserPreferenceDao;
 import com.example.model.Product;
-import com.example.model.UserBrowsingHistory;
+import com.example.model.UserBehavior;
 import com.example.model.UserPreference;
 import com.example.service.RecommendationService;
 
@@ -30,8 +30,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Autowired
     private ProductDao productDao;
     
-    @Autowired(required = false)
-    private UserBrowsingHistoryDao userBrowsingHistoryDao;
+    @Autowired
+    private UserBehaviorDao userBehaviorDao;
     
     @Autowired(required = false)
     private UserPreferenceDao userPreferenceDao;
@@ -57,8 +57,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                 boolean hasHistory = false;
                 boolean hasPreferences = false;
                 
-                if (userBrowsingHistoryDao != null) {
-                    List<UserBrowsingHistory> history = userBrowsingHistoryDao.findByUserId(userId);
+                if (userBehaviorDao != null) {
+                    List<UserBehavior> history = userBehaviorDao.findByUserIdAndBehaviorType(userId, "CLICK", 1000);
                     hasHistory = history != null && !history.isEmpty();
                 }
                 
@@ -110,30 +110,27 @@ public class RecommendationServiceImpl implements RecommendationService {
         
         try {
             // 1. 获取用户浏览历史
-            List<UserBrowsingHistory> browsingHistory = userBrowsingHistoryDao != null ? 
-                userBrowsingHistoryDao.findByUserId(userId) : new ArrayList<>();
+            List<UserBehavior> browsingHistory = userBehaviorDao.findByUserIdAndBehaviorType(userId, "VIEW", 1000);
+            List<Long> historyCategoryIds = browsingHistory.stream()
+                .map(UserBehavior::getCategoryId)
+                .distinct()
+                .collect(Collectors.toList());
                 
             // 2. 获取用户偏好
             List<UserPreference> preferences = userPreferenceDao != null ?
                 userPreferenceDao.findByUserId(userId) : new ArrayList<>();
                 
             // 3. 基于浏览历史提取类别ID
-            List<Long> historyCategoryIds = browsingHistory.stream()
-                .map(UserBrowsingHistory::getCategoryId)
-                .distinct()
-                .collect(Collectors.toList());
-                
-            // 4. 基于偏好提取类别ID
             List<Long> preferenceCategoryIds = preferences.stream()
                 .map(UserPreference::getCategoryId)
                 .collect(Collectors.toList());
                 
-            // 5. 合并类别ID并去重
+            // 4. 合并类别ID并去重
             List<Long> categoryIds = new ArrayList<>(historyCategoryIds);
             categoryIds.addAll(preferenceCategoryIds);
             categoryIds = categoryIds.stream().distinct().collect(Collectors.toList());
             
-            // 6. 如果有类别ID，基于类别获取推荐
+            // 5. 如果有类别ID，基于类别获取推荐
             if (!categoryIds.isEmpty()) {
                 // 从每个类别获取一些商品
                 for (Long categoryId : categoryIds) {
@@ -204,9 +201,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         
         try {
             // 1. 检查用户是否浏览过该类别的商品
-            if (userBrowsingHistoryDao != null) {
-                List<UserBrowsingHistory> categoryHistory = userBrowsingHistoryDao.findByUserIdAndCategoryId(
-                    userId, product.getCategoryId());
+            if (userBehaviorDao != null) {
+                List<UserBehavior> categoryHistory = userBehaviorDao.findByUserIdAndBehaviorType(
+                    userId, "VIEW", 1000);
                     
                 if (!categoryHistory.isEmpty()) {
                     additionalScore += 10; // 浏览过该类别加10分
