@@ -59,72 +59,7 @@ public class UserBehaviorController {
         }
     }
     
-    /**
-     * 记录用户浏览行为
-     */
-    @PostMapping("/view")
-    public ResponseEntity<Result<Void>> recordViewBehavior(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "userId", required = false) String userIdHeader,
-            @RequestBody ViewBehaviorDTO dto) {
-        try {
-            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
-            if (userId == null) {
-                return ResponseEntity.ok(Result.unauthorized(null));
-            }
-            
-            userBehaviorService.recordViewBehavior(userId, dto.getProductId(), dto.getCategoryId());
-            return ResponseEntity.ok(Result.success());
-        } catch (Exception e) {
-            log.error("记录浏览行为失败", e);
-            return ResponseEntity.ok(Result.failed("记录浏览行为失败：" + e.getMessage()));
-        }
-    }
-    
-    /**
-     * 记录用户点击行为
-     */
-    @PostMapping("/click")
-    public ResponseEntity<Result<Void>> recordClickBehavior(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "userId", required = false) String userIdHeader,
-            @RequestBody ClickBehaviorDTO dto) {
-        try {
-            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
-            if (userId == null) {
-                return ResponseEntity.ok(Result.unauthorized(null));
-            }
-            
-            userBehaviorService.recordClickBehavior(userId, dto.getProductId(), dto.getCategoryId(), dto.getExtraData());
-            return ResponseEntity.ok(Result.success());
-        } catch (Exception e) {
-            log.error("记录点击行为失败", e);
-            return ResponseEntity.ok(Result.failed("记录点击行为失败：" + e.getMessage()));
-        }
-    }
-    
-    /**
-     * 记录用户停留行为
-     */
-    @PostMapping("/stay")
-    public ResponseEntity<Result<Void>> recordStayBehavior(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "userId", required = false) String userIdHeader,
-            @RequestBody StayBehaviorDTO dto) {
-        try {
-            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
-            if (userId == null) {
-                return ResponseEntity.ok(Result.unauthorized(null));
-            }
-            
-            userBehaviorService.recordStayBehavior(userId, dto.getProductId(), dto.getCategoryId(), dto.getDuration());
-            return ResponseEntity.ok(Result.success());
-        } catch (Exception e) {
-            log.error("记录停留行为失败", e);
-            return ResponseEntity.ok(Result.failed("记录停留行为失败：" + e.getMessage()));
-        }
-    }
-    
+
     /**
      * 获取用户行为历史
      */
@@ -214,32 +149,5 @@ public class UserBehaviorController {
         }
     }
     
-    /**
-     * 浏览行为DTO
-     */
-    @Data
-    public static class ViewBehaviorDTO {
-        private Long productId;
-        private Long categoryId;
-    }
     
-    /**
-     * 点击行为DTO
-     */
-    @Data
-    public static class ClickBehaviorDTO {
-        private Long productId;
-        private Long categoryId;
-        private String extraData;
-    }
-    
-    /**
-     * 停留行为DTO
-     */
-    @Data
-    public static class StayBehaviorDTO {
-        private Long productId;
-        private Long categoryId;
-        private Double duration;
-    }
 } 

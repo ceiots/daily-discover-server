@@ -19,7 +19,7 @@ import java.util.List;
  * 商品分类接口
  */
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/category")
 @Slf4j
 public class CategoryController {
 

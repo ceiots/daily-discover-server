@@ -26,7 +26,7 @@ public interface CartItemMapper {
     })
     List<CartItem> getCartItemsByUserId(Long userId);
 
-    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, specifications, price, quantity, shopName, shopAvatarUrl) " +
+    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, specifications, price, quantity, shop_name, shop_avatar_url) " +
             "VALUES (#{cartItem.userId}, #{cartItem.productId}, #{cartItem.productName}, #{cartItem.productImage}, " +
             "#{cartItem.specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, #{cartItem.price}, #{cartItem.quantity}, " +
             "#{cartItem.shopName}, #{cartItem.shopAvatarUrl}) " +
