@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import com.example.model.UserInterestRequest;
+import com.example.model.UserIdRequest;
+import com.example.service.UserInterestService;
 
 /**
  * 商品标签接口
@@ -24,6 +27,67 @@ public class TagController {
 
     @Autowired
     private UserIdExtractor userIdExtractor;
+
+    @Autowired
+    private UserInterestService userInterestService;
+    
+
+     /**
+     * 检查用户是否需要冷启动
+     */
+    @GetMapping("/{userId}/need-cold-start")
+    public CommonResult<Boolean> needColdStart(@PathVariable Long userId, HttpServletRequest request) {
+        Long currentUserId = userIdExtractor.extractUserIdFromRequest(request);
+        if (currentUserId == null || !currentUserId.equals(userId)) {
+            return CommonResult.unauthorized(null);
+        }
+        
+        try {
+            boolean needColdStart = userInterestService.needColdStart(userId);
+            return CommonResult.success(needColdStart);
+        } catch (Exception e) {
+            log.error("检查冷启动状态失败", e);
+            return CommonResult.failed("检查冷启动状态失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 保存用户兴趣标签
+     */
+    @PostMapping("/interests")
+    public CommonResult<Boolean> saveUserInterests(@RequestBody UserInterestRequest request, HttpServletRequest httpRequest) {
+        Long currentUserId = userIdExtractor.extractUserIdFromRequest(httpRequest);
+        if (currentUserId == null || !currentUserId.equals(request.getUserId())) {
+            return CommonResult.unauthorized(null);
+        }
+        
+        try {
+            boolean result = userInterestService.saveUserInterests(request.getUserId(), request.getTagIds());
+            return CommonResult.success(result);
+        } catch (Exception e) {
+            log.error("保存用户兴趣失败", e);
+            return CommonResult.failed("保存用户兴趣失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 跳过冷启动
+     */
+    @PostMapping("/skip-cold-start")
+    public CommonResult<Boolean> skipColdStart(@RequestBody UserIdRequest request, HttpServletRequest httpRequest) {
+        Long currentUserId = userIdExtractor.extractUserIdFromRequest(httpRequest);
+        if (currentUserId == null || !currentUserId.equals(request.getUserId())) {
+            return CommonResult.unauthorized(null);
+        }
+        
+        try {
+            boolean result = userInterestService.skipColdStart(request.getUserId());
+            return CommonResult.success(result);
+        } catch (Exception e) {
+            log.error("跳过冷启动失败", e);
+            return CommonResult.failed("跳过冷启动失败: " + e.getMessage());
+        }
+    }
 
     /**
      * 获取热门标签

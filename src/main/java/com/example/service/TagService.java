@@ -14,10 +14,9 @@ public interface TagService extends IService<Tag> {
      * 添加标签
      *
      * @param tag 标签信息
-     * @param userId 创建人ID
      * @return 标签ID
      */
-    Long addTag(Tag tag, Long userId);
+    Long addTag(Tag tag);
 
     /**
      * 更新标签

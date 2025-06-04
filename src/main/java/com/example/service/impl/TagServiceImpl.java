@@ -21,9 +21,8 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
     @Override
     @Transactional
-    public Long addTag(Tag tag, Long userId) {
-        // 设置创建者ID
-        tag.setUserId(userId);
+    public Long addTag(Tag tag) {
+        
         
         // 如果未指定状态，默认为启用
         if (tag.getStatus() == null) {
@@ -62,7 +61,6 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         
         // 保留创建时间和创建用户ID
         tag.setCreatedAt(existingTag.getCreatedAt());
-        tag.setUserId(existingTag.getUserId());
         
         // 更新标签
         return this.updateById(tag);

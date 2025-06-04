@@ -113,6 +113,12 @@
             <artifactId>spring-boot-starter-reactive-webclient</artifactId>
         </dependency> -->
 
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version> <!-- 你可以使用最新的稳定版本 -->
+        </dependency>
+        
         <!-- 数据库相关依赖 -->
         <dependency>
             <groupId>mysql</groupId>
