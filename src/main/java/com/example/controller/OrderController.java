@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
-import com.example.dto.OrderCreateDto;
+import com.example.dto.OrderCreateDTO;
 import com.example.model.Order;
 import com.example.model.Address;
 import com.example.model.OrderItem;
@@ -57,7 +57,7 @@ public class OrderController {
      * @return 通用结果，包含创建好的订单
      */
     @PostMapping("/create")
-    public CommonResult<Order> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
+    public CommonResult<Order> createOrder(@RequestBody OrderCreateDTO orderCreateDto) {
         logger.info("创建的订单，参数：{}", orderCreateDto);
         
         if (orderCreateDto == null) {
@@ -71,7 +71,7 @@ public class OrderController {
             order.setOrderNumber(orderCreateDto.getOrderNo());
     
             List<OrderItem> orderItems = new ArrayList<>();
-            for (OrderCreateDto.OrderItemDto item : orderCreateDto.getItems()) {
+            for (OrderCreateDTO.OrderItemDto item : orderCreateDto.getItems()) {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProductId(item.getProductId());
                 orderItem.setQuantity(item.getQuantity());
@@ -90,7 +90,7 @@ public class OrderController {
             order.setPaymentMethod(orderCreateDto.getPayType());
             order.setStatus(OrderService.ORDER_STATUS_PENDING_DELIVERY); // Use constant to set order status
     
-            AddressDto addressDto = orderCreateDto.getAddress();
+            AddressDto addressDto = orderCreateDto.getAddressDto();
             Order createdOrder = orderService.createOrder(order, addressDto);
             logger.info("订单创建成功，订单号：{}", createdOrder);
             return CommonResult.success(createdOrder);

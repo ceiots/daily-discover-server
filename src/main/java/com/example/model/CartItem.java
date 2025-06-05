@@ -35,5 +35,8 @@ public class CartItem {
     private LocalDateTime updatedAt; // 记录更新时间
     private String shopName; // 店铺名称
     private String shopAvatarUrl; // 店铺头像URL
+    private Long shopId; // 店铺ID
 
+    public Long getShopId() { return shopId; }
+    public void setShopId(Long shopId) { this.shopId = shopId; }
 }

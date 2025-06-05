@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.example.mapper.CartItemMapper;
 import com.example.model.CartItem;
 import com.example.config.ImageConfig;
+import com.example.common.api.CommonResult;
+import com.example.dao.ProductDao;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,12 @@ public class CartService {
     @Autowired
     private CartItemMapper cartItemMapper;
 
+    @Autowired
+    private ProductDao productDao;
+
+    @Autowired
+    private StockService stockService;
+
     @Transactional
     public List<CartItem> getCartItems(Long userId) {
         List<CartItem> items = cartItemMapper.getCartItemsByUserId(userId);
@@ -32,41 +40,71 @@ public class CartService {
     }
 
     @Transactional
-    public void addCartItem(CartItem cartItem) {
-        if (cartItem == null) {
-            logger.warn("Attempted to add a null cart item.");
-            return;
-        }
-
-        // 先根据user_id和product_id查询所有符合条件的商品
-        List<CartItem> existingItems = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
-        System.out.println("existingItems: " + existingItems);
-        CartItem existingItem = null;
-        for (CartItem item : existingItems) {
-            if (item.getSpecifications().equals(cartItem.getSpecifications())) {
-                existingItem = item;
-                break;
+    public CommonResult<?> addCartItem(CartItem cartItem) {
+        try {
+            if (cartItem == null) {
+                logger.warn("Attempted to add a null cart item.");
+                return CommonResult.failed("购物车商品不能为空");
             }
-        }
-
-        if (existingItem != null) {
-            // 如果商品已存在，更新商品数量
-            int newQuantity = existingItem.getQuantity() + cartItem.getQuantity();
-            cartItemMapper.updateCartItemQuantity(existingItem.getId(), newQuantity);
-            logger.info("Updated cart item quantity with product ID: {} to {}", cartItem.getProductId(), newQuantity);
-        } else {
-            // 如果商品不存在，新增商品到购物车
-            cartItemMapper.addCartItem(cartItem);
-            logger.info("Added cart item with product ID: {}", cartItem.getProductId());
+            
+            // 1. 检查库存是否足够
+            Integer stock = stockService.getStock(cartItem.getProductId());
+            if (stock < cartItem.getQuantity()) {
+                logger.warn("商品库存不足: productId={}, stock={}, quantity={}", 
+                        cartItem.getProductId(), stock, cartItem.getQuantity());
+                return CommonResult.failed("商品库存不足，剩余" + stock + "件");
+            }
+            
+            // 2. 清理图片URL
+            cleanImageUrls(cartItem);
+            
+            // 3. 检查是否已存在相同商品（同规格）
+            List<CartItem> existingItems = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
+            
+            CartItem existingItem = null;
+            for (CartItem item : existingItems) {
+                if (item.getSpecifications().equals(cartItem.getSpecifications())) {
+                    existingItem = item;
+                    break;
+                }
+            }
+            
+            // 4. 如果已存在，则更新数量
+            if (existingItem != null) {
+                int newQuantity = existingItem.getQuantity() + cartItem.getQuantity();
+                
+                // 再次检查合并后的数量是否超过库存
+                if (newQuantity > stock) {
+                    logger.warn("合并后商品数量超过库存: productId={}, stock={}, newQuantity={}", 
+                            cartItem.getProductId(), stock, newQuantity);
+                    return CommonResult.failed("商品库存不足，剩余" + stock + "件");
+                }
+                
+                cartItemMapper.updateCartItemQuantity(existingItem.getId(), newQuantity);
+                logger.info("Updated cart item quantity with product ID: {} to {}", cartItem.getProductId(), newQuantity);
+            } else {
+                // 5. 如果商品不存在，新增商品到购物车
+                cartItemMapper.addCartItem(cartItem);
+                logger.info("Added cart item with product ID: {}", cartItem.getProductId());
+            }
+            
+            return CommonResult.success(null);
+        } catch (Exception e) {
+            logger.error("加入购物车失败", e);
+            return CommonResult.failed("加入购物车失败: " + e.getMessage());
         }
     }
 
     private void cleanImageUrls(CartItem cartItem) {
-        String cleanImageUrl = cartItem.getProductImage().replace(ImageConfig.getImagePrefix(), "");
-        cartItem.setProductImage(cleanImageUrl);
-
-        String cleanShopAvatarUrl = cartItem.getShopAvatarUrl().replace(ImageConfig.getImagePrefix(), "");
-        cartItem.setShopAvatarUrl(cleanShopAvatarUrl);
+        if (cartItem.getProductImage() != null) {
+            String cleanImageUrl = cartItem.getProductImage().replace(ImageConfig.getImagePrefix(), "");
+            cartItem.setProductImage(cleanImageUrl);
+        }
+        
+        if (cartItem.getShopAvatarUrl() != null) {
+            String cleanShopAvatarUrl = cartItem.getShopAvatarUrl().replace(ImageConfig.getImagePrefix(), "");
+            cartItem.setShopAvatarUrl(cleanShopAvatarUrl);
+        }
     }
 
     public void updateCartItemQuantity(Long itemId, int quantity) {

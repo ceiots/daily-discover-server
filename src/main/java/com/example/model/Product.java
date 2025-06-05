@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.example.config.ImageConfig;
 import com.example.util.JsonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,6 +24,10 @@ public class Product {
     private BigDecimal price;
     private Integer soldCount;
     private Integer stock; // 添加库存字段
+    
+    // 添加版本号用于乐观锁
+    @Version
+    private Integer version;
 
     // 规格参数，使用JSON存储
     @TableField(typeHandler = JsonTypeHandler.class)
