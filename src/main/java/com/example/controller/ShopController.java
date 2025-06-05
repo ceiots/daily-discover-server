@@ -2,7 +2,9 @@ package com.example.controller;
 
 import com.example.common.api.CommonResult;
 import com.example.model.Shop;
+import com.example.model.Product;
 import com.example.service.ShopService;
+import com.example.service.ProductService;
 import com.example.util.UserIdExtractor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,13 +12,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Slf4j
 @RestController
-@RequestMapping("/shops")
+@RequestMapping("/shop")
 public class ShopController {
 
     @Autowired
     private ShopService shopService;
+
+    @Autowired
+    private ProductService productService;
 
     @Autowired
     private UserIdExtractor userIdExtractor;
@@ -233,4 +240,34 @@ public class ShopController {
             return CommonResult.failed("更新店铺状态失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 获取店铺下的商品列表
+     */
+    @GetMapping("/{shopId}/products")
+    public CommonResult<List<Product>> getShopProducts(
+            @PathVariable Long shopId,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        try {
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            if (userId == null) {
+                return CommonResult.unauthorized(null);
+            }
+
+            // 验证店铺是否存在
+            Shop shop = shopService.getShopById(shopId);
+            if (shop == null) {
+                return CommonResult.failed("店铺不存在");
+            }
+
+            // 获取店铺下的商品
+            List<Product> products = productService.getProductsByShopId(shopId);
+            return CommonResult.success(products);
+        } catch (Exception e) {
+            log.error("获取店铺商品列表时发生异常", e);
+            return CommonResult.failed("获取店铺商品列表失败：" + e.getMessage());
+        }
+    }
+    
 }
