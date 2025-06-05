@@ -1,4 +1,3 @@
-
 package com.example.mapper;
 
 import java.util.List;
@@ -19,17 +18,22 @@ import com.example.util.SpecificationsTypeHandler;
 @Mapper
 public interface CartItemMapper {
 
-    @Select("SELECT * FROM cart_items WHERE user_id = #{userId}")
+    @Select("SELECT c.*, s.shop_name, s.shop_logo AS shop_avatar_url " +
+            "FROM cart_items c " +
+            "LEFT JOIN shop s ON c.shop_id = s.id " +
+            "WHERE c.user_id = #{userId}")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class)
+        @Result(property = "specifications", column = "specifications", typeHandler = SpecificationsTypeHandler.class),
+        @Result(property = "shopName", column = "shop_name"),
+        @Result(property = "shopAvatarUrl", column = "shop_avatar_url")
     })
     List<CartItem> getCartItemsByUserId(Long userId);
 
-    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, specifications, price, quantity, shop_name, shop_avatar_url) " +
+
+    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, specifications, price, quantity, shop_name, shop_avatar_url, shop_id) " +
             "VALUES (#{cartItem.userId}, #{cartItem.productId}, #{cartItem.productName}, #{cartItem.productImage}, " +
             "#{cartItem.specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, #{cartItem.price}, #{cartItem.quantity}, " +
-            "#{cartItem.shopName}, #{cartItem.shopAvatarUrl}) " +
+            "#{cartItem.shopName}, #{cartItem.shopAvatarUrl}, #{cartItem.shopId}) " +
             "ON DUPLICATE KEY UPDATE quantity = quantity + #{cartItem.quantity}")
     void addCartItem(@Param("cartItem") CartItem cartItem);
 

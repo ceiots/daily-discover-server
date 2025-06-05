@@ -28,6 +28,13 @@ public interface ShopService {
     Shop getShopByUserId(Long userId);
     
     /**
+     * 根据店铺ID获取店铺拥有者的用户ID
+     * @param shopId 店铺ID
+     * @return 店铺拥有者的用户ID，若店铺不存在则返回null
+     */
+    Long getShopOwnerIdByShopId(Long shopId);
+    
+    /**
      * 更新店铺信息
      * @param shop 店铺信息
      * @param logo 店铺logo（可为null）

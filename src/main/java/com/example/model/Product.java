@@ -50,9 +50,6 @@ public class Product {
     private Long categoryId;
     private Integer deleted;
     
-    // 添加用户ID字段，表示该商品的创建者
-    private Long userId;
-
     // 用户评论
     @TableField(exist = false)
     private List<Comment> comments;

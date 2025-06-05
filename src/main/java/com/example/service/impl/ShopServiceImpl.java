@@ -118,4 +118,15 @@ public class ShopServiceImpl implements ShopService {
             throw new RuntimeException("上传店铺Logo失败：" + e.getMessage(), e);
         }
     }
+
+    @Override
+    public Long getShopOwnerIdByShopId(Long shopId) {
+        try {
+            Shop shop = shopMapper.findById(shopId);
+            return shop != null ? shop.getUserId() : null;
+        } catch (Exception e) {
+            log.error("根据店铺ID获取店铺拥有者ID时发生异常", e);
+            throw new RuntimeException("获取店铺拥有者ID失败：" + e.getMessage(), e);
+        }
+    }
 }

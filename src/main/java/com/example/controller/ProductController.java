@@ -132,23 +132,23 @@ public class ProductController {
     }
     
     /**
-     * 根据用户ID获取商品列表
+     * 根据店铺ID获取商品列表
      */
-    @GetMapping("/user")
-    public CommonResult<List<Product>> getUserProducts(
+    @GetMapping("/shop")
+    public CommonResult<List<Product>> getProductsByShopId(
             @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+            @RequestHeader(value = "userId", required = false) String userIdHeader,
+            @RequestParam(value = "shopId", required = true) Long shopId) {
         try {
-            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
-            if (userId == null) {
-                return CommonResult.unauthorized(null);
+            if (shopId == null) {
+                return CommonResult.failed("店铺ID不能为空");
             }
             
-            List<Product> products = productService.getProductsByUserId(userId);
+            List<Product> products = productService.getProductsByShopId(shopId);
             return CommonResult.success(products);
         } catch (Exception e) {
-            log.error("获取用户商品列表时发生异常", e);
-            return CommonResult.failed("获取用户商品列表失败：" + e.getMessage());
+            log.error("获取店铺商品列表时发生异常", e);
+            return CommonResult.failed("获取店铺商品列表失败：" + e.getMessage());
         }
     }
     
@@ -156,30 +156,13 @@ public class ProductController {
      * 根据店铺ID获取商品列表
      */
     @GetMapping("/shop/{shopId}")
-    public CommonResult<List<Product>> getProductsByShopId(
-            @PathVariable Long shopId,
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+    public CommonResult<List<Product>> getShopProducts(@PathVariable Long shopId) {
         try {
-            // 尝试获取用户ID，判断是否是店铺拥有者
-            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
-            
-            // 获取店铺信息
-            Shop shop = shopService.getShopById(shopId);
-            if (shop == null) {
-                return CommonResult.failed("店铺不存在");
+            if (shopId == null) {
+                return CommonResult.failed("店铺ID不能为空");
             }
             
-            List<Product> products;
-            
-            // 如果当前用户是店铺拥有者，返回包括待审核商品在内的所有商品
-            if (userId != null && userId.equals(shop.getUserId())) {
-                products = productService.getProductsByShopId(shopId);
-            } else {
-                // 否则只返回审核通过的商品
-                products = productService.getProductsByShopId(shopId);
-            }
-            
+            List<Product> products = productService.getProductsByShopId(shopId);
             return CommonResult.success(products);
         } catch (Exception e) {
             log.error("获取店铺商品列表时发生异常", e);
@@ -359,8 +342,7 @@ public class ProductController {
             Product product = objectMapper.convertValue(requestBody, Product.class);
             System.out.println("product: " + product);
             
-            // 设置商品关联信息
-            product.setUserId(userId);
+           
             product.setShopId(shop.getId());
             // 设置审核状态为待审核
             product.setAuditStatus(0);
@@ -469,7 +451,9 @@ public class ProductController {
                 return CommonResult.failed("商品不存在");
             }
             
-            if (!existingProduct.getUserId().equals(userId)) {
+            // 检查用户是否是店铺的拥有者
+            Shop shop = shopService.getShopByUserId(userId);
+            if (shop == null || !shop.getId().equals(existingProduct.getShopId())) {
                 return CommonResult.failed("您没有权限修改该商品");
             }
             
@@ -505,7 +489,9 @@ public class ProductController {
                 return CommonResult.failed("商品不存在");
             }
             
-            if (!existingProduct.getUserId().equals(userId)) {
+            // 检查用户是否是店铺的拥有者
+            Shop shop = shopService.getShopByUserId(userId);
+            if (shop == null || !shop.getId().equals(existingProduct.getShopId())) {
                 return CommonResult.failed("您没有权限删除该商品");
             }
             

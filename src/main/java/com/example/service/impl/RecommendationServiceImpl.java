@@ -14,9 +14,11 @@ import com.example.dao.ProductDao;
 import com.example.dao.UserBehaviorDao;
 import com.example.dao.UserPreferenceDao;
 import com.example.model.Product;
+import com.example.model.Shop;
 import com.example.model.UserBehavior;
 import com.example.model.UserPreference;
 import com.example.service.RecommendationService;
+import com.example.service.ShopService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +37,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     
     @Autowired(required = false)
     private UserPreferenceDao userPreferenceDao;
+    
+    @Autowired
+    private ShopService shopService;
     
     // 随机数生成器，用于生成随机推荐
     private final Random random = new Random();
@@ -75,6 +80,9 @@ public class RecommendationServiceImpl implements RecommendationService {
                 isColdStart = true; // 未登录用户也标记为冷启动
             }
             
+            // 为每个商品获取店铺信息
+            enrichProductsWithShopInfo(recommendedProducts);
+            
             // 为每个商品生成匹配分数和AI洞察
             for (Product product : recommendedProducts) {
                 // 设置匹配分数
@@ -94,12 +102,36 @@ public class RecommendationServiceImpl implements RecommendationService {
         } catch (Exception e) {
             log.error("生成个性化推荐时发生异常", e);
             // 发生异常时返回一些默认推荐
-            result.put("products", getFallbackProducts());
+            recommendedProducts = getFallbackProducts();
+            enrichProductsWithShopInfo(recommendedProducts);
+            result.put("products", recommendedProducts);
             result.put("insights", new HashMap<String, String>());
             result.put("isColdStart", true);
         }
         
         return result;
+    }
+    
+    /**
+     * 为商品列表添加店铺信息
+     */
+    private void enrichProductsWithShopInfo(List<Product> products) {
+        for (Product product : products) {
+            if (product.getShopId() != null) {
+                try {
+                    // 获取店铺信息
+                    Shop shop = shopService.getShopById(product.getShopId());
+                    if (shop != null) {
+                        product.setShopName(shop.getShopName());
+                        product.setShopAvatarUrl(shop.getShopLogo());
+                        product.setShop(shop);
+                    }
+                } catch (Exception e) {
+                    log.error("获取商品店铺信息失败, productId: {}, shopId: {}", 
+                              product.getId(), product.getShopId(), e);
+                }
+            }
+        }
     }
     
     /**

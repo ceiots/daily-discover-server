@@ -39,6 +39,7 @@ public class CartService {
         return items;
     }
 
+
     @Transactional
     public CommonResult<?> addCartItem(CartItem cartItem) {
         try {
@@ -55,10 +56,8 @@ public class CartService {
                 return CommonResult.failed("商品库存不足，剩余" + stock + "件");
             }
             
-            // 2. 清理图片URL
-            cleanImageUrls(cartItem);
             
-            // 3. 检查是否已存在相同商品（同规格）
+            // 2. 检查是否已存在相同商品（同规格）
             List<CartItem> existingItems = cartItemMapper.findByUserIdAndProductId(cartItem.getUserId(), cartItem.getProductId());
             
             CartItem existingItem = null;
@@ -69,7 +68,7 @@ public class CartService {
                 }
             }
             
-            // 4. 如果已存在，则更新数量
+            // 3. 如果已存在，则更新数量
             if (existingItem != null) {
                 int newQuantity = existingItem.getQuantity() + cartItem.getQuantity();
                 
