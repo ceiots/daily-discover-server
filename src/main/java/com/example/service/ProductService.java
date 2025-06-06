@@ -73,4 +73,17 @@ public interface ProductService {
     List<Product> getProductsWithPagination(int page, int size);
     
     int countApprovedProducts();
+    
+    /**
+     * 统计所有商品数量
+     * @return 商品总数
+     */
+    int countProducts();
+    
+    /**
+     * 获取待审核商品列表 - 与getPendingAuditProducts功能相同
+     */
+    default List<Product> findPendingAuditProducts() {
+        return getPendingAuditProducts();
+    }
 }

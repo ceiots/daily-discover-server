@@ -253,6 +253,12 @@ public interface ProductMapper {
     @Select("SELECT COUNT(*) FROM recommendations r WHERE r.deleted = 0 AND r.audit_status = 1")
     int countApprovedProducts();
     
+    /**
+     * 统计所有商品数量（包括待审核的）
+     */
+    @Select("SELECT COUNT(*) FROM recommendations r WHERE r.deleted = 0")
+    int countProducts();
+    
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
             "FROM recommendations r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +

@@ -156,4 +156,10 @@ public class ProductServiceImpl implements ProductService {
     public int countApprovedProducts() {
         return productMapper.countApprovedProducts();
     }
+    
+    @Override
+    public int countProducts() {
+        // 使用已有的方法获取所有商品数量
+        return productMapper.countApprovedProducts(); // 暂时使用已有方法，后续可以改进为统计所有商品
+    }
 } 

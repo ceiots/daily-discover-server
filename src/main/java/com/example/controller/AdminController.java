@@ -80,7 +80,7 @@ public class AdminController {
             stats.put("productCount", productCount);
             
             // 待审核商品数
-            List<Product> pendingProducts = productService.findPendingAuditProducts();
+            List<Product> pendingProducts = productService.getPendingAuditProducts();
             stats.put("pendingProductCount", pendingProducts.size());
             
             return CommonResult.success(stats);
@@ -108,7 +108,7 @@ public class AdminController {
                 return CommonResult.forbidden("非官方账号无权访问");
             }
             
-            List<Product> pendingProducts = productService.findPendingAuditProducts();
+            List<Product> pendingProducts = productService.getPendingAuditProducts();
             return CommonResult.success(pendingProducts);
         } catch (Exception e) {
             log.error("获取待审核商品列表时发生异常", e);
