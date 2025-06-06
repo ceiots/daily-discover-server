@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +38,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Value("${file.upload.base-url}")
+    private String baseUrl;
+
+    @Value("${default.avatar}")
+    private String defaultAvatar;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
@@ -56,6 +63,14 @@ public class UserController {
 
         // 设置注册时间（可选，Service层已设置）
         user.setRegistrationTime(new Date());
+        user.setAvatar(defaultAvatar);
+        user.setMemberLevel("普通会员");
+        user.setIsOfficial(false);
+        
+        // 生成随机昵称，例如：User_13800138000_ABC123
+        String randomSuffix = UUID.randomUUID().toString().substring(0, 6); // 截取前6位
+        String nickname = "User_" + user.getPhoneNumber() + "_" + randomSuffix;
+        user.setNickname(nickname);
 
         userService.register(user);
         return "注册成功";
@@ -147,8 +162,8 @@ public class UserController {
             // 保存文件到本地
             Files.write(filePath, file.getBytes());
     
-            // 构建完整的文件路径
-            String avatarUrl = "/images/avatar/" + fileName;
+            // 拼接完整URL
+            String avatarUrl = baseUrl + fileName;
     
             // 调用 UserService 更新用户头像
             userService.updateUserAvatar(userId, avatarUrl);
