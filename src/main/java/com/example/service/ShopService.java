@@ -56,4 +56,16 @@ public interface ShopService {
      * @return 上传后的图片URL
      */
     String uploadShopLogo(MultipartFile logo);
+    
+    /**
+     * 获取待审核的店铺列表
+     * @return 待审核店铺列表
+     */
+    java.util.List<Shop> findPendingShops();
+    
+    /**
+     * 统计店铺总数
+     * @return 店铺总数
+     */
+    int countShops();
 }

@@ -129,4 +129,25 @@ public class ShopServiceImpl implements ShopService {
             throw new RuntimeException("获取店铺拥有者ID失败：" + e.getMessage(), e);
         }
     }
+    
+    @Override
+    public List<Shop> findPendingShops() {
+        try {
+            // 获取状态为0(待审核)的店铺列表
+            return shopMapper.findByStatus(0);
+        } catch (Exception e) {
+            log.error("获取待审核店铺列表时发生异常", e);
+            throw new RuntimeException("获取待审核店铺列表失败：" + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public int countShops() {
+        try {
+            return shopMapper.countShops();
+        } catch (Exception e) {
+            log.error("统计店铺总数时发生异常", e);
+            throw new RuntimeException("统计店铺总数失败：" + e.getMessage(), e);
+        }
+    }
 }

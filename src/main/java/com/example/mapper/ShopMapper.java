@@ -36,4 +36,19 @@ public interface ShopMapper {
     
     @Update("UPDATE shop SET status = #{status} WHERE id = #{id}")
     void updateStatus(@Param("id") Long id, @Param("status") Integer status);
-} 
+    
+    /**
+     * 统计店铺总数
+     * @return 店铺总数
+     */
+    @Select("SELECT COUNT(*) FROM shop")
+    int countShops();
+    
+    /**
+     * 根据状态查找店铺
+     * @param status 店铺状态
+     * @return 符合状态的店铺列表
+     */
+    @Select("SELECT * FROM shop WHERE status = #{status}")
+    List<Shop> findByStatus(Integer status);
+}

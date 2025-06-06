@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,6 +36,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
@@ -99,6 +103,7 @@ public class UserController {
             userInfo.put("nickname", user.getNickname());
             userInfo.put("phoneNumber", user.getPhoneNumber());
             userInfo.put("memberLevel", user.getMemberLevel() != null ? user.getMemberLevel() : "普通会员");
+            userInfo.put("isOfficial", user.getIsOfficial() != null ? user.getIsOfficial() : false);
 
             // 处理头像路径
             String avatar = user.getAvatar();
@@ -194,4 +199,259 @@ public class UserController {
         }
     }
 
+    // 支付密码相关接口
+    @GetMapping("/payment-password/status")
+    public ResponseEntity<?> getPaymentPasswordStatus(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 401);
+            response.put("message", "未登录或登录已过期");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        try {
+            User user = userService.findUserById(userId);
+            boolean hasPaymentPassword = user != null && user.getPaymentPassword() != null;
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("hasPaymentPassword", hasPaymentPassword);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 200);
+            response.put("message", "获取支付密码状态成功");
+            response.put("data", data);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 500);
+            response.put("message", "获取支付密码状态失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/payment-password/set")
+    public ResponseEntity<?> setPaymentPassword(@RequestBody Map<String, String> requestBody, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 401);
+            response.put("message", "未登录或登录已过期");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        String password = requestBody.get("password");
+        if (password == null || password.length() != 6 || !password.matches("\\d{6}")) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 400);
+            response.put("message", "支付密码必须为6位数字");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        try {
+            User user = userService.findUserById(userId);
+            if (user == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 404);
+                response.put("message", "用户不存在");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // 对支付密码进行加密处理，实际应用中应使用更安全的加密方式
+            // 这里使用简单的加密方式示例
+            String encryptedPassword = userService.encryptPassword(password);
+            user.setPaymentPassword(encryptedPassword);
+            
+            boolean success = userService.updateUser(user);
+            if (success) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 200);
+                response.put("message", "设置支付密码成功");
+                response.put("data", Collections.singletonMap("userId", userId));
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 500);
+                response.put("message", "设置支付密码失败");
+                return ResponseEntity.status(500).body(response);
+            }
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 500);
+            response.put("message", "设置支付密码失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/payment-password/verify")
+    public ResponseEntity<?> verifyPaymentPassword(@RequestBody Map<String, String> requestBody, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 401);
+            response.put("message", "未登录或登录已过期");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        String password = requestBody.get("paymentPassword");
+        if (password == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 400);
+            response.put("message", "支付密码不能为空");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        try {
+            User user = userService.findUserById(userId);
+            if (user == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 404);
+                response.put("message", "用户不存在");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            if (user.getPaymentPassword() == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 400);
+                response.put("message", "您尚未设置支付密码");
+                return ResponseEntity.status(400).body(response);
+            }
+
+            // 验证支付密码
+            String encryptedPassword = userService.encryptPassword(password);
+            if (encryptedPassword.equals(user.getPaymentPassword())) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 200);
+                response.put("message", "支付密码验证成功");
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 400);
+                response.put("message", "支付密码错误");
+                return ResponseEntity.status(400).body(response);
+            }
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 500);
+            response.put("message", "验证支付密码失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/payment-password/update")
+    public ResponseEntity<?> updatePaymentPassword(@RequestBody Map<String, String> requestBody, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 401);
+            response.put("message", "未登录或登录已过期");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        String currentPassword = requestBody.get("currentPassword");
+        String newPassword = requestBody.get("newPassword");
+        String verificationCode = requestBody.get("verificationCode");
+
+        if (newPassword == null || newPassword.length() != 6 || !newPassword.matches("\\d{6}")) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 400);
+            response.put("message", "新支付密码必须为6位数字");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        try {
+            User user = userService.findUserById(userId);
+            if (user == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 404);
+                response.put("message", "用户不存在");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // 如果已有支付密码，需要验证当前密码
+            if (user.getPaymentPassword() != null) {
+                if (currentPassword == null) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("code", 400);
+                    response.put("message", "当前支付密码不能为空");
+                    return ResponseEntity.status(400).body(response);
+                }
+
+                String encryptedCurrentPassword = userService.encryptPassword(currentPassword);
+                if (!encryptedCurrentPassword.equals(user.getPaymentPassword())) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("code", 400);
+                    response.put("message", "当前支付密码错误");
+                    return ResponseEntity.status(400).body(response);
+                }
+            }
+
+            // 验证码校验逻辑 (简化示例，实际应该检查验证码的有效性)
+            if (verificationCode == null || verificationCode.length() != 6) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 400);
+                response.put("message", "验证码错误");
+                return ResponseEntity.status(400).body(response);
+            }
+
+            // 更新支付密码
+            String encryptedNewPassword = userService.encryptPassword(newPassword);
+            user.setPaymentPassword(encryptedNewPassword);
+            
+            boolean success = userService.updateUser(user);
+            if (success) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 200);
+                response.put("message", "更新支付密码成功");
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 500);
+                response.put("message", "更新支付密码失败");
+                return ResponseEntity.status(500).body(response);
+            }
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 500);
+            response.put("message", "更新支付密码失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/payment-password/send-code")
+    public ResponseEntity<?> sendPaymentPasswordVerificationCode(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 401);
+            response.put("message", "未登录或登录已过期");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        try {
+            User user = userService.findUserById(userId);
+            if (user == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("code", 404);
+                response.put("message", "用户不存在");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // 模拟发送验证码
+            // 实际应用中应调用短信服务发送验证码，并保存验证码和过期时间
+            String verificationCode = String.format("%06d", (int)(Math.random() * 1000000));
+            System.out.println("发送验证码到用户手机: " + user.getPhoneNumber() + ", 验证码: " + verificationCode);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 200);
+            response.put("message", "验证码发送成功");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 500);
+            response.put("message", "发送验证码失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

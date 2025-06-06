@@ -3,8 +3,10 @@ package com.example.controller;
 import com.example.common.api.CommonResult;
 import com.example.model.Shop;
 import com.example.model.Product;
+import com.example.model.User;
 import com.example.service.ShopService;
 import com.example.service.ProductService;
+import com.example.service.UserService;
 import com.example.util.UserIdExtractor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,17 @@ public class ShopController {
 
     @Autowired
     private UserIdExtractor userIdExtractor;
+    
+    @Autowired
+    private UserService userService;
+    
+    /**
+     * 检查是否为官方账号（管理员）
+     */
+    private boolean isOfficialAccount(Long userId) {
+        User user = userService.findUserById(userId);
+        return user != null && user.getIsOfficial() != null && user.getIsOfficial();
+    }
 
     /**
      * 上传店铺Logo

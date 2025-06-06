@@ -1,6 +1,7 @@
 package com.example.service;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -77,6 +78,7 @@ public class UserService {
         userInfo.put("id", user.getId());
         userInfo.put("phoneNumber", user.getPhoneNumber());
         userInfo.put("nickname", user.getNickname());
+        userInfo.put("isOfficial", user.getIsOfficial() != null ? user.getIsOfficial() : false);
         result.put("userInfo", userInfo);
         
         return result;
@@ -204,6 +206,23 @@ public class UserService {
     public User findUserById(Long userId) {
         return userMapper.findById(userId);
     }
+    
+    /**
+     * 根据用户ID获取用户
+     * @param userId 用户ID
+     * @return 用户对象
+     */
+    public User getUserById(Long userId) {
+        return userMapper.findById(userId);
+    }
+    
+    /**
+     * 统计用户总数
+     * @return 用户总数
+     */
+    public int countUsers() {
+        return userMapper.countUsers();
+    }
 
     public void updateUserAvatar(Long userId, String avatarUrl) {
         userMapper.updateAvatar(userId, avatarUrl);
@@ -246,4 +265,22 @@ public class UserService {
             return false;
         }
     }
+    
+    /**
+     * 加密密码（通用方法，可用于登录密码或支付密码加密）
+     * @param rawPassword 原始密码
+     * @return 加密后的密码
+     */
+    public String encryptPassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+    
+    /**
+     * 获取所有用户
+     * @return 用户列表
+     */
+    public List<User> getAllUsers() {
+        return userMapper.findAll();
+    }
+    
 }

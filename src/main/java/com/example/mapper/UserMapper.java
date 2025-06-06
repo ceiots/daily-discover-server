@@ -54,7 +54,22 @@ public interface UserMapper {
             "nickname = #{nickname}, " +
             "avatar = #{avatar}, " +
             "member_level = #{memberLevel}, " +
-            "payment_password = #{paymentPassword} " +
+            "payment_password = #{paymentPassword}, " +
+            "is_official = #{isOfficial} " +
             "WHERE id = #{id}")
     void updateUser(User user);
+    
+    /**
+     * 统计用户总数
+     * @return 用户总数
+     */
+    @Select("SELECT COUNT(*) FROM user")
+    int countUsers();
+    
+    /**
+     * 获取所有用户
+     * @return 用户列表
+     */
+    @Select("SELECT * FROM user")
+    java.util.List<User> findAll();
 }

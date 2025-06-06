@@ -1,6 +1,7 @@
 package com.example.model;
 
 import java.util.Date;
+import java.util.List;
 
 public class User {
     private Long id;
@@ -11,6 +12,7 @@ public class User {
     private Date registrationTime;
     private String nickname;
     private String paymentPassword; // 支付密码
+    private Boolean isOfficial; // 是否为官方账号（同时具备管理员权限）
     
     // 构造函数、getter和setter方法
     
@@ -76,5 +78,13 @@ public class User {
     
     public void setPaymentPassword(String paymentPassword) {
         this.paymentPassword = paymentPassword;
+    }
+    
+    public Boolean getIsOfficial() {
+        return isOfficial;
+    }
+    
+    public void setIsOfficial(Boolean isOfficial) {
+        this.isOfficial = isOfficial;
     }
 }
