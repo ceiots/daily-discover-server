@@ -30,10 +30,10 @@ public interface CartItemMapper {
     List<CartItem> getCartItemsByUserId(Long userId);
 
 
-    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, specifications, price, quantity, shop_name, shop_avatar_url, shop_id) " +
+    @Insert("INSERT INTO cart_items (user_id, product_id, product_name, product_image, specifications, price, quantity, shop_id) " +
             "VALUES (#{cartItem.userId}, #{cartItem.productId}, #{cartItem.productName}, #{cartItem.productImage}, " +
             "#{cartItem.specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, #{cartItem.price}, #{cartItem.quantity}, " +
-            "#{cartItem.shopName}, #{cartItem.shopAvatarUrl}, #{cartItem.shopId}) " +
+            "#{cartItem.shopId}) " +
             "ON DUPLICATE KEY UPDATE quantity = quantity + #{cartItem.quantity}")
     void addCartItem(@Param("cartItem") CartItem cartItem);
 
