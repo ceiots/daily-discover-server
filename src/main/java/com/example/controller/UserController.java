@@ -105,18 +105,24 @@ public class UserController {
             userInfo.put("memberLevel", user.getMemberLevel() != null ? user.getMemberLevel() : "普通会员");
             userInfo.put("isOfficial", user.getIsOfficial() != null ? user.getIsOfficial() : false);
 
-            // 处理头像路径
             String avatar = user.getAvatar();
-            if (avatar != null && !avatar.startsWith("http")) {
-                // 如果不是完整URL，可以在这里添加处理逻辑
-                // 例如，可以添加相对路径前缀
-                avatar = ImageConfig.getFullImageUrl(avatar);
-            }
+            
             userInfo.put("avatar", avatar);
 
-            return ResponseEntity.ok(userInfo);
+            // 统一响应格式
+            Map<String, Object> result = new HashMap<>();
+            result.put("code", 200);
+            result.put("message", "success");
+            result.put("data", userInfo);
+
+            return ResponseEntity.ok(result);
         }
-        return ResponseEntity.notFound().build();
+        // 用户不存在时也返回统一格式
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", 404);
+        result.put("message", "用户不存在");
+        result.put("data", null);
+        return ResponseEntity.status(404).body(result);
     }
 
     @PostMapping("/upload-avatar")

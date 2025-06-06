@@ -5,6 +5,7 @@ import com.example.mapper.UserInterestMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -15,9 +16,9 @@ public class UserInterestServiceImpl implements UserInterestService {
     private UserInterestMapper userInterestMapper;
     
     @Override
+    @Cacheable(value = "userColdStartCache", key = "#userId", unless = "#result == null")
     public boolean needColdStart(Long userId) {
-        // 检查用户是否已完成冷启动
-        // 如果用户没有兴趣标签或未完成冷启动流程，则返回true
+        // 检查用户是否已经选择了兴趣标签
         Integer count = userInterestMapper.countUserInterests(userId);
         return count == null || count == 0;
     }
