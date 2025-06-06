@@ -15,6 +15,8 @@ import com.example.mapper.UserMapper;
 import com.example.model.User;
 import com.example.util.JwtTokenUtil;
 
+import java.util.UUID;
+
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
@@ -37,6 +39,9 @@ public class UserService {
     @Value("${aliyun.sms.templateCode}")
     private String templateCode;
 
+    @Value("${default.avatar}")
+    private String defaultAvatar;
+    
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -96,8 +101,18 @@ public class UserService {
     public void register(User user) {
         // 对密码进行加密
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // 设置注册时间为当前时间
+
+        // 设置注册时间（可选，Service层已设置）
         user.setRegistrationTime(new Date());
+        user.setAvatar(defaultAvatar);
+        user.setMemberLevel("普通会员");
+        user.setIsOfficial(false);
+        
+        // 生成随机昵称，例如：User_13800138000_ABC123
+        String randomSuffix = UUID.randomUUID().toString().substring(0, 6); // 截取前6位
+        String nickname = "User_" + user.getPhoneNumber() + "_" + randomSuffix;
+        user.setNickname(nickname);
+
         userMapper.registerUser(user);
     }
 

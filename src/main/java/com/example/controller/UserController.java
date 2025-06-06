@@ -41,8 +41,6 @@ public class UserController {
     @Value("${file.upload.base-url}")
     private String baseUrl;
 
-    @Value("${default.avatar}")
-    private String defaultAvatar;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -60,17 +58,6 @@ public class UserController {
         if (existingUser != null) {
             return "手机号已被注册";
         }
-
-        // 设置注册时间（可选，Service层已设置）
-        user.setRegistrationTime(new Date());
-        user.setAvatar(defaultAvatar);
-        user.setMemberLevel("普通会员");
-        user.setIsOfficial(false);
-        
-        // 生成随机昵称，例如：User_13800138000_ABC123
-        String randomSuffix = UUID.randomUUID().toString().substring(0, 6); // 截取前6位
-        String nickname = "User_" + user.getPhoneNumber() + "_" + randomSuffix;
-        user.setNickname(nickname);
 
         userService.register(user);
         return "注册成功";

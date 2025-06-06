@@ -15,7 +15,7 @@ public interface UserMapper {
     @Select("SELECT * FROM user WHERE phone_number = #{phone_number} AND password = #{password}")
     User findByPhoneNumberAndPassword(@Param("phone_number") String phone_number, @Param("password") String password);
 
-    @Insert("INSERT INTO user (phone_number, password, nickname) VALUES (#{phoneNumber}, #{password}, #{nickname})")
+    @Insert("INSERT INTO user (phone_number, password, nickname, avatar, member_level, is_official, registration_time) VALUES (#{phoneNumber}, #{password}, #{nickname}, #{avatar}, #{memberLevel}, #{isOfficial}, #{registrationTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void registerUser(User user);
 
