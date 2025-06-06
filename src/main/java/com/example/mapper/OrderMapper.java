@@ -38,8 +38,8 @@ public interface OrderMapper {
     String CANCEL_ORDER_SQL = "UPDATE `order` SET status = -1 WHERE id = #{orderId}";
     
     // 修改insertOrder方法
-    @Insert("INSERT INTO `order` (user_id, order_number, payment_amount, payment_method, payment_time, status, created_at, order_addr_id) " +
-            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{paymentTime}, #{status}, #{createdAt}, #{orderAddrId})")
+    @Insert("INSERT INTO `order` (user_id, order_number, payment_amount, payment_method, payment_time, status, created_at, address_id) " +
+            "VALUES (#{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{paymentTime}, #{status}, #{createdAt}, #{addressId})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrder(Order order);
     

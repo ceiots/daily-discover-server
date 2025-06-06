@@ -1,6 +1,8 @@
 package com.example.service.impl;
 
 import com.example.service.OrderService;
+import com.example.service.OrderSettlementService;
+
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -54,8 +56,10 @@ import java.util.stream.Collectors;
 @Service
 public class OrderServiceImpl implements OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
-    
-    
+   
+    @Autowired
+    private OrderSettlementService orderSettlementService;
+
 
     @Autowired
     private OrderMapper orderMapper;
@@ -93,11 +97,13 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.findById(orderId);
     }
 
+ 
     /**
      * 创建订单（先锁定库存）
      * @param orderDTO 订单信息
      * @return 订单信息
      */
+    // 订单结算服务，如果需要使用请先注入
     @Transactional
     public CommonResult<Order> createOrder(OrderCreateDTO orderDTO) {
         try {
@@ -115,12 +121,45 @@ public class OrderServiceImpl implements OrderService {
             if (!totalAmount.equals(orderDTO.getOrder().getPaymentAmount())) {
                 throw new IllegalArgumentException("订单总金额不匹配");
             }
+            
+            // 设置店铺ID（从第一个商品项获取）
+            if (orderDTO.getOrder().getItems() != null && !orderDTO.getOrder().getItems().isEmpty()) {
+                OrderItem firstItem = orderDTO.getOrder().getItems().get(0);
+                // 从商品项中获取店铺信息
+                Long shopId = null;
+                if (firstItem.getShop() != null && firstItem.getShop().getId() != null) {
+                    shopId = firstItem.getShop().getId();
+                }
+                orderDTO.getOrder().setShopId(shopId);
+                logger.info("设置订单店铺ID: {}", shopId);
+            }
     
             // 使用常量设置订单状态
             orderDTO.getOrder().setStatus(ORDER_STATUS_PENDING_PAYMENT); 
-             // 调用抽取的公共方法
-             Date date = DateUtils.convertLocalDateTimeToDate(LocalDateTime.now());
+            // 调用抽取的公共方法
+            Date date = DateUtils.convertLocalDateTimeToDate(LocalDateTime.now());
             orderDTO.getOrder().setCreatedAt(date);
+            
+            // 计算平台佣金
+            if (orderDTO.getOrder().getShopId() != null) {
+                orderDTO.getOrder().setSettlementStatus(0); // 未结算
+                orderDTO.getOrder().setPlatformCommissionRate(new BigDecimal("0.05")); // 默认5%佣金
+                BigDecimal commissionAmount = orderDTO.getOrder().getPaymentAmount()
+                    .multiply(orderDTO.getOrder().getPlatformCommissionRate())
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+                orderDTO.getOrder().setPlatformCommissionAmount(commissionAmount);
+                
+                // 计算店铺实际收款金额
+                BigDecimal shopAmount = orderDTO.getOrder().getPaymentAmount().subtract(commissionAmount);
+                orderDTO.getOrder().setShopAmount(shopAmount);
+                
+                logger.info("订单佣金计算 - 总金额: {}, 佣金比例: {}, 佣金金额: {}, 店铺收款: {}", 
+                    orderDTO.getOrder().getPaymentAmount(),
+                    orderDTO.getOrder().getPlatformCommissionRate(),
+                    commissionAmount,
+                    shopAmount);
+            }
+            
             // 插入订单数据
             orderMapper.insertOrder(orderDTO.getOrder()); // 调用 Mapper 方法
             System.out.println("订单创建成功，订单号：" + orderDTO.getOrder().getOrderNumber());
