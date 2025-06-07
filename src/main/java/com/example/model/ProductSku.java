@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.util.JsonTypeHandler;
+import com.example.util.MapJsonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -39,7 +39,7 @@ public class ProductSku {
      * 规格属性，使用JSON存储
      * 例如：{"颜色": "红色", "尺码": "XL"}
      */
-    @TableField(typeHandler = JsonTypeHandler.class)
+    @TableField(typeHandler = MapJsonTypeHandler.class)
     private Map<String, String> specifications;
     
     @TableField("created_at")

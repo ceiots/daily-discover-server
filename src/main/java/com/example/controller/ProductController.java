@@ -25,9 +25,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.common.api.CommonResult;
 import com.example.model.Product;
 import com.example.model.ProductDetail;
+import com.example.model.ProductSku;
 import com.example.model.Shop;
 import com.example.model.Specification;
 import com.example.service.ProductService;
+import com.example.service.ProductSkuService;
 import com.example.service.ShopService;
 import com.example.service.RecommendationService;
 import com.example.util.UserIdExtractor;
@@ -51,6 +53,9 @@ public class ProductController {
     
     @Autowired
     private RecommendationService recommendationService;
+    
+    @Autowired
+    private ProductSkuService productSkuService;
 
     @GetMapping("")
     public CommonResult<Map<String, Object>> getAllProducts(
@@ -99,6 +104,10 @@ public class ProductController {
             if (product == null) {
                 return CommonResult.failed("商品不存在或无权查看");
             }
+            
+            // 获取商品的SKU列表
+            List<ProductSku> skus = productSkuService.getSkusByProductId(id);
+            product.setSkus(skus);
             
             // 如果商品未通过审核，加入提示信息
             if (product.getAuditStatus() != null && product.getAuditStatus() != 1) {
@@ -342,7 +351,13 @@ public class ProductController {
             Product product = objectMapper.convertValue(requestBody, Product.class);
             System.out.println("product: " + product);
             
-           
+            // 处理SKU数据
+            List<ProductSku> skus = null;
+            if (requestBody.containsKey("skus") && requestBody.get("skus") instanceof List) {
+                skus = objectMapper.convertValue(requestBody.get("skus"), 
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ProductSku.class));
+            }
+            
             product.setShopId(shop.getId());
             // 设置审核状态为待审核
             product.setAuditStatus(0);
@@ -352,6 +367,12 @@ public class ProductController {
                 product.setImageUrl(product.getImages().get(0));
             }
             
+            // 设置总库存，如果未设置则默认为0
+            if (product.getTotalStock() == null) {
+                product.setTotalStock(0);
+            }
+            
+            // 不再需要生成SKU ID，数据库会自动生成
             
             // 如果details字段映射成功但productDetails为空，则将details赋值给productDetails
             if (product.getDetails() != null && (product.getProductDetails() == null || product.getProductDetails().isEmpty())) {
@@ -386,8 +407,33 @@ public class ProductController {
                 product.setProductDetails(productDetails);
             }
             
-            
+            // 创建商品
             Product createdProduct = productService.createProduct(product);
+            
+            // 如果有SKU数据，创建SKU
+            if (skus != null && !skus.isEmpty()) {
+                // 为每个SKU设置productId
+                for (ProductSku sku : skus) {
+                    sku.setProductId(createdProduct.getId());
+                }
+                
+                // 批量创建SKU
+                List<ProductSku> createdSkus = productSkuService.batchCreateSku(skus);
+                
+                // 计算总库存
+                int totalStock = 0;
+                for (ProductSku sku : createdSkus) {
+                    totalStock += sku.getStock();
+                }
+                
+                // 更新商品总库存
+                createdProduct.setTotalStock(totalStock);
+                productService.updateProduct(createdProduct);
+                
+                // 设置SKU列表到返回的商品对象
+                createdProduct.setSkus(createdSkus);
+            }
+            
             return CommonResult.success(createdProduct);
         } catch (Exception e) {
             log.error("创建商品时发生异常", e);
@@ -406,6 +452,8 @@ public class ProductController {
             @RequestParam("title") String title,
             @RequestParam("price") String price,
             @RequestParam("categoryId") Long categoryId,
+            @RequestParam(value = "totalStock", required = false) Integer totalStock,
+            @RequestParam(value = "productSkuId", required = false) Long productSkuId,
             @RequestParam(value = "specifications", required = false) String specifications,
             @RequestParam(value = "productDetails", required = false) String productDetails,
             @RequestParam(value = "purchaseNotices", required = false) String purchaseNotices,
@@ -432,6 +480,15 @@ public class ProductController {
             existingProduct.setTitle(title);
             existingProduct.setPrice(new java.math.BigDecimal(price));
             existingProduct.setCategoryId(categoryId);
+            
+            // 更新总库存和SKU ID
+            if (totalStock != null) {
+                existingProduct.setTotalStock(totalStock);
+            }
+            
+            if (productSkuId != null) {
+                existingProduct.setProductSkuId(productSkuId);
+            }
             
             Product updatedProduct = productService.updateProduct(existingProduct);
             return CommonResult.success(updatedProduct);
@@ -546,6 +603,177 @@ public class ProductController {
         } catch (Exception e) {
             log.error("获取个性化商品推荐时发生异常", e);
             return CommonResult.failed("获取推荐失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取商品的SKU列表
+     */
+    @GetMapping("/{productId}/skus")
+    public CommonResult<List<ProductSku>> getProductSkus(@PathVariable Long productId) {
+        try {
+            List<ProductSku> skus = productSkuService.getSkusByProductId(productId);
+            return CommonResult.success(skus);
+        } catch (Exception e) {
+            log.error("获取商品SKU列表时发生异常", e);
+            return CommonResult.failed("获取商品SKU列表失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建商品SKU
+     */
+    @PostMapping("/{productId}/skus")
+    public CommonResult<List<ProductSku>> createProductSkus(
+            @PathVariable Long productId,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader,
+            @RequestBody List<ProductSku> skus) {
+        try {
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            if (userId == null) {
+                return CommonResult.unauthorized(null);
+            }
+            
+            // 验证商品所有权
+            Product existingProduct = productService.getProductById(productId);
+            if (existingProduct == null) {
+                return CommonResult.failed("商品不存在");
+            }
+            
+            // 检查用户是否是店铺的拥有者
+            Shop shop = shopService.getShopByUserId(userId);
+            if (shop == null || !shop.getId().equals(existingProduct.getShopId())) {
+                return CommonResult.failed("您没有权限为该商品添加SKU");
+            }
+            
+            // 设置productId
+            for (ProductSku sku : skus) {
+                sku.setProductId(productId);
+            }
+            
+            // 创建SKU
+            List<ProductSku> createdSkus = productSkuService.batchCreateSku(skus);
+            
+            // 更新商品的总库存
+            int totalStock = 0;
+            for (ProductSku sku : createdSkus) {
+                totalStock += sku.getStock();
+            }
+            existingProduct.setTotalStock(totalStock);
+            productService.updateProduct(existingProduct);
+            
+            return CommonResult.success(createdSkus);
+        } catch (Exception e) {
+            log.error("创建商品SKU时发生异常", e);
+            return CommonResult.failed("创建商品SKU失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新商品SKU
+     */
+    @PutMapping("/skus/{skuId}")
+    public CommonResult<ProductSku> updateProductSku(
+            @PathVariable Long skuId,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader,
+            @RequestBody ProductSku sku) {
+        try {
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            if (userId == null) {
+                return CommonResult.unauthorized(null);
+            }
+            
+            // 获取SKU信息
+            ProductSku existingSku = productSkuService.getSkuById(skuId);
+            if (existingSku == null) {
+                return CommonResult.failed("SKU不存在");
+            }
+            
+            // 验证商品所有权
+            Product existingProduct = productService.getProductById(existingSku.getProductId());
+            if (existingProduct == null) {
+                return CommonResult.failed("商品不存在");
+            }
+            
+            // 检查用户是否是店铺的拥有者
+            Shop shop = shopService.getShopByUserId(userId);
+            if (shop == null || !shop.getId().equals(existingProduct.getShopId())) {
+                return CommonResult.failed("您没有权限修改该SKU");
+            }
+            
+            // 设置ID确保更新正确的记录
+            sku.setId(skuId);
+            sku.setProductId(existingSku.getProductId());
+            
+            // 更新SKU
+            ProductSku updatedSku = productSkuService.updateSku(sku);
+            
+            // 更新商品的总库存
+            List<ProductSku> allSkus = productSkuService.getSkusByProductId(existingSku.getProductId());
+            int totalStock = 0;
+            for (ProductSku s : allSkus) {
+                totalStock += s.getStock();
+            }
+            existingProduct.setTotalStock(totalStock);
+            productService.updateProduct(existingProduct);
+            
+            return CommonResult.success(updatedSku);
+        } catch (Exception e) {
+            log.error("更新商品SKU时发生异常", e);
+            return CommonResult.failed("更新商品SKU失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除商品SKU
+     */
+    @DeleteMapping("/skus/{skuId}")
+    public CommonResult<Void> deleteProductSku(
+            @PathVariable Long skuId,
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "userId", required = false) String userIdHeader) {
+        try {
+            Long userId = userIdExtractor.extractUserId(token, userIdHeader);
+            if (userId == null) {
+                return CommonResult.unauthorized(null);
+            }
+            
+            // 获取SKU信息
+            ProductSku existingSku = productSkuService.getSkuById(skuId);
+            if (existingSku == null) {
+                return CommonResult.failed("SKU不存在");
+            }
+            
+            // 验证商品所有权
+            Product existingProduct = productService.getProductById(existingSku.getProductId());
+            if (existingProduct == null) {
+                return CommonResult.failed("商品不存在");
+            }
+            
+            // 检查用户是否是店铺的拥有者
+            Shop shop = shopService.getShopByUserId(userId);
+            if (shop == null || !shop.getId().equals(existingProduct.getShopId())) {
+                return CommonResult.failed("您没有权限删除该SKU");
+            }
+            
+            // 删除SKU
+            productSkuService.deleteSku(skuId);
+            
+            // 更新商品的总库存
+            List<ProductSku> remainingSkus = productSkuService.getSkusByProductId(existingSku.getProductId());
+            int totalStock = 0;
+            for (ProductSku s : remainingSkus) {
+                totalStock += s.getStock();
+            }
+            existingProduct.setTotalStock(totalStock);
+            productService.updateProduct(existingProduct);
+            
+            return CommonResult.success(null);
+        } catch (Exception e) {
+            log.error("删除商品SKU时发生异常", e);
+            return CommonResult.failed("删除商品SKU失败：" + e.getMessage());
         }
     }
 }

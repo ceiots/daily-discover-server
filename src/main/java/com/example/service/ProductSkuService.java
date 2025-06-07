@@ -14,6 +14,16 @@ import java.util.Map;
 public interface ProductSkuService {
 
     /**
+     * 创建SKU
+     */
+    ProductSku createSku(ProductSku productSku);
+    
+    /**
+     * 批量创建SKU
+     */
+    List<ProductSku> batchCreateSku(List<ProductSku> productSkus);
+    
+    /**
      * 根据商品ID获取所有SKU
      * @param productId 商品ID
      * @return SKU列表
@@ -36,20 +46,9 @@ public interface ProductSkuService {
     ProductSku getSkuByProductIdAndSpecs(Long productId, Map<String, String> specifications);
     
     /**
-     * 创建或更新SKU
-     * @param sku SKU对象
-     * @return 保存后的SKU
+     * 更新SKU
      */
-    @Transactional
-    ProductSku saveOrUpdateSku(ProductSku sku);
-    
-    /**
-     * 批量保存SKU
-     * @param skus SKU列表
-     * @return 保存后的SKU列表
-     */
-    @Transactional
-    List<ProductSku> batchSaveOrUpdateSkus(List<ProductSku> skus);
+    ProductSku updateSku(ProductSku productSku);
     
     /**
      * 删除SKU

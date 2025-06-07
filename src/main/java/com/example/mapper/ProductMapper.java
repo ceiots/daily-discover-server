@@ -11,12 +11,14 @@ import java.util.List;
 public interface ProductMapper {
 
         @Insert("INSERT INTO product (title, imageUrl, price, soldCount, stock, " + "specifications, product_details, purchase_notices, " +
-            "created_at, category_id, parent_category_id, grand_category_id, shop_id, user_id, audit_status, audit_remark) " +
+            "created_at, category_id, parent_category_id, grand_category_id, shop_id, user_id, audit_status, audit_remark, " +
+            "product_sku_id, total_stock) " +
             "VALUES (#{title}, #{imageUrl}, #{price}, #{soldCount}, #{stock}, " +
             "#{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
             "#{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
             "#{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
-            "#{createdAt}, #{categoryId}, #{parentCategoryId}, #{grandCategoryId}, #{shopId}, #{userId}, #{auditStatus}, #{auditRemark})")
+            "#{createdAt}, #{categoryId}, #{parentCategoryId}, #{grandCategoryId}, #{shopId}, #{userId}, #{auditStatus}, #{auditRemark}, " +
+            "#{productSkuId}, #{totalStock})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(Product product);
 
@@ -41,7 +43,9 @@ public interface ProductMapper {
         @Result(property = "parentCategoryId", column = "parent_category_id"),
         @Result(property = "grandCategoryId", column = "grand_category_id"),
         @Result(property = "auditStatus", column = "audit_status"),
-        @Result(property = "auditRemark", column = "audit_remark")
+        @Result(property = "auditRemark", column = "audit_remark"),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> getProductsWithPagination(@Param("limit") int limit, @Param("offset") int offset);
 
@@ -62,7 +66,9 @@ public interface ProductMapper {
         @Result(property = "shopName", column = "shop_name"),
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     Product findById(Long id);
 
@@ -81,7 +87,9 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> findByCategoryId(Long categoryId);
 
@@ -101,7 +109,9 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> findRandom();
 
@@ -126,7 +136,9 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> findRandomWithLimit(@Param("limit") int limit);
 
@@ -145,7 +157,9 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> searchProducts(String keyword);
 
@@ -167,7 +181,9 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> findByShopId(Long shopId);
     
@@ -189,7 +205,9 @@ public interface ProductMapper {
         @Result(property = "shopAvatarUrl", column = "shop_logo"),
         @Result(property = "storeDescription", column = "shop_description"),
         @Result(property = "shop", column = "shop_id", 
-                one = @One(select = "com.example.mapper.ShopMapper.findById"))
+                one = @One(select = "com.example.mapper.ShopMapper.findById")),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> findApprovedByShopId(Long shopId);
     
@@ -200,6 +218,8 @@ public interface ProductMapper {
             "title = #{title}, " +
             "price = #{price}, " +
             "stock = #{stock}, " +
+            "total_stock = #{totalStock}, " +
+            "product_sku_id = #{productSkuId}, " +
             "category_id = #{categoryId}, " +
             "parent_category_id = #{parentCategoryId}, " +
             "grand_category_id = #{grandCategoryId}, " +
@@ -246,7 +266,9 @@ public interface ProductMapper {
         @Result(property = "parentCategoryId", column = "parent_category_id"),
         @Result(property = "grandCategoryId", column = "grand_category_id"),
         @Result(property = "auditStatus", column = "audit_status"),
-        @Result(property = "auditRemark", column = "audit_remark")
+        @Result(property = "auditRemark", column = "audit_remark"),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> findPendingAuditProducts();
 
@@ -279,7 +301,9 @@ public interface ProductMapper {
         @Result(property = "parentCategoryId", column = "parent_category_id"),
         @Result(property = "grandCategoryId", column = "grand_category_id"),
         @Result(property = "auditStatus", column = "audit_status"),
-        @Result(property = "auditRemark", column = "audit_remark")
+        @Result(property = "auditRemark", column = "audit_remark"),
+        @Result(property = "productSkuId", column = "product_sku_id"),
+        @Result(property = "totalStock", column = "total_stock")
     })
     List<Product> getAllProducts();
 }

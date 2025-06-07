@@ -36,9 +36,9 @@ public class StockServiceImpl implements StockService {
         }
 
         // 2. 检查库存是否足够
-        if (product.getStock() < quantity) {
+        if (product.getTotalStock() < quantity) {
             logger.error("商品库存不足: {}, 当前库存: {}, 需要: {}", 
-                    productId, product.getStock(), quantity);
+                    productId, product.getTotalStock(), quantity);
             return false;
         }
 
@@ -51,7 +51,7 @@ public class StockServiceImpl implements StockService {
         }
 
         logger.info("库存扣减成功: 商品 {}, 数量 {}, 剩余 {}", 
-                productId, quantity, product.getStock() - quantity);
+                productId, quantity, product.getTotalStock() - quantity);
         return true;
     }
 
@@ -74,14 +74,14 @@ public class StockServiceImpl implements StockService {
         }
 
         logger.info("库存恢复成功: 商品 {}, 数量 {}, 更新后 {}", 
-                productId, quantity, product.getStock() + quantity);
+                productId, quantity, product.getTotalStock() + quantity);
         return true;
     }
 
     @Override
     public Integer getStock(Long productId) {
         Product product = productDao.findById(productId);
-        return product != null ? product.getStock() : 0;
+        return product != null ? product.getTotalStock() : 0;
     }
 
     @Override

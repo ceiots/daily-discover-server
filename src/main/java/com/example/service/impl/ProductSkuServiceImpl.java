@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -22,15 +23,33 @@ public class ProductSkuServiceImpl implements ProductSkuService {
     private ProductSkuMapper productSkuMapper;
 
     @Override
-    public List<ProductSku> getSkusByProductId(Long productId) {
-        QueryWrapper<ProductSku> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("product_id", productId);
-        return productSkuMapper.selectList(queryWrapper);
+    @Transactional
+    public ProductSku createSku(ProductSku productSku) {
+        if (productSku.getCreatedAt() == null) {
+            productSku.setCreatedAt(new Date());
+        }
+        productSkuMapper.insertSku(productSku);
+        return productSku;
     }
 
     @Override
-    public ProductSku getSkuById(Long skuId) {
-        return productSkuMapper.selectById(skuId);
+    @Transactional
+    public List<ProductSku> batchCreateSku(List<ProductSku> productSkus) {
+        List<ProductSku> savedSkus = new ArrayList<>();
+        for (ProductSku sku : productSkus) {
+            savedSkus.add(createSku(sku));
+        }
+        return savedSkus;
+    }
+
+    @Override
+    public List<ProductSku> getSkusByProductId(Long productId) {
+        return productSkuMapper.findByProductId(productId);
+    }
+
+    @Override
+    public ProductSku getSkuById(Long id) {
+        return productSkuMapper.findById(id);
     }
 
     @Override
@@ -55,38 +74,20 @@ public class ProductSkuServiceImpl implements ProductSkuService {
 
     @Override
     @Transactional
-    public ProductSku saveOrUpdateSku(ProductSku sku) {
-        if (sku.getId() == null) {
-            productSkuMapper.insert(sku);
-        } else {
-            productSkuMapper.updateById(sku);
-        }
-        return sku;
+    public ProductSku updateSku(ProductSku productSku) {
+        productSkuMapper.updateSku(productSku);
+        return productSku;
     }
 
     @Override
     @Transactional
-    public List<ProductSku> batchSaveOrUpdateSkus(List<ProductSku> skus) {
-        List<ProductSku> result = new ArrayList<>();
-        
-        for (ProductSku sku : skus) {
-            result.add(saveOrUpdateSku(sku));
-        }
-        
-        return result;
-    }
-
-    @Override
-    @Transactional
-    public void deleteSku(Long skuId) {
-        productSkuMapper.deleteById(skuId);
+    public void deleteSku(Long id) {
+        productSkuMapper.deleteSku(id);
     }
 
     @Override
     @Transactional
     public void deleteSkusByProductId(Long productId) {
-        QueryWrapper<ProductSku> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("product_id", productId);
-        productSkuMapper.delete(queryWrapper);
+        productSkuMapper.deleteByProductId(productId);
     }
 } 

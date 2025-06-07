@@ -24,6 +24,12 @@ public class Product {
     private BigDecimal price;
     private Integer soldCount;
     
+    // 修改SKU ID字段类型为Long
+    private Long productSkuId;
+    
+    // 添加总库存字段
+    private Integer totalStock;
+    
     // 添加版本号用于乐观锁
     @Version
     private Integer version;

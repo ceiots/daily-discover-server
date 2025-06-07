@@ -290,7 +290,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         
         // 3. 库存洞察
-        if (product.getStock() != null && product.getStock() < 50) {
+        if (product.getTotalStock() != null && product.getTotalStock() < 50) {
             int stockPercentage = 5 + random.nextInt(15);
             return String.format("本周热销榜首，库存仅剩不到%d%%，适合立即购买", stockPercentage);
         }

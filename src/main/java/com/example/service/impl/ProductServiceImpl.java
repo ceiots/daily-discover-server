@@ -137,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
         if (skus != null && !skus.isEmpty()) {
             for (ProductSku sku : skus) {
                 sku.setProductId(product.getId());
-                productSkuService.saveOrUpdateSku(sku);
+                productSkuService.createSku(sku);
             }
         }
         
@@ -163,7 +163,7 @@ public class ProductServiceImpl implements ProductService {
                 for (ProductSku sku : skus) {
                     sku.setId(null); // 确保是新增
                     sku.setProductId(product.getId());
-                    productSkuService.saveOrUpdateSku(sku);
+                    productSkuService.createSku(sku);
                 }
             }
         }
