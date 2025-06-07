@@ -220,7 +220,7 @@ public class UserController {
 
         try {
             User user = userService.findUserById(userId);
-            boolean hasPaymentPassword = user != null && user.getPaymentPassword() != null;
+            boolean hasPaymentPassword = user != null && user.getPaymentPassword() != null && !user.getPaymentPassword().trim().isEmpty();
             
             Map<String, Object> data = new HashMap<>();
             data.put("hasPaymentPassword", hasPaymentPassword);
@@ -328,7 +328,7 @@ public class UserController {
 
             // 验证支付密码
             String encryptedPassword = userService.encryptPassword(password);
-            if (encryptedPassword.equals(user.getPaymentPassword())) {
+            if (passwordEncoder.matches(password, encryptedPassword)) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("code", 200);
                 response.put("message", "支付密码验证成功");

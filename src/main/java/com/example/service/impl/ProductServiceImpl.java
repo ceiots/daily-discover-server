@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import com.example.service.ProductSkuService;
+import com.example.model.ProductSku;
 
 @Slf4j
 @Service
@@ -37,6 +39,9 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ShopService shopService;
     
+    @Autowired
+    private ProductSkuService productSkuService;
+    
     @Override
     public List<Product> getAllProducts() {
         return productMapper.getAllProducts();
@@ -50,7 +55,13 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public Product getProductById(Long id) {
-        return productMapper.findById(id);
+        Product product = productMapper.findById(id);
+        if (product != null) {
+            // 加载商品SKU
+            List<ProductSku> skus = productSkuService.getSkusByProductId(id);
+            product.setSkus(skus);
+        }
+        return product;
     }
     
     @Override
@@ -121,6 +132,15 @@ public class ProductServiceImpl implements ProductService {
             // TODO: 处理标签关联
         }
         
+        // 处理商品SKU
+        List<ProductSku> skus = product.getSkus();
+        if (skus != null && !skus.isEmpty()) {
+            for (ProductSku sku : skus) {
+                sku.setProductId(product.getId());
+                productSkuService.saveOrUpdateSku(sku);
+            }
+        }
+        
         return product;
     }
     
@@ -131,12 +151,32 @@ public class ProductServiceImpl implements ProductService {
         product.setAuditStatus(0);
         
         productMapper.update(product);
+        
+        // 处理商品SKU
+        List<ProductSku> skus = product.getSkus();
+        if (skus != null) {
+            // 先删除原有的SKU
+            productSkuService.deleteSkusByProductId(product.getId());
+            
+            // 再保存新的SKU
+            if (!skus.isEmpty()) {
+                for (ProductSku sku : skus) {
+                    sku.setId(null); // 确保是新增
+                    sku.setProductId(product.getId());
+                    productSkuService.saveOrUpdateSku(sku);
+                }
+            }
+        }
+        
         return product;
     }
     
     @Override
     @Transactional
     public void deleteProduct(Long id) {
+        // 删除商品SKU
+        productSkuService.deleteSkusByProductId(id);
+        
         productMapper.deleteById(id);
     }
     

@@ -26,8 +26,7 @@ public class Order {
     private Long addressId;
     private Date createdAt;
     private Date paymentTime;
-    private Long shopId; // 订单所属店铺ID
-    private BigDecimal platformCommissionRate; // 平台佣金比例
+   
     private BigDecimal platformCommissionAmount; // 平台佣金金额
     private BigDecimal shopAmount; // 店铺实际收款金额
     private Integer settlementStatus; // 结算状态：0-未结算，1-已结算

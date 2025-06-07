@@ -6,6 +6,7 @@ import com.example.service.OrderService;
 import com.example.service.ShopService;
 import com.example.mapper.OrderMapper;
 import com.example.model.Shop;
+import com.example.model.OrderItem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,22 +52,40 @@ public class OrderSettlementServiceImpl implements OrderSettlementService {
             return order;
         }
         
-        // 获取店铺信息，可以根据店铺等级或类型设置不同的佣金比例
-        Shop shop = shopService.getShopById(order.getShopId());
-        BigDecimal commissionRate = DEFAULT_COMMISSION_RATE;
+        // 初始化总佣金金额
+        BigDecimal totalCommissionAmount = BigDecimal.ZERO;
         
-        // 计算佣金金额
-        BigDecimal commissionAmount = order.getPaymentAmount().multiply(commissionRate)
-                .setScale(2, RoundingMode.HALF_UP);
+        // 按商品计算佣金
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            for (OrderItem item : order.getItems()) {
+                // 根据商品类别获取佣金比例
+                BigDecimal commissionRate = getCommissionRateByProductCategory(item.getProductId());
                 
+                // 计算单个商品的佣金金额
+                BigDecimal itemCommissionAmount = item.getSubtotal().multiply(commissionRate)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+                
+                // 设置商品的佣金比例和金额
+                item.setCommissionRate(commissionRate);
+                item.setCommissionAmount(itemCommissionAmount);
+                
+                // 累加总佣金
+                totalCommissionAmount = totalCommissionAmount.add(itemCommissionAmount);
+                
+                logger.info("商品佣金计算 - 商品ID: {}, 小计: {}, 佣金比例: {}, 佣金金额: {}", 
+                    item.getProductId(), item.getSubtotal(), commissionRate, itemCommissionAmount);
+            }
+        }
+        
+        order.setPlatformCommissionAmount(totalCommissionAmount);
+        
         // 计算店铺实际收款金额
-        BigDecimal shopAmount = order.getPaymentAmount().subtract(commissionAmount)
-                .setScale(2, RoundingMode.HALF_UP);
-                
-        // 设置佣金相关信息
-        order.setPlatformCommissionRate(commissionRate);
-        order.setPlatformCommissionAmount(commissionAmount);
+        BigDecimal shopAmount = order.getPaymentAmount().subtract(totalCommissionAmount);
         order.setShopAmount(shopAmount);
+        
+        logger.info("订单佣金计算 - 总金额: {}, 佣金总额: {}, 店铺收款: {}", 
+            order.getPaymentAmount(), totalCommissionAmount, shopAmount);
+        
         order.setSettlementStatus(0); // 未结算
         
         return order;
@@ -107,6 +126,12 @@ public class OrderSettlementServiceImpl implements OrderSettlementService {
             order.setSettlementStatus(1); // 已结算
             order.setSettlementTime(new Date());
             
+            // 获取店铺ID
+            Long shopId = null;
+            if (order.getItems() != null && !order.getItems().isEmpty()) {
+                shopId = order.getItems().get(0).getShopId();
+            }
+            
             // 调用支付服务，将资金转入商家账户（实际项目中需要实现）
             boolean transferSuccess = transferFundsToShop(order);
             if (!transferSuccess) {
@@ -118,7 +143,7 @@ public class OrderSettlementServiceImpl implements OrderSettlementService {
             orderService.updateOrder(order);
             
             logger.info("订单结算成功，订单ID: {}, 店铺ID: {}, 结算金额: {}", 
-                    orderId, order.getShopId(), order.getShopAmount());
+                    orderId, shopId, order.getShopAmount());
             return true;
         } catch (Exception e) {
             logger.error("订单结算异常，订单ID: {}", orderId, e);
@@ -226,9 +251,45 @@ public class OrderSettlementServiceImpl implements OrderSettlementService {
      * 实际项目中需要对接支付系统实现
      */
     private boolean transferFundsToShop(Order order) {
+        // 获取店铺ID
+        Long shopId = null;
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            shopId = order.getItems().get(0).getShopId();
+        }
+        
         // 这里模拟转账成功
         logger.info("模拟资金转账到店铺账户，订单ID: {}, 店铺ID: {}, 金额: {}", 
-                order.getId(), order.getShopId(), order.getShopAmount());
+                order.getId(), shopId, order.getShopAmount());
         return true;
+    }
+    
+    /**
+     * 根据商品类别获取佣金比例
+     * @param productId 商品ID
+     * @return 佣金比例
+     */
+    private BigDecimal getCommissionRateByProductCategory(Long productId) {
+        // 这里可以根据商品ID查询商品类别，然后根据类别返回对应的佣金比例
+        // 简化实现，实际应该查询数据库获取商品类别和对应的佣金比例
+        
+        // 模拟不同类别的佣金比例
+        Map<String, BigDecimal> categoryCommissionRates = new HashMap<>();
+        categoryCommissionRates.put("电子产品", new BigDecimal("0.05")); // 5%
+        categoryCommissionRates.put("服装", new BigDecimal("0.10")); // 10%
+        categoryCommissionRates.put("食品", new BigDecimal("0.03")); // 3%
+        categoryCommissionRates.put("家居", new BigDecimal("0.07")); // 7%
+        categoryCommissionRates.put("美妆", new BigDecimal("0.15")); // 15%
+        
+        // 默认佣金比例
+        BigDecimal defaultRate = DEFAULT_COMMISSION_RATE;
+        
+        // 这里应该根据productId查询商品类别，然后返回对应的佣金比例
+        // 简化实现，随机返回一个类别的佣金比例
+        String[] categories = {"电子产品", "服装", "食品", "家居", "美妆"};
+        String category = categories[Math.abs(productId.intValue() % categories.length)];
+        
+        logger.info("商品ID: {}, 类别: {}, 佣金比例: {}", productId, category, categoryCommissionRates.get(category));
+        
+        return categoryCommissionRates.getOrDefault(category, defaultRate);
     }
 }

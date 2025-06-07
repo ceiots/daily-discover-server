@@ -352,15 +352,6 @@ public class ProductController {
                 product.setImageUrl(product.getImages().get(0));
             }
             
-            // 对规格参数进行处理
-            if (product.getSpecifications() != null) {
-                for (int i = 0; i < product.getSpecifications().size(); i++) {
-                    Specification spec = product.getSpecifications().get(i);
-                    if (spec.getValues() == null) {
-                        spec.setValues(new ArrayList<>());
-                    }
-                }
-            }
             
             // 如果details字段映射成功但productDetails为空，则将details赋值给productDetails
             if (product.getDetails() != null && (product.getProductDetails() == null || product.getProductDetails().isEmpty())) {
@@ -395,25 +386,6 @@ public class ProductController {
                 product.setProductDetails(productDetails);
             }
             
-            // 确保stock字段有值
-            if (requestBody.containsKey("stock")) {
-                Object stockObj = requestBody.get("stock");
-                if (stockObj instanceof Number) {
-                    Integer stock = ((Number) stockObj).intValue();
-                    product.setStock(stock);
-                } else if (stockObj instanceof String) {
-                    try {
-                        Integer stock = Integer.parseInt((String)stockObj);
-                        product.setStock(stock);
-                    } catch (NumberFormatException e) {
-                        product.setStock(0); // 默认值
-                    }
-                } else {
-                    product.setStock(0); // 默认值
-                }
-            } else {
-                product.setStock(0); // 默认值
-            }
             
             Product createdProduct = productService.createProduct(product);
             return CommonResult.success(createdProduct);

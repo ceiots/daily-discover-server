@@ -10,7 +10,7 @@ import java.util.List;
 @Mapper
 public interface ProductMapper {
 
-        @Insert("INSERT INTO recommendations (title, imageUrl, price, soldCount, stock, " + "specifications, product_details, purchase_notices, " +
+        @Insert("INSERT INTO product (title, imageUrl, price, soldCount, stock, " + "specifications, product_details, purchase_notices, " +
             "created_at, category_id, parent_category_id, grand_category_id, shop_id, user_id, audit_status, audit_remark) " +
             "VALUES (#{title}, #{imageUrl}, #{price}, #{soldCount}, #{stock}, " +
             "#{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
@@ -21,7 +21,7 @@ public interface ProductMapper {
     void insert(Product product);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.deleted = 0 AND r.audit_status = 1 " +
             "LIMIT #{limit} OFFSET #{offset}")
@@ -46,7 +46,7 @@ public interface ProductMapper {
     List<Product> getProductsWithPagination(@Param("limit") int limit, @Param("offset") int offset);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.id = #{id}")
     @Results({
@@ -67,7 +67,7 @@ public interface ProductMapper {
     Product findById(Long id);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.category_id = #{categoryId}")
     @Results({
@@ -86,7 +86,7 @@ public interface ProductMapper {
     List<Product> findByCategoryId(Long categoryId);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.deleted = 0 AND r.audit_status = 1 " +
             "ORDER BY RAND() LIMIT 10")
@@ -111,7 +111,7 @@ public interface ProductMapper {
      * @return 随机商品列表
      */
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.deleted = 0 AND r.audit_status = 1 " +
             "ORDER BY RAND() LIMIT #{limit}")
@@ -131,7 +131,7 @@ public interface ProductMapper {
     List<Product> findRandomWithLimit(@Param("limit") int limit);
 
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.title LIKE CONCAT('%', #{keyword}, '%')")
     @Results({
@@ -153,7 +153,7 @@ public interface ProductMapper {
     List<Comment> getCommentsByProductId(Long productId);
     
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.shop_id = #{shopId}")
     @Results({
@@ -175,7 +175,7 @@ public interface ProductMapper {
      * 根据店铺ID获取已审核通过的商品列表
      */
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.shop_id = #{shopId} AND r.deleted = 0 AND r.audit_status = 1")
     @Results({
@@ -196,7 +196,7 @@ public interface ProductMapper {
     /**
      * 更新商品
      */
-    @Update("UPDATE recommendations SET " +
+    @Update("UPDATE product SET " +
             "title = #{title}, " +
             "price = #{price}, " +
             "stock = #{stock}, " +
@@ -214,20 +214,20 @@ public interface ProductMapper {
     /**
      * 设置商品为已删除状态（逻辑删除）
      */
-    @Update("UPDATE recommendations SET deleted = 1 WHERE id = #{id}")
+    @Update("UPDATE product SET deleted = 1 WHERE id = #{id}")
     void deleteById(Long id);
 
     /**
      * 添加审核接口
      */
-    @Update("UPDATE recommendations SET audit_status = #{auditStatus}, audit_remark = #{auditRemark} WHERE id = #{id}")
+    @Update("UPDATE product SET audit_status = #{auditStatus}, audit_remark = #{auditRemark} WHERE id = #{id}")
     void updateAuditStatus(@Param("id") Long id, @Param("auditStatus") Integer auditStatus, @Param("auditRemark") String auditRemark);
 
     /**
      * 获取待审核的商品列表（管理员使用）
      */
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.deleted = 0 AND r.audit_status = 0")
     @Results({
@@ -250,17 +250,17 @@ public interface ProductMapper {
     })
     List<Product> findPendingAuditProducts();
 
-    @Select("SELECT COUNT(*) FROM recommendations r WHERE r.deleted = 0 AND r.audit_status = 1")
+    @Select("SELECT COUNT(*) FROM product r WHERE r.deleted = 0 AND r.audit_status = 1")
     int countApprovedProducts();
     
     /**
      * 统计所有商品数量（包括待审核的）
      */
-    @Select("SELECT COUNT(*) FROM recommendations r WHERE r.deleted = 0")
+    @Select("SELECT COUNT(*) FROM product r WHERE r.deleted = 0")
     int countProducts();
     
     @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM recommendations r " +
+            "FROM product r " +
             "LEFT JOIN shop s ON r.shop_id = s.id " +
             "WHERE r.deleted = 0 AND r.audit_status = 1")
     @Results({

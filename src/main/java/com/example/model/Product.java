@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Date;
 
 @Data
-@TableName(value = "recommendations", autoResultMap = true)
+@TableName(value = "product", autoResultMap = true)
 public class Product {
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -23,15 +23,10 @@ public class Product {
     private String imageUrl;
     private BigDecimal price;
     private Integer soldCount;
-    private Integer stock; // 添加库存字段
     
     // 添加版本号用于乐观锁
     @Version
     private Integer version;
-
-    // 规格参数，使用JSON存储
-    @TableField(typeHandler = JsonTypeHandler.class)
-    private List<Specification> specifications;
 
     // 商品详情，支持图文
     @TableField(typeHandler = JsonTypeHandler.class)
@@ -84,5 +79,8 @@ public class Product {
 
     // 添加匹配分数字段，用于推荐系统
     private Integer matchScore;
-
+    
+    // 商品SKU列表，非数据库字段
+    @TableField(exist = false)
+    private List<ProductSku> skus;
 }

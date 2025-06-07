@@ -297,5 +297,15 @@ public class UserService {
     public List<User> getAllUsers() {
         return userMapper.findAll();
     }
+
+
+    // BCryptPasswordEncoder 是不可逆加密算法，无法进行“解密”操作，只能进行密码校验
+    public static void main(String[] args) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String rawPassword = "123456";
+        String encodedPassword = "$2a$10$c1Yq73C5qSMGvs2JcQysJehwDMnSu1tWYIoVINbUemJxXZ15UeEqS";
+        boolean matches = passwordEncoder.matches(rawPassword, encodedPassword);
+        System.out.println("密码是否匹配: " + matches);
+    }
     
 }

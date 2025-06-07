@@ -122,43 +122,18 @@ public class OrderServiceImpl implements OrderService {
                 throw new IllegalArgumentException("订单总金额不匹配");
             }
             
-            // 设置店铺ID（从第一个商品项获取）
-            if (orderDTO.getOrder().getItems() != null && !orderDTO.getOrder().getItems().isEmpty()) {
-                OrderItem firstItem = orderDTO.getOrder().getItems().get(0);
-                // 从商品项中获取店铺信息
-                Long shopId = null;
-                if (firstItem.getShop() != null && firstItem.getShop().getId() != null) {
-                    shopId = firstItem.getShop().getId();
-                }
-                orderDTO.getOrder().setShopId(shopId);
-                logger.info("设置订单店铺ID: {}", shopId);
-            }
-    
+            // 初始化订单佣金相关字段
+            orderDTO.getOrder().setSettlementStatus(0); // 未结算
+
+            // 按商品计算佣金，调用OrderSettlementService
+            Order orderWithCommission = orderSettlementService.calculateCommission(orderDTO.getOrder());
+            orderDTO.setOrder(orderWithCommission);
+
             // 使用常量设置订单状态
             orderDTO.getOrder().setStatus(ORDER_STATUS_PENDING_PAYMENT); 
             // 调用抽取的公共方法
             Date date = DateUtils.convertLocalDateTimeToDate(LocalDateTime.now());
             orderDTO.getOrder().setCreatedAt(date);
-            
-            // 计算平台佣金
-            if (orderDTO.getOrder().getShopId() != null) {
-                orderDTO.getOrder().setSettlementStatus(0); // 未结算
-                orderDTO.getOrder().setPlatformCommissionRate(new BigDecimal("0.05")); // 默认5%佣金
-                BigDecimal commissionAmount = orderDTO.getOrder().getPaymentAmount()
-                    .multiply(orderDTO.getOrder().getPlatformCommissionRate())
-                    .setScale(2, java.math.RoundingMode.HALF_UP);
-                orderDTO.getOrder().setPlatformCommissionAmount(commissionAmount);
-                
-                // 计算店铺实际收款金额
-                BigDecimal shopAmount = orderDTO.getOrder().getPaymentAmount().subtract(commissionAmount);
-                orderDTO.getOrder().setShopAmount(shopAmount);
-                
-                logger.info("订单佣金计算 - 总金额: {}, 佣金比例: {}, 佣金金额: {}, 店铺收款: {}", 
-                    orderDTO.getOrder().getPaymentAmount(),
-                    orderDTO.getOrder().getPlatformCommissionRate(),
-                    commissionAmount,
-                    shopAmount);
-            }
             
             // 插入订单数据
             orderMapper.insertOrder(orderDTO.getOrder()); // 调用 Mapper 方法
@@ -411,17 +386,6 @@ public class OrderServiceImpl implements OrderService {
                 OrderItem processedItem = new OrderItem();
                 BeanUtils.copyProperties(item, processedItem);
                 
-                // 设置图片URL
-                if (processedItem.getImageUrl() != null) {
-                    String fullImageUrl = ImageConfig.getFullImageUrl(processedItem.getImageUrl());
-                    processedItem.setImageUrl(fullImageUrl);
-                }
-
-                // 设置店铺URL
-                if (processedItem.getShopAvatarUrl() != null) {
-                    processedItem.setShopAvatarUrl(ImageConfig.getFullImageUrl(processedItem.getShopAvatarUrl()));
-                }
-
                 // 设置价格
                 if (processedItem.getPrice() == null) {
                     processedItem.setPrice(BigDecimal.ZERO);
@@ -433,10 +397,10 @@ public class OrderServiceImpl implements OrderService {
                 }
 
                 // 设置商品属性
-                processedItem.setAttributes("默认属性");
+                // processedItem.setAttributes("默认属性");
 
                 processedItems.add(processedItem);
-                System.out.println("处理订单项: " + processedItem.getName() + ", 价格: " + processedItem.getPrice());
+                System.out.println("处理订单项: 商品ID=" + processedItem.getProductId() + ", 价格: " + processedItem.getPrice());
             }
         }
 

@@ -28,7 +28,7 @@
             avatar, 
             registration_time as registrationTime,
             is_official as isOfficial,
-            has_payment_password as hasPaymentPassword
+            payment_password as paymentPassword
         FROM user 
         WHERE id = #{id}
     </select>

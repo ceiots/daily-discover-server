@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import java.time.LocalDateTime;
 import com.example.common.api.CommonResult;
 import com.example.dto.AddressDto;
 import com.example.dto.OrderCreateDTO;
@@ -30,9 +29,7 @@ import com.example.model.Address;
 import com.example.model.OrderItem;
 import com.example.service.AddressService;
 import com.example.service.OrderService;
-import com.example.util.DateUtils;
 
-import java.sql.Timestamp;
 
 /**
  * 订单控制器类，处理订单相关的 HTTP 请求
@@ -69,32 +66,35 @@ public class OrderController {
             Order order = new Order();
             order.setUserId(orderCreateDto.getUserId());
             order.setOrderNumber(orderCreateDto.getOrderNo());
-    
+            order.setCreatedAt(new Date());
+
             List<OrderItem> orderItems = new ArrayList<>();
             for (OrderCreateDTO.OrderItemDto item : orderCreateDto.getItems()) {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProductId(item.getProductId());
                 orderItem.setQuantity(item.getQuantity());
-                orderItem.setName(item.getName());
-                orderItem.setImageUrl(item.getImageUrl());
-                orderItem.setShopAvatarUrl(item.getShopAvatarUrl());
-                orderItem.setShopName(item.getShopName());
+                orderItem.setSkuId(item.getSkuId());
+                orderItem.setShopId(item.getShopId());
                 orderItem.setPrice(item.getPrice()); 
                 orderItem.setSubtotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-                orderItem.setSpecifications(item.getSpecifications());
                 orderItems.add(orderItem);
             }
             order.setItems(orderItems);
             
             order.setPaymentAmount(orderCreateDto.getTotalAmount());
             order.setPaymentMethod(orderCreateDto.getPayType());
-            order.setStatus(OrderService.ORDER_STATUS_PENDING_DELIVERY); // Use constant to set order status
-    
-            AddressDto addressDto = orderCreateDto.getAddressDto();
-            Order createdOrder = orderService.createOrder(order, addressDto);
-            logger.info("订单创建成功，订单号：{}", createdOrder);
-            return CommonResult.success(createdOrder);
+            order.setStatus(OrderService.ORDER_STATUS_PENDING_PAYMENT); // 使用常量设置为待付款状态
             
+            // 处理地址信息
+            AddressDto addressDto = orderCreateDto.getAddressDto();
+            if (addressDto != null) {
+                // 创建订单对象并传递地址DTO
+                orderCreateDto.setOrder(order);
+                return orderService.createOrder(orderCreateDto);
+            } else {
+                logger.error("创建订单时，地址信息为空");
+                return CommonResult.failed("收货地址不能为空");
+            }
         } catch (Exception e) {
             logger.error("创建订单时发生异常", e);
             return CommonResult.failed("创建订单失败：" + e.getMessage());

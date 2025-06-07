@@ -26,9 +26,10 @@ public class OrderCreateDTO {
         private String imageUrl;
         private String shopAvatarUrl;
         private String shopName;
+        private Long shopId;
+        private Long skuId;
         private Integer quantity;
         private BigDecimal price;
-        private List<Specification> specifications; // 添加规格信息字段
     }
 
     public Order getOrder() {

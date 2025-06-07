@@ -53,10 +53,6 @@ public interface OrderMapper {
     })
     Order findById(Long orderId);
 
-    // 添加缺失的常量定义
-    String SELECT_ORDER_ITEMS_BY_ORDER_ID_SQL = "SELECT * FROM order_item WHERE order_id = #{orderId}";
-    
-
     @Update(CANCEL_ORDER_SQL)
     void cancelOrder(Long orderId);
     
@@ -202,28 +198,30 @@ public interface OrderMapper {
     @Select("SELECT COUNT(*) FROM `order` WHERE user_id = #{userId} AND status = #{status}")
     int countOrdersByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
 
-    // 修改订单项查询，关联产品表和店铺表获取更多信息
-    @Select("SELECT oi.*, p.title as name, p.imageUrl, " +
-            "p.specifications as specs, s.shop_name as shopName, s.shop_logo as shopAvatarUrl " +
+    // 修改订单项查询，关联产品表、SKU表和店铺表获取更多信息
+    @Select("SELECT oi.*, p.title as product_name, ps.image_url as sku_image, " +
+            "ps.specifications, s.shop_name as shopName, s.shop_logo as shopAvatarUrl " +
             "FROM order_item oi " +
-            "LEFT JOIN recommendations p ON oi.product_id = p.id " +
-            "LEFT JOIN shop s ON p.shop_id = s.id " + // 关联 shop 表
+            "LEFT JOIN product p ON oi.product_id = p.id " +
+            "LEFT JOIN product_sku ps ON oi.sku_id = ps.id " +
+            "LEFT JOIN shop s ON oi.shop_id = s.id " + 
             "WHERE oi.order_id = #{orderId}")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "orderId", column = "order_id"),
+        @Result(property = "shopId", column = "shop_id"),
         @Result(property = "shopName", column = "shopName"),
         @Result(property = "shopAvatarUrl", column = "shopAvatarUrl"),
         @Result(property = "productId", column = "product_id"),
+        @Result(property = "skuId", column = "sku_id"),
+        @Result(property = "skuImage", column = "sku_image"),
         @Result(property = "quantity", column = "quantity"),
         @Result(property = "price", column = "price"),
         @Result(property = "subtotal", column = "subtotal"),
-        @Result(property = "name", column = "name"),
-        @Result(property = "imageUrl", column = "imageUrl"),
-        @Result(property = "specs", column = "specs"),
+        @Result(property = "product_name", column = "product_name"),
         @Result(property = "specifications", column = "specifications", 
                 typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "shop", column = "p.shop_id",
+        @Result(property = "shop", column = "shop_id",
                 one = @One(select = "com.example.mapper.ShopMapper.findById"))
     })
     List<OrderItem> findItemsByOrderId(Long orderId);

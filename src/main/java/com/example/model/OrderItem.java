@@ -25,24 +25,21 @@ public class OrderItem {
     @TableField("product_id")
     private Long productId;
     
-    private String productName;
-    private String productImage;
-    private String specs;
-    private String attributes;
+    @TableField("shop_id")
+    private Long shopId;
     
-    private String name;
-    private String imageUrl;
+    @TableField("sku_id")
+    private Long skuId;
+    
+    @TableField("commission_rate")
+    private BigDecimal commissionRate; // 商品佣金比例
+    
+    @TableField("commission_amount")
+    private BigDecimal commissionAmount; // 商品佣金金额
+    
     private Integer quantity;
     private BigDecimal price;
     private BigDecimal subtotal;
-    
-    // 商品规格
-    @TableField(typeHandler = JsonTypeHandler.class)
-    private List<Specification> specifications;
-    
-    // 店铺信息
-    private String shopName;
-    private String shopAvatarUrl;
     
     // 关联Shop对象
     @TableField(exist = false)
@@ -72,22 +69,6 @@ public class OrderItem {
         this.productId = productId;
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
     public Integer getQuantity() {
         return quantity;
     }
@@ -112,35 +93,36 @@ public class OrderItem {
         this.subtotal = subtotal;
     }
 
-    public List<Specification> getSpecifications() {
-        return specifications;
+    public Long getShopId() {
+        return shopId;
     }
 
-    public void setSpecifications(List<Specification> specifications) {
-        this.specifications = specifications;
+    public void setShopId(Long shopId) {
+        this.shopId = shopId;
     }
 
-    public String getAttributes() {
-        return attributes;
+    public BigDecimal getCommissionRate() {
+        return commissionRate;
     }
 
-    public void setAttributes(String attributes) {
-        this.attributes = attributes;
+    public void setCommissionRate(BigDecimal commissionRate) {
+        this.commissionRate = commissionRate;
     }
 
-    public String getShopName() {
-        return shopName;
+    public BigDecimal getCommissionAmount() {
+        return commissionAmount;
     }
 
-    public void setShopName(String shopName) {
-        this.shopName = shopName;
+    public void setCommissionAmount(BigDecimal commissionAmount) {
+        this.commissionAmount = commissionAmount;
     }
 
-    public String getShopAvatarUrl() {
-        return shopAvatarUrl;
+    public Long getSkuId() {
+        return skuId;
     }
 
-    public void setShopAvatarUrl(String shopAvatarUrl) {
-        this.shopAvatarUrl = shopAvatarUrl;
+    public void setSkuId(Long skuId) {
+        this.skuId = skuId;
     }
+
 }

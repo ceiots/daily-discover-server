@@ -14,13 +14,13 @@ public interface OrderSettlementService {
     
     /**
      * 计算订单佣金
-     * @param order 订单对象
-     * @return 计算佣金后的订单对象
+     * @param order 订单信息
+     * @return 计算佣金后的订单
      */
     Order calculateCommission(Order order);
     
     /**
-     * 结算订单
+     * 结算单个订单
      * @param orderId 订单ID
      * @return 是否结算成功
      */
@@ -72,7 +72,7 @@ public interface OrderSettlementService {
      * @param shopId 店铺ID
      * @param startDate 开始日期
      * @param endDate 结束日期
-     * @return 结算汇总信息
+     * @return 结算汇总
      */
     SettlementSummary getSettlementSummary(Long shopId, Date startDate, Date endDate);
     
@@ -80,38 +80,68 @@ public interface OrderSettlementService {
      * 获取平台结算统计数据
      * @param startDate 开始日期
      * @param endDate 结束日期
-     * @return 结算统计数据
+     * @return 统计数据
      */
     Map<String, Object> getSettlementStatistics(Date startDate, Date endDate);
     
     /**
-     * 结算汇总信息
+     * 结算汇总类
      */
     class SettlementSummary {
         private Long shopId;
         private String shopName;
-        private int totalOrders;
-        private BigDecimal totalAmount;
-        private BigDecimal totalCommission;
-        private BigDecimal totalSettlementAmount;
+        private Integer totalOrders;
+        private java.math.BigDecimal totalAmount;
+        private java.math.BigDecimal totalCommission;
+        private java.math.BigDecimal totalSettlementAmount;
         
         // Getters and setters
-        public Long getShopId() { return shopId; }
-        public void setShopId(Long shopId) { this.shopId = shopId; }
+        public Long getShopId() {
+            return shopId;
+        }
         
-        public String getShopName() { return shopName; }
-        public void setShopName(String shopName) { this.shopName = shopName; }
+        public void setShopId(Long shopId) {
+            this.shopId = shopId;
+        }
         
-        public int getTotalOrders() { return totalOrders; }
-        public void setTotalOrders(int totalOrders) { this.totalOrders = totalOrders; }
+        public String getShopName() {
+            return shopName;
+        }
         
-        public BigDecimal getTotalAmount() { return totalAmount; }
-        public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+        public void setShopName(String shopName) {
+            this.shopName = shopName;
+        }
         
-        public BigDecimal getTotalCommission() { return totalCommission; }
-        public void setTotalCommission(BigDecimal totalCommission) { this.totalCommission = totalCommission; }
+        public Integer getTotalOrders() {
+            return totalOrders;
+        }
         
-        public BigDecimal getTotalSettlementAmount() { return totalSettlementAmount; }
-        public void setTotalSettlementAmount(BigDecimal totalSettlementAmount) { this.totalSettlementAmount = totalSettlementAmount; }
+        public void setTotalOrders(Integer totalOrders) {
+            this.totalOrders = totalOrders;
+        }
+        
+        public java.math.BigDecimal getTotalAmount() {
+            return totalAmount;
+        }
+        
+        public void setTotalAmount(java.math.BigDecimal totalAmount) {
+            this.totalAmount = totalAmount;
+        }
+        
+        public java.math.BigDecimal getTotalCommission() {
+            return totalCommission;
+        }
+        
+        public void setTotalCommission(java.math.BigDecimal totalCommission) {
+            this.totalCommission = totalCommission;
+        }
+        
+        public java.math.BigDecimal getTotalSettlementAmount() {
+            return totalSettlementAmount;
+        }
+        
+        public void setTotalSettlementAmount(java.math.BigDecimal totalSettlementAmount) {
+            this.totalSettlementAmount = totalSettlementAmount;
+        }
     }
 }

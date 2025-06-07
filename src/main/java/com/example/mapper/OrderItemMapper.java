@@ -9,9 +9,8 @@ import java.util.List;
 @Mapper
 public interface OrderItemMapper {
 
-    @Insert("INSERT INTO order_item (order_id, product_id, quantity, price, subtotal, specifications) " +
-            "VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal}, " +
-            "#{specifications,typeHandler=com.example.util.SpecificationsTypeHandler})")
+    @Insert("INSERT INTO order_item (order_id, product_id, quantity, price, subtotal, specifications, shop_id, commission_rate, commission_amount, sku_id, sku_image) " +
+            "VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal}, #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, #{shopId}, #{commissionRate}, #{commissionAmount}, #{skuId}, #{skuImage})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insertOrderItem(OrderItem orderItem);
 
@@ -23,8 +22,13 @@ public interface OrderItemMapper {
         @Result(property = "quantity", column = "quantity"),
         @Result(property = "price", column = "price"),
         @Result(property = "subtotal", column = "subtotal"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "skuId", column = "sku_id"),
+        @Result(property = "skuImage", column = "sku_image"),
+        @Result(property = "commissionRate", column = "commission_rate"),
+        @Result(property = "commissionAmount", column = "commission_amount"),
         @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class) // 修改为简单类名
+                typeHandler = SpecificationsTypeHandler.class)
     })
     List<OrderItem> findByOrderId(Long orderId);
 

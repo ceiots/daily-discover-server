@@ -12,7 +12,6 @@
         <result column="payment_time" property="paymentTime"/>
         <result column="order_addr_id" property="orderAddrId"/>
         <result column="status" property="status"/>
-        <result column="shipping_address" property="shippingAddress"/>
         <collection property="items" ofType="com.example.model.OrderItem">
             <id column="item_id" property="id"/>
             <result column="product_id" property="productId"/>
@@ -25,10 +24,10 @@
     <insert id="insert" parameterType="com.example.model.Order" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO `order` (
             user_id, order_number, created_at, payment_method, 
-            payment_amount, status, shipping_address, order_addr_id
+            payment_amount, status, order_addr_id
         ) VALUES (
             #{userId}, #{orderNumber}, #{createdAt}, #{paymentMethod}, 
-            #{paymentAmount}, #{status}, #{shippingAddress}, #{orderAddrId}
+            #{paymentAmount}, #{status}, #{orderAddrId}
         )
     </insert>
 
@@ -77,7 +76,7 @@
             oi.specs,
             oi.attributes
         FROM 
-            order_items oi
+            order_item oi
         WHERE 
             oi.order_id = #{orderId}
     </select>
@@ -93,4 +92,14 @@
             AND user_id = #{userId}
             AND status = 0
     </update>
+
+    <insert id="insertOrder" parameterType="com.example.model.Order" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `order` (
+            user_id, order_number, payment_amount, payment_method, payment_time, status, created_at, 
+            address_id, shop_id, platform_commission_rate, platform_commission_amount, shop_amount, settlement_status, settlement_time
+        ) VALUES (
+            #{userId}, #{orderNumber}, #{paymentAmount}, #{paymentMethod}, #{paymentTime}, #{status}, #{createdAt}, 
+            #{addressId}, #{shopId}, #{platformCommissionRate}, #{platformCommissionAmount}, #{shopAmount}, #{settlementStatus}, #{settlementTime}
+        )
+    </insert>
 </mapper> 
