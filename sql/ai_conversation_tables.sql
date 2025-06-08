@@ -1,5 +1,6 @@
--- AI对话功能表结构设计
+-- AI对话功能表结构设计（MVP版本）
 -- 设计原则: 字段控制在20个以内，无外键约束，针对高并发高可用场景优化
+-- 采用MVP原则，保留核心功能，避免过度设计
 
 -- AI对话会话表 (记录用户与AI的对话会话)
 CREATE TABLE IF NOT EXISTS `ai_conversation` (
@@ -10,12 +11,10 @@ CREATE TABLE IF NOT EXISTS `ai_conversation` (
   `model_id` varchar(50) NOT NULL COMMENT '使用的模型标识',
   `context_length` int(11) NOT NULL DEFAULT '0' COMMENT '上下文长度',
   `total_tokens` int(11) NOT NULL DEFAULT '0' COMMENT '累计消耗的token',
-  `last_message_time` datetime DEFAULT NULL COMMENT '最后消息时间',
   `custom_settings` json DEFAULT NULL COMMENT '自定义会话设置',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-进行中,2-已结束,3-异常中断',
-  `device_info` varchar(255) DEFAULT NULL COMMENT '设备信息',
-  `ip_address` varchar(50) DEFAULT NULL COMMENT 'IP地址',
   `is_pinned` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否置顶:0-否,1-是',
+  `last_message_time` datetime DEFAULT NULL COMMENT '最后消息时间',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -34,11 +33,9 @@ CREATE TABLE IF NOT EXISTS `ai_message` (
   `content` text NOT NULL COMMENT '消息内容',
   `content_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '内容类型:1-文本,2-图片,3-音频,4-视频,5-文件',
   `token_count` int(11) DEFAULT '0' COMMENT '消息token数',
-  `duration_ms` int(11) DEFAULT NULL COMMENT '处理耗时(毫秒)',
   `media_urls` json DEFAULT NULL COMMENT '媒体文件URL',
   `reference_ids` json DEFAULT NULL COMMENT '引用的知识库/资源ID',
   `feedback_type` tinyint(4) DEFAULT NULL COMMENT '反馈类型:1-点赞,2-点踩,3-举报',
-  `feedback_time` datetime DEFAULT NULL COMMENT '反馈时间',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_conversation_idx` (`conversation_id`, `message_index`),
@@ -79,12 +76,10 @@ CREATE TABLE IF NOT EXISTS `ai_conversation_template` (
   `suggested_questions` json DEFAULT NULL COMMENT '建议问题',
   `model_code` varchar(50) DEFAULT NULL COMMENT '推荐使用的模型',
   `model_params` json DEFAULT NULL COMMENT '模型参数',
-  `icon_url` varchar(255) DEFAULT NULL COMMENT '图标URL',
   `usage_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '使用次数',
-  `sort_order` int(11) DEFAULT '0' COMMENT '排序顺序',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-启用,0-禁用',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序顺序',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_template_code` (`template_code`),
   KEY `idx_category_status` (`template_category`, `status`),
@@ -124,8 +119,6 @@ CREATE TABLE IF NOT EXISTS `ai_knowledge_document` (
   `file_size` bigint(20) DEFAULT NULL COMMENT '文件大小(bytes)',
   `chunk_count` int(11) NOT NULL DEFAULT '0' COMMENT '分块数量',
   `embedding_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '向量化状态:0-未处理,1-处理中,2-已完成,3-失败',
-  `last_embedding_time` datetime DEFAULT NULL COMMENT '最后向量化时间',
-  `error_message` varchar(500) DEFAULT NULL COMMENT '错误信息',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
