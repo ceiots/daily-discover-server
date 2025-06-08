@@ -1,4 +1,4 @@
--- 物流公司表
+-- 物流公司表（支持的物流公司）
 CREATE TABLE IF NOT EXISTS `logistics_company` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '物流公司ID',
   `name` varchar(50) NOT NULL COMMENT '物流公司名称',
@@ -9,14 +9,12 @@ CREATE TABLE IF NOT EXISTS `logistics_company` (
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
   `sort_order` int(11) DEFAULT '0' COMMENT '排序',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_code` (`code`),
-  KEY `idx_status` (`status`),
-  KEY `idx_sort_order` (`sort_order`)
+  KEY `idx_status_sort` (`status`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流公司表';
 
--- 物流订单主表
+-- 物流订单主表（订单物流信息）
 CREATE TABLE IF NOT EXISTS `logistics_order` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '物流订单ID',
   `logistics_no` varchar(32) NOT NULL COMMENT '物流单号',
@@ -33,17 +31,12 @@ CREATE TABLE IF NOT EXISTS `logistics_order` (
   `estimated_delivery_time` datetime DEFAULT NULL COMMENT '预计送达时间',
   `version` int(11) NOT NULL DEFAULT '0' COMMENT '乐观锁版本号',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_logistics_no` (`logistics_no`),
-  KEY `idx_order_id` (`order_id`),
-  KEY `idx_order_no` (`order_no`),
-  KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_logistics_status` (`logistics_status`),
-  KEY `idx_shipping_time` (`shipping_time`),
-  KEY `idx_delivery_time` (`delivery_time`),
-  KEY `idx_company_code` (`company_code`),
-  KEY `idx_tracking_number` (`tracking_number`)
+  KEY `idx_order` (`order_id`, `order_no`),
+  KEY `idx_shop_status` (`shop_id`, `logistics_status`),
+  KEY `idx_tracking` (`company_code`, `tracking_number`),
+  KEY `idx_time` (`shipping_time`, `delivery_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流订单主表';
 
 -- 物流地址表（发件人和收件人地址）
@@ -60,13 +53,12 @@ CREATE TABLE IF NOT EXISTS `logistics_address` (
   `address` varchar(255) NOT NULL COMMENT '详细地址',
   `zip_code` varchar(16) DEFAULT NULL COMMENT '邮编',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_logistics_id_type` (`logistics_id`,`address_type`),
   KEY `idx_logistics_no` (`logistics_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流地址表';
 
--- 物流跟踪记录表
+-- 物流跟踪记录表（物流轨迹信息）
 CREATE TABLE IF NOT EXISTS `logistics_tracking` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '跟踪记录ID',
   `logistics_id` bigint(20) NOT NULL COMMENT '物流订单ID',
@@ -77,13 +69,11 @@ CREATE TABLE IF NOT EXISTS `logistics_tracking` (
   `tracking_status` tinyint(4) NOT NULL COMMENT '跟踪状态:1-已揽收,2-运输中,3-派送中,4-已签收,5-异常',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  KEY `idx_logistics_id` (`logistics_id`),
-  KEY `idx_logistics_no` (`logistics_no`),
-  KEY `idx_tracking_time` (`tracking_time`),
-  KEY `idx_tracking_status` (`tracking_status`)
+  KEY `idx_logistics` (`logistics_id`, `logistics_no`),
+  KEY `idx_tracking` (`tracking_time`, `tracking_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流跟踪记录表';
 
--- 退款申请主表
+-- 退款申请主表（退款基本信息）
 CREATE TABLE IF NOT EXISTS `refund_apply` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '退款申请ID',
   `refund_no` varchar(32) NOT NULL COMMENT '退款单号',
@@ -101,17 +91,12 @@ CREATE TABLE IF NOT EXISTS `refund_apply` (
   `refund_status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '退款状态:1-待处理,2-商家同意,3-商家拒绝,4-退货中,5-商家收货,6-退款成功,7-退款关闭',
   `version` int(11) NOT NULL DEFAULT '0' COMMENT '乐观锁版本号',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_refund_no` (`refund_no`),
-  KEY `idx_order_id` (`order_id`),
-  KEY `idx_order_no` (`order_no`),
-  KEY `idx_order_item_id` (`order_item_id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_refund_status` (`refund_status`),
-  KEY `idx_create_time` (`create_time`),
-  KEY `idx_refund_type` (`refund_type`)
+  KEY `idx_order` (`order_id`, `order_no`, `order_item_id`),
+  KEY `idx_user_shop` (`user_id`, `shop_id`),
+  KEY `idx_status_type` (`refund_status`, `refund_type`),
+  KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款申请主表';
 
 -- 退款处理表（商家处理记录）
@@ -128,11 +113,9 @@ CREATE TABLE IF NOT EXISTS `refund_process` (
   `operation_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  KEY `idx_refund_id` (`refund_id`),
-  KEY `idx_refund_no` (`refund_no`),
+  KEY `idx_refund` (`refund_id`, `refund_no`),
   KEY `idx_process_status` (`process_status`),
-  KEY `idx_operator_id` (`operator_id`),
-  KEY `idx_operation_time` (`operation_time`)
+  KEY `idx_operation` (`operator_id`, `operation_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款处理表';
 
 -- 退款物流表（退货物流信息）
@@ -151,14 +134,11 @@ CREATE TABLE IF NOT EXISTS `refund_logistics` (
   `receiver_address` varchar(255) DEFAULT NULL COMMENT '收货地址（商家）',
   `tracking_data` json DEFAULT NULL COMMENT '物流跟踪数据',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_refund_id` (`refund_id`),
   KEY `idx_refund_no` (`refund_no`),
-  KEY `idx_tracking_number` (`tracking_number`),
-  KEY `idx_logistics_status` (`logistics_status`),
-  KEY `idx_shipping_time` (`shipping_time`),
-  KEY `idx_receive_time` (`receive_time`)
+  KEY `idx_tracking` (`tracking_number`, `logistics_status`),
+  KEY `idx_time` (`shipping_time`, `receive_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款物流表';
 
 -- 退款支付表（退款金额处理信息）
@@ -177,16 +157,12 @@ CREATE TABLE IF NOT EXISTS `refund_payment` (
   `payment_time` datetime DEFAULT NULL COMMENT '退款时间',
   `payment_remark` varchar(255) DEFAULT NULL COMMENT '退款备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_refund_id` (`refund_id`),
   KEY `idx_refund_no` (`refund_no`),
-  KEY `idx_order_id` (`order_id`),
-  KEY `idx_order_no` (`order_no`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_payment_no` (`payment_no`),
-  KEY `idx_payment_status` (`payment_status`),
-  KEY `idx_payment_time` (`payment_time`)
+  KEY `idx_order` (`order_id`, `order_no`),
+  KEY `idx_user_payment` (`user_id`, `payment_status`),
+  KEY `idx_payment` (`payment_no`, `payment_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款支付表';
 
 -- 退货商品表（退货的商品信息）
@@ -206,18 +182,14 @@ CREATE TABLE IF NOT EXISTS `return_goods` (
   `description` varchar(500) DEFAULT NULL COMMENT '商品描述（退货原因）',
   `evidence_images` json DEFAULT NULL COMMENT '凭证图片',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_refund_id` (`refund_id`),
-  KEY `idx_refund_no` (`refund_no`),
-  KEY `idx_order_id` (`order_id`),
-  KEY `idx_order_item_id` (`order_item_id`),
-  KEY `idx_product_id` (`product_id`),
-  KEY `idx_product_sku_id` (`product_sku_id`),
+  KEY `idx_refund` (`refund_id`, `refund_no`),
+  KEY `idx_order_item` (`order_id`, `order_item_id`),
+  KEY `idx_product` (`product_id`, `product_sku_id`),
   KEY `idx_goods_status` (`goods_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退货商品表';
 
--- 退款操作日志表
+-- 退款操作日志表（退款流程操作记录）
 CREATE TABLE IF NOT EXISTS `refund_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '日志ID',
   `refund_id` bigint(20) NOT NULL COMMENT '退款ID',
@@ -232,9 +204,7 @@ CREATE TABLE IF NOT EXISTS `refund_log` (
   `ip` varchar(64) DEFAULT NULL COMMENT '操作IP',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  KEY `idx_refund_id` (`refund_id`),
-  KEY `idx_refund_no` (`refund_no`),
-  KEY `idx_operator_id` (`operator_id`),
-  KEY `idx_create_time` (`create_time`),
-  KEY `idx_current_status` (`current_status`)
+  KEY `idx_refund` (`refund_id`, `refund_no`),
+  KEY `idx_operator` (`operator_id`, `operator_type`),
+  KEY `idx_status_time` (`current_status`, `create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款操作日志表'; 

@@ -1,4 +1,4 @@
--- 销售报表统计表
+-- 销售报表统计表（销售数据统计）
 CREATE TABLE IF NOT EXISTS `sales_statistics` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `shop_id` bigint(20) DEFAULT NULL COMMENT '店铺ID,NULL表示平台统计',
@@ -11,25 +11,36 @@ CREATE TABLE IF NOT EXISTS `sales_statistics` (
   `refund_order_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款订单数',
   `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
   `new_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '新增用户数',
-  `new_member_count` int(11) NOT NULL DEFAULT '0' COMMENT '新增会员数',
   `user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
   `old_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '老用户下单数',
+  `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
+  `avg_order_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '平均订单金额',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_shop_date_type` (`shop_id`,`stat_date`,`stat_type`),
+  KEY `idx_stat_date_type` (`stat_date`,`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售报表统计表';
+
+-- 销售明细统计表（新增表，存储更详细的销售数据）
+CREATE TABLE IF NOT EXISTS `sales_detail_statistics` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `shop_id` bigint(20) DEFAULT NULL COMMENT '店铺ID,NULL表示平台统计',
+  `stat_date` date NOT NULL COMMENT '统计日期',
+  `stat_type` tinyint(4) NOT NULL COMMENT '统计类型:1-日报,2-周报,3-月报,4-年报',
   `new_user_order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '新用户下单金额',
   `old_user_order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '老用户下单金额',
   `total_visitor_count` int(11) NOT NULL DEFAULT '0' COMMENT '总访客数',
   `unique_visitor_count` int(11) NOT NULL DEFAULT '0' COMMENT '独立访客数',
-  `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
-  `avg_order_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '平均订单金额',
+  `new_member_count` int(11) NOT NULL DEFAULT '0' COMMENT '新增会员数',
+  `member_order_count` int(11) NOT NULL DEFAULT '0' COMMENT '会员下单数',
+  `member_order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '会员下单金额',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_shop_date_type` (`shop_id`,`stat_date`,`stat_type`),
-  KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_stat_date` (`stat_date`),
-  KEY `idx_stat_type` (`stat_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售报表统计表';
+  KEY `idx_stat_date_type` (`stat_date`,`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售明细统计表';
 
--- 商品销售统计表
+-- 商品销售统计表（商品销售数据统计）
 CREATE TABLE IF NOT EXISTS `product_sales_statistics` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `shop_id` bigint(20) DEFAULT NULL COMMENT '店铺ID,NULL表示平台统计',
@@ -40,34 +51,40 @@ CREATE TABLE IF NOT EXISTS `product_sales_statistics` (
   `stat_date` date NOT NULL COMMENT '统计日期',
   `stat_type` tinyint(4) NOT NULL COMMENT '统计类型:1-日报,2-周报,3-月报,4-年报',
   `category_id` bigint(20) DEFAULT NULL COMMENT '分类ID',
-  `category_name` varchar(50) DEFAULT NULL COMMENT '分类名称',
   `pv` int(11) NOT NULL DEFAULT '0' COMMENT '商品访问量',
   `uv` int(11) NOT NULL DEFAULT '0' COMMENT '访客数',
-  `favorite_count` int(11) NOT NULL DEFAULT '0' COMMENT '收藏数',
-  `cart_count` int(11) NOT NULL DEFAULT '0' COMMENT '加购数',
   `order_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单商品数',
-  `order_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
   `order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '下单金额',
   `paid_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付商品数',
-  `paid_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付用户数',
   `paid_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
-  `refund_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款商品数',
-  `refund_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款用户数',
-  `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
   `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_product_date_type` (`product_id`,`product_sku_id`,`stat_date`,`stat_type`),
   KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_product_id` (`product_id`),
-  KEY `idx_product_sku_id` (`product_sku_id`),
-  KEY `idx_stat_date` (`stat_date`),
-  KEY `idx_stat_type` (`stat_type`),
-  KEY `idx_category_id` (`category_id`)
+  KEY `idx_category_date` (`category_id`,`stat_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品销售统计表';
 
--- 用户行为统计表
+-- 商品销售明细统计表（新增表，存储商品销售更详细数据）
+CREATE TABLE IF NOT EXISTS `product_sales_detail_statistics` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `product_sku_id` bigint(20) DEFAULT NULL COMMENT '商品SKU ID',
+  `stat_date` date NOT NULL COMMENT '统计日期',
+  `stat_type` tinyint(4) NOT NULL COMMENT '统计类型:1-日报,2-周报,3-月报,4-年报',
+  `favorite_count` int(11) NOT NULL DEFAULT '0' COMMENT '收藏数',
+  `cart_count` int(11) NOT NULL DEFAULT '0' COMMENT '加购数',
+  `order_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
+  `paid_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付用户数',
+  `refund_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款商品数',
+  `refund_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款用户数',
+  `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_product_date_type` (`product_id`,`product_sku_id`,`stat_date`,`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品销售明细统计表';
+
+-- 用户行为统计表（用户行为数据统计）
 CREATE TABLE IF NOT EXISTS `user_behavior_statistics` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
@@ -83,22 +100,31 @@ CREATE TABLE IF NOT EXISTS `user_behavior_statistics` (
   `order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '下单金额',
   `paid_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付次数',
   `paid_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
-  `refund_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款次数',
-  `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
   `favorite_count` int(11) NOT NULL DEFAULT '0' COMMENT '收藏次数',
-  `share_count` int(11) NOT NULL DEFAULT '0' COMMENT '分享次数',
-  `comment_count` int(11) NOT NULL DEFAULT '0' COMMENT '评价次数',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_date_type` (`user_id`,`stat_date`,`stat_type`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_user_type` (`user_type`),
-  KEY `idx_stat_date` (`stat_date`),
-  KEY `idx_stat_type` (`stat_type`)
+  KEY `idx_user_date_type` (`user_type`,`stat_date`,`stat_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为统计表';
 
--- 搜索关键词统计表
+-- 用户行为明细统计表（新增表，存储用户行为更详细数据）
+CREATE TABLE IF NOT EXISTS `user_behavior_detail_statistics` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `user_id` bigint(20) NOT NULL COMMENT '用户ID',
+  `stat_date` date NOT NULL COMMENT '统计日期',
+  `stat_type` tinyint(4) NOT NULL COMMENT '统计类型:1-日报,2-周报,3-月报,4-年报',
+  `refund_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款次数',
+  `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
+  `share_count` int(11) NOT NULL DEFAULT '0' COMMENT '分享次数',
+  `comment_count` int(11) NOT NULL DEFAULT '0' COMMENT '评价次数',
+  `coupon_count` int(11) NOT NULL DEFAULT '0' COMMENT '领券次数',
+  `coupon_use_count` int(11) NOT NULL DEFAULT '0' COMMENT '用券次数',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_date_type` (`user_id`,`stat_date`,`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为明细统计表';
+
+-- 搜索关键词统计表（搜索词统计）
 CREATE TABLE IF NOT EXISTS `search_keyword_statistics` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `keyword` varchar(100) NOT NULL COMMENT '搜索关键词',
@@ -112,16 +138,12 @@ CREATE TABLE IF NOT EXISTS `search_keyword_statistics` (
   `order_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
   `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_keyword_date_type` (`keyword`,`stat_date`,`stat_type`),
-  KEY `idx_keyword` (`keyword`),
-  KEY `idx_stat_date` (`stat_date`),
-  KEY `idx_stat_type` (`stat_type`),
-  KEY `idx_search_count` (`search_count`)
+  KEY `idx_search_date` (`search_count`,`stat_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索关键词统计表';
 
--- 营销活动统计表
+-- 营销活动统计表（营销活动效果统计）
 CREATE TABLE IF NOT EXISTS `marketing_statistics` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `campaign_id` bigint(20) NOT NULL COMMENT '活动ID',
@@ -132,27 +154,19 @@ CREATE TABLE IF NOT EXISTS `marketing_statistics` (
   `stat_type` tinyint(4) NOT NULL COMMENT '统计类型:1-日报,2-周报,3-月报,4-年报',
   `pv` int(11) NOT NULL DEFAULT '0' COMMENT '活动页访问量',
   `uv` int(11) NOT NULL DEFAULT '0' COMMENT '访客数',
-  `product_view_count` int(11) NOT NULL DEFAULT '0' COMMENT '商品浏览量',
   `user_count` int(11) NOT NULL DEFAULT '0' COMMENT '参与用户数',
   `order_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单数',
-  `order_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
   `order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '下单金额',
   `paid_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付订单数',
-  `paid_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付用户数',
   `paid_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
   `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_campaign_date_type` (`campaign_id`,`stat_date`,`stat_type`),
-  KEY `idx_campaign_id` (`campaign_id`),
-  KEY `idx_campaign_type` (`campaign_type`),
-  KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_stat_date` (`stat_date`),
-  KEY `idx_stat_type` (`stat_type`)
+  KEY `idx_shop_camp_date` (`shop_id`,`campaign_type`,`stat_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='营销活动统计表';
 
--- 店铺统计表
+-- 店铺统计表（店铺运营数据统计）
 CREATE TABLE IF NOT EXISTS `shop_statistics` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
@@ -164,28 +178,36 @@ CREATE TABLE IF NOT EXISTS `shop_statistics` (
   `new_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '新增用户数',
   `bounce_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '跳出率(%)',
   `product_pv` int(11) NOT NULL DEFAULT '0' COMMENT '商品浏览量',
-  `favorite_count` int(11) NOT NULL DEFAULT '0' COMMENT '收藏数',
-  `cart_count` int(11) NOT NULL DEFAULT '0' COMMENT '加购数',
   `order_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单数',
-  `order_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
   `order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '下单金额',
   `paid_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付订单数',
-  `paid_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付用户数',
   `paid_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
+  `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_shop_date_type` (`shop_id`,`stat_date`,`stat_type`),
+  KEY `idx_date_type` (`stat_date`,`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺统计表';
+
+-- 店铺明细统计表（新增表，存储店铺更详细数据）
+CREATE TABLE IF NOT EXISTS `shop_detail_statistics` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
+  `stat_date` date NOT NULL COMMENT '统计日期',
+  `stat_type` tinyint(4) NOT NULL COMMENT '统计类型:1-日报,2-周报,3-月报,4-年报',
+  `favorite_count` int(11) NOT NULL DEFAULT '0' COMMENT '收藏数',
+  `cart_count` int(11) NOT NULL DEFAULT '0' COMMENT '加购数',
+  `order_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '下单用户数',
+  `paid_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '支付用户数',
   `refund_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款订单数',
   `refund_user_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款用户数',
   `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
-  `conversion_rate` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '转化率(%)',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_shop_date_type` (`shop_id`,`stat_date`,`stat_type`),
-  KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_stat_date` (`stat_date`),
-  KEY `idx_stat_type` (`stat_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺统计表';
+  UNIQUE KEY `uk_shop_date_type` (`shop_id`,`stat_date`,`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺明细统计表';
 
--- 平台运营监控表
+-- 平台运营监控表（平台整体运营状况）
 CREATE TABLE IF NOT EXISTS `platform_monitor` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `monitor_date` date NOT NULL COMMENT '监控日期',
@@ -203,19 +225,30 @@ CREATE TABLE IF NOT EXISTS `platform_monitor` (
   `paid_order_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '已支付订单金额',
   `refund_order_count` int(11) NOT NULL DEFAULT '0' COMMENT '退款订单数',
   `refund_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_date_hour` (`monitor_date`,`monitor_hour`),
+  KEY `idx_monitor_date` (`monitor_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台运营监控表';
+
+-- 平台监控明细表（新增表，存储平台监控更详细数据）
+CREATE TABLE IF NOT EXISTS `platform_monitor_detail` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `monitor_date` date NOT NULL COMMENT '监控日期',
+  `monitor_hour` tinyint(4) DEFAULT NULL COMMENT '监控小时,NULL表示全天',
   `new_coupon_count` int(11) NOT NULL DEFAULT '0' COMMENT '新增优惠券数',
   `used_coupon_count` int(11) NOT NULL DEFAULT '0' COMMENT '使用优惠券数',
   `error_log_count` int(11) NOT NULL DEFAULT '0' COMMENT '错误日志数',
   `api_avg_response_time` int(11) NOT NULL DEFAULT '0' COMMENT 'API平均响应时间(ms)',
+  `daily_active_users` int(11) NOT NULL DEFAULT '0' COMMENT '日活用户数',
+  `weekly_active_users` int(11) NOT NULL DEFAULT '0' COMMENT '周活用户数',
+  `monthly_active_users` int(11) NOT NULL DEFAULT '0' COMMENT '月活用户数',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_date_hour` (`monitor_date`,`monitor_hour`),
-  KEY `idx_monitor_date` (`monitor_date`),
-  KEY `idx_monitor_hour` (`monitor_hour`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台运营监控表';
+  UNIQUE KEY `uk_date_hour` (`monitor_date`,`monitor_hour`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台监控明细表';
 
--- 用户画像标签表
+-- 用户画像标签表（用户画像数据）
 CREATE TABLE IF NOT EXISTS `user_profile_tag` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
@@ -226,16 +259,12 @@ CREATE TABLE IF NOT EXISTS `user_profile_tag` (
   `start_time` datetime DEFAULT NULL COMMENT '有效期开始',
   `end_time` datetime DEFAULT NULL COMMENT '有效期结束',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_tag` (`user_id`,`tag_type`,`tag_name`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_tag_type` (`tag_type`),
-  KEY `idx_tag_name` (`tag_name`),
-  KEY `idx_tag_value` (`tag_value`)
+  KEY `idx_user_type` (`user_id`,`tag_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户画像标签表';
 
--- 商品推荐记录表
+-- 商品推荐记录表（推荐效果日志）
 CREATE TABLE IF NOT EXISTS `product_recommendation_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
@@ -251,10 +280,7 @@ CREATE TABLE IF NOT EXISTS `product_recommendation_log` (
   `click_time` datetime DEFAULT NULL COMMENT '点击时间',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_product_id` (`product_id`),
-  KEY `idx_recommendation_type` (`recommendation_type`),
-  KEY `idx_recommendation_scene` (`recommendation_scene`),
-  KEY `idx_is_click` (`is_click`),
-  KEY `idx_create_time` (`create_time`)
+  KEY `idx_user_product` (`user_id`,`product_id`),
+  KEY `idx_rec_type_scene` (`recommendation_type`,`recommendation_scene`),
+  KEY `idx_action_time` (`is_click`,`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品推荐记录表';

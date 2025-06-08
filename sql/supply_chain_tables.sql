@@ -2,17 +2,17 @@
 -- 每个表不超过20个字段，不使用外键，从业务功能正确性和SQL性能两方面进行优化
 -- 确保业务的最小可行性
 
--- 供应商表（优化版）
+-- 供应商表（供应商基础信息）
 CREATE TABLE IF NOT EXISTS `supplier` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '供应商ID',
   `name` varchar(100) NOT NULL COMMENT '供应商名称',
+  `code` varchar(20) DEFAULT NULL COMMENT '供应商编码',
   `contact_person` varchar(50) NOT NULL COMMENT '联系人',
   `contact_phone` varchar(20) NOT NULL COMMENT '联系电话',
   `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
   `address` varchar(255) DEFAULT NULL COMMENT '地址',
-  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
-  `code` varchar(20) DEFAULT NULL COMMENT '供应商编码',
   `level` tinyint(4) DEFAULT '3' COMMENT '供应商等级:1-核心,2-重要,3-一般',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `supplier` (
   KEY `idx_level` (`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商表';
 
--- 供应商产品关联表（优化版）
+-- 供应商产品关联表（供应商-产品关系及采购条件）
 CREATE TABLE IF NOT EXISTS `supplier_product` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `supplier_id` bigint(20) NOT NULL COMMENT '供应商ID',
@@ -34,16 +34,14 @@ CREATE TABLE IF NOT EXISTS `supplier_product` (
   `is_primary` tinyint(1) DEFAULT '0' COMMENT '是否主要供应商:1-是,0-否',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_supplier_product_sku` (`supplier_id`,`product_id`,`product_sku_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_product_sku_id` (`product_sku_id`),
-  KEY `idx_supplier_primary` (`supplier_id`,`is_primary`),
-  KEY `idx_status` (`status`)
+  KEY `idx_supplier_primary` (`supplier_id`,`is_primary`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商产品关联表';
 
--- 库存主表（优化版）
+-- 库存主表（产品库存信息）
 CREATE TABLE IF NOT EXISTS `inventory` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '库存ID',
   `product_id` bigint(20) NOT NULL COMMENT '产品ID',
@@ -60,11 +58,10 @@ CREATE TABLE IF NOT EXISTS `inventory` (
   UNIQUE KEY `uk_product_sku_shop` (`product_id`,`product_sku_id`,`shop_id`),
   KEY `idx_product_sku_id` (`product_sku_id`),
   KEY `idx_shop_id` (`shop_id`),
-  KEY `idx_alert` (`available_quantity`,`alert_threshold`),
-  KEY `idx_status` (`status`)
+  KEY `idx_alert` (`available_quantity`,`alert_threshold`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存主表';
 
--- 库存变更日志表（优化版）
+-- 库存变更日志表（库存变动记录）
 CREATE TABLE IF NOT EXISTS `inventory_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '日志ID',
   `inventory_id` bigint(20) NOT NULL COMMENT '库存ID',
@@ -88,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `inventory_log` (
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存变更日志表';
 
--- 采购单表（优化版）
+-- 采购单表（采购订单主表）
 CREATE TABLE IF NOT EXISTS `purchase_order` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '采购单ID',
   `po_number` varchar(32) NOT NULL COMMENT '采购单号',
@@ -107,36 +104,33 @@ CREATE TABLE IF NOT EXISTS `purchase_order` (
   KEY `idx_supplier_id` (`supplier_id`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_status` (`status`),
-  KEY `idx_expected_arrival_date` (`expected_arrival_date`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购单表';
 
--- 采购单明细表（优化版）
+-- 采购单明细表（采购订单商品明细）
 CREATE TABLE IF NOT EXISTS `purchase_order_item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `po_id` bigint(20) NOT NULL COMMENT '采购单ID',
   `po_number` varchar(32) NOT NULL COMMENT '采购单号',
   `product_id` bigint(20) NOT NULL COMMENT '产品ID',
   `product_sku_id` bigint(20) NOT NULL COMMENT '产品SKU ID',
-  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `product_name` varchar(128) NOT NULL COMMENT '产品名称',
+  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `quantity` int(11) NOT NULL COMMENT '采购数量',
   `unit_price` decimal(10,2) NOT NULL COMMENT '单价',
   `total_price` decimal(10,2) NOT NULL COMMENT '总价',
   `received_quantity` int(11) NOT NULL DEFAULT '0' COMMENT '已入库数量',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-待入库,2-部分入库,3-已入库',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_po_id` (`po_id`),
   KEY `idx_po_number` (`po_number`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_product_sku_id` (`product_sku_id`),
-  KEY `idx_sku_code` (`sku_code`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购单明细表';
 
--- 入库单表（优化版）
+-- 入库单表（仓库收货单）
 CREATE TABLE IF NOT EXISTS `stock_in` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '入库单ID',
   `in_number` varchar(32) NOT NULL COMMENT '入库单号',
@@ -150,7 +144,6 @@ CREATE TABLE IF NOT EXISTS `stock_in` (
   `in_time` datetime DEFAULT NULL COMMENT '入库时间',
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_in_number` (`in_number`),
   KEY `idx_po_id` (`po_id`),
@@ -159,11 +152,10 @@ CREATE TABLE IF NOT EXISTS `stock_in` (
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_in_type` (`in_type`),
   KEY `idx_status` (`status`),
-  KEY `idx_in_time` (`in_time`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='入库单表';
 
--- 入库单明细表（优化版）
+-- 入库单明细表（入库商品明细）
 CREATE TABLE IF NOT EXISTS `stock_in_item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `in_id` bigint(20) NOT NULL COMMENT '入库单ID',
@@ -171,14 +163,13 @@ CREATE TABLE IF NOT EXISTS `stock_in_item` (
   `po_item_id` bigint(20) DEFAULT NULL COMMENT '采购单明细ID',
   `product_id` bigint(20) NOT NULL COMMENT '产品ID',
   `product_sku_id` bigint(20) NOT NULL COMMENT '产品SKU ID',
-  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `product_name` varchar(128) NOT NULL COMMENT '产品名称',
+  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `expected_quantity` int(11) NOT NULL COMMENT '预期数量',
   `actual_quantity` int(11) NOT NULL COMMENT '实际入库数量',
   `unit_price` decimal(10,2) NOT NULL COMMENT '单价',
   `total_price` decimal(10,2) NOT NULL COMMENT '总价',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-待入库,2-已入库',
-  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_in_id` (`in_id`),
@@ -186,11 +177,10 @@ CREATE TABLE IF NOT EXISTS `stock_in_item` (
   KEY `idx_po_item_id` (`po_item_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_product_sku_id` (`product_sku_id`),
-  KEY `idx_sku_code` (`sku_code`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='入库单明细表';
 
--- 出库单表（优化版）
+-- 出库单表（仓库发货单）
 CREATE TABLE IF NOT EXISTS `stock_out` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '出库单ID',
   `out_number` varchar(32) NOT NULL COMMENT '出库单号',
@@ -203,7 +193,6 @@ CREATE TABLE IF NOT EXISTS `stock_out` (
   `out_time` datetime DEFAULT NULL COMMENT '出库时间',
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_out_number` (`out_number`),
   KEY `idx_order_id` (`order_id`),
@@ -211,11 +200,10 @@ CREATE TABLE IF NOT EXISTS `stock_out` (
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_out_type` (`out_type`),
   KEY `idx_status` (`status`),
-  KEY `idx_out_time` (`out_time`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='出库单表';
 
--- 出库单明细表（优化版）
+-- 出库单明细表（出库商品明细）
 CREATE TABLE IF NOT EXISTS `stock_out_item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `out_id` bigint(20) NOT NULL COMMENT '出库单ID',
@@ -223,13 +211,12 @@ CREATE TABLE IF NOT EXISTS `stock_out_item` (
   `order_item_id` bigint(20) DEFAULT NULL COMMENT '订单明细ID',
   `product_id` bigint(20) NOT NULL COMMENT '产品ID',
   `product_sku_id` bigint(20) NOT NULL COMMENT '产品SKU ID',
-  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `product_name` varchar(128) NOT NULL COMMENT '产品名称',
+  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `quantity` int(11) NOT NULL COMMENT '出库数量',
   `unit_price` decimal(10,2) DEFAULT NULL COMMENT '单价',
   `total_price` decimal(10,2) DEFAULT NULL COMMENT '总价',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-待出库,2-已出库',
-  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_out_id` (`out_id`),
@@ -237,11 +224,10 @@ CREATE TABLE IF NOT EXISTS `stock_out_item` (
   KEY `idx_order_item_id` (`order_item_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_product_sku_id` (`product_sku_id`),
-  KEY `idx_sku_code` (`sku_code`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='出库单明细表';
 
--- 库存盘点表（优化版）
+-- 库存盘点表（库存盘点主表）
 CREATE TABLE IF NOT EXISTS `inventory_check` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '盘点单ID',
   `check_number` varchar(32) NOT NULL COMMENT '盘点单号',
@@ -252,38 +238,33 @@ CREATE TABLE IF NOT EXISTS `inventory_check` (
   `check_time` datetime DEFAULT NULL COMMENT '盘点完成时间',
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_check_number` (`check_number`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_check_type` (`check_type`),
   KEY `idx_status` (`status`),
-  KEY `idx_checker_id` (`checker_id`),
-  KEY `idx_check_time` (`check_time`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存盘点表';
 
--- 盘点明细表（优化版）
+-- 盘点明细表（盘点商品明细）
 CREATE TABLE IF NOT EXISTS `inventory_check_item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `check_id` bigint(20) NOT NULL COMMENT '盘点单ID',
   `check_number` varchar(32) NOT NULL COMMENT '盘点单号',
   `product_id` bigint(20) NOT NULL COMMENT '产品ID',
   `product_sku_id` bigint(20) NOT NULL COMMENT '产品SKU ID',
-  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `product_name` varchar(128) NOT NULL COMMENT '产品名称',
+  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
   `system_quantity` int(11) NOT NULL COMMENT '系统库存数量',
   `actual_quantity` int(11) NOT NULL COMMENT '实际盘点数量',
   `difference` int(11) NOT NULL COMMENT '差异数量',
   `adjustment_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '调整状态:0-未调整,1-已调整',
-  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_check_id` (`check_id`),
   KEY `idx_check_number` (`check_number`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_product_sku_id` (`product_sku_id`),
-  KEY `idx_sku_code` (`sku_code`),
   KEY `idx_difference` (`difference`),
   KEY `idx_adjustment_status` (`adjustment_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='盘点明细表';

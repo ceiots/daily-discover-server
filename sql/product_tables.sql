@@ -1,30 +1,234 @@
--- 商品核心信息表 (精简到20个字段以内)
+-- 商品主表（商品基本信息）
 CREATE TABLE IF NOT EXISTS `product` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL COMMENT '商品标题',
-  `description` varchar(500) DEFAULT NULL COMMENT '商品简短描述',
-  `image_url` varchar(255) DEFAULT NULL COMMENT '商品主图URL',
-  `category_id` bigint(20) DEFAULT NULL COMMENT '商品分类ID',
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '商品ID',
   `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
+  `category_id` bigint(20) NOT NULL COMMENT '分类ID',
   `brand_id` bigint(20) DEFAULT NULL COMMENT '品牌ID',
-  `status` tinyint(4) DEFAULT '0' COMMENT '商品状态:0-草稿,1-在线,2-下线',
-  `audit_status` tinyint(4) DEFAULT '0' COMMENT '审核状态:0-待审核,1-已通过,2-未通过',
-  `price` decimal(10,2) DEFAULT '0.00' COMMENT '基础销售价格',
-  `original_price` decimal(10,2) DEFAULT NULL COMMENT '原价/市场价',
-  `total_stock` int(11) DEFAULT '0' COMMENT '商品总库存',
-  `total_sales` int(11) DEFAULT '0' COMMENT '商品总销量',
-  `weight` int(11) DEFAULT '0' COMMENT '排序权重',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted` tinyint(1) DEFAULT '0' COMMENT '删除标记',
+  `product_name` varchar(200) NOT NULL COMMENT '商品名称',
+  `sub_title` varchar(200) DEFAULT NULL COMMENT '商品副标题',
+  `main_image` varchar(255) DEFAULT NULL COMMENT '商品主图',
+  `unit` varchar(20) DEFAULT NULL COMMENT '单位',
+  `weight` decimal(10,2) DEFAULT NULL COMMENT '重量(kg)',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `sales` int(11) DEFAULT '0' COMMENT '销量',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_category_id` (`category_id`),
-  KEY `idx_brand_id` (`brand_id`),
-  KEY `idx_status_deleted` (`status`, `deleted`),
-  KEY `idx_audit_status` (`audit_status`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品核心信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品主表';
+
+-- 商品价格表（商品价格信息）
+CREATE TABLE IF NOT EXISTS `product_price` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `price` decimal(10,2) NOT NULL COMMENT '销售价',
+  `original_price` decimal(10,2) DEFAULT NULL COMMENT '原价',
+  `cost_price` decimal(10,2) DEFAULT NULL COMMENT '成本价',
+  `commission_rate` decimal(5,2) DEFAULT '0.00' COMMENT '佣金比例',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_product_id` (`product_id`),
+  KEY `idx_price` (`price`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品价格表';
+
+-- 商品状态表（商品状态信息）
+CREATE TABLE IF NOT EXISTS `product_status` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '状态:0-下架,1-上架,2-售罄',
+  `publish_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '发布状态:0-未发布,1-已发布',
+  `audit_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '审核状态:0-未审核,1-审核通过,2-审核拒绝',
+  `rating` decimal(3,2) DEFAULT '0.00' COMMENT '评分',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_product_id` (`product_id`),
+  KEY `idx_status_publish` (`status`,`publish_status`),
+  KEY `idx_audit_status` (`audit_status`),
+  KEY `idx_rating` (`rating`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品状态表';
+
+-- 商品营销特性表（商品营销信息）
+CREATE TABLE IF NOT EXISTS `product_marketing_features` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `tags` json DEFAULT NULL COMMENT '标签',
+  `affiliate_url` varchar(500) DEFAULT NULL COMMENT '推广链接',
+  `ai_features` json DEFAULT NULL COMMENT 'AI提取特征',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品营销特性表';
+
+-- 商品详情表（商品详细信息）
+CREATE TABLE IF NOT EXISTS `product_detail` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '详情ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `description` text COMMENT '商品描述',
+  `rich_content` text COMMENT '富文本内容',
+  `mobile_content` text COMMENT '移动端展示内容',
+  `packing_list` varchar(1000) DEFAULT NULL COMMENT '包装清单',
+  `after_service` varchar(1000) DEFAULT NULL COMMENT '售后服务',
+  `attribute_list` json DEFAULT NULL COMMENT '属性列表JSON',
+  `param_list` json DEFAULT NULL COMMENT '参数列表JSON',
+  `video_url` varchar(255) DEFAULT NULL COMMENT '视频URL',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品详情表';
+
+-- 商品SKU表（商品规格和库存）
+CREATE TABLE IF NOT EXISTS `product_sku` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'SKU ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
+  `sku_code` varchar(64) DEFAULT NULL COMMENT 'SKU编码',
+  `barcode` varchar(64) DEFAULT NULL COMMENT '条形码',
+  `sku_name` varchar(255) DEFAULT NULL COMMENT 'SKU名称',
+  `spec_data` json DEFAULT NULL COMMENT '规格数据JSON',
+  `main_image` varchar(255) DEFAULT NULL COMMENT '主图',
+  `images` json DEFAULT NULL COMMENT '图片列表',
+  `price` decimal(10,2) NOT NULL COMMENT '销售价',
+  `original_price` decimal(10,2) DEFAULT NULL COMMENT '原价',
+  `cost_price` decimal(10,2) DEFAULT NULL COMMENT '成本价',
+  `stock` int(11) NOT NULL DEFAULT '0' COMMENT '库存',
+  `lock_stock` int(11) NOT NULL DEFAULT '0' COMMENT '锁定库存',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-启用',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_shop_id` (`shop_id`),
+  KEY `idx_sku_code` (`sku_code`),
+  KEY `idx_barcode` (`barcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表';
+
+-- 商品分类表（商品分类）
+CREATE TABLE IF NOT EXISTS `product_category` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '分类ID',
+  `parent_id` bigint(20) DEFAULT '0' COMMENT '父分类ID,0表示一级分类',
+  `name` varchar(50) NOT NULL COMMENT '分类名称',
+  `level` tinyint(4) NOT NULL COMMENT '分类层级:1-一级,2-二级,3-三级',
+  `icon` varchar(255) DEFAULT NULL COMMENT '分类图标',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `is_show` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否显示:0-否,1-是',
+  `is_menu` tinyint(1) DEFAULT '1' COMMENT '是否导航:0-否,1-是',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-启用',
+  `seo_title` varchar(100) DEFAULT NULL COMMENT 'SEO标题',
+  `seo_keywords` varchar(255) DEFAULT NULL COMMENT 'SEO关键字',
+  `seo_description` varchar(255) DEFAULT NULL COMMENT 'SEO描述',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_parent_id` (`parent_id`),
+  KEY `idx_level` (`level`),
+  KEY `idx_sort_show` (`sort_order`,`is_show`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表';
+
+-- 商品品牌表（品牌信息）
+CREATE TABLE IF NOT EXISTS `product_brand` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '品牌ID',
+  `name` varchar(50) NOT NULL COMMENT '品牌名称',
+  `english_name` varchar(100) DEFAULT NULL COMMENT '英文名称',
+  `logo` varchar(255) DEFAULT NULL COMMENT '品牌Logo',
+  `description` varchar(500) DEFAULT NULL COMMENT '品牌描述',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `is_show` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否显示:0-否,1-是',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-启用',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_name` (`name`),
+  KEY `idx_sort_show` (`sort_order`,`is_show`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品品牌表';
+
+-- 商品图片表（商品图片集）
+CREATE TABLE IF NOT EXISTS `product_image` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '图片ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `sku_id` bigint(20) DEFAULT NULL COMMENT 'SKU ID,NULL表示商品主图',
+  `image_url` varchar(255) NOT NULL COMMENT '图片URL',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `is_main` tinyint(1) DEFAULT '0' COMMENT '是否主图:0-否,1-是',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_sku_id` (`sku_id`),
+  KEY `idx_is_main` (`is_main`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品图片表';
+
+-- 商品属性表（商品参数）
+CREATE TABLE IF NOT EXISTS `product_attribute` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '属性ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `attribute_name` varchar(50) NOT NULL COMMENT '属性名称',
+  `attribute_value` varchar(255) NOT NULL COMMENT '属性值',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `is_search` tinyint(1) DEFAULT '0' COMMENT '是否支持搜索:0-否,1-是',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_is_search` (`is_search`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品属性表';
+
+-- 商品规格表（规格定义）
+CREATE TABLE IF NOT EXISTS `product_spec` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '规格ID',
+  `shop_id` bigint(20) DEFAULT NULL COMMENT '店铺ID',
+  `spec_name` varchar(50) NOT NULL COMMENT '规格名称',
+  `spec_type` tinyint(4) DEFAULT '1' COMMENT '规格类型:1-文字,2-颜色,3-图片',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-启用',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_shop_id` (`shop_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品规格表';
+
+-- 商品规格值表（规格值）
+CREATE TABLE IF NOT EXISTS `product_spec_value` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '规格值ID',
+  `spec_id` bigint(20) NOT NULL COMMENT '规格ID',
+  `spec_value` varchar(50) NOT NULL COMMENT '规格值',
+  `spec_image` varchar(255) DEFAULT NULL COMMENT '规格图片',
+  `spec_color` varchar(20) DEFAULT NULL COMMENT '规格颜色值',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-启用',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_spec_id` (`spec_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品规格值表';
+
+-- 商品评价表（商品评论）
+CREATE TABLE IF NOT EXISTS `product_review` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '评价ID',
+  `user_id` bigint(20) NOT NULL COMMENT '用户ID',
+  `order_id` bigint(20) NOT NULL COMMENT '订单ID',
+  `order_item_id` bigint(20) NOT NULL COMMENT '订单商品ID',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `sku_id` bigint(20) NOT NULL COMMENT 'SKU ID',
+  `content` varchar(500) DEFAULT NULL COMMENT '评价内容',
+  `images` json DEFAULT NULL COMMENT '评价图片',
+  `video_url` varchar(255) DEFAULT NULL COMMENT '视频URL',
+  `rating` tinyint(4) NOT NULL DEFAULT '5' COMMENT '评分:1-5星',
+  `is_anonymous` tinyint(1) DEFAULT '0' COMMENT '是否匿名:0-否,1-是',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-隐藏,1-显示',
+  `reply_content` varchar(500) DEFAULT NULL COMMENT '商家回复内容',
+  `reply_time` datetime DEFAULT NULL COMMENT '商家回复时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_order_item_id` (`order_item_id`),
+  KEY `idx_rating` (`rating`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价表';
 
 -- 商品内容表 (详细展示内容)
 CREATE TABLE IF NOT EXISTS `product_content` (
@@ -56,32 +260,6 @@ CREATE TABLE IF NOT EXISTS `product_specification` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_product_id` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品规格表';
-
--- 商品SKU表
-CREATE TABLE IF NOT EXISTS `product_sku` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
-  `sku_code` varchar(50) DEFAULT NULL COMMENT 'SKU编码',
-  `barcode` varchar(50) DEFAULT NULL COMMENT '条形码',
-  `price` decimal(10,2) NOT NULL COMMENT '销售价格',
-  `original_price` decimal(10,2) DEFAULT NULL COMMENT '原价/市场价',
-  `stock` int(11) NOT NULL DEFAULT '0' COMMENT '可售库存',
-  `locked_stock` int(11) DEFAULT '0' COMMENT '锁定库存',
-  `sales_count` int(11) DEFAULT '0' COMMENT '销售数量',
-  `image_url` varchar(255) DEFAULT NULL COMMENT 'SKU图片URL',
-  `specifications` json DEFAULT NULL COMMENT '规格值JSON',
-  `is_default` tinyint(1) DEFAULT '0' COMMENT '是否默认选中',
-  `status` tinyint(4) DEFAULT '1' COMMENT 'SKU状态',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted` tinyint(1) DEFAULT '0' COMMENT '删除标记',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_sku_code` (`sku_code`),
-  UNIQUE KEY `uk_barcode` (`barcode`),
-  KEY `idx_product_id` (`product_id`),
-  KEY `idx_status_deleted` (`status`, `deleted`),
-  KEY `idx_stock` (`stock`, `locked_stock`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表';
 
 -- 商品促销表
 CREATE TABLE IF NOT EXISTS `product_promotion` (
@@ -199,31 +377,6 @@ CREATE TABLE IF NOT EXISTS `product_audit_log` (
   KEY `idx_audit_status` (`audit_status`),
   KEY `idx_audit_time` (`audit_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品审核记录表';
-
--- 商品评价表
-CREATE TABLE IF NOT EXISTS `product_review` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
-  `order_id` bigint(20) DEFAULT NULL COMMENT '订单ID',
-  `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `sku_id` bigint(20) DEFAULT NULL COMMENT '购买的SKU ID',
-  `rating` tinyint(4) NOT NULL COMMENT '评分(1-5)',
-  `content` text COMMENT '评论内容',
-  `images` json DEFAULT NULL COMMENT '评论图片',
-  `is_anonymous` tinyint(1) DEFAULT '0' COMMENT '是否匿名评价',
-  `reply_content` text COMMENT '商家回复内容',
-  `reply_time` datetime DEFAULT NULL COMMENT '商家回复时间',
-  `status` tinyint(4) DEFAULT '1' COMMENT '状态:0-隐藏,1-显示',
-  `has_image` tinyint(1) DEFAULT '0' COMMENT '是否有图片',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_product_id` (`product_id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_order_id` (`order_id`),
-  KEY `idx_product_rating` (`product_id`, `rating`),
-  KEY `idx_product_image` (`product_id`, `has_image`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价表';
 
 -- 商品标签表
 CREATE TABLE IF NOT EXISTS `product_tag` (
