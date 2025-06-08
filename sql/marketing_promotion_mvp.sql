@@ -1,4 +1,8 @@
--- 营销活动表（活动主表）
+-- 营销促销模块表结构（MVP版本）
+-- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
+-- 保留核心功能，去除非必要字段，提高查询性能
+
+-- 营销活动表（精简版）
 CREATE TABLE IF NOT EXISTS `marketing_campaign` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '活动ID',
   `title` varchar(100) NOT NULL COMMENT '活动标题',
@@ -8,14 +12,11 @@ CREATE TABLE IF NOT EXISTS `marketing_campaign` (
   `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '状态:0-未开始,1-进行中,2-已结束,3-已取消',
   `type` tinyint(4) NOT NULL COMMENT '活动类型:1-满减,2-折扣,3-秒杀,4-拼团,5-限时,6-新人,7-会员专享',
   `priority` int(11) DEFAULT '0' COMMENT '优先级',
-  `limit_per_user` int(11) DEFAULT NULL COMMENT '每人限购',
   `shop_id` bigint(20) DEFAULT NULL COMMENT '店铺ID,NULL表示平台活动',
   `banner_url` varchar(255) DEFAULT NULL COMMENT '活动banner图片',
-  `page_url` varchar(255) DEFAULT NULL COMMENT '活动页面地址',
   `rules` text COMMENT '活动规则(JSON格式)',
   `creator_id` bigint(20) NOT NULL COMMENT '创建人ID',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_status` (`status`),
   KEY `idx_type` (`type`),
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `marketing_campaign` (
   KEY `idx_time_range` (`start_time`, `end_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='营销活动表';
 
--- 活动商品关联表（活动商品明细）
+-- 活动商品关联表（精简版）
 CREATE TABLE IF NOT EXISTS `campaign_product` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `campaign_id` bigint(20) NOT NULL COMMENT '活动ID',
@@ -46,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `campaign_product` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动商品关联表';
 
--- 优惠券模板表（优惠券定义）
+-- 优惠券模板表（精简版）
 CREATE TABLE IF NOT EXISTS `coupon_template` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '模板ID',
   `name` varchar(64) NOT NULL COMMENT '优惠券名称',
@@ -64,7 +65,6 @@ CREATE TABLE IF NOT EXISTS `coupon_template` (
   `valid_start_time` datetime DEFAULT NULL COMMENT '有效期开始时间',
   `valid_end_time` datetime DEFAULT NULL COMMENT '有效期结束时间',
   `shop_id` bigint(20) DEFAULT NULL COMMENT '店铺ID,NULL表示平台券',
-  `description` varchar(255) DEFAULT NULL COMMENT '使用说明',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_type` (`type`),
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `coupon_template` (
   KEY `idx_valid_end_time` (`valid_end_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板表';
 
--- 优惠券适用范围表（优惠券使用范围）
+-- 优惠券适用范围表（精简版）
 CREATE TABLE IF NOT EXISTS `coupon_scope` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `coupon_template_id` bigint(20) NOT NULL COMMENT '优惠券模板ID',
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `coupon_scope` (
   KEY `idx_scope_id` (`scope_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券适用范围表';
 
--- 用户优惠券表（用户领取的优惠券）
+-- 用户优惠券表（精简版）
 CREATE TABLE IF NOT EXISTS `user_coupon` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '用户券ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
@@ -97,7 +97,6 @@ CREATE TABLE IF NOT EXISTS `user_coupon` (
   `get_time` datetime NOT NULL COMMENT '获取时间',
   `use_time` datetime DEFAULT NULL COMMENT '使用时间',
   `order_id` bigint(20) DEFAULT NULL COMMENT '使用订单ID',
-  `order_no` varchar(32) DEFAULT NULL COMMENT '使用订单号',
   `start_time` datetime NOT NULL COMMENT '有效期开始时间',
   `end_time` datetime NOT NULL COMMENT '有效期结束时间',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -109,7 +108,7 @@ CREATE TABLE IF NOT EXISTS `user_coupon` (
   KEY `idx_end_time` (`end_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户优惠券表';
 
--- 促销满减规则表（满减/满折活动规则）
+-- 促销满减规则表（精简版）
 CREATE TABLE IF NOT EXISTS `promotion_full_reduction` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `name` varchar(64) NOT NULL COMMENT '规则名称',
@@ -128,21 +127,7 @@ CREATE TABLE IF NOT EXISTS `promotion_full_reduction` (
   KEY `idx_time_range` (`start_time`, `end_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='促销满减规则表';
 
--- 促销范围表（促销适用范围）
-CREATE TABLE IF NOT EXISTS `promotion_scope` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `promotion_id` bigint(20) NOT NULL COMMENT '促销ID',
-  `promotion_type` tinyint(4) NOT NULL COMMENT '促销类型:1-满减,2-折扣,3-秒杀,4-拼团',
-  `scope_type` tinyint(4) NOT NULL COMMENT '范围类型:1-商品,2-分类',
-  `scope_id` bigint(20) NOT NULL COMMENT '范围ID',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_promotion_scope` (`promotion_id`,`promotion_type`,`scope_type`,`scope_id`),
-  KEY `idx_promotion_id` (`promotion_id`),
-  KEY `idx_scope_id` (`scope_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='促销范围表';
-
--- 秒杀活动表（秒杀活动信息）
+-- 秒杀活动表（精简版）
 CREATE TABLE IF NOT EXISTS `seckill_activity` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '活动ID',
   `name` varchar(64) NOT NULL COMMENT '活动名称',
@@ -161,7 +146,7 @@ CREATE TABLE IF NOT EXISTS `seckill_activity` (
   KEY `idx_time_range` (`start_time`, `end_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀活动表';
 
--- 秒杀商品表（秒杀商品信息）
+-- 秒杀商品表（精简版）
 CREATE TABLE IF NOT EXISTS `seckill_product` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `seckill_id` bigint(20) NOT NULL COMMENT '秒杀活动ID',
