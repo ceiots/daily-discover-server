@@ -98,7 +98,6 @@ CREATE TABLE IF NOT EXISTS `ai_knowledge_base` (
   `total_documents` int(11) NOT NULL DEFAULT '0' COMMENT '文档总数',
   `embedding_model` varchar(50) DEFAULT NULL COMMENT '向量模型',
   `access_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '访问类型:1-私有,2-共享,3-公开',
-  `shared_with` json DEFAULT NULL COMMENT '共享用户/组织ID',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

@@ -138,7 +138,6 @@ CREATE TABLE IF NOT EXISTS `order_shipping` (
   `order_no` varchar(32) NOT NULL COMMENT '订单编号',
   `shipping_code` varchar(64) DEFAULT NULL COMMENT '物流单号',
   `shipping_company` varchar(64) DEFAULT NULL COMMENT '物流公司',
-  `shipping_name` varchar(32) DEFAULT NULL COMMENT '物流公司名称',
   `consignee` varchar(64) NOT NULL COMMENT '收货人',
   `mobile` varchar(16) NOT NULL COMMENT '手机号',
   `province` varchar(32) DEFAULT NULL COMMENT '省份',

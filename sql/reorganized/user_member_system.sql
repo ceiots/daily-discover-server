@@ -194,108 +194,97 @@ CREATE TABLE IF NOT EXISTS `user_favorite` (
   KEY `idx_collect_time` (`collect_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户收藏表';
 
--- 用户浏览历史表
-CREATE TABLE IF NOT EXISTS `user_browse_history` (
+-- 用户关注表
+CREATE TABLE IF NOT EXISTS `user_follow` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `type` tinyint(4) NOT NULL COMMENT '浏览类型:1-商品,2-店铺,3-内容,4-活动',
-  `target_id` bigint(20) NOT NULL COMMENT '浏览对象ID',
-  `target_name` varchar(200) DEFAULT NULL COMMENT '对象名称',
-  `target_image` varchar(255) DEFAULT NULL COMMENT '对象图片',
-  `browse_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '浏览时间',
-  `stay_time` int(11) DEFAULT NULL COMMENT '停留时间(秒)',
+  `follow_user_id` bigint(20) NOT NULL COMMENT '被关注用户ID',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-取消,1-有效',
+  `remark` varchar(50) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_user_type` (`user_id`,`type`),
-  KEY `idx_target_id` (`target_id`),
-  KEY `idx_browse_time` (`browse_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户浏览历史表';
+  UNIQUE KEY `uk_user_follow` (`user_id`,`follow_user_id`),
+  KEY `idx_follow_user_id` (`follow_user_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户关注表';
 
 -- 用户登录日志表
 CREATE TABLE IF NOT EXISTS `user_login_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `login_type` varchar(20) NOT NULL COMMENT '登录类型:username,mobile,email,weixin,qq,weibo,apple',
-  `login_ip` varchar(64) DEFAULT NULL COMMENT '登录IP',
-  `login_device` varchar(200) DEFAULT NULL COMMENT '登录设备',
-  `login_os` varchar(50) DEFAULT NULL COMMENT '操作系统',
-  `login_browser` varchar(50) DEFAULT NULL COMMENT '浏览器',
-  `login_status` tinyint(4) NOT NULL COMMENT '登录状态:0-失败,1-成功',
-  `login_message` varchar(255) DEFAULT NULL COMMENT '登录消息',
-  `login_location` varchar(100) DEFAULT NULL COMMENT '登录地点',
   `login_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '登录时间',
+  `login_ip` varchar(64) DEFAULT NULL COMMENT '登录IP',
+  `login_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '登录方式:1-账号密码,2-手机验证码,3-第三方登录',
+  `device_type` tinyint(4) DEFAULT NULL COMMENT '设备类型:1-iOS,2-Android,3-H5,4-小程序,5-PC',
+  `device_id` varchar(64) DEFAULT NULL COMMENT '设备ID',
+  `device_model` varchar(64) DEFAULT NULL COMMENT '设备型号',
+  `os_version` varchar(32) DEFAULT NULL COMMENT '系统版本',
+  `app_version` varchar(32) DEFAULT NULL COMMENT 'APP版本',
+  `location` varchar(64) DEFAULT NULL COMMENT '位置',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-失败,1-成功',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
-  KEY `idx_login_status` (`login_status`),
-  KEY `idx_login_time` (`login_time`)
+  KEY `idx_login_time` (`login_time`),
+  KEY `idx_device_id` (`device_id`),
+  KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户登录日志表';
 
 -- 用户设备表
 CREATE TABLE IF NOT EXISTS `user_device` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `device_id` varchar(100) NOT NULL COMMENT '设备唯一标识',
-  `device_type` tinyint(4) DEFAULT NULL COMMENT '设备类型',
-  `os_type` varchar(20) DEFAULT NULL COMMENT '操作系统',
-  `app_version` varchar(20) DEFAULT NULL COMMENT 'App版本',
-  `push_token` varchar(200) DEFAULT NULL COMMENT '推送token',
+  `device_id` varchar(64) NOT NULL COMMENT '设备ID',
+  `device_type` tinyint(4) NOT NULL COMMENT '设备类型:1-iOS,2-Android,3-H5,4-小程序,5-PC',
+  `device_model` varchar(64) DEFAULT NULL COMMENT '设备型号',
+  `device_name` varchar(64) DEFAULT NULL COMMENT '设备名称',
+  `os_version` varchar(32) DEFAULT NULL COMMENT '系统版本',
+  `app_version` varchar(32) DEFAULT NULL COMMENT 'APP版本',
   `last_login_time` datetime DEFAULT NULL COMMENT '最后登录时间',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_user_device` (`user_id`, `device_id`),
-  KEY `idx_push_token` (`push_token`),
-  KEY `idx_last_login` (`last_login_time` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户设备表';
-
--- 用户兴趣标签表（合并自两个不同的表，统一用户标签体系）
-CREATE TABLE IF NOT EXISTS `user_interest_tag` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `tag_id` bigint(20) NOT NULL COMMENT '标签ID',
-  `tag_name` varchar(50) NOT NULL COMMENT '标签名称',
-  `tag_type` tinyint(4) NOT NULL COMMENT '标签类型:1-品类,2-品牌,3-功能,4-场景,5-内容',
-  `weight` decimal(5,2) NOT NULL DEFAULT '1.00' COMMENT '权重',
-  `source` tinyint(4) NOT NULL DEFAULT '1' COMMENT '来源:1-行为,2-主动设置,3-问卷,4-AI推断',
-  `category` varchar(50) DEFAULT NULL COMMENT '分类',
-  `score` decimal(5,2) NOT NULL DEFAULT '0.00' COMMENT '兴趣分数',
-  `expire_time` datetime DEFAULT NULL COMMENT '过期时间',
+  `push_token` varchar(128) DEFAULT NULL COMMENT '推送Token',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-正常',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_user_tag` (`user_id`, `tag_id`),
-  KEY `idx_tag_name` (`tag_name`),
-  KEY `idx_weight_score` (`weight` DESC, `score` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户兴趣标签表';
+  UNIQUE KEY `uk_user_device` (`user_id`,`device_id`),
+  KEY `idx_device_id` (`device_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户设备表';
 
--- 用户行为记录表
+-- 用户行为表
 CREATE TABLE IF NOT EXISTS `user_behavior` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   `behavior_type` tinyint(4) NOT NULL COMMENT '行为类型:1-浏览,2-点赞,3-收藏,4-评论,5-分享,6-购买,7-搜索',
-  `object_type` tinyint(4) NOT NULL COMMENT '对象类型:1-内容,2-商品,3-用户,4-话题',
-  `object_id` bigint(20) NOT NULL COMMENT '对象ID',
-  `duration` int(11) DEFAULT NULL COMMENT '停留时长(秒)',
-  `scene_type` tinyint(4) DEFAULT NULL COMMENT '场景类型:1-首页,2-详情页,3-搜索结果,4-推荐页,5-分类页',
-  `device_type` tinyint(4) DEFAULT NULL COMMENT '设备类型:1-手机,2-平板,3-PC',
-  `city` varchar(50) DEFAULT NULL COMMENT '城市',
+  `target_id` bigint(20) NOT NULL COMMENT '目标ID',
+  `target_type` tinyint(4) NOT NULL COMMENT '目标类型:1-内容,2-商品,3-用户,4-话题,5-评论',
+  `behavior_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '行为时间',
+  `device_type` tinyint(4) DEFAULT NULL COMMENT '设备类型:1-iOS,2-Android,3-H5,4-小程序,5-PC',
+  `device_id` varchar(64) DEFAULT NULL COMMENT '设备ID',
+  `ip` varchar(64) DEFAULT NULL COMMENT 'IP地址',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  KEY `idx_user_time` (`user_id`, `create_time`),
-  KEY `idx_object` (`object_type`, `object_id`),
-  KEY `idx_behavior_type` (`behavior_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为记录表';
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_behavior_type` (`behavior_type`),
+  KEY `idx_target` (`target_id`,`target_type`),
+  KEY `idx_behavior_time` (`behavior_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为表';
 
--- 社交关系表
+-- 用户关系表
 CREATE TABLE IF NOT EXISTS `user_relationship` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `target_user_id` bigint(20) NOT NULL COMMENT '目标用户ID',
-  `relationship_type` tinyint(4) NOT NULL COMMENT '关系类型: 1-关注 2-好友 3-屏蔽',
-  `interaction_score` decimal(5,2) DEFAULT '0.00' COMMENT '互动分数',
-  `status` tinyint(4) DEFAULT '1' COMMENT '状态: 0-删除 1-正常',
+  `related_user_id` bigint(20) NOT NULL COMMENT '关联用户ID',
+  `relation_type` tinyint(4) NOT NULL COMMENT '关系类型:1-好友,2-黑名单,3-特别关注',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-解除,1-有效',
+  `remark` varchar(50) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_user_target` (`user_id`, `target_user_id`),
-  KEY `idx_target_type` (`target_user_id`, `relationship_type`),
-  KEY `idx_interaction_score` (`interaction_score` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社交关系表'; 
+  UNIQUE KEY `uk_user_relation` (`user_id`,`related_user_id`,`relation_type`),
+  KEY `idx_related_user_id` (`related_user_id`),
+  KEY `idx_relation_type` (`relation_type`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户关系表'; 

@@ -267,7 +267,6 @@ CREATE TABLE IF NOT EXISTS `content_tracking` (
   `event_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '事件时间',
   `device_type` tinyint(4) DEFAULT NULL COMMENT '设备类型:1-iOS,2-Android,3-H5,4-小程序,5-PC',
   `device_id` varchar(64) DEFAULT NULL COMMENT '设备ID',
-  `ip` varchar(64) DEFAULT NULL COMMENT 'IP地址',
   `event_data` varchar(1000) DEFAULT NULL COMMENT '事件数据JSON',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
