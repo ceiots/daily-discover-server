@@ -107,24 +107,6 @@ CREATE TABLE IF NOT EXISTS `user_interest_tag` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户兴趣标签表';
 
--- 用户浏览历史表
-CREATE TABLE IF NOT EXISTS `user_browse_history` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `user_id` bigint(20) NOT NULL COMMENT '用户ID',
-  `content_id` bigint(20) NOT NULL COMMENT '内容ID',
-  `content_type` tinyint(4) NOT NULL COMMENT '内容类型:1-文章,2-视频,3-商品,4-话题,5-用户',
-  `browse_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '浏览时间',
-  `stay_time` int(11) NOT NULL DEFAULT '0' COMMENT '停留时间(秒)',
-  `is_complete` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否浏览完:0-否,1-是',
-  `device_type` tinyint(4) DEFAULT NULL COMMENT '设备类型:1-iOS,2-Android,3-H5,4-小程序,5-PC',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_content` (`content_id`,`content_type`),
-  KEY `idx_browse_time` (`browse_time` DESC),
-  KEY `idx_stay_time` (`stay_time` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户浏览历史表';
-
 -- 用户兴趣画像表
 CREATE TABLE IF NOT EXISTS `user_interest_profile` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',

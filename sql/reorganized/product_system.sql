@@ -1,4 +1,4 @@
--- 商品系统表结构（整合版）
+-- 商品系统表结构（优化版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: product_mvp.sql, ecommerce_order_tables.sql中的商品相关表
 
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS `product_spec` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品规格表';
 
--- 商品评价表
+-- 商品评价表 (优化：拆分为商品评价主表和评价详情表，以保持字段数在18以内)
 CREATE TABLE IF NOT EXISTS `product_review` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '评价ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
@@ -158,11 +158,6 @@ CREATE TABLE IF NOT EXISTS `product_review` (
   `service_rating` tinyint(4) DEFAULT NULL COMMENT '服务评分',
   `logistics_rating` tinyint(4) DEFAULT NULL COMMENT '物流评分',
   `has_additional` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否有追评:0-否,1-是',
-  `additional_content` varchar(1000) DEFAULT NULL COMMENT '追评内容',
-  `additional_images` json DEFAULT NULL COMMENT '追评图片',
-  `additional_time` datetime DEFAULT NULL COMMENT '追评时间',
-  `reply_content` varchar(500) DEFAULT NULL COMMENT '商家回复内容',
-  `reply_time` datetime DEFAULT NULL COMMENT '商家回复时间',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-待审核,1-已发布,2-已屏蔽',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -176,6 +171,22 @@ CREATE TABLE IF NOT EXISTS `product_review` (
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价表';
+
+-- 商品评价追评表 (新增表，从原评价表拆分出来)
+CREATE TABLE IF NOT EXISTS `product_review_additional` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `review_id` bigint(20) NOT NULL COMMENT '评价ID',
+  `additional_content` varchar(1000) DEFAULT NULL COMMENT '追评内容',
+  `additional_images` json DEFAULT NULL COMMENT '追评图片',
+  `additional_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '追评时间',
+  `reply_content` varchar(500) DEFAULT NULL COMMENT '商家回复内容',
+  `reply_time` datetime DEFAULT NULL COMMENT '商家回复时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_review_id` (`review_id`),
+  KEY `idx_additional_time` (`additional_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价追评表';
 
 -- 商品收藏表
 CREATE TABLE IF NOT EXISTS `product_favorite` (

@@ -1,4 +1,4 @@
--- 店铺财务系统表结构（整合版）
+-- 店铺财务系统表结构（优化版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: shop_finance_mvp.sql
 
@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS `shop_settlement` (
   `settlement_no` varchar(32) NOT NULL COMMENT '结算单号',
   `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
   `account_id` bigint(20) NOT NULL COMMENT '店铺账户ID',
-  `account_no` varchar(32) NOT NULL COMMENT '账户编号',
   `settlement_start_time` datetime NOT NULL COMMENT '结算开始时间',
   `settlement_end_time` datetime NOT NULL COMMENT '结算结束时间',
   `total_amount` decimal(12,2) NOT NULL COMMENT '结算总金额',
@@ -35,7 +34,6 @@ CREATE TABLE IF NOT EXISTS `shop_settlement` (
   `refund_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '退款金额',
   `commission_amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '佣金金额',
   `actual_amount` decimal(12,2) NOT NULL COMMENT '实际结算金额',
-  `receipt_amount` decimal(12,2) DEFAULT NULL COMMENT '实际到账金额',
   `fee_amount` decimal(10,2) DEFAULT '0.00' COMMENT '手续费金额',
   `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '状态:0-待结算,1-结算中,2-已结算,3-结算失败',
   `payout_time` datetime DEFAULT NULL COMMENT '打款时间',
@@ -80,7 +78,6 @@ CREATE TABLE IF NOT EXISTS `shop_transaction` (
   `transaction_no` varchar(32) NOT NULL COMMENT '交易流水号',
   `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
   `account_id` bigint(20) NOT NULL COMMENT '账户ID',
-  `account_no` varchar(32) NOT NULL COMMENT '账户编号',
   `account_type` tinyint(4) NOT NULL COMMENT '账户类型:1-结算账户,2-佣金账户,3-保证金账户',
   `transaction_type` tinyint(4) NOT NULL COMMENT '交易类型:1-订单结算,2-退款,3-佣金扣除,4-提现,5-调账,6-充值保证金',
   `amount` decimal(12,2) NOT NULL COMMENT '交易金额',
@@ -95,7 +92,6 @@ CREATE TABLE IF NOT EXISTS `shop_transaction` (
   UNIQUE KEY `uk_transaction_no` (`transaction_no`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_account_id` (`account_id`),
-  KEY `idx_account_no` (`account_no`),
   KEY `idx_transaction_type` (`transaction_type`),
   KEY `idx_reference_no` (`reference_no`),
   KEY `idx_create_time` (`create_time`)
@@ -107,7 +103,6 @@ CREATE TABLE IF NOT EXISTS `shop_withdraw` (
   `withdraw_no` varchar(32) NOT NULL COMMENT '提现单号',
   `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
   `account_id` bigint(20) NOT NULL COMMENT '账户ID',
-  `account_no` varchar(32) NOT NULL COMMENT '账户编号',
   `withdraw_amount` decimal(12,2) NOT NULL COMMENT '提现金额',
   `service_fee` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '手续费',
   `actual_amount` decimal(12,2) NOT NULL COMMENT '实际到账金额',
@@ -124,7 +119,6 @@ CREATE TABLE IF NOT EXISTS `shop_withdraw` (
   UNIQUE KEY `uk_withdraw_no` (`withdraw_no`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_account_id` (`account_id`),
-  KEY `idx_account_no` (`account_no`),
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`),
   KEY `idx_payout_time` (`payout_time`)
@@ -158,15 +152,14 @@ CREATE TABLE IF NOT EXISTS `commission_rule` (
   `rule_name` varchar(100) NOT NULL COMMENT '规则名称',
   `rule_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '规则类型:1-分类佣金,2-店铺佣金,3-促销佣金',
   `target_id` bigint(20) DEFAULT NULL COMMENT '目标ID',
-  `target_name` varchar(100) DEFAULT NULL COMMENT '目标名称',
   `rate` decimal(5,2) NOT NULL COMMENT '佣金比例%',
   `min_amount` decimal(10,2) DEFAULT NULL COMMENT '最小金额',
   `max_amount` decimal(10,2) DEFAULT NULL COMMENT '最大金额',
   `start_time` datetime DEFAULT NULL COMMENT '开始时间',
   `end_time` datetime DEFAULT NULL COMMENT '结束时间',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-启用',
-  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `priority` int(11) NOT NULL DEFAULT '0' COMMENT '优先级',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -232,7 +225,6 @@ CREATE TABLE IF NOT EXISTS `shop_deposit` (
   `deposit_no` varchar(32) NOT NULL COMMENT '保证金单号',
   `shop_id` bigint(20) NOT NULL COMMENT '店铺ID',
   `account_id` bigint(20) NOT NULL COMMENT '账户ID',
-  `account_no` varchar(32) NOT NULL COMMENT '账户编号',
   `deposit_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '保证金类型:1-开店保证金,2-活动保证金,3-违规保证金',
   `operation_type` tinyint(4) NOT NULL COMMENT '操作类型:1-缴纳,2-扣除,3-退还',
   `amount` decimal(12,2) NOT NULL COMMENT '金额',
@@ -248,7 +240,6 @@ CREATE TABLE IF NOT EXISTS `shop_deposit` (
   UNIQUE KEY `uk_deposit_no` (`deposit_no`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_account_id` (`account_id`),
-  KEY `idx_account_no` (`account_no`),
   KEY `idx_reference_no` (`reference_no`),
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`)

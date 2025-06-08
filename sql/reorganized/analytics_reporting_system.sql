@@ -83,7 +83,6 @@ CREATE TABLE IF NOT EXISTS `user_behavior_statistics` (
   `bounce_rate` decimal(5,2) DEFAULT NULL COMMENT '跳出率(%)',
   `peak_hour` tinyint(4) DEFAULT NULL COMMENT '高峰小时',
   `device_distribution` json DEFAULT NULL COMMENT '设备分布',
-  `user_age_distribution` json DEFAULT NULL COMMENT '用户年龄分布',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_date_behavior_object` (`stat_date`,`behavior_type`,`object_type`),

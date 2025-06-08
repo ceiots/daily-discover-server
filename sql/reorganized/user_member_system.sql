@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `avatar` varchar(255) DEFAULT NULL COMMENT '头像',
   `gender` tinyint(4) DEFAULT '0' COMMENT '性别:0-未知,1-男,2-女',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:0-禁用,1-正常,2-锁定',
-  `user_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '用户类型:1-普通用户,2-商家,3-管理员',
+  `user_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '用户类型:1-普通用户,2-商家,3-官方账号',
   `register_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
   `register_ip` varchar(64) DEFAULT NULL COMMENT '注册IP',
   `last_login_time` datetime DEFAULT NULL COMMENT '最后登录时间',

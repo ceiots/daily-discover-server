@@ -147,7 +147,6 @@ CREATE TABLE IF NOT EXISTS `order_shipping` (
   `ship_time` datetime DEFAULT NULL COMMENT '发货时间',
   `receive_time` datetime DEFAULT NULL COMMENT '收货时间',
   `delivery_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '配送状态:0-待发货,1-已发货,2-已收货',
-  `tracking_data` text DEFAULT NULL COMMENT '物流跟踪数据',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
