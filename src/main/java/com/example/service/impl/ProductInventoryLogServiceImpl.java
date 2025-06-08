@@ -52,8 +52,8 @@ public class ProductInventoryLogServiceImpl implements ProductInventoryService {
             productSkuMapper.updateById(sku);
             
             // 4. 记录库存变更
-            ProductInventoryLog log = ProductInventoryLog.create(
-                    productId, skuId, null, 1, quantity, beforeStock, afterStock, operatorId, remark);
+            ProductInventoryLog log = ProductInventoryLog.createInboundLog(
+                    productId, skuId, quantity, beforeStock, afterStock, operatorId, remark);
             inventoryLogMapper.insert(log);
             
             // 5. 更新商品总库存
@@ -96,8 +96,8 @@ public class ProductInventoryLogServiceImpl implements ProductInventoryService {
             productSkuMapper.updateById(sku);
             
             // 5. 记录库存变更
-            ProductInventoryLog log = ProductInventoryLog.create(
-                    productId, skuId, null, 2, quantity, beforeStock, afterStock, operatorId, remark);
+            ProductInventoryLog log = ProductInventoryLog.createOutboundLog(
+                    productId, skuId, null, quantity, beforeStock, afterStock, operatorId, remark);
             inventoryLogMapper.insert(log);
             
             // 6. 更新商品总库存
@@ -144,8 +144,8 @@ public class ProductInventoryLogServiceImpl implements ProductInventoryService {
             productSkuMapper.updateById(sku);
             
             // 5. 记录库存变更
-            ProductInventoryLog log = ProductInventoryLog.create(
-                    productId, skuId, orderId, 3, quantity, beforeStock, afterStock, operatorId, remark);
+            ProductInventoryLog log = ProductInventoryLog.createLockLog(
+                    productId, skuId, orderId, quantity, beforeStock, afterStock, operatorId, remark);
             inventoryLogMapper.insert(log);
             
             // 6. 更新商品总库存
@@ -193,8 +193,8 @@ public class ProductInventoryLogServiceImpl implements ProductInventoryService {
             productSkuMapper.updateById(sku);
             
             // 5. 记录库存变更
-            ProductInventoryLog log = ProductInventoryLog.create(
-                    productId, skuId, orderId, 4, quantity, beforeStock, afterStock, operatorId, remark);
+            ProductInventoryLog log = ProductInventoryLog.createUnlockLog(
+                    productId, skuId, orderId, quantity, beforeStock, afterStock, operatorId, remark);
             inventoryLogMapper.insert(log);
             
             // 6. 更新商品总库存

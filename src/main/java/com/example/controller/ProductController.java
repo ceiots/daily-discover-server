@@ -26,6 +26,7 @@ import com.example.common.api.CommonResult;
 import com.example.model.Product;
 import com.example.model.ProductDetail;
 import com.example.model.ProductSku;
+import com.example.model.ProductContent;
 import com.example.model.Shop;
 import com.example.model.Specification;
 import com.example.service.ProductService;
@@ -363,8 +364,8 @@ public class ProductController {
             product.setAuditStatus(0);
             
             // 如果有多个图片，使用第一张作为主图
-            if (product.getImages() != null && !product.getImages().isEmpty()) {
-                product.setImageUrl(product.getImages().get(0));
+            if (product.getContent() != null && product.getContent().getImages() != null && !product.getContent().getImages().isEmpty()) {
+                product.setImageUrl(product.getContent().getImages().get(0));
             }
             
             // 设置总库存，如果未设置则默认为0
@@ -372,14 +373,15 @@ public class ProductController {
                 product.setTotalStock(0);
             }
             
-            // 不再需要生成SKU ID，数据库会自动生成
-            
             // 如果details字段映射成功但productDetails为空，则将details赋值给productDetails
-            if (product.getDetails() != null && (product.getProductDetails() == null || product.getProductDetails().isEmpty())) {
-                product.setProductDetails(product.getDetails());
+            if (product.getContent() != null && product.getContent().getDetails() != null 
+                && product.getContent().getDetails().isEmpty()) {
+                // No need to set details to itself
+                log.info("Product has empty details list");
             }
             // 备用处理：如果JsonProperty映射失败，从requestBody中获取details
-            else if (product.getProductDetails() == null && requestBody.containsKey("details") && requestBody.get("details") instanceof List) {
+            else if ((product.getContent() == null || product.getContent().getDetails() == null) 
+                    && requestBody.containsKey("details") && requestBody.get("details") instanceof List) {
                 List<Map<String, Object>> details = (List<Map<String, Object>>) requestBody.get("details");
                 System.out.println("details: " + details);
                 List<ProductDetail> productDetails = new ArrayList<>();
@@ -404,7 +406,23 @@ public class ProductController {
                     
                     productDetails.add(pd);
                 }
-                product.setProductDetails(productDetails);
+                
+                // 初始化Product的content字段（如果为null）
+                if (product.getContent() == null) {
+                    product.setContent(new ProductContent());
+                }
+                product.getContent().setDetails(productDetails);
+                
+                // 处理图片列表
+                if (requestBody.containsKey("images") && requestBody.get("images") instanceof List) {
+                    List<String> images = (List<String>) requestBody.get("images");
+                    product.getContent().setImages(images);
+                    
+                    // 设置主图
+                    if (!images.isEmpty() && (product.getImageUrl() == null || product.getImageUrl().isEmpty())) {
+                        product.setImageUrl(images.get(0));
+                    }
+                }
             }
             
             // 创建商品
@@ -487,7 +505,19 @@ public class ProductController {
             }
             
             if (productSkuId != null) {
-                existingProduct.setProductSkuId(productSkuId);
+                if (existingProduct.getSkus() != null && !existingProduct.getSkus().isEmpty()) {
+                    existingProduct.getSkus().get(0).setId(productSkuId);
+                } else {
+                    // 如果没有SKU，创建一个默认SKU
+                    ProductSku defaultSku = new ProductSku();
+                    defaultSku.setId(productSkuId);
+                    defaultSku.setProductId(id);
+                    defaultSku.setPrice(existingProduct.getPrice());
+                    defaultSku.setStock(existingProduct.getTotalStock() != null ? existingProduct.getTotalStock() : 0);
+                    List<ProductSku> skus = new ArrayList<>();
+                    skus.add(defaultSku);
+                    existingProduct.setSkus(skus);
+                }
             }
             
             Product updatedProduct = productService.updateProduct(existingProduct);
