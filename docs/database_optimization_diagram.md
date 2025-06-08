@@ -111,41 +111,6 @@ graph TD
     class PLATFORM_MONITOR optimized
 ```
 
-## 优化变化对照
-
-下表展示了主要的优化前后变化：
-
-| 表名 | 优化前 | 优化后 | 优化效果 |
-|------|--------|--------|---------|
-| search_recommend_system.user_browse_history | 存在冗余表 | 已移除，使用product_browse_history | 减少数据冗余，避免一致性问题 |
-| supply_chain_inventory_system.purchase_order_item | 包含冗余字段product_name | 移除冗余字段，保留product_id | 减少数据存储，提高更新效率 |
-| order_transaction_system.order_shipping | 包含大文本字段tracking_data | 移除大字段，优化为单独存储 | 提高查询性能，降低I/O压力 |
-| analytics_reporting_system.user_behavior_statistics | 包含冗余统计字段 | 精简字段，保留核心指标 | 提高统计效率，减少存储空间 |
-| analytics_reporting_system.platform_monitor | 包含非核心监控指标 | 精简为核心系统监控指标 | 聚焦关键性能监控 |
-
-## 索引优化方案
-
-针对高频查询场景，我们对关键表实施了以下索引优化：
-
-1. **订单查询优化**
-   - order表: 添加(user_id, order_status)组合索引
-   - order_item表: 添加(order_id, product_id)组合索引
-
-2. **商品查询优化**
-   - product表: 添加(status, is_recommend)组合索引
-   - product_sku表: 添加(product_id, stock)组合索引
-
-3. **用户行为查询优化**
-   - user_behavior表: 添加(user_id, behavior_type, create_time)组合索引
-   - product_browse_history表: 添加(user_id, browse_time)组合索引
-
-4. **库存操作优化**
-   - inventory表: 使用乐观锁版本号(version)，添加(sku_id, warehouse_id)唯一索引
-
-5. **统计查询优化**
-   - 所有统计表: 添加基于日期的索引
-   - 添加基于主要统计维度的组合索引
-
 ## 性能优化收益
 
 经过优化，系统在多个方面获得了性能提升：
