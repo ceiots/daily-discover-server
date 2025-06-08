@@ -1,75 +1,28 @@
 package com.example.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
- * 商品分类
+ * 商品分类实体类
  */
-@TableName(value = "product_categories")
 @Data
-public class Category implements Serializable {
-
-    /**
-     * ID
-     */
-    @TableId(type = IdType.AUTO)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Category {
     private Long id;
-
-    /**
-     * 分类名称
-     */
-    private String name;
-
-    /**
-     * 父分类ID
-     */
-    private Long parentId;
-
-    /**
-     * 分类层级，1为顶级
-     */
-    private Integer level;
-
-    /**
-     * 排序值
-     */
-    private Integer sortOrder;
-
-    /**
-     * 分类图标
-     */
-    private String icon;
-
-    /**
-     * 状态：1-启用，0-禁用
-     */
-    private Integer status;
-
-
-    /**
-     * 创建时间
-     */
-    private Date createdAt;
-
-    /**
-     * 更新时间
-     */
-    private Date updatedAt;
-
-    /**
-     * 子分类列表（非数据库字段）
-     */
-    @TableField(exist = false)
-    private List<Category> children;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private String name;        // 分类名称
+    private String icon;        // 分类图标
+    private Long parentId;      // 父级分类ID
+    private Integer level;      // 分类层级:1-一级,2-二级,3-三级
+    private Integer sortOrder;  // 排序权重
+    private Boolean isVisible;  // 是否显示
+    private Date createTime;
+    private Date updateTime;
+    
+    // 非持久化字段
+    private List<Category> children; // 子分类列表
+    private Category parent;         // 父分类
 } 

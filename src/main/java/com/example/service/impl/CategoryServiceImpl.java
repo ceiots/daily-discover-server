@@ -40,7 +40,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             }
             
             if (categoryQueryRequest.getStatus() != null) {
-                queryWrapper.eq("status", categoryQueryRequest.getStatus());
+                queryWrapper.eq("is_visible", categoryQueryRequest.getStatus());
             }
             
             if (categoryQueryRequest.getParentId() != null) {
@@ -58,7 +58,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     public List<Category> getCategoryTree() {
         // 获取所有启用的分类
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Category::getStatus, 1);
+        queryWrapper.eq(Category::getIsVisible, true);
         queryWrapper.orderByAsc(Category::getSortOrder);
         List<Category> allCategories = this.list(queryWrapper);
         

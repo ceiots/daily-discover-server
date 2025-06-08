@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.dao.ProductDao;
-import com.example.dao.UserBehaviorDao;
-import com.example.dao.UserPreferenceDao;
+import com.example.mapper.ProductMapper;
+import com.example.mapper.UserBehaviorMapper;
+import com.example.mapper.UserPreferenceMapper;
 import com.example.model.Product;
 import com.example.model.Shop;
 import com.example.model.UserBehavior;
@@ -30,13 +30,13 @@ import lombok.extern.slf4j.Slf4j;
 public class RecommendationServiceImpl implements RecommendationService {
 
     @Autowired
-    private ProductDao productDao;
+    private ProductMapper productMapper;
     
     @Autowired
-    private UserBehaviorDao userBehaviorDao;
+    private UserBehaviorMapper userBehaviorMapper;
     
     @Autowired(required = false)
-    private UserPreferenceDao userPreferenceDao;
+    private UserPreferenceMapper userPreferenceMapper;
     
     @Autowired
     private ShopService shopService;
@@ -62,13 +62,13 @@ public class RecommendationServiceImpl implements RecommendationService {
                 boolean hasHistory = false;
                 boolean hasPreferences = false;
                 
-                if (userBehaviorDao != null) {
-                    List<UserBehavior> history = userBehaviorDao.findByUserIdAndBehaviorType(userId, "CLICK", 1000);
+                if (userBehaviorMapper != null) {
+                    List<UserBehavior> history = userBehaviorMapper.findByUserIdAndBehaviorType(userId, "CLICK", 1000);
                     hasHistory = history != null && !history.isEmpty();
                 }
                 
-                if (userPreferenceDao != null) {
-                    List<UserPreference> preferences = userPreferenceDao.findByUserId(userId);
+                if (userPreferenceMapper != null) {
+                    List<UserPreference> preferences = userPreferenceMapper.findByUserId(userId);
                     hasPreferences = preferences != null && !preferences.isEmpty();
                 }
                 
@@ -142,15 +142,15 @@ public class RecommendationServiceImpl implements RecommendationService {
         
         try {
             // 1. 获取用户浏览历史
-            List<UserBehavior> browsingHistory = userBehaviorDao.findByUserIdAndBehaviorType(userId, "VIEW", 1000);
+            List<UserBehavior> browsingHistory = userBehaviorMapper.findByUserIdAndBehaviorType(userId, "VIEW", 1000);
             List<Long> historyCategoryIds = browsingHistory.stream()
                 .map(UserBehavior::getCategoryId)
                 .distinct()
                 .collect(Collectors.toList());
                 
             // 2. 获取用户偏好
-            List<UserPreference> preferences = userPreferenceDao != null ?
-                userPreferenceDao.findByUserId(userId) : new ArrayList<>();
+            List<UserPreference> preferences = userPreferenceMapper != null ?
+                userPreferenceMapper.findByUserId(userId) : new ArrayList<>();
                 
             // 3. 基于浏览历史提取类别ID
             List<Long> preferenceCategoryIds = preferences.stream()
@@ -166,7 +166,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             if (!categoryIds.isEmpty()) {
                 // 从每个类别获取一些商品
                 for (Long categoryId : categoryIds) {
-                    List<Product> categoryProducts = productDao.findByCategoryIdAndAuditStatusOrderByCreatedAtDesc(
+                    List<Product> categoryProducts = productMapper.findByCategoryIdAndAuditStatusOrderByCreatedAtDesc(
                         categoryId, 1, 0, 2); // 每个类别获取2个最新商品
                     personalizedProducts.addAll(categoryProducts);
                 }
@@ -203,7 +203,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      */
     private List<Product> getPopularProducts() {
         // 获取销量最高的商品
-        return productDao.findByAuditStatusOrderBySoldCountDesc(1, 0, 6);
+        return productMapper.findByAuditStatusOrderBySoldCountDesc(1, 0, 6);
     }
     
     /**
@@ -211,7 +211,7 @@ public class RecommendationServiceImpl implements RecommendationService {
      */
     private List<Product> getFallbackProducts() {
         // 获取最新上架的商品
-        return productDao.findByAuditStatusOrderByCreatedAtDesc(1, 0, 6);
+        return productMapper.findByAuditStatusOrderByCreatedAtDesc(1, 0, 6);
     }
     
     /**
@@ -233,8 +233,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         
         try {
             // 1. 检查用户是否浏览过该类别的商品
-            if (userBehaviorDao != null) {
-                List<UserBehavior> categoryHistory = userBehaviorDao.findByUserIdAndBehaviorType(
+            if (userBehaviorMapper != null) {
+                List<UserBehavior> categoryHistory = userBehaviorMapper.findByUserIdAndBehaviorType(
                     userId, "VIEW", 1000);
                     
                 if (!categoryHistory.isEmpty()) {
@@ -243,8 +243,8 @@ public class RecommendationServiceImpl implements RecommendationService {
             }
             
             // 2. 检查用户偏好
-            if (userPreferenceDao != null) {
-                List<UserPreference> preferences = userPreferenceDao.findByUserIdAndCategoryId(
+            if (userPreferenceMapper != null) {
+                List<UserPreference> preferences = userPreferenceMapper.findByUserIdAndCategoryId(
                     userId, product.getCategoryId());
                     
                 if (!preferences.isEmpty()) {

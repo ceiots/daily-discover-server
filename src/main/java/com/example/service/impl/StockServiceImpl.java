@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.dao.ProductDao;
-import com.example.dao.StockLockDao;
+import com.example.mapper.ProductMapper;
+import com.example.mapper.StockLockMapper;
 import com.example.model.Product;
 import com.example.model.StockLock;
 import com.example.service.StockService;
@@ -20,16 +20,16 @@ public class StockServiceImpl implements StockService {
     private static final Logger logger = LoggerFactory.getLogger(StockServiceImpl.class);
 
     @Autowired
-    private ProductDao productDao;
+    private ProductMapper productMapper;
 
     @Autowired
-    private StockLockDao stockLockDao;
+    private StockLockMapper stockLockMapper;
 
     @Override
     @Transactional
     public boolean decreaseStock(Long productId, Integer quantity) {
         // 1. 查询商品
-        Product product = productDao.findById(productId);
+        Product product = productMapper.findById(productId);
         if (product == null) {
             logger.error("商品不存在: {}", productId);
             return false;
@@ -42,16 +42,13 @@ public class StockServiceImpl implements StockService {
             return false;
         }
 
-        // 3. 使用乐观锁更新库存，并发安全
-        int rows = productDao.decreaseStock(productId, quantity, product.getVersion());
-        if (rows <= 0) {
-            logger.error("乐观锁更新失败，可能发生并发更新: {}", productId);
-            // 可以重试几次，这里简化处理，直接返回失败
-            return false;
-        }
+        // 3. 更新库存
+        product.setTotalStock(product.getTotalStock() - quantity);
+        product.setUpdateTime(new Date());
+        productMapper.update(product);
 
         logger.info("库存扣减成功: 商品 {}, 数量 {}, 剩余 {}", 
-                productId, quantity, product.getTotalStock() - quantity);
+                productId, quantity, product.getTotalStock());
         return true;
     }
 
@@ -59,28 +56,25 @@ public class StockServiceImpl implements StockService {
     @Transactional
     public boolean increaseStock(Long productId, Integer quantity) {
         // 1. 查询商品
-        Product product = productDao.findById(productId);
+        Product product = productMapper.findById(productId);
         if (product == null) {
             logger.error("商品不存在: {}", productId);
             return false;
         }
 
-        // 2. 使用乐观锁更新库存，并发安全
-        int rows = productDao.increaseStock(productId, quantity, product.getVersion());
-        if (rows <= 0) {
-            logger.error("乐观锁更新失败，可能发生并发更新: {}", productId);
-            // 可以重试几次，这里简化处理，直接返回失败
-            return false;
-        }
+        // 2. 更新库存
+        product.setTotalStock(product.getTotalStock() + quantity);
+        product.setUpdateTime(new Date());
+        productMapper.update(product);
 
         logger.info("库存恢复成功: 商品 {}, 数量 {}, 更新后 {}", 
-                productId, quantity, product.getTotalStock() + quantity);
+                productId, quantity, product.getTotalStock());
         return true;
     }
 
     @Override
     public Integer getStock(Long productId) {
-        Product product = productDao.findById(productId);
+        Product product = productMapper.findById(productId);
         return product != null ? product.getTotalStock() : 0;
     }
 
@@ -101,7 +95,7 @@ public class StockServiceImpl implements StockService {
         stockLock.setLockStatus(1); // 1: 锁定
         stockLock.setCreateTime(new Date());
         
-        stockLockDao.insert(stockLock);
+        stockLockMapper.insert(stockLock);
         logger.info("库存已锁定: 商品 {}, 数量 {}, 订单 {}", productId, quantity, orderId);
         return true;
     }
@@ -110,7 +104,7 @@ public class StockServiceImpl implements StockService {
     @Transactional
     public boolean unlockStock(Long orderId) {
         // 1. 查询锁定记录
-        List<StockLock> lockList = stockLockDao.findByOrderId(orderId);
+        List<StockLock> lockList = stockLockMapper.findByOrderId(orderId);
         if (lockList == null || lockList.isEmpty()) {
             logger.warn("找不到订单的库存锁定记录: {}", orderId);
             return false;
@@ -123,7 +117,7 @@ public class StockServiceImpl implements StockService {
                 boolean increased = increaseStock(lock.getProductId(), lock.getQuantity());
                 if (increased) {
                     // 更新锁定状态为已解锁
-                    stockLockDao.updateStatus(lock.getId(), 2); // 2: 已解锁
+                    stockLockMapper.updateStatus(lock.getId(), 2); // 2: 已解锁
                     logger.info("库存已解锁: 商品 {}, 数量 {}, 订单 {}", 
                             lock.getProductId(), lock.getQuantity(), orderId);
                 } else {

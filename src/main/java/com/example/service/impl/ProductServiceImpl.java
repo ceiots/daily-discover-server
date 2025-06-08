@@ -122,15 +122,11 @@ public class ProductServiceImpl implements ProductService {
     public Product createProduct(Product product) throws Exception {
         // 设置默认审核状态为"待审核"
         product.setAuditStatus(0);
-        product.setCreatedAt(new Date());
-        product.setSoldCount(0);
+        product.setCreateTime(new Date());
+        product.setTotalSales(0);
+        product.setDeleted(false);
         
         productMapper.insert(product);
-        
-        // 如果有标签，处理标签关联
-        if (product.getTagIds() != null && !product.getTagIds().isEmpty()) {
-            // TODO: 处理标签关联
-        }
         
         // 处理商品SKU
         List<ProductSku> skus = product.getSkus();
@@ -149,6 +145,7 @@ public class ProductServiceImpl implements ProductService {
     public Product updateProduct(Product product) throws Exception {
         // 更新操作后，商品状态修改为待审核
         product.setAuditStatus(0);
+        product.setUpdateTime(new Date());
         
         productMapper.update(product);
         
@@ -200,6 +197,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public int countProducts() {
         // 使用已有的方法获取所有商品数量
-        return productMapper.countApprovedProducts(); // 暂时使用已有方法，后续可以改进为统计所有商品
+        return productMapper.countProducts();
     }
 } 

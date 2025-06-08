@@ -1,92 +1,83 @@
 package com.example.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
-import com.example.config.ImageConfig;
-import com.example.util.JsonTypeHandler;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
+import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * 商品核心信息实体
+ * 匹配优化后的product表结构
+ */
 @Data
-@TableName(value = "product", autoResultMap = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Product {
-    @TableId(type = IdType.AUTO)
     private Long id;
     private String title;
+    private String description;
     private String imageUrl;
-    private BigDecimal price;
-    private Integer soldCount;
-    
-    // 修改SKU ID字段类型为Long
-    private Long productSkuId;
-    
-    // 添加总库存字段
-    private Integer totalStock;
-    
-    // 添加版本号用于乐观锁
-    @Version
-    private Integer version;
-
-    // 商品详情，支持图文
-    @TableField(typeHandler = JsonTypeHandler.class)
-    private List<ProductDetail> productDetails;
-    
-    // 添加details字段，映射到productDetails
-    @JsonProperty("details")
-    @TableField(exist = false)
-    private List<ProductDetail> details;
-
-    // 购买须知
-    @TableField(typeHandler = JsonTypeHandler.class)
-    private List<PurchaseNotice> purchaseNotices;
-
-    private Date createdAt;
     private Long categoryId;
-    private Integer deleted;
-    
-    // 用户评论
-    @TableField(exist = false)
-    private List<Comment> comments;
-
-    // 店铺ID字段
     private Long shopId;
-    
-    // 店铺相关信息
-    @TableField(exist = false)
-    private String shopName;
-    
-    @TableField(exist = false)
-    private String shopAvatarUrl;
-    
-    @TableField(exist = false)
-    private String storeDescription;
-
-    // 添加shop属性，用于与Shop对象建立关联
-    @TableField(exist = false)
-    private Shop shop;
-
-    private Integer auditStatus; // 0-待审核, 1-审核通过, 2-审核拒绝
-    private String auditRemark; // 审核备注
+    private Long brandId;
+    private Integer status;       // 0: 草稿, 1: 在线, 2: 下线
+    private Integer auditStatus;  // 0: 待审核, 1: 已通过, 2: 未通过
+    private BigDecimal price;     // 基础销售价格
+    private BigDecimal originalPrice; // 原价/市场价
+    private Integer totalStock;   // 商品总库存
+    private Integer totalSales;   // 商品总销量
+    private Integer weight;       // 排序权重
+    private Date createTime;
     private Date updateTime;
-
-
-    private BigDecimal originalPrice;
-    private Long parentCategoryId;
-    private Long grandCategoryId;
-    private List<String> images;
-    private List<Long> tagIds;
-
-    // 添加匹配分数字段，用于推荐系统
-    private Integer matchScore;
+    private Boolean deleted;
     
-    // 商品SKU列表，非数据库字段
-    @TableField(exist = false)
+    // 非持久化字段，用于API展示
+    private ProductContent content;
+    private ProductSpecification specifications;
     private List<ProductSku> skus;
+    private ProductStatistics statistics;
+    private ProductMarketing marketing;
+    private List<ProductCategoryRelation> categoryRelations;
+    private List<ProductPromotion> promotions;
+    
+    // 扩展字段，用于推荐系统和前端展示
+    @JsonProperty("matchScore")
+    private Integer matchScore;   // 匹配度分数
+    
+    @JsonProperty("shop")
+    private Shop shop;            // 店铺信息
+    
+    @JsonProperty("shopName")
+    private String shopName;      // 店铺名称
+    
+    @JsonProperty("shopAvatarUrl")
+    private String shopAvatarUrl; // 店铺头像
+    
+    // 审核备注信息（非持久化）
+    private String auditRemark;
+    
+    // 兼容前端展示，用soldCount替代totalSales
+    @JsonProperty("soldCount")
+    public Integer getSoldCount() {
+        return totalSales;
+    }
+    
+    @JsonIgnore
+    public void setSoldCount(Integer soldCount) {
+        this.totalSales = soldCount;
+    }
+    
+    // 兼容前端展示，用stock替代totalStock
+    @JsonProperty("stock")
+    public Integer getStock() {
+        return totalStock;
+    }
+    
+    @JsonIgnore
+    public void setStock(Integer stock) {
+        this.totalStock = stock;
+    }
 }

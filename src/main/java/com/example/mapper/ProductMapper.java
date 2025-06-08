@@ -10,108 +10,122 @@ import java.util.List;
 @Mapper
 public interface ProductMapper {
 
-        @Insert("INSERT INTO product (title, imageUrl, price, soldCount, stock, " + "specifications, product_details, purchase_notices, " +
-            "created_at, category_id, parent_category_id, grand_category_id, shop_id, user_id, audit_status, audit_remark, " +
-            "product_sku_id, total_stock) " +
-            "VALUES (#{title}, #{imageUrl}, #{price}, #{soldCount}, #{stock}, " +
-            "#{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
-            "#{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
-            "#{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
-            "#{createdAt}, #{categoryId}, #{parentCategoryId}, #{grandCategoryId}, #{shopId}, #{userId}, #{auditStatus}, #{auditRemark}, " +
-            "#{productSkuId}, #{totalStock})")
+        @Insert("INSERT INTO product (title, description, image_url, category_id, shop_id, brand_id, " + 
+            "status, audit_status, price, original_price, total_stock, total_sales, weight, " +
+            "create_time, update_time, deleted) " +
+            "VALUES (#{title}, #{description}, #{imageUrl}, #{categoryId}, #{shopId}, #{brandId}, " +
+            "#{status}, #{auditStatus}, #{price}, #{originalPrice}, #{totalStock}, #{totalSales}, #{weight}, " +
+            "#{createTime}, #{updateTime}, #{deleted})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(Product product);
 
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.deleted = 0 AND r.audit_status = 1 " +
+    @Select("SELECT * FROM product WHERE deleted = 0 AND audit_status = 1 " +
             "LIMIT #{limit} OFFSET #{offset}")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "categoryId", column = "category_id"),
-        @Result(property = "parentCategoryId", column = "parent_category_id"),
-        @Result(property = "grandCategoryId", column = "grand_category_id"),
-        @Result(property = "auditStatus", column = "audit_status"),
-        @Result(property = "auditRemark", column = "audit_remark"),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId")),
+        @Result(property = "categoryRelations", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductCategoryRelationMapper.findByProductId"))
     })
     List<Product> getProductsWithPagination(@Param("limit") int limit, @Param("offset") int offset);
 
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.id = #{id}")
+    @Select("SELECT * FROM product WHERE id = #{id}")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "comments", column = "id", 
-                many = @Many(select = "getCommentsByProductId")),
-        @Result(property = "storeDescription", column = "shop_description"),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId")),
+        @Result(property = "categoryRelations", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductCategoryRelationMapper.findByProductId"))
     })
     Product findById(Long id);
 
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.category_id = #{categoryId}")
+    @Select("SELECT * FROM product WHERE category_id = #{categoryId} AND deleted = 0")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> findByCategoryId(Long categoryId);
 
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.deleted = 0 AND r.audit_status = 1 " +
+    @Select("SELECT * FROM product WHERE deleted = 0 AND audit_status = 1 " +
             "ORDER BY RAND() LIMIT 10")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> findRandom();
 
@@ -120,94 +134,114 @@ public interface ProductMapper {
      * @param limit 要返回的商品数量
      * @return 随机商品列表
      */
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.deleted = 0 AND r.audit_status = 1 " +
+    @Select("SELECT * FROM product WHERE deleted = 0 AND audit_status = 1 " +
             "ORDER BY RAND() LIMIT #{limit}")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> findRandomWithLimit(@Param("limit") int limit);
 
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.title LIKE CONCAT('%', #{keyword}, '%')")
+    @Select("SELECT * FROM product WHERE title LIKE CONCAT('%', #{keyword}, '%') AND deleted = 0")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> searchProducts(String keyword);
 
     @Select("SELECT user_name, user_avatar_url, content, rating, date FROM comments WHERE product_id = #{productId}")
     List<Comment> getCommentsByProductId(Long productId);
     
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.shop_id = #{shopId}")
+    @Select("SELECT * FROM product WHERE shop_id = #{shopId} AND deleted = 0")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> findByShopId(Long shopId);
     
     /**
      * 根据店铺ID获取已审核通过的商品列表
      */
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.shop_id = #{shopId} AND r.deleted = 0 AND r.audit_status = 1")
+    @Select("SELECT * FROM product WHERE shop_id = #{shopId} AND deleted = 0 AND audit_status = 1")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> findApprovedByShopId(Long shopId);
     
@@ -216,18 +250,20 @@ public interface ProductMapper {
      */
     @Update("UPDATE product SET " +
             "title = #{title}, " +
-            "price = #{price}, " +
-            "stock = #{stock}, " +
-            "total_stock = #{totalStock}, " +
-            "product_sku_id = #{productSkuId}, " +
+            "description = #{description}, " +
+            "image_url = #{imageUrl}, " +
             "category_id = #{categoryId}, " +
-            "parent_category_id = #{parentCategoryId}, " +
-            "grand_category_id = #{grandCategoryId}, " +
-            "specifications = #{specifications,typeHandler=com.example.util.SpecificationsTypeHandler}, " +
-            "product_details = #{productDetails,typeHandler=com.example.util.ProductDetailsTypeHandler}, " +
-            "purchase_notices = #{purchaseNotices,typeHandler=com.example.util.PurchaseNoticesTypeHandler}, " +
+            "shop_id = #{shopId}, " +
+            "brand_id = #{brandId}, " +
+            "status = #{status}, " +
             "audit_status = #{auditStatus}, " +
-            "audit_remark = #{auditRemark} " +
+            "price = #{price}, " +
+            "original_price = #{originalPrice}, " +
+            "total_stock = #{totalStock}, " +
+            "total_sales = #{totalSales}, " +
+            "weight = #{weight}, " +
+            "update_time = #{updateTime}, " +
+            "deleted = #{deleted} " +
             "WHERE id = #{id}")
     void update(Product product);
     
@@ -240,70 +276,156 @@ public interface ProductMapper {
     /**
      * 添加审核接口
      */
-    @Update("UPDATE product SET audit_status = #{auditStatus}, audit_remark = #{auditRemark} WHERE id = #{id}")
+    @Update("UPDATE product SET audit_status = #{auditStatus}, update_time = NOW() WHERE id = #{id}")
     void updateAuditStatus(@Param("id") Long id, @Param("auditStatus") Integer auditStatus, @Param("auditRemark") String auditRemark);
 
     /**
      * 获取待审核的商品列表（管理员使用）
      */
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.deleted = 0 AND r.audit_status = 0")
+    @Select("SELECT * FROM product WHERE deleted = 0 AND audit_status = 0")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "categoryId", column = "category_id"),
-        @Result(property = "parentCategoryId", column = "parent_category_id"),
-        @Result(property = "grandCategoryId", column = "grand_category_id"),
-        @Result(property = "auditStatus", column = "audit_status"),
-        @Result(property = "auditRemark", column = "audit_remark"),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> findPendingAuditProducts();
 
-    @Select("SELECT COUNT(*) FROM product r WHERE r.deleted = 0 AND r.audit_status = 1")
+    @Select("SELECT COUNT(*) FROM product WHERE deleted = 0 AND audit_status = 1")
     int countApprovedProducts();
     
     /**
      * 统计所有商品数量（包括待审核的）
      */
-    @Select("SELECT COUNT(*) FROM product r WHERE r.deleted = 0")
+    @Select("SELECT COUNT(*) FROM product WHERE deleted = 0")
     int countProducts();
     
-    @Select("SELECT r.*, s.shop_name, s.shop_logo, s.shop_description " +
-            "FROM product r " +
-            "LEFT JOIN shop s ON r.shop_id = s.id " +
-            "WHERE r.deleted = 0 AND r.audit_status = 1")
+    @Select("SELECT * FROM product WHERE deleted = 0 AND audit_status = 1")
     @Results({
-        @Result(property = "specifications", column = "specifications", 
-                typeHandler = SpecificationsTypeHandler.class),
-        @Result(property = "productDetails", column = "product_details", 
-                typeHandler = ProductDetailsTypeHandler.class),
-        @Result(property = "purchaseNotices", column = "purchase_notices", 
-                typeHandler = PurchaseNoticesTypeHandler.class),
-        @Result(property = "shopName", column = "shop_name"),
-        @Result(property = "shopAvatarUrl", column = "shop_logo"),
-        @Result(property = "storeDescription", column = "shop_description"),
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "brandId", column = "brand_id"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales"),
+        @Result(property = "weight", column = "weight"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "deleted", column = "deleted"),
         @Result(property = "shop", column = "shop_id", 
                 one = @One(select = "com.example.mapper.ShopMapper.findById")),
-        @Result(property = "categoryId", column = "category_id"),
-        @Result(property = "parentCategoryId", column = "parent_category_id"),
-        @Result(property = "grandCategoryId", column = "grand_category_id"),
-        @Result(property = "auditStatus", column = "audit_status"),
-        @Result(property = "auditRemark", column = "audit_remark"),
-        @Result(property = "productSkuId", column = "product_sku_id"),
-        @Result(property = "totalStock", column = "total_stock")
+        @Result(property = "skus", column = "id", 
+                many = @Many(select = "com.example.mapper.ProductSkuMapper.findByProductId"))
     })
     List<Product> getAllProducts();
+
+    @Select("SELECT COUNT(*) FROM product WHERE deleted = 0 AND audit_status = #{auditStatus}")
+    int countByAuditStatus(@Param("auditStatus") Integer auditStatus);
+    
+    /**
+     * 根据类别ID和审核状态获取商品，按创建时间倒序排序
+     * 用于推荐系统
+     * @param categoryId 类别ID
+     * @param auditStatus 审核状态
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 商品列表
+     */
+    @Select("SELECT * FROM product WHERE category_id = #{categoryId} AND audit_status = #{auditStatus} " +
+            "AND deleted = 0 ORDER BY create_time DESC LIMIT #{limit} OFFSET #{offset}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales")
+    })
+    List<Product> findByCategoryIdAndAuditStatusOrderByCreatedAtDesc(
+            @Param("categoryId") Long categoryId, 
+            @Param("auditStatus") Integer auditStatus, 
+            @Param("offset") Integer offset, 
+            @Param("limit") Integer limit);
+    
+    /**
+     * 根据审核状态获取商品，按销量倒序排序
+     * 用于推荐系统
+     * @param auditStatus 审核状态
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 商品列表
+     */
+    @Select("SELECT * FROM product WHERE audit_status = #{auditStatus} AND deleted = 0 " +
+            "ORDER BY total_sales DESC LIMIT #{limit} OFFSET #{offset}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales")
+    })
+    List<Product> findByAuditStatusOrderBySoldCountDesc(
+            @Param("auditStatus") Integer auditStatus, 
+            @Param("offset") Integer offset, 
+            @Param("limit") Integer limit);
+    
+    /**
+     * 根据审核状态获取商品，按创建时间倒序排序
+     * 用于推荐系统
+     * @param auditStatus 审核状态
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 商品列表
+     */
+    @Select("SELECT * FROM product WHERE audit_status = #{auditStatus} AND deleted = 0 " +
+            "ORDER BY create_time DESC LIMIT #{limit} OFFSET #{offset}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "title", column = "title"),
+        @Result(property = "description", column = "description"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "categoryId", column = "category_id"),
+        @Result(property = "shopId", column = "shop_id"),
+        @Result(property = "price", column = "price"),
+        @Result(property = "originalPrice", column = "original_price"),
+        @Result(property = "totalStock", column = "total_stock"),
+        @Result(property = "totalSales", column = "total_sales")
+    })
+    List<Product> findByAuditStatusOrderByCreatedAtDesc(
+            @Param("auditStatus") Integer auditStatus, 
+            @Param("offset") Integer offset, 
+            @Param("limit") Integer limit);
 }

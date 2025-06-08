@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PurchaseNotice {
-    private String title;
-    private String content;
+public class ProductAttribute {
+    private String name;
+    private String value;
     private Integer sort;
 } 

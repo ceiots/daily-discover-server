@@ -25,9 +25,33 @@ public class ProductSkuServiceImpl implements ProductSkuService {
     @Override
     @Transactional
     public ProductSku createSku(ProductSku productSku) {
-        if (productSku.getCreatedAt() == null) {
-            productSku.setCreatedAt(new Date());
+        if (productSku.getCreateTime() == null) {
+            productSku.setCreateTime(new Date());
         }
+        
+        // 确保SKU有编码
+        productSku.ensureSkuCode();
+        
+        // 初始化默认值
+        if (productSku.getStatus() == null) {
+            productSku.setStatus(1); // 默认状态为正常
+        }
+        if (productSku.getIsDefault() == null) {
+            productSku.setIsDefault(false);
+        }
+        if (productSku.getStock() == null) {
+            productSku.setStock(0);
+        }
+        if (productSku.getLockedStock() == null) {
+            productSku.setLockedStock(0);
+        }
+        if (productSku.getSalesCount() == null) {
+            productSku.setSalesCount(0);
+        }
+        if (productSku.getDeleted() == null) {
+            productSku.setDeleted(false);
+        }
+        
         productSkuMapper.insertSku(productSku);
         return productSku;
     }
@@ -75,6 +99,7 @@ public class ProductSkuServiceImpl implements ProductSkuService {
     @Override
     @Transactional
     public ProductSku updateSku(ProductSku productSku) {
+        productSku.setUpdateTime(new Date());
         productSkuMapper.updateSku(productSku);
         return productSku;
     }
