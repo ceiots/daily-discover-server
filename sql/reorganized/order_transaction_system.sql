@@ -1,6 +1,11 @@
 -- 订单交易系统表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: order_cart_mvp.sql, 部分logistics_refund_mvp.sql的支付相关表, 部分shop_finance_mvp.sql的支付相关表
+-- 高并发优化策略: 
+-- 1. 表分区：按时间范围分区、按用户ID哈希分区、按订单状态列表分区
+-- 2. 避免外键约束：通过业务逻辑保证数据一致性
+-- 3. 索引优化：核心字段索引、组合索引、状态时间复合索引
+-- 4. 冷热数据分离：通过时间范围分区实现
 
 -- 订单表（核心订单信息）
 CREATE TABLE IF NOT EXISTS `order` (
@@ -30,7 +35,18 @@ CREATE TABLE IF NOT EXISTS `order` (
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_order_status` (`order_status`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表'
+PARTITION BY RANGE (TO_DAYS(create_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 订单项表（订单商品明细）
 CREATE TABLE IF NOT EXISTS `order_item` (
@@ -59,7 +75,8 @@ CREATE TABLE IF NOT EXISTS `order_item` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_sku_id` (`sku_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单项表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单项表'
+PARTITION BY HASH(order_id) PARTITIONS 8;
 
 -- 订单支付表（支付信息）
 CREATE TABLE IF NOT EXISTS `order_payment` (
@@ -84,7 +101,8 @@ CREATE TABLE IF NOT EXISTS `order_payment` (
   KEY `idx_order_no` (`order_no`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_payment_status` (`payment_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单支付表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单支付表'
+PARTITION BY HASH(order_id) PARTITIONS 8;
 
 -- 支付记录表
 CREATE TABLE IF NOT EXISTS `payment_record` (
@@ -108,7 +126,18 @@ CREATE TABLE IF NOT EXISTS `payment_record` (
   KEY `idx_user_shop` (`user_id`, `shop_id`),
   KEY `idx_type_method` (`payment_type`, `payment_method`),
   KEY `idx_status_time` (`status`, `pay_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付记录表'
+PARTITION BY RANGE (TO_DAYS(create_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 订单日志表（订单状态变更记录）
 CREATE TABLE IF NOT EXISTS `order_log` (
@@ -129,7 +158,8 @@ CREATE TABLE IF NOT EXISTS `order_log` (
   KEY `idx_order_no` (`order_no`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单日志表'
+PARTITION BY HASH(order_id) PARTITIONS 8;
 
 -- 订单配送表（物流配送信息）
 CREATE TABLE IF NOT EXISTS `order_shipping` (
@@ -154,7 +184,12 @@ CREATE TABLE IF NOT EXISTS `order_shipping` (
   KEY `idx_order_no` (`order_no`),
   KEY `idx_shipping_code` (`shipping_code`),
   KEY `idx_delivery_status` (`delivery_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单配送表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单配送表'
+PARTITION BY LIST(delivery_status) (
+  PARTITION p_pending VALUES IN (0),
+  PARTITION p_shipped VALUES IN (1),
+  PARTITION p_received VALUES IN (2)
+);
 
 -- 购物车表
 CREATE TABLE IF NOT EXISTS `cart` (
@@ -179,7 +214,8 @@ CREATE TABLE IF NOT EXISTS `cart` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_sku_id` (`sku_id`),
   KEY `idx_checked` (`checked`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='购物车表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='购物车表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 用户地址表
 CREATE TABLE IF NOT EXISTS `user_address` (
@@ -201,7 +237,8 @@ CREATE TABLE IF NOT EXISTS `user_address` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_is_default` (`is_default`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户地址表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户地址表'
+PARTITION BY HASH(user_id) PARTITIONS 8;
 
 -- 发票信息表
 CREATE TABLE IF NOT EXISTS `invoice` (
@@ -223,7 +260,8 @@ CREATE TABLE IF NOT EXISTS `invoice` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_order` (`order_id`, `order_no`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='发票信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='发票信息表'
+PARTITION BY HASH(user_id) PARTITIONS 8;
 
 -- 用户发票信息表
 CREATE TABLE IF NOT EXISTS `user_invoice_info` (
@@ -241,4 +279,5 @@ CREATE TABLE IF NOT EXISTS `user_invoice_info` (
   PRIMARY KEY (`id`),
   KEY `idx_user_default` (`user_id`, `is_default`),
   KEY `idx_title` (`title`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户发票信息表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户发票信息表'
+PARTITION BY HASH(user_id) PARTITIONS 8; 

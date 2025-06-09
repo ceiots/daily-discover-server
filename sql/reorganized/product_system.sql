@@ -1,6 +1,11 @@
 -- 商品系统表结构（优化版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: product_mvp.sql, ecommerce_order_tables.sql中的商品相关表
+-- 高并发优化策略: 
+-- 1. 表分区：按店铺ID哈希分区、按商品ID哈希分区、按状态列表分区
+-- 2. 避免外键约束：通过业务逻辑保证数据一致性
+-- 3. 索引优化：核心字段索引、组合索引、状态时间复合索引
+-- 4. 冷热数据分离：通过时间范围分区实现
 
 -- 商品主表
 CREATE TABLE IF NOT EXISTS `product` (
@@ -32,7 +37,8 @@ CREATE TABLE IF NOT EXISTS `product` (
   KEY `idx_sales` (`sales`),
   KEY `idx_sort_order` (`sort_order`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品主表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品主表'
+PARTITION BY HASH(shop_id) PARTITIONS 8;
 
 -- 商品分类表
 CREATE TABLE IF NOT EXISTS `product_category` (
@@ -55,7 +61,12 @@ CREATE TABLE IF NOT EXISTS `product_category` (
   KEY `idx_level` (`level`),
   KEY `idx_status` (`status`),
   KEY `idx_sort_order` (`sort_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表'
+PARTITION BY LIST(level) (
+  PARTITION p_level1 VALUES IN (1),
+  PARTITION p_level2 VALUES IN (2),
+  PARTITION p_level3 VALUES IN (3)
+);
 
 -- 商品品牌表
 CREATE TABLE IF NOT EXISTS `product_brand` (
@@ -75,7 +86,11 @@ CREATE TABLE IF NOT EXISTS `product_brand` (
   KEY `idx_brand_code` (`brand_code`),
   KEY `idx_status` (`status`),
   KEY `idx_sort_order` (`sort_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品品牌表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品品牌表'
+PARTITION BY LIST(status) (
+  PARTITION p_disabled VALUES IN (0),
+  PARTITION p_enabled VALUES IN (1)
+);
 
 -- 商品详情表
 CREATE TABLE IF NOT EXISTS `product_detail` (
@@ -91,7 +106,8 @@ CREATE TABLE IF NOT EXISTS `product_detail` (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_product_id` (`product_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品详情表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品详情表'
+PARTITION BY HASH(product_id) PARTITIONS 8;
 
 -- 商品SKU表
 CREATE TABLE IF NOT EXISTS `product_sku` (
@@ -120,7 +136,8 @@ CREATE TABLE IF NOT EXISTS `product_sku` (
   KEY `idx_barcode` (`barcode`),
   KEY `idx_stock` (`stock`,`locked_stock`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表'
+PARTITION BY HASH(product_id) PARTITIONS 16;
 
 -- 商品规格表
 CREATE TABLE IF NOT EXISTS `product_spec` (
@@ -139,7 +156,8 @@ CREATE TABLE IF NOT EXISTS `product_spec` (
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_spec_code` (`spec_code`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品规格表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品规格表'
+PARTITION BY HASH(shop_id) PARTITIONS 8;
 
 -- 商品评价表 (优化：拆分为商品评价主表和评价详情表，以保持字段数在18以内)
 CREATE TABLE IF NOT EXISTS `product_review` (
@@ -170,7 +188,18 @@ CREATE TABLE IF NOT EXISTS `product_review` (
   KEY `idx_rating` (`rating`),
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价表'
+PARTITION BY RANGE (TO_DAYS(create_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 商品评价追评表 (新增表，从原评价表拆分出来)
 CREATE TABLE IF NOT EXISTS `product_review_additional` (
@@ -186,7 +215,8 @@ CREATE TABLE IF NOT EXISTS `product_review_additional` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_review_id` (`review_id`),
   KEY `idx_additional_time` (`additional_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价追评表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评价追评表'
+PARTITION BY HASH(review_id) PARTITIONS 8;
 
 -- 商品收藏表
 CREATE TABLE IF NOT EXISTS `product_favorite` (
@@ -203,7 +233,8 @@ CREATE TABLE IF NOT EXISTS `product_favorite` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品收藏表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品收藏表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 商品浏览历史表
 CREATE TABLE IF NOT EXISTS `product_browse_history` (
@@ -223,7 +254,18 @@ CREATE TABLE IF NOT EXISTS `product_browse_history` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_browse_time` (`browse_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品浏览历史表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品浏览历史表'
+PARTITION BY RANGE (TO_DAYS(browse_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 店铺表
 CREATE TABLE IF NOT EXISTS `shop` (
@@ -249,4 +291,10 @@ CREATE TABLE IF NOT EXISTS `shop` (
   KEY `idx_shop_code` (`shop_code`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺表'
+PARTITION BY LIST(status) (
+  PARTITION p_pending VALUES IN (0),
+  PARTITION p_normal VALUES IN (1),
+  PARTITION p_closed VALUES IN (2),
+  PARTITION p_frozen VALUES IN (3)
+); 

@@ -1,6 +1,11 @@
 -- 店铺财务系统表结构（优化版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: shop_finance_mvp.sql
+-- 高并发优化策略: 
+-- 1. 表分区：按时间范围分区、按店铺ID哈希分区、按状态列表分区
+-- 2. 避免外键约束：通过业务逻辑保证数据一致性
+-- 3. 索引优化：核心字段索引、组合索引、状态时间复合索引
+-- 4. 冷热数据分离：通过时间范围分区实现
 
 -- 店铺账户表 (记录店铺账户的资金相关信息)
 CREATE TABLE IF NOT EXISTS `shop_account` (
@@ -19,7 +24,8 @@ CREATE TABLE IF NOT EXISTS `shop_account` (
   UNIQUE KEY `uk_shop_account_type` (`shop_id`,`account_type`),
   KEY `idx_account_no` (`account_no`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺账户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺账户表'
+PARTITION BY HASH(shop_id) PARTITIONS 8;
 
 -- 店铺结算记录表 (记录店铺结算)
 CREATE TABLE IF NOT EXISTS `shop_settlement` (
@@ -48,7 +54,18 @@ CREATE TABLE IF NOT EXISTS `shop_settlement` (
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`),
   KEY `idx_payout_time` (`payout_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺结算记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺结算记录表'
+PARTITION BY RANGE (TO_DAYS(settlement_end_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 店铺结算明细表 (结算涉及的订单明细)
 CREATE TABLE IF NOT EXISTS `shop_settlement_detail` (
@@ -70,7 +87,8 @@ CREATE TABLE IF NOT EXISTS `shop_settlement_detail` (
   KEY `idx_order_id` (`order_id`),
   KEY `idx_order_no` (`order_no`),
   KEY `idx_payment_time` (`payment_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺结算明细表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺结算明细表'
+PARTITION BY HASH(settlement_id) PARTITIONS 8;
 
 -- 店铺交易流水表 (记录店铺交易流水)
 CREATE TABLE IF NOT EXISTS `shop_transaction` (
@@ -95,7 +113,18 @@ CREATE TABLE IF NOT EXISTS `shop_transaction` (
   KEY `idx_transaction_type` (`transaction_type`),
   KEY `idx_reference_no` (`reference_no`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺交易流水表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺交易流水表'
+PARTITION BY RANGE (TO_DAYS(create_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 店铺提现申请表 (记录店铺提现申请)
 CREATE TABLE IF NOT EXISTS `shop_withdraw` (
@@ -122,7 +151,14 @@ CREATE TABLE IF NOT EXISTS `shop_withdraw` (
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`),
   KEY `idx_payout_time` (`payout_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺提现申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺提现申请表'
+PARTITION BY LIST(status) (
+  PARTITION p_pending VALUES IN (0),
+  PARTITION p_approved VALUES IN (1),
+  PARTITION p_paid VALUES IN (2),
+  PARTITION p_rejected VALUES IN (3),
+  PARTITION p_failed VALUES IN (4)
+);
 
 -- 店铺收款账户表 (记录店铺收款账户信息)
 CREATE TABLE IF NOT EXISTS `shop_payment_account` (
@@ -144,7 +180,8 @@ CREATE TABLE IF NOT EXISTS `shop_payment_account` (
   KEY `idx_account_type` (`account_type`),
   KEY `idx_is_default` (`is_default`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺收款账户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺收款账户表'
+PARTITION BY HASH(shop_id) PARTITIONS 8;
 
 -- 平台佣金规则表 (记录平台佣金规则)
 CREATE TABLE IF NOT EXISTS `commission_rule` (
@@ -167,7 +204,12 @@ CREATE TABLE IF NOT EXISTS `commission_rule` (
   KEY `idx_target_id` (`target_id`),
   KEY `idx_status` (`status`),
   KEY `idx_priority` (`priority`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台佣金规则表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台佣金规则表'
+PARTITION BY LIST(rule_type) (
+  PARTITION p_category VALUES IN (1),
+  PARTITION p_shop VALUES IN (2),
+  PARTITION p_promotion VALUES IN (3)
+);
 
 -- 店铺发票表 (记录店铺发票信息)
 CREATE TABLE IF NOT EXISTS `shop_invoice` (
@@ -193,7 +235,12 @@ CREATE TABLE IF NOT EXISTS `shop_invoice` (
   KEY `idx_settlement_no` (`settlement_no`),
   KEY `idx_status` (`status`),
   KEY `idx_invoice_time` (`invoice_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺发票表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺发票表'
+PARTITION BY LIST(status) (
+  PARTITION p_pending VALUES IN (0),
+  PARTITION p_invoiced VALUES IN (1),
+  PARTITION p_canceled VALUES IN (2)
+);
 
 -- 财务对账单表 (记录财务对账单)
 CREATE TABLE IF NOT EXISTS `financial_statement` (
@@ -217,7 +264,18 @@ CREATE TABLE IF NOT EXISTS `financial_statement` (
   UNIQUE KEY `uk_shop_date_type` (`shop_id`,`statement_date`,`statement_type`),
   KEY `idx_statement_date` (`statement_date`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='财务对账单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='财务对账单表'
+PARTITION BY RANGE (TO_DAYS(statement_date)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 店铺保证金记录表 (记录店铺保证金变动)
 CREATE TABLE IF NOT EXISTS `shop_deposit` (
@@ -243,4 +301,5 @@ CREATE TABLE IF NOT EXISTS `shop_deposit` (
   KEY `idx_reference_no` (`reference_no`),
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺保证金记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺保证金记录表'
+PARTITION BY HASH(shop_id) PARTITIONS 8;

@@ -1,6 +1,7 @@
 -- 物流退款系统表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: logistics_refund_mvp.sql
+-- 高并发优化策略: 1. 时间范围分区 2. 用户哈希分区 3. 状态列表分区 4. 冷热数据分离 5. 定期数据归档
 
 -- 物流订单表（记录与物流相关的订单信息）
 CREATE TABLE IF NOT EXISTS `logistics_order` (
@@ -29,7 +30,19 @@ CREATE TABLE IF NOT EXISTS `logistics_order` (
   KEY `idx_receiver_phone` (`receiver_phone`),
   KEY `idx_delivery_time` (`delivery_time`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流订单表'
+PARTITION BY RANGE (TO_DAYS(delivery_time)) (
+  PARTITION p_null VALUES LESS THAN (0),
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 物流跟踪记录表 (记录物流状态变化)
 CREATE TABLE IF NOT EXISTS `logistics_tracking` (
@@ -47,7 +60,18 @@ CREATE TABLE IF NOT EXISTS `logistics_tracking` (
   KEY `idx_logistics_order_id` (`logistics_order_id`),
   KEY `idx_logistics_no` (`logistics_no`),
   KEY `idx_tracking_time` (`tracking_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流跟踪记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流跟踪记录表'
+PARTITION BY RANGE (TO_DAYS(tracking_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 退款申请表 (记录退款申请信息)
 CREATE TABLE IF NOT EXISTS `refund_apply` (
@@ -77,7 +101,8 @@ CREATE TABLE IF NOT EXISTS `refund_apply` (
   KEY `idx_status` (`status`),
   KEY `idx_apply_time` (`apply_time`),
   KEY `idx_refund_time` (`refund_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款申请表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 退款处理记录表 (记录退款处理过程)
 CREATE TABLE IF NOT EXISTS `refund_process_record` (
@@ -98,7 +123,8 @@ CREATE TABLE IF NOT EXISTS `refund_process_record` (
   KEY `idx_refund_no` (`refund_no`),
   KEY `idx_operator_id` (`operator_id`, `operator_type`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款处理记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款处理记录表'
+PARTITION BY HASH(refund_id) PARTITIONS 8;
 
 -- 退货物流表 (记录退货物流信息)
 CREATE TABLE IF NOT EXISTS `return_logistics` (
@@ -125,7 +151,13 @@ CREATE TABLE IF NOT EXISTS `return_logistics` (
   KEY `idx_refund_no` (`refund_no`),
   KEY `idx_logistics_no` (`logistics_no`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退货物流表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退货物流表'
+PARTITION BY LIST(status) (
+  PARTITION p_pending VALUES IN (0),
+  PARTITION p_shipped VALUES IN (1),
+  PARTITION p_received VALUES IN (2),
+  PARTITION p_abnormal VALUES IN (3)
+);
 
 -- 退款商品表 (记录退款涉及的商品)
 CREATE TABLE IF NOT EXISTS `refund_item` (
@@ -156,7 +188,8 @@ CREATE TABLE IF NOT EXISTS `refund_item` (
   KEY `idx_order_item_id` (`order_item_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_sku_id` (`sku_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款商品表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款商品表'
+PARTITION BY HASH(refund_id) PARTITIONS 8;
 
 -- 物流公司表 (记录支持的物流公司信息)
 CREATE TABLE IF NOT EXISTS `logistics_company` (
@@ -178,7 +211,11 @@ CREATE TABLE IF NOT EXISTS `logistics_company` (
   KEY `idx_status` (`status`),
   KEY `idx_is_hot` (`is_hot`),
   KEY `idx_sort_order` (`sort_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流公司表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流公司表'
+PARTITION BY LIST(status) (
+  PARTITION p_enabled VALUES IN (1),
+  PARTITION p_disabled VALUES IN (0)
+);
 
 -- 运费模板表 (记录商家设置的运费规则)
 CREATE TABLE IF NOT EXISTS `shipping_template` (
@@ -198,7 +235,8 @@ CREATE TABLE IF NOT EXISTS `shipping_template` (
   PRIMARY KEY (`id`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='运费模板表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='运费模板表'
+PARTITION BY HASH(shop_id) PARTITIONS 8;
 
 -- 运费模板规则表 (记录运费模板的详细规则)
 CREATE TABLE IF NOT EXISTS `shipping_template_rule` (
@@ -217,7 +255,8 @@ CREATE TABLE IF NOT EXISTS `shipping_template_rule` (
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_template_id` (`template_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='运费模板规则表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='运费模板规则表'
+PARTITION BY HASH(template_id) PARTITIONS 8;
 
 -- 售后服务记录表 (记录售后服务)
 CREATE TABLE IF NOT EXISTS `after_sale_service` (
@@ -274,7 +313,8 @@ CREATE TABLE IF NOT EXISTS `exchange_record` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_shop_id` (`shop_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='换货记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='换货记录表'
+PARTITION BY HASH(user_id) PARTITIONS 8;
 
 -- 订单配送表 (记录同城配送和自提信息)
 CREATE TABLE IF NOT EXISTS `order_delivery` (
@@ -305,4 +345,10 @@ CREATE TABLE IF NOT EXISTS `order_delivery` (
   KEY `idx_deliverer_id` (`deliverer_id`),
   KEY `idx_pickup_code` (`pickup_code`),
   KEY `idx_delivery_status` (`delivery_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单配送表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单配送表'
+PARTITION BY LIST(delivery_status) (
+  PARTITION p_pending VALUES IN (0),
+  PARTITION p_delivering VALUES IN (1),
+  PARTITION p_completed VALUES IN (2),
+  PARTITION p_cancelled VALUES IN (3)
+);

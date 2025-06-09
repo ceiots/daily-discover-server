@@ -1,6 +1,7 @@
 -- 智能应用系统表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: ai_conversation_tables.sql
+-- 高并发优化策略: 1. 用户数据哈希分区 2. 状态列表分区 3. 冷热数据分离 4. 历史数据归档
 
 -- AI对话会话表 (记录用户与AI的对话会话)
 CREATE TABLE IF NOT EXISTS `ai_conversation` (
@@ -22,7 +23,8 @@ CREATE TABLE IF NOT EXISTS `ai_conversation` (
   KEY `idx_create_time` (`create_time`),
   KEY `idx_last_message` (`last_message_time`),
   KEY `idx_pinned_time` (`user_id`, `is_pinned`, `create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话会话表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话会话表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- AI对话消息表 (记录会话中的具体消息)
 CREATE TABLE IF NOT EXISTS `ai_message` (
@@ -40,7 +42,8 @@ CREATE TABLE IF NOT EXISTS `ai_message` (
   PRIMARY KEY (`id`),
   KEY `idx_conversation_idx` (`conversation_id`, `message_index`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话消息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话消息表'
+PARTITION BY HASH(conversation_id) PARTITIONS 16;
 
 -- AI模型配置表 (存储可用的AI模型配置)
 CREATE TABLE IF NOT EXISTS `ai_model` (
@@ -62,7 +65,11 @@ CREATE TABLE IF NOT EXISTS `ai_model` (
   UNIQUE KEY `uk_model_code_version` (`model_code`, `model_version`),
   KEY `idx_status` (`status`),
   KEY `idx_provider` (`provider`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI模型配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI模型配置表'
+PARTITION BY LIST(status) (
+  PARTITION p_available VALUES IN (1),
+  PARTITION p_unavailable VALUES IN (0)
+);
 
 -- AI对话模板表 (预设的对话模板)
 CREATE TABLE IF NOT EXISTS `ai_conversation_template` (
@@ -125,7 +132,13 @@ CREATE TABLE IF NOT EXISTS `ai_knowledge_document` (
   KEY `idx_knowledge_id` (`knowledge_id`),
   KEY `idx_embedding_status` (`embedding_status`),
   KEY `idx_content_hash` (`content_hash`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI知识库文档表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI知识库文档表'
+PARTITION BY LIST(embedding_status) (
+  PARTITION p_unprocessed VALUES IN (0),
+  PARTITION p_processing VALUES IN (1),
+  PARTITION p_completed VALUES IN (2),
+  PARTITION p_failed VALUES IN (3)
+);
 
 -- AI知识库文档块表 (文档分块)
 CREATE TABLE IF NOT EXISTS `ai_knowledge_chunk` (
@@ -142,7 +155,8 @@ CREATE TABLE IF NOT EXISTS `ai_knowledge_chunk` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_doc_chunk` (`document_id`, `chunk_index`),
   KEY `idx_knowledge_id` (`knowledge_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI知识库文档块表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI知识库文档块表'
+PARTITION BY HASH(knowledge_id) PARTITIONS 8;
 
 -- AI对话标签表 (用户对会话的分类标签)
 CREATE TABLE IF NOT EXISTS `ai_conversation_tag` (
@@ -157,7 +171,8 @@ CREATE TABLE IF NOT EXISTS `ai_conversation_tag` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_tag` (`user_id`, `tag_name`),
   KEY `idx_user_sort` (`user_id`, `sort_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话标签表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话标签表'
+PARTITION BY HASH(user_id) PARTITIONS 8;
 
 -- AI会话标签关联表 (会话与标签多对多关系)
 CREATE TABLE IF NOT EXISTS `ai_conversation_tag_relation` (
@@ -169,4 +184,29 @@ CREATE TABLE IF NOT EXISTS `ai_conversation_tag_relation` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_conv_tag` (`conversation_id`, `tag_id`),
   KEY `idx_tag_user` (`tag_id`, `user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI会话标签关联表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI会话标签关联表'
+PARTITION BY HASH(user_id) PARTITIONS 8;
+
+-- AI内容生成配置表
+CREATE TABLE IF NOT EXISTS `ai_content_generation_config` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '配置ID',
+  `config_type` varchar(50) NOT NULL COMMENT '配置类型',
+  `title` varchar(100) NOT NULL COMMENT '配置标题',
+  `description` varchar(500) DEFAULT NULL COMMENT '描述',
+  `system_prompt` text NOT NULL COMMENT '系统提示词',
+  `user_prompt_template` text NOT NULL COMMENT '用户提示词模板',
+  `parameters_schema` json NOT NULL COMMENT '参数定义架构',
+  `example_output` text DEFAULT NULL COMMENT '示例输出',
+  `usage_count` int(11) NOT NULL DEFAULT '0' COMMENT '使用次数',
+  `is_system` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否系统配置:0-否,1-是',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态:1-正常,0-禁用',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_config_type` (`config_type`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI内容生成配置表'
+PARTITION BY LIST(status) (
+  PARTITION p_active VALUES IN (1),
+  PARTITION p_inactive VALUES IN (0)
+);

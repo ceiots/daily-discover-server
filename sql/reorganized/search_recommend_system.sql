@@ -1,6 +1,11 @@
 -- 搜索推荐系统表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: search_recommend_mvp.sql和discovery_app_mvp.sql中的搜索推荐相关表
+-- 高并发优化策略: 
+-- 1. 表分区：按时间范围分区、按用户ID哈希分区、按内容类型列表分区
+-- 2. 避免外键约束：通过业务逻辑保证数据一致性
+-- 3. 索引优化：核心字段索引、组合索引、状态时间复合索引
+-- 4. 冷热数据分离：通过时间范围分区实现
 
 -- 搜索关键词表
 CREATE TABLE IF NOT EXISTS `search_keyword` (
@@ -19,7 +24,8 @@ CREATE TABLE IF NOT EXISTS `search_keyword` (
   KEY `idx_is_hot` (`is_hot`),
   KEY `idx_status` (`status`),
   KEY `idx_category_id` (`category_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索关键词表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索关键词表'
+PARTITION BY HASH(id) PARTITIONS 8;
 
 -- 搜索历史表
 CREATE TABLE IF NOT EXISTS `search_history` (
@@ -34,7 +40,18 @@ CREATE TABLE IF NOT EXISTS `search_history` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_search_time` (`search_time` DESC),
   KEY `idx_keyword` (`keyword`(32))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索历史表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索历史表'
+PARTITION BY RANGE (TO_DAYS(search_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 热搜榜表
 CREATE TABLE IF NOT EXISTS `hot_search` (
@@ -54,7 +71,18 @@ CREATE TABLE IF NOT EXISTS `hot_search` (
   KEY `idx_search_count` (`search_count` DESC),
   KEY `idx_status` (`status`),
   KEY `idx_category_id` (`category_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='热搜榜表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='热搜榜表'
+PARTITION BY RANGE (TO_DAYS(rank_date)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 搜索同义词表
 CREATE TABLE IF NOT EXISTS `search_synonym` (
@@ -71,7 +99,8 @@ CREATE TABLE IF NOT EXISTS `search_synonym` (
   KEY `idx_target_word` (`target_word`),
   KEY `idx_priority` (`priority`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索同义词表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索同义词表'
+PARTITION BY HASH(id) PARTITIONS 4;
 
 -- 搜索黑名单表
 CREATE TABLE IF NOT EXISTS `search_blacklist` (
@@ -85,7 +114,8 @@ CREATE TABLE IF NOT EXISTS `search_blacklist` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_keyword` (`keyword`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索黑名单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索黑名单表'
+PARTITION BY HASH(id) PARTITIONS 4;
 
 -- 用户兴趣标签表
 CREATE TABLE IF NOT EXISTS `user_interest_tag` (
@@ -105,7 +135,8 @@ CREATE TABLE IF NOT EXISTS `user_interest_tag` (
   KEY `idx_weight` (`weight` DESC),
   KEY `idx_source` (`source`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户兴趣标签表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户兴趣标签表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 用户兴趣画像表
 CREATE TABLE IF NOT EXISTS `user_interest_profile` (
@@ -127,7 +158,8 @@ CREATE TABLE IF NOT EXISTS `user_interest_profile` (
   UNIQUE KEY `uk_user_id` (`user_id`),
   KEY `idx_active_days` (`active_days` DESC),
   KEY `idx_last_active_time` (`last_active_time` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户兴趣画像表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户兴趣画像表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 内容特征表
 CREATE TABLE IF NOT EXISTS `content_feature` (
@@ -150,7 +182,14 @@ CREATE TABLE IF NOT EXISTS `content_feature` (
   KEY `idx_quality_score` (`quality_score` DESC),
   KEY `idx_heat_score` (`heat_score` DESC),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='内容特征表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='内容特征表'
+PARTITION BY LIST(content_type) (
+  PARTITION p_article VALUES IN (1),
+  PARTITION p_video VALUES IN (2),
+  PARTITION p_product VALUES IN (3),
+  PARTITION p_topic VALUES IN (4),
+  PARTITION p_user VALUES IN (5)
+);
 
 -- 推荐结果表
 CREATE TABLE IF NOT EXISTS `recommend_result` (
@@ -173,7 +212,8 @@ CREATE TABLE IF NOT EXISTS `recommend_result` (
   KEY `idx_score` (`score` DESC),
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐结果表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐结果表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 推荐反馈表
 CREATE TABLE IF NOT EXISTS `recommend_feedback` (
@@ -191,7 +231,8 @@ CREATE TABLE IF NOT EXISTS `recommend_feedback` (
   KEY `idx_scene_type` (`scene_type`),
   KEY `idx_feedback_type` (`feedback_type`),
   KEY `idx_create_time` (`create_time` DESC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐反馈表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐反馈表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 内容相似表
 CREATE TABLE IF NOT EXISTS `content_similarity` (
@@ -209,7 +250,8 @@ CREATE TABLE IF NOT EXISTS `content_similarity` (
   KEY `idx_similar_content` (`similar_content_id`,`similar_content_type`),
   KEY `idx_similarity_score` (`similarity_score` DESC),
   KEY `idx_similarity_type` (`similarity_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='内容相似表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='内容相似表'
+PARTITION BY HASH(content_id) PARTITIONS 8;
 
 -- 每日发现表
 CREATE TABLE IF NOT EXISTS `daily_discovery` (
@@ -235,7 +277,18 @@ CREATE TABLE IF NOT EXISTS `daily_discovery` (
   KEY `idx_status` (`status`),
   KEY `idx_sort_order` (`sort_order`),
   KEY `idx_curator_id` (`curator_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日发现表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日发现表'
+PARTITION BY RANGE (TO_DAYS(discovery_date)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 内容埋点表
 CREATE TABLE IF NOT EXISTS `content_tracking` (
@@ -259,4 +312,15 @@ CREATE TABLE IF NOT EXISTS `content_tracking` (
   KEY `idx_event_time` (`event_time`),
   KEY `idx_device_type` (`device_type`),
   KEY `idx_device_id` (`device_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='内容埋点表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='内容埋点表'
+PARTITION BY RANGE (TO_DAYS(event_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+); 

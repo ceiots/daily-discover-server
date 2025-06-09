@@ -1,6 +1,11 @@
 -- 用户会员体系表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: user_member_mvp.sql, discovery_app_mvp.sql中的用户相关表
+-- 高并发优化策略: 
+-- 1. 表分区: 用户表按用户ID哈希分区，用户行为表按行为时间范围分区，会员表按状态列表分区
+-- 2. 避免外键约束: 使用应用层维护数据一致性
+-- 3. 索引优化: 为高频查询字段创建索引
+-- 4. 冷热数据分离: 使用分区策略将活跃用户和不活跃用户数据分开
 
 -- 用户基础表
 CREATE TABLE IF NOT EXISTS `user` (
@@ -28,7 +33,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   UNIQUE KEY `uk_email` (`email`),
   KEY `idx_status` (`status`),
   KEY `idx_user_type` (`user_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户基础表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户基础表'
+PARTITION BY HASH(id) PARTITIONS 16;
 
 -- 用户详细信息表
 CREATE TABLE IF NOT EXISTS `user_profile` (
@@ -73,7 +79,8 @@ CREATE TABLE IF NOT EXISTS `user_account` (
   KEY `idx_status` (`status`),
   KEY `idx_points` (`points`),
   KEY `idx_growth` (`growth_value`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户账户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户账户表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 用户账户流水表
 CREATE TABLE IF NOT EXISTS `user_account_log` (
@@ -93,7 +100,18 @@ CREATE TABLE IF NOT EXISTS `user_account_log` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_type_source` (`type`, `source`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户账户流水表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户账户流水表'
+PARTITION BY RANGE (TO_DAYS(create_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 会员等级表
 CREATE TABLE IF NOT EXISTS `member_level` (
@@ -138,7 +156,11 @@ CREATE TABLE IF NOT EXISTS `user_member` (
   KEY `idx_member_level` (`member_level`),
   KEY `idx_status` (`status`),
   KEY `idx_end_time` (`end_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户会员表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户会员表'
+PARTITION BY LIST(status) (
+  PARTITION p_normal VALUES IN (1),
+  PARTITION p_disabled VALUES IN (0)
+);
 
 -- 用户积分记录表
 CREATE TABLE IF NOT EXISTS `user_points_log` (
@@ -158,7 +180,8 @@ CREATE TABLE IF NOT EXISTS `user_points_log` (
   KEY `idx_type_source` (`type`, `source`),
   KEY `idx_create_time` (`create_time`),
   KEY `idx_expire_time` (`expire_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户积分记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户积分记录表'
+PARTITION BY HASH(user_id) PARTITIONS 8;
 
 -- 用户授权表
 CREATE TABLE IF NOT EXISTS `user_auth` (
@@ -177,7 +200,8 @@ CREATE TABLE IF NOT EXISTS `user_auth` (
   UNIQUE KEY `uk_user_identity` (`user_id`,`identity_type`),
   UNIQUE KEY `uk_identity_identifier` (`identity_type`,`identifier`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户授权表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户授权表'
+PARTITION BY HASH(user_id) PARTITIONS 16;
 
 -- 用户收藏表
 CREATE TABLE IF NOT EXISTS `user_favorite` (
@@ -270,7 +294,18 @@ CREATE TABLE IF NOT EXISTS `user_behavior` (
   KEY `idx_behavior_type` (`behavior_type`),
   KEY `idx_target` (`target_id`,`target_type`),
   KEY `idx_behavior_time` (`behavior_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户行为表'
+PARTITION BY RANGE (TO_DAYS(behavior_time)) (
+  PARTITION p_2025q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
+  PARTITION p_2025q2 VALUES LESS THAN (TO_DAYS('2025-07-01')),
+  PARTITION p_2025q3 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+  PARTITION p_2025q4 VALUES LESS THAN (TO_DAYS('2026-01-01')),
+  PARTITION p_2026q1 VALUES LESS THAN (TO_DAYS('2026-04-01')),
+  PARTITION p_2026q2 VALUES LESS THAN (TO_DAYS('2026-07-01')),
+  PARTITION p_2026q3 VALUES LESS THAN (TO_DAYS('2026-10-01')),
+  PARTITION p_2026q4 VALUES LESS THAN (TO_DAYS('2027-01-01')),
+  PARTITION p_future VALUES LESS THAN MAXVALUE
+);
 
 -- 用户关系表
 CREATE TABLE IF NOT EXISTS `user_relationship` (
