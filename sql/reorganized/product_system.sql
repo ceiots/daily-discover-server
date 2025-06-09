@@ -1,3 +1,9 @@
+-- 创建商品系统数据库
+CREATE DATABASE IF NOT EXISTS product_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- 使用商品系统数据库
+USE product_db;
+
 -- 商品系统表结构（优化版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: product_mvp.sql, ecommerce_order_tables.sql中的商品相关表

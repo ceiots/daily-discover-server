@@ -1,3 +1,9 @@
+-- 创建搜索推荐系统数据库
+CREATE DATABASE IF NOT EXISTS search_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- 使用搜索推荐系统数据库
+USE search_db;
+
 -- 搜索推荐系统表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: search_recommend_mvp.sql和discovery_app_mvp.sql中的搜索推荐相关表

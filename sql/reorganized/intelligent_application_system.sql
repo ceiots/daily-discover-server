@@ -1,3 +1,9 @@
+-- 创建智能应用系统数据库
+CREATE DATABASE IF NOT EXISTS ai_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- 使用智能应用系统数据库
+USE ai_db;
+
 -- 智能应用系统表结构（整合版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: ai_conversation_tables.sql

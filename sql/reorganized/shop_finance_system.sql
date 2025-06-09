@@ -1,3 +1,9 @@
+-- 创建店铺财务系统数据库
+CREATE DATABASE IF NOT EXISTS finance_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- 使用店铺财务系统数据库
+USE finance_db;
+
 -- 店铺财务系统表结构（优化版）
 -- 设计原则: 每表字段不超过18个，无外键约束，针对高并发高可用场景优化
 -- 整合自: shop_finance_mvp.sql
