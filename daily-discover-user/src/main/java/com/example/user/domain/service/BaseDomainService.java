@@ -85,7 +85,8 @@ public interface BaseDomainService {
      * @return 加密后的密码
      */
     default String encryptPassword(String rawPassword) {
-        return Password.create(rawPassword).getValue();
+        String salt = generateSalt();
+        return encryptPassword(rawPassword, salt);
     }
     
     /**
@@ -96,6 +97,13 @@ public interface BaseDomainService {
      * @return 是否匹配
      */
     default boolean matchPassword(String rawPassword, String encryptedPassword) {
-        return Password.matches(rawPassword, encryptedPassword);
+        // 假设加密密码格式为: hash:salt
+        String[] parts = encryptedPassword.split(":");
+        if (parts.length != 2) {
+            return false;
+        }
+        String hash = parts[0];
+        String salt = parts[1];
+        return verifyPassword(rawPassword, hash, salt);
     }
 } 

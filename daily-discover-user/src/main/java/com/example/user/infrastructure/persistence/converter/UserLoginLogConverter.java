@@ -1,7 +1,7 @@
 package com.example.user.infrastructure.persistence.converter;
 
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.user.UserLoginLog;
+import com.example.user.domain.model.UserLoginLog;
 import com.example.user.infrastructure.persistence.entity.UserLoginLogEntity;
 import org.springframework.stereotype.Component;
 

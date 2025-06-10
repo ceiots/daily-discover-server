@@ -5,7 +5,7 @@ import com.example.common.model.PageResult;
 import com.example.user.application.assembler.UserFavoriteAssembler;
 import com.example.user.application.dto.UserFavoriteDTO;
 import com.example.user.application.service.UserFavoriteService;
-import com.example.user.domain.model.user.UserFavorite;
+import com.example.user.domain.model.UserFavorite;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserFavoriteDomainService;

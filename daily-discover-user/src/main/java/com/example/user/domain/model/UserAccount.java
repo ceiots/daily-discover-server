@@ -1,4 +1,4 @@
-package com.example.user.domain.model.user;
+package com.example.user.domain.model;
 
 import com.example.common.exception.BusinessException;
 import com.example.user.domain.model.id.UserId;

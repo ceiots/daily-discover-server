@@ -2,7 +2,7 @@ package com.example.user.domain.service.impl;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.user.domain.model.behavior.UserBehavior;
+import com.example.user.domain.model.UserBehavior;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.repository.UserBehaviorRepository;
 import com.example.user.domain.service.UserBehaviorDomainService;
@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class UserBehaviorDomainServiceImpl extends BaseDomainServiceImpl implements UserBehaviorDomainService {
+public class UserBehaviorDomainServiceImpl implements UserBehaviorDomainService {
 
     private final UserBehaviorRepository userBehaviorRepository;
 

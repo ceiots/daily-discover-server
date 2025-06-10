@@ -2,7 +2,7 @@ package com.example.user.domain.service;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.user.domain.model.behavior.UserBehavior;
+import com.example.user.domain.model.UserBehavior;
 import com.example.user.domain.model.id.UserId;
 
 import java.time.LocalDateTime;

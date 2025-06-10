@@ -5,7 +5,7 @@ import com.example.common.model.PageResult;
 import com.example.user.application.assembler.UserLoginLogAssembler;
 import com.example.user.application.dto.UserLoginLogDTO;
 import com.example.user.application.service.UserLoginLogService;
-import com.example.user.domain.model.user.UserLoginLog;
+import com.example.user.domain.model.UserLoginLog;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserLoginLogDomainService;

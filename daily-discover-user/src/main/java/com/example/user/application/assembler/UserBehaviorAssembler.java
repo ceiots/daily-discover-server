@@ -1,7 +1,7 @@
 package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserBehaviorDTO;
-import com.example.user.domain.model.user.UserBehavior;
+import com.example.user.domain.model.UserBehavior;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

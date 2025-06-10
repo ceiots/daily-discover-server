@@ -1,4 +1,4 @@
-package com.example.user.domain.model.user;
+package com.example.user.domain.model;
 
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -2,7 +2,7 @@ package com.example.user.domain.repository;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.user.domain.model.favorite.UserFavorite;
+import com.example.user.domain.model.UserFavorite;
 import com.example.user.domain.model.id.UserId;
 
 import java.util.List;

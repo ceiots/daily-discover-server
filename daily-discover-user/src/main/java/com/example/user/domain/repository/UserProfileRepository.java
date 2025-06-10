@@ -1,6 +1,6 @@
 package com.example.user.domain.repository;
 
-import com.example.user.domain.model.user.UserProfile;
+import com.example.user.domain.model.UserProfile;
 import com.example.user.domain.model.id.UserId;
 
 import java.util.Optional;

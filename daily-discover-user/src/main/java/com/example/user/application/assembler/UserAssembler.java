@@ -4,8 +4,9 @@ import com.example.user.api.vo.UserVO;
 import com.example.user.api.vo.UserProfileVO;
 import com.example.user.application.dto.UserDTO;
 import com.example.user.application.dto.UserProfileDTO;
-import com.example.user.domain.model.user.UserProfile;
-import com.example.user.domain.model.user.User;
+import com.example.user.domain.model.User;
+import com.example.user.domain.model.UserProfile;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

@@ -1,6 +1,6 @@
 package com.example.user.infrastructure.persistence.converter;
 
-import com.example.user.domain.model.user.UserAccount;
+import com.example.user.domain.model.UserAccount;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.infrastructure.persistence.entity.UserAccountEntity;
 import org.springframework.stereotype.Component;

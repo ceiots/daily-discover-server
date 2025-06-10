@@ -1,4 +1,4 @@
-package com.example.user.domain.model.behavior;
+package com.example.user.domain.model;
 
 import com.example.user.domain.model.id.UserId;
 import lombok.AccessLevel;

@@ -1,7 +1,7 @@
 package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserDeviceDTO;
-import com.example.user.domain.model.user.UserDevice;
+import com.example.user.domain.model.UserDevice;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

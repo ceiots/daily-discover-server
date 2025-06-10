@@ -1,7 +1,7 @@
 package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserAuthDTO;
-import com.example.user.domain.model.user.UserAuth;
+import com.example.user.domain.model.UserAuth;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

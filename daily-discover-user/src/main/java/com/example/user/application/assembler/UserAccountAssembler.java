@@ -2,8 +2,8 @@ package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserAccountDTO;
 import com.example.user.application.dto.UserAccountLogDTO;
-import com.example.user.domain.model.user.UserAccount;
-import com.example.user.domain.model.user.UserAccountLog;
+import com.example.user.domain.model.UserAccount;
+import com.example.user.domain.model.UserAccountLog;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

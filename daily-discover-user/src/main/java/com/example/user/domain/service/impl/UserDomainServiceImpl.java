@@ -3,17 +3,16 @@ package com.example.user.domain.service.impl;
 import com.example.common.exception.BusinessException;
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.common.util.PasswordEncoder;
 import com.example.user.domain.event.UserRegisteredEvent;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.user.User;
-import com.example.user.domain.model.user.UserProfile;
+import com.example.user.domain.model.User;
+import com.example.user.domain.model.UserProfile;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
 import com.example.user.domain.repository.UserQueryCondition;
 import com.example.user.domain.repository.UserRepository;
 import com.example.user.domain.repository.UserProfileRepository;
-import com.example.user.domain.service.BaseDomainServiceImpl;
+import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserDomainService;
 import com.example.user.infrastructure.common.result.ResultCode;
 
@@ -34,7 +33,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserDomainServiceImpl extends BaseDomainServiceImpl implements UserDomainService {
+public class UserDomainServiceImpl implements UserDomainService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;

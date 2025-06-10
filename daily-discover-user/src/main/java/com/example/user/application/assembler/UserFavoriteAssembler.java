@@ -1,7 +1,7 @@
 package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserFavoriteDTO;
-import com.example.user.domain.model.user.UserFavorite;
+import com.example.user.domain.model.UserFavorite;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
