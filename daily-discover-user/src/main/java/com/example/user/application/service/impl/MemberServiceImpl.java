@@ -95,40 +95,6 @@ public class MemberServiceImpl implements MemberService {
         return memberAssembler.toDTO(member);
     }
 
-    @Override
-    @Transactional
-    public MemberDTO upgradeMember(Long userId, Integer level) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        // 检查会员等级是否存在
-        Optional<MemberLevel> memberLevelOpt = memberDomainService.getMemberLevel(level);
-        if (memberLevelOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_LEVEL_NOT_FOUND);
-        }
-        
-        // 检查是否是升级
-        Member member = memberOpt.get();
-        if (member.getMemberLevel() >= level) {
-            throw new BusinessException(ResultCode.MEMBER_LEVEL_INVALID);
-        }
-        
-        // 计算所需成长值
-        MemberLevel targetLevel = memberLevelOpt.get();
-        int requiredGrowthValue = targetLevel.getGrowthMin() - member.getGrowthValue();
-        if (requiredGrowthValue > 0) {
-            // 自动增加成长值到目标等级
-            member = memberDomainService.addGrowthValue(member.getId(), requiredGrowthValue);
-        }
-        
-        // 升级会员
-        Member upgradedMember = memberDomainService.upgradeMember(member.getId(), level, 0);
-        
-        return memberAssembler.toDTO(upgradedMember);
-    }
     
     @Override
     @Transactional
@@ -573,21 +539,7 @@ public class MemberServiceImpl implements MemberService {
     }
     
     
-    @Override
-    @Transactional
-    public MemberDTO renewMember(Long userId, Integer months) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        // 延长会员有效期
-        Member member = memberOpt.get();
-        Member extendedMember = memberDomainService.extendMember(member.getId(), months);
-        
-        return memberAssembler.toDTO(extendedMember);
-    }
+   
     
     @Override
     @Transactional
@@ -624,131 +576,4 @@ public class MemberServiceImpl implements MemberService {
         return memberAssembler.toDTO(upgradedMember);
     }
     
-    
-    @Override
-    @Transactional
-    public boolean freezeMember(Long userId) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        // 禁用会员
-        Member member = memberOpt.get();
-        memberDomainService.disableMember(member.getId());
-        
-        return true;
-    }
-    
-    @Override
-    @Transactional
-    public boolean unfreezeMember(Long userId) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        // 启用会员
-        Member member = memberOpt.get();
-        memberDomainService.enableMember(member.getId());
-        
-        return true;
-    }
-    
-    @Override
-    @Transactional
-    public MemberDTO addGrowth(Long userId, Integer growthValue, Integer source, String sourceId) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        // 增加成长值
-        Member member = memberOpt.get();
-        String description = "来源:" + source + (sourceId != null ? ",ID:" + sourceId : "");
-        Member updatedMember = memberDomainService.addGrowthValue(member.getId(), growthValue);
-        
-        // 检查是否可以升级
-        memberDomainService.checkAndUpgradeMemberLevel(updatedMember);
-        
-        return memberAssembler.toDTO(updatedMember);
-    }
-    
-    @Override
-    @Transactional
-    public MemberDTO addPoints(Long userId, Integer points, Integer source, String sourceId) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        // 增加积分
-        Member member = memberOpt.get();
-        String description = "来源:" + source + (sourceId != null ? ",ID:" + sourceId : "");
-        Member updatedMember = memberDomainService.addPoints(member.getId(), points);
-        
-        // 记录积分日志
-        UserPointsLog pointsLog = UserPointsLog.createGainLog(
-            updatedMember.getUserId(),
-            points,
-            member.getPoints(),
-            updatedMember.getPoints(),
-            source,
-            sourceId,
-            description
-        );
-        memberDomainService.savePointsLog(pointsLog);
-        
-        return memberAssembler.toDTO(updatedMember);
-    }
-    
-    @Override
-    @Transactional
-    public MemberDTO usePoints(Long userId, Integer points, Integer source, String sourceId) {
-        // 查找用户会员信息
-        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
-        if (memberOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
-        }
-        
-        Member member = memberOpt.get();
-        
-        // 检查积分是否足够
-        if (!memberDomainService.canUsePoints(member, points)) {
-            throw new BusinessException(ResultCode.POINTS_NOT_ENOUGH);
-        }
-        
-        // 使用积分
-        String description = "来源:" + source + (sourceId != null ? ",ID:" + sourceId : "");
-        Member updatedMember = memberDomainService.usePoints(member.getId(), points);
-        
-        // 记录积分日志
-        UserPointsLog pointsLog = UserPointsLog.createUseLog(
-            updatedMember.getUserId(),
-            points,
-            member.getPoints(),
-            updatedMember.getPoints(),
-            source,
-            sourceId,
-            description
-        );
-        memberDomainService.savePointsLog(pointsLog);
-        
-        return memberAssembler.toDTO(updatedMember);
-    }
-    
-    @Override
-    public MemberLevelDTO getMemberLevelById(Long id) {
-        Optional<MemberLevel> memberLevelOpt = memberDomainService.getMemberLevelById(id);
-        
-        if (memberLevelOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.MEMBER_LEVEL_NOT_FOUND);
-        }
-        
-        return memberAssembler.toLevelDTO(memberLevelOpt.get());
-    }
 }

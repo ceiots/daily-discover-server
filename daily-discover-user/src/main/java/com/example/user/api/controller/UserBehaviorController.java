@@ -61,7 +61,9 @@ public class UserBehaviorController {
             @ApiParam("页码") @RequestParam(defaultValue = "1") Integer pageNum,
             @ApiParam("每页大小") @RequestParam(defaultValue = "10") Integer pageSize) {
         
-        PageRequest pageRequest = new PageRequest(pageNum, pageSize);
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setPageNum(pageNum);
+        pageRequest.setPageSize(pageSize);
         PageResult<UserBehaviorDTO> pageResult = userBehaviorService.getUserBehaviorPage(
                 userId, behaviorType, targetType, pageRequest);
         
@@ -69,8 +71,8 @@ public class UserBehaviorController {
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
         
-        return Result.success(new PageResult<>(behaviorVOs, pageResult.getTotal(), 
-                pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize()));
+        return Result.success(new PageResult<UserBehaviorVO>(pageResult.getPageNum(), 
+                pageResult.getPageSize(), pageResult.getTotal(), behaviorVOs));
     }
 
     @ApiOperation("统计目标对象行为")

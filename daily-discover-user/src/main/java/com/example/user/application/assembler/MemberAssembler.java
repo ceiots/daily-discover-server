@@ -6,11 +6,13 @@ import com.example.user.application.dto.MemberDTO;
 import com.example.user.application.dto.MemberLevelDTO;
 import com.example.user.application.dto.PointsLogDTO;
 import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
 import com.example.user.domain.model.member.MemberLevel;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
@@ -37,8 +39,8 @@ public interface MemberAssembler {
      * @param memberDTO 会员DTO
      * @return 会员实体
      */
-    @Mapping(target = "id.value", source = "id")
-    @Mapping(target = "userId.value", source = "userId")
+    @Mapping(target = "id", source = "id", qualifiedByName = "longToMemberId")
+    @Mapping(target = "userId", source = "userId", qualifiedByName = "longToUserId")
     Member toEntity(MemberDTO memberDTO);
 
     /**
@@ -113,4 +115,20 @@ public interface MemberAssembler {
      * @return 会员等级VO列表
      */
     List<MemberLevelVO> toLevelVOList(List<MemberLevelDTO> memberLevelDTOs);
+    
+    /**
+     * 将Long转换为UserId
+     */
+    @Named("longToUserId")
+    default UserId longToUserId(Long id) {
+        return id != null ? new UserId(id) : null;
+    }
+    
+    /**
+     * 将Long转换为MemberId
+     */
+    @Named("longToMemberId")
+    default com.example.user.domain.model.id.MemberId longToMemberId(Long id) {
+        return id != null ? new com.example.user.domain.model.id.MemberId(id) : null;
+    }
 } 

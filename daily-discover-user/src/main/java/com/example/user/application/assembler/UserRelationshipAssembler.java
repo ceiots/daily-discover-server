@@ -2,8 +2,10 @@ package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserRelationshipDTO;
 import com.example.user.domain.model.UserRelationship;
+import com.example.user.domain.model.id.UserId;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -22,8 +24,8 @@ public interface UserRelationshipAssembler {
      * @param userRelationship 用户关系领域模型
      * @return 用户关系DTO
      */
-    @Mapping(source = "userId.value", target = "userId")
-    @Mapping(source = "relatedUserId.value", target = "relatedUserId")
+    @Mapping(source = "userId", target = "userId", qualifiedByName = "userIdToLong")
+    @Mapping(source = "relatedUserId", target = "relatedUserId", qualifiedByName = "userIdToLong")
     UserRelationshipDTO toDTO(UserRelationship userRelationship);
 
     /**
@@ -32,8 +34,8 @@ public interface UserRelationshipAssembler {
      * @param userRelationshipDTO 用户关系DTO
      * @return 用户关系领域模型
      */
-    @Mapping(target = "userId.value", source = "userId")
-    @Mapping(target = "relatedUserId.value", source = "relatedUserId")
+    @Mapping(source = "userId", target = "userId", qualifiedByName = "longToUserId")
+    @Mapping(source = "relatedUserId", target = "relatedUserId", qualifiedByName = "longToUserId")
     UserRelationship toDomain(UserRelationshipDTO userRelationshipDTO);
 
     /**
@@ -51,4 +53,20 @@ public interface UserRelationshipAssembler {
      * @return 用户关系领域模型列表
      */
     List<UserRelationship> toDomain(List<UserRelationshipDTO> userRelationshipDTOList);
+    
+    /**
+     * 将UserId转换为Long
+     */
+    @Named("userIdToLong")
+    default Long userIdToLong(UserId userId) {
+        return userId != null ? userId.getValue() : null;
+    }
+
+    /**
+     * 将Long转换为UserId
+     */
+    @Named("longToUserId")
+    default UserId longToUserId(Long id) {
+        return id != null ? new UserId(id) : null;
+    }
 }

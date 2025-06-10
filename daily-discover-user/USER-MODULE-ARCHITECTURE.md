@@ -1,62 +1,51 @@
-# 用户模块架构设计
+# 用户模块架构设计 (简化版)
 
 ## 1. 模块概述
 
-用户模块是每日发现系统的核心模块之一，负责用户注册、登录、会员管理、账户管理等功能。该模块采用DDD(领域驱动设计)架构，将业务逻辑与技术实现解耦，提高系统的可维护性和可扩展性。
+用户模块是每日发现系统的核心模块之一，负责用户注册、登录、会员管理、账户管理等功能。该模块采用简化的DDD(领域驱动设计)架构，在保持业务逻辑与技术实现解耦的同时，简化了层次结构，提高开发效率。
 
 ## 2. 功能清单
 
-### 2.1 用户管理
-- 用户注册（账号密码、手机号、邮箱、第三方登录）
-- 用户登录（账号密码、手机验证码、第三方登录）
-- 用户信息管理（基本信息、详细资料）
-- 用户认证（实名认证、手机绑定、邮箱绑定）
-- 用户安全（密码修改、账号锁定、登录日志）
+### 2.1 用户管理 (MVP)
+- 用户注册（账号密码、手机号注册）
+- 用户登录（账号密码、手机验证码）
+- 用户信息管理（基本信息）
+- 用户安全（密码修改）
 
-### 2.2 会员体系
+### 2.2 会员体系 (后续迭代)
 - 会员等级管理
 - 会员权益管理
 - 成长值管理
 - 积分管理
-- 会员到期管理
 
-### 2.3 账户管理
+### 2.3 账户管理 (后续迭代)
 - 账户余额管理
 - 账户流水记录
 - 积分记录
-- 成长值记录
-- 账户安全
-
-### 2.4 用户行为
-- 用户收藏
-- 用户关注
-- 用户浏览历史
-- 用户评价
-- 用户互动
 
 ## 3. 架构设计
 
-### 3.1 分层架构
+### 3.1 简化分层架构
 
-用户模块采用DDD经典四层架构：
+用户模块采用简化的DDD分层架构：
 
 ```
 +----------------------------------------------------------+
 |                       API层 (Interfaces)                  |
-|  Controller, VO, API异常处理, 参数校验, 权限控制           |
+|  Controller, VO, 参数校验                                 |
 +----------------------------------------------------------+
 |                      应用层 (Application)                 |
-|  应用服务, DTO, Assembler, 事务控制, 业务流程编排          |
+|  应用服务, DTO, Assembler, 事务控制                        |
 +----------------------------------------------------------+
 |                      领域层 (Domain)                      |
-|  领域模型, 领域服务, 领域事件, 仓储接口, 业务规则          |
+|  领域模型, 领域服务, 仓储接口                              |
 +----------------------------------------------------------+
 |                   基础设施层 (Infrastructure)             |
-|  仓储实现, ORM实体, 外部服务集成, 消息队列, 缓存           |
+|  仓储实现, 外部服务集成, 缓存                              |
 +----------------------------------------------------------+
 ```
 
-### 3.2 目录结构
+### 3.2 简化目录结构
 
 ```
 daily-discover-user/
@@ -66,36 +55,37 @@ daily-discover-user/
 │       │   └── com/
 │       │       └── example/
 │       │           └── user/
-│       │               ├── api/                   # API层：对外接口
-│       │               │   ├── controller/        # REST控制器
+│       │               ├── api/                   # API层
+│       │               │   ├── controller/        # 控制器
 │       │               │   ├── vo/                # 视图对象
-│       │               │   └── exception/         # API层异常处理
-│       │               ├── application/           # 应用层：业务流程编排
-│       │               │   ├── service/           # 应用服务
-│       │               │   │   └── impl/          # 应用服务实现
+│       │               │   └── advice/            # 全局异常处理
+│       │               │
+│       │               ├── application/           # 应用层
+│       │               │   ├── dto/               # 数据传输对象
 │       │               │   ├── assembler/         # DTO转换器
-│       │               │   ├── command/           # 命令对象
-│       │               │   └── dto/               # 数据传输对象
-│       │               ├── domain/                # 领域层：核心业务逻辑
+│       │               │   └── service/           # 应用服务
+│       │               │
+│       │               ├── domain/                # 领域层
 │       │               │   ├── model/             # 领域模型
-│       │               │   │   ├── user/          # 用户相关模型
-│       │               │   │   ├── member/        # 会员相关模型
-│       │               │   │   ├── id/            # ID值对象
-│       │               │   │   └── valueobject/   # 值对象
+│       │               │   │   ├── user/          # 用户聚合
+│       │               │   │   ├── member/        # 会员聚合
+│       │               │   │   └── account/       # 账户聚合
+│       │               │   ├── valueobject/       # 值对象
 │       │               │   ├── service/           # 领域服务
-│       │               │   │   └── impl/          # 领域服务实现
-│       │               │   ├── event/             # 领域事件
-│       │               │   └── repository/        # 仓储接口
+│       │               │   ├── repository/        # 仓储接口
+│       │               │   └── event/             # 领域事件
+│       │               │
 │       │               └── infrastructure/        # 基础设施层
-│       │                   ├── repository/        # 仓储实现
-│       │                   │   └── impl/          # 仓储实现类
-│       │                   ├── persistence/       # 持久化实体
-│       │                   │   ├── entity/        # ORM实体
-│       │                   │   ├── mapper/        # MyBatis Mapper接口
-│       │                   │   └── converter/     # 实体转换器
+│       │                   ├── persistence/       # 持久化相关
+│       │                   │   ├── entity/        # 数据库实体
+│       │                   │   ├── mapper/        # MyBatis Mapper
+│       │                   │   ├── converter/     # 实体转换器
+│       │                   │   └── repository/    # 仓储实现
+│       │                   │
 │       │                   ├── cache/             # 缓存实现
-│       │                   ├── mq/                # 消息队列
-│       │                   └── config/            # 配置类
+│       │                   ├── integration/       # 外部系统集成
+│       │                   └── config/            # 基础设施配置
+│       │
 │       └── resources/
 │           ├── mapper/                            # MyBatis映射文件
 │           └── application.yml                    # 应用配置
@@ -103,298 +93,194 @@ daily-discover-user/
 
 ### 3.3 层间调用关系
 
-#### 3.3.1 优化的调用关系设计
-
 ```
-+----------------+       +----------------+       +----------------+       +----------------+
-|                |       |                |       |                |       |                |
-|  Controller    |------>|  Application   |------>|    Domain      |<------|Infrastructure  |
-|   (API层)      |       |   Service      |       |   Service      |       |  Repository    |
-|                |       |                |       |                |       |                |
-+----------------+       +----------------+       +----------------+       +----------------+
-        |                        |                        |                        |
-        v                        v                        v                        v
-+----------------+       +----------------+       +----------------+       +----------------+
-|                |       |                |       |                |       |                |
-|      VO        |<----->|      DTO       |<----->|   Domain       |<----->|    Entity     |
-|                |       |                |       |   Model        |       |               |
-|                |       |                |       |                |       |               |
-+----------------+       +----------------+       +----------------+       +----------------+
+Controller -> ApplicationService -> DomainService -> Repository
+    ↓               ↓                  ↓                 ↓
+    VO  <->        DTO  <->         Domain   <->      Entity
+                                     Model
 ```
 
-**关键优化点**：
+**关键设计原则**：
 1. **依赖倒置**：领域层不依赖基础设施层，而是通过接口定义仓储，由基础设施层实现
-2. **数据转换**：各层之间通过专门的转换器(Assembler/Converter)进行数据对象转换
+2. **数据转换**：各层之间通过转换器(Assembler)进行数据对象转换
 3. **单向依赖**：上层依赖下层，下层不依赖上层，减少耦合
 4. **领域事件**：通过领域事件实现业务流程的解耦
+5. **CQRS模式**：简化实现读写分离，频繁查询可以直接从基础设施层获取数据
 
+## 4. 领域模型 (简化版)
 
-### 3.4 领域模型
-
-#### 3.4.1 聚合根
+### 4.1 聚合
 - User：用户聚合根，包含用户基本信息
-- Member：会员聚合根，包含会员信息和权益
+- Member：会员聚合根（MVP后续迭代）
+- Account：账户聚合根（MVP后续迭代）
 
-#### 3.4.2 实体
-- UserProfile：用户详细资料
-- UserAccount：用户账户
-- UserAuth：用户认证信息
-- MemberLevel：会员等级
-
-#### 3.4.3 值对象
+### 4.2 值对象
 - UserId：用户ID
-- MemberId：会员ID
 - Email：邮箱
 - Mobile：手机号
 - Password：密码
 
-#### 3.4.4 领域服务
+### 4.3 领域服务
 - UserDomainService：用户领域服务
-- MemberDomainService：会员领域服务
-- UserAccountDomainService：账户领域服务
+- MemberDomainService：会员领域服务（MVP后续迭代）
+- AccountDomainService：账户领域服务（MVP后续迭代）
 
-### 3.5 领域事件
+## 5. 技术实践
 
-领域事件用于解耦业务流程，实现异步通知和跨聚合的业务协作。
+### 5.1 聚合内一致性
+使用事务确保聚合内一致性，领域模型包含业务规则和不变量。
 
 ```java
-// 领域事件定义
-public class UserRegisteredEvent extends DomainEvent {
-    private final UserId userId;
-    private final String username;
+@Transactional
+public User registerUser(RegisterDTO registerDTO) {
+    // 创建用户
+    User user = User.create(registerDTO.getUsername(), registerDTO.getPassword());
     
-    // 构造函数、getter等
+    // 保存用户
+    userRepository.save(user);
+    
+    // 发布领域事件
+    eventPublisher.publishEvent(new UserRegisteredEvent(user.getId()));
+    
+    return user;
+}
+```
+
+### 5.2 领域事件
+使用Spring事件机制实现领域事件，实现聚合间的最终一致性。
+
+```java
+// 领域事件
+public class UserRegisteredEvent {
+    private final UserId userId;
+    
+    public UserRegisteredEvent(UserId userId) {
+        this.userId = userId;
+    }
+    
+    public UserId getUserId() {
+        return userId;
+    }
 }
 
-// 领域模型中发布事件
-public class User {
-    // ...
+// 事件监听器
+@Component
+public class UserRegistrationListener {
+    @EventListener
+    public void handleUserRegistered(UserRegisteredEvent event) {
+        // 处理用户注册事件
+    }
+}
+```
+
+### 5.3 CQRS简化实现
+读操作可以直接查询数据库，绕过领域模型，提高性能。
+
+```java
+@Service
+public class UserQueryService {
+    @Autowired
+    private UserMapper userMapper;
     
-    public static User register(String username, String password) {
-        User user = new User();
-        // 设置属性
-        // ...
+    public UserDTO getUserById(Long userId) {
+        // 直接从数据库查询，跳过领域模型
+        UserEntity entity = userMapper.selectById(userId);
+        return convertToDTO(entity);
+    }
+}
+```
+
+## 6. 性能与扩展性
+
+### 6.1 缓存策略
+采用多级缓存策略提高性能：
+
+```java
+@Service
+public class UserCacheService {
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    public User getUserById(Long userId) {
+        // 从缓存获取
+        String key = "user:" + userId;
+        User user = (User) redisTemplate.opsForValue().get(key);
         
-        // 发布领域事件
-        DomainEventPublisher.publish(new UserRegisteredEvent(user.getId(), username));
+        if (user == null) {
+            // 缓存未命中，从数据库获取
+            user = userRepository.findById(userId).orElse(null);
+            
+            if (user != null) {
+                // 存入缓存
+                redisTemplate.opsForValue().set(key, user, 30, TimeUnit.MINUTES);
+            }
+        }
         
         return user;
     }
 }
+```
 
-// 事件订阅者
-@Component
-public class UserRegistrationListener {
-    private final AccountService accountService;
+### 6.2 并发控制
+使用乐观锁处理并发更新：
+
+```java
+@Data
+public class User {
+    private Long id;
+    private String username;
+    private Integer version;
     
-    @EventListener
-    public void handleUserRegistered(UserRegisteredEvent event) {
-        // 创建用户账户
-        accountService.createAccount(event.getUserId());
+    public void updateUsername(String newUsername) {
+        this.username = newUsername;
+        // 版本号自增
+        this.version++;
+    }
+}
+
+@Repository
+public class UserRepositoryImpl implements UserRepository {
+    @Autowired
+    private UserMapper userMapper;
+    
+    public boolean update(User user) {
+        // 使用版本号控制并发
+        return userMapper.updateWithVersion(user) > 0;
     }
 }
 ```
 
-## 4. 接口设计
+### 6.3 水平扩展
+- 无状态服务设计：所有服务无状态，支持水平扩展
+- 分库分表预留：预留分库分表接口，便于后续扩展
+- 异步处理：非核心流程采用异步处理提高吞吐量
 
-### 4.1 内部接口
+## 7. 接口设计
 
-#### 4.1.1 用户服务接口
-- 用户注册接口
-- 用户登录接口
-- 用户信息查询接口
-- 用户信息更新接口
+### 7.1 RESTful API
+- `/api/v1/users`：用户管理
+- `/api/v1/members`：会员管理（MVP后续迭代）
+- `/api/v1/accounts`：账户管理（MVP后续迭代）
 
-#### 4.1.2 会员服务接口
-- 会员信息查询接口
-- 会员等级升级接口
-- 会员权益查询接口
-- 积分管理接口
-
-#### 4.1.3 账户服务接口
-- 账户余额查询接口
-- 账户余额变更接口
-- 账户流水查询接口
-- 积分记录查询接口
-
-### 4.2 外部接口
-
-#### 4.2.1 RESTful API
-- `/api/v1/users`：用户相关API
-- `/api/v1/members`：会员相关API
-- `/api/v1/accounts`：账户相关API
-- `/api/v1/auth`：认证相关API
-
-#### 4.2.2 第三方集成接口
-- 微信登录接口
-- 支付宝登录接口
-- 短信验证码接口
-- 邮箱验证接口
-
-## 5. 安全设计
-
-### 5.1 认证与授权
+### 7.2 安全设计
 - JWT令牌认证
-- 基于角色的权限控制
-- 接口权限校验
-- 数据权限过滤
-
-### 5.2 数据安全
 - 密码加密存储
-- 敏感信息脱敏
-- 数据访问控制
-- 操作日志审计
-
-### 5.3 接口安全
-- 接口幂等性设计
-- 防重放攻击
-- 接口限流
+- 接口幂等性
 - 参数校验
 
-## 6. 高性能设计
+## 8. 实施路径
 
-### 6.1 缓存策略
-- 多级缓存：本地缓存 -> Redis分布式缓存 -> 数据库
-- 缓存预热：系统启动时加载热点数据
-- 缓存更新：采用更新数据库+失效缓存的策略
-- 缓存穿透防护：布隆过滤器
-- 缓存击穿防护：互斥锁
-- 缓存雪崩防护：过期时间随机化
+### 8.1 MVP阶段 (第一阶段)
+- 用户注册
+- 用户登录
+- 用户信息管理
+- 密码修改
 
-```java
-// 缓存实现示例
-@Service
-public class UserCacheService {
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final LoadingCache<Long, User> localCache;
-    
-    public UserCacheService(RedisTemplate<String, Object> redisTemplate, UserRepository userRepository) {
-        this.redisTemplate = redisTemplate;
-        
-        // 本地缓存配置
-        this.localCache = CacheBuilder.newBuilder()
-            .maximumSize(10000)
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build(new CacheLoader<Long, User>() {
-                @Override
-                public User load(Long userId) {
-                    // 从Redis获取
-                    User user = getUserFromRedis(userId);
-                    if (user != null) {
-                        return user;
-                    }
-                    
-                    // Redis没有，从数据库获取
-                    Optional<User> userOpt = userRepository.findById(userId);
-                    if (userOpt.isEmpty()) {
-                        throw new BusinessException(ResultCode.USER_NOT_FOUND);
-                    }
-                    
-                    // 存入Redis
-                    User foundUser = userOpt.get();
-                    saveUserToRedis(foundUser);
-                    
-                    return foundUser;
-                }
-            });
-    }
-    
-    public User getUser(Long userId) {
-        try {
-            return localCache.get(userId);
-        } catch (Exception e) {
-            throw new BusinessException(ResultCode.SYSTEM_ERROR, "获取用户信息失败");
-        }
-    }
-    
-    // Redis相关操作方法
-    // ...
-}
-```
-
-### 6.2 数据库优化
-- 分库分表：按用户ID哈希分库，大表按时间范围分表
-- 读写分离：主库写入，从库读取
-- 索引优化：合理设计索引，避免索引失效
-- 慢SQL优化：定期分析和优化慢SQL
-
-### 6.3 并发控制
-- 乐观锁：使用版本号机制处理并发更新
-- 分布式锁：使用Redis实现分布式锁
-- 线程池隔离：不同业务使用不同线程池
-- 限流：令牌桶算法实现接口限流
-
-```java
-// 乐观锁实现示例
-@Transactional
-public boolean updateUserAccount(Long accountId, BigDecimal amount) {
-    // 查询账户
-    UserAccount account = userAccountRepository.findById(accountId)
-        .orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
-    
-    // 更新余额
-    account.addBalance(amount);
-    
-    // 使用版本号控制并发
-    int updated = userAccountRepository.updateWithVersion(
-        accountId, account.getBalance(), account.getVersion());
-    
-    return updated > 0;
-}
-```
-
-## 7. 扩展性设计
-
-### 7.1 插件化设计
-- 认证方式扩展：支持多种认证方式的动态扩展
-- 会员权益扩展：支持会员权益的动态配置和扩展
-- 积分规则扩展：支持积分规则的动态配置和扩展
-- 账户类型扩展：支持多种账户类型的扩展
-
-### 7.2 配置化设计
-- 会员等级配置：支持会员等级的动态配置
-- 积分规则配置：支持积分规则的动态配置
-- 权益规则配置：支持权益规则的动态配置
-- 安全策略配置：支持安全策略的动态配置
-
-## 8. 部署架构
-
-### 8.1 集群部署
-- 用户服务多实例部署
-- 负载均衡策略
-- 会话共享方案
-- 服务注册与发现
-
-### 8.2 数据库部署
-- 主从复制
-- 数据分片
-- 备份策略
-- 灾难恢复
-
-## 9. 监控与运维
-
-### 9.1 监控指标
-- 接口响应时间
-- 并发用户数
-- 登录成功率
-- 注册转化率
-
-### 9.2 告警策略
-- 接口异常告警
-- 业务异常告警
-- 安全风险告警
-- 性能瓶颈告警
-
-## 10. 演进规划
-
-### 10.1 短期规划
-- 完善基础用户功能
-- 优化会员体系
-- 提升安全性
-- 增强性能
-
-### 10.2 中长期规划
-- 社交化功能整合
-- AI个性化推荐
-- 多端数据同步
-- 全球化用户体系 
+### 8.2 后续迭代
+- 会员体系
+- 账户管理
+- 用户行为追踪
+- 社交关系 

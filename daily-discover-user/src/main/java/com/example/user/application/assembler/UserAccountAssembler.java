@@ -4,8 +4,10 @@ import com.example.user.application.dto.UserAccountDTO;
 import com.example.user.application.dto.UserAccountLogDTO;
 import com.example.user.domain.model.UserAccount;
 import com.example.user.domain.model.UserAccountLog;
+import com.example.user.domain.model.id.UserId;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public interface UserAccountAssembler {
      * @param userAccountDTO 用户账户DTO
      * @return 用户账户领域模型
      */
-    @Mapping(target = "userId.value", source = "userId")
+    @Mapping(target = "userId", source = "userId", qualifiedByName = "longToUserId")
     UserAccount toDomain(UserAccountDTO userAccountDTO);
 
     /**
@@ -79,4 +81,12 @@ public interface UserAccountAssembler {
      */
     @Mapping(source = "userId.value", target = "userId")
     UserAccountLogDTO toLogDTO(UserAccountLog userAccountLog);
+    
+    /**
+     * 将Long转换为UserId
+     */
+    @Named("longToUserId")
+    default UserId longToUserId(Long id) {
+        return id != null ? new UserId(id) : null;
+    }
 } 

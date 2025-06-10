@@ -34,7 +34,7 @@ public class MemberController {
     @ApiOperation("获取会员信息")
     @GetMapping("/{userId}")
     public Result<MemberVO> getMemberInfo(@PathVariable Long userId) {
-        MemberDTO memberDTO = memberService.getMemberInfo(userId);
+        MemberDTO memberDTO = memberService.getMemberByUserId(userId);
         MemberVO memberVO = convertToMemberVO(memberDTO);
         return Result.success(memberVO);
     }
@@ -46,7 +46,7 @@ public class MemberController {
             @ApiParam("会员等级") @RequestParam Integer level,
             @ApiParam("是否永久") @RequestParam(defaultValue = "false") Boolean isForever,
             @ApiParam("开通月数") @RequestParam(defaultValue = "12") Integer months) {
-        MemberDTO memberDTO = memberService.openMember(userId, level, isForever, months);
+        MemberDTO memberDTO = memberService.createMember(userId, level, isForever, months);
         MemberVO memberVO = convertToMemberVO(memberDTO);
         return Result.success(memberVO);
     }
@@ -136,7 +136,9 @@ public class MemberController {
             @ApiParam("用户ID") @RequestParam(required = false) Long userId,
             @ApiParam("会员等级") @RequestParam(required = false) Integer level,
             @ApiParam("状态") @RequestParam(required = false) Integer status) {
-        PageRequest pageRequest = new PageRequest(pageNum, pageSize);
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setPageNum(pageNum);
+        pageRequest.setPageSize(pageSize);
         MemberQueryCondition condition = new MemberQueryCondition();
         condition.setUserId(userId);
         condition.setLevel(level);
@@ -147,7 +149,8 @@ public class MemberController {
                 .map(this::convertToMemberVO)
                 .collect(Collectors.toList());
         
-        return Result.success(new PageResult<>(memberVOList, pageResult.getTotal(), pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize()));
+        return Result.success(new PageResult<MemberVO>(pageResult.getPageNum(), pageResult.getPageSize(), 
+                pageResult.getTotal(), memberVOList));
     }
 
     @ApiOperation("获取会员等级列表")
@@ -192,7 +195,7 @@ public class MemberController {
     @ApiOperation("删除会员等级")
     @DeleteMapping("/levels/{id}")
     public Result<Boolean> deleteMemberLevel(@PathVariable Long id) {
-        boolean result = memberService.deleteMemberLevel(id);
+        boolean result = memberService.deleteMemberLevel(id.intValue());
         return Result.success(result);
     }
 

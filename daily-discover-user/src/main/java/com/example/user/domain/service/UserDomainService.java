@@ -1,13 +1,10 @@
 package com.example.user.domain.service;
 
-import com.example.common.model.PageRequest;
-import com.example.common.model.PageResult;
 import com.example.user.domain.model.User;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.UserProfile;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
-import com.example.user.domain.repository.UserQueryCondition;
 
 import java.util.List;
 import java.util.Optional;

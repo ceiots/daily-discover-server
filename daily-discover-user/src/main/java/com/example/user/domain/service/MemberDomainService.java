@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * 会员领域服务接口
  */
-public interface MemberDomainService extends BaseDomainService {
+public interface MemberDomainService {
 
     /**
      * 创建会员

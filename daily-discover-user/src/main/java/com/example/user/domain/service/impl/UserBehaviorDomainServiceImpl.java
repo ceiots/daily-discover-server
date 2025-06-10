@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class UserBehaviorDomainServiceImpl implements UserBehaviorDomainService {
+public class UserBehaviorDomainServiceImpl extends BaseDomainServiceImpl implements UserBehaviorDomainService {
 
     private final UserBehaviorRepository userBehaviorRepository;
 
@@ -35,7 +35,8 @@ public class UserBehaviorDomainServiceImpl implements UserBehaviorDomainService 
     public UserBehavior recordBehaviorWithData(UserId userId, Integer behaviorType, Long targetId, Integer targetType,
                                               Integer deviceType, String deviceId, String ip, String behaviorData) {
         UserBehavior behavior = UserBehavior.create(userId, behaviorType, targetId, targetType, 
-                                                   deviceType, deviceId, ip, behaviorData);
+                                                   deviceType, deviceId, ip);
+        behavior.setBehaviorData(behaviorData);
         return userBehaviorRepository.save(behavior);
     }
 

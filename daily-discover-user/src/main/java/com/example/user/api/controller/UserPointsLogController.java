@@ -47,7 +47,7 @@ public class UserPointsLogController {
                 .map(this::convertToUserPointsLogVO)
                 .collect(Collectors.toList());
         
-        return Result.success(new PageResult<>(pageResult.getPageNum(), pageResult.getPageSize(), 
+        return Result.success(new PageResult<UserPointsLogVO>(pageResult.getPageNum(), pageResult.getPageSize(), 
                 pageResult.getTotal(), userPointsLogVOList));
     }
 

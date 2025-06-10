@@ -21,6 +21,14 @@ public interface MemberService extends BaseApplicationService {
      * @param userId 用户ID
      * @return 会员DTO
      */
+    MemberDTO getMemberInfo(Long userId);
+    
+    /**
+     * 获取会员信息
+     *
+     * @param userId 用户ID
+     * @return 会员DTO
+     */
     MemberDTO getMemberByUserId(Long userId);
 
     /**
@@ -32,6 +40,17 @@ public interface MemberService extends BaseApplicationService {
     MemberDTO getMemberById(Long memberId);
 
     /**
+     * 开通会员
+     *
+     * @param userId    用户ID
+     * @param level     会员等级
+     * @param isForever 是否永久会员
+     * @param months    会员有效期（月）
+     * @return 会员DTO
+     */
+    MemberDTO openMember(Long userId, Integer level, Boolean isForever, Integer months);
+    
+    /**
      * 创建会员
      *
      * @param userId    用户ID
@@ -42,6 +61,24 @@ public interface MemberService extends BaseApplicationService {
      */
     MemberDTO createMember(Long userId, Integer level, Boolean isForever, Integer months);
 
+    /**
+     * 续费会员
+     *
+     * @param userId 用户ID
+     * @param months 延长月数
+     * @return 会员DTO
+     */
+    MemberDTO renewMember(Long userId, Integer months);
+    
+    /**
+     * 升级会员
+     *
+     * @param userId 用户ID
+     * @param level  会员等级
+     * @return 会员DTO
+     */
+    MemberDTO upgradeMember(Long userId, Integer level);
+    
     /**
      * 升级会员
      *
@@ -86,6 +123,30 @@ public interface MemberService extends BaseApplicationService {
     MemberDTO enableMember(Long memberId);
 
     /**
+     * 取消会员
+     *
+     * @param userId 用户ID
+     * @return 是否成功
+     */
+    boolean cancelMember(Long userId);
+
+    /**
+     * 冻结会员
+     *
+     * @param userId 用户ID
+     * @return 是否成功
+     */
+    boolean freezeMember(Long userId);
+
+    /**
+     * 解冻会员
+     *
+     * @param userId 用户ID
+     * @return 是否成功
+     */
+    boolean unfreezeMember(Long userId);
+
+    /**
      * 增加成长值
      *
      * @param memberId    会员ID
@@ -94,6 +155,17 @@ public interface MemberService extends BaseApplicationService {
      * @return 会员DTO
      */
     MemberDTO addGrowthValue(Long memberId, Integer growthValue, String description);
+
+    /**
+     * 增加成长值（通过用户ID）
+     *
+     * @param userId     用户ID
+     * @param growthValue 成长值
+     * @param source     来源
+     * @param sourceId   来源ID
+     * @return 会员DTO
+     */
+    MemberDTO addGrowth(Long userId, Integer growthValue, Integer source, String sourceId);
 
     /**
      * 增加积分
@@ -106,6 +178,17 @@ public interface MemberService extends BaseApplicationService {
     MemberDTO addPoints(Long memberId, Integer points, String description);
 
     /**
+     * 增加积分（通过用户ID）
+     *
+     * @param userId    用户ID
+     * @param points    积分
+     * @param source    来源
+     * @param sourceId  来源ID
+     * @return 会员DTO
+     */
+    MemberDTO addPoints(Long userId, Integer points, Integer source, String sourceId);
+
+    /**
      * 使用积分
      *
      * @param memberId    会员ID
@@ -114,6 +197,17 @@ public interface MemberService extends BaseApplicationService {
      * @return 会员DTO
      */
     MemberDTO usePoints(Long memberId, Integer points, String description);
+
+    /**
+     * 使用积分（通过用户ID）
+     *
+     * @param userId    用户ID
+     * @param points    积分
+     * @param source    来源
+     * @param sourceId  来源ID
+     * @return 会员DTO
+     */
+    MemberDTO usePoints(Long userId, Integer points, Integer source, String sourceId);
 
     /**
      * 获取会员等级列表
@@ -129,6 +223,14 @@ public interface MemberService extends BaseApplicationService {
      * @return 会员等级DTO
      */
     MemberLevelDTO getMemberLevel(Integer level);
+
+    /**
+     * 获取会员等级
+     *
+     * @param id 会员等级ID
+     * @return 会员等级DTO
+     */
+    MemberLevelDTO getMemberLevelById(Long id);
 
     /**
      * 创建会员等级
