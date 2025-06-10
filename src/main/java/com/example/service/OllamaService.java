@@ -219,7 +219,7 @@ public class OllamaService {
             
             // 发送请求并处理流式响应
             webClient.post()
-                .uri("/api/generate")
+                .uri("/generate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBody)
                 .retrieve()

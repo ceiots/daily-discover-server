@@ -14,8 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.example.common.Result;
-import com.example.common.api.CommonResult;
+import com.example.common.result.Result;
 import com.example.dao.UserPreferenceDao;
 import com.example.model.UserPreference;
 import com.example.util.UserIdExtractor;

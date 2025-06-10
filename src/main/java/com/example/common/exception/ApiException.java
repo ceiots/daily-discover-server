@@ -1,31 +1,21 @@
 package com.example.common.exception;
 
-import com.example.common.api.IErrorCode;
+import com.example.common.result.IResultCode;
 
 /**
- * 自定义API异常
+ * API异常
  */
-public class ApiException extends RuntimeException {
-    private IErrorCode errorCode;
-
-    public ApiException(IErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+public class ApiException extends BusinessException {
+    
+    public ApiException(IResultCode errorCode) {
+        super(errorCode);
     }
-
+    
     public ApiException(String message) {
         super(message);
     }
-
-    public ApiException(Throwable cause) {
-        super(cause);
-    }
-
-    public ApiException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public IErrorCode getErrorCode() {
-        return errorCode;
+    
+    public ApiException(IResultCode errorCode, String message) {
+        super(errorCode, message);
     }
 } 

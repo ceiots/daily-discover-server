@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.common.Result;
+import com.example.common.result.Result;
 import com.example.model.UserBehavior;
 import com.example.service.UserBehaviorService;
 import com.example.util.UserIdExtractor;

@@ -8,9 +8,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+/**
+ * 每日发现应用程序入口
+ */
 @EnableTransactionManagement
 @SpringBootApplication
-@MapperScan("com.example.mapper")
+@MapperScan("com.example.infrastructure.repository.mapper")
 @EnableScheduling
 public class DailyDiscoverApplication {
 
