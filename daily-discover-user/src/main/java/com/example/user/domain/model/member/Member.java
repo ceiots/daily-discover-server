@@ -1,10 +1,13 @@
 package com.example.user.domain.model.member;
 
+import com.example.common.exception.BusinessException;
+import com.example.common.result.ResultCode;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -31,7 +34,7 @@ public class Member implements Serializable {
     /**
      * 会员等级
      */
-    private Integer level;
+    private Integer memberLevel;
 
     /**
      * 成长值
@@ -49,7 +52,7 @@ public class Member implements Serializable {
     private Integer usedPoints;
 
     /**
-     * 是否永久会员
+     * 是否永久会员:0-否,1-是
      */
     private Boolean isForever;
 
@@ -64,7 +67,7 @@ public class Member implements Serializable {
     private LocalDateTime endTime;
 
     /**
-     * 状态：0-禁用，1-正常
+     * 状态:0-禁用,1-正常
      */
     private Integer status;
 
@@ -90,19 +93,28 @@ public class Member implements Serializable {
 
     /**
      * 创建会员
+     *
+     * @param userId 用户ID
+     * @param level 等级
+     * @param isForever 是否永久
+     * @param months 月数
+     * @return 会员
      */
-    public static Member create(MemberId id, UserId userId) {
+    public static Member create(UserId userId, Integer level, Boolean isForever, Integer months) {
         Member member = new Member();
-        member.id = id;
         member.userId = userId;
-        member.level = 1;
+        member.memberLevel = level;
         member.growthValue = 0;
         member.points = 0;
         member.usedPoints = 0;
-        member.isForever = false;
+        member.isForever = isForever;
         member.startTime = LocalDateTime.now();
-        member.endTime = LocalDateTime.now().plusYears(1);
-        member.status = 1;
+        
+        if (!isForever && months != null && months > 0) {
+            member.endTime = member.startTime.plusMonths(months);
+        }
+        
+        member.status = 1; // 正常
         member.freeShippingCount = 0;
         member.freeReturnCount = 0;
         member.createTime = LocalDateTime.now();
@@ -111,28 +123,57 @@ public class Member implements Serializable {
     }
 
     /**
-     * 升级会员
+     * 设置ID
+     *
+     * @param id ID
      */
-    public void upgrade(int newLevel, int growthValue) {
-        if (newLevel > this.level) {
-            this.level = newLevel;
-            this.growthValue = growthValue;
-            this.updateTime = LocalDateTime.now();
-        }
+    public void setId(MemberId id) {
+        this.id = id;
     }
 
     /**
-     * 延长会员时间
+     * 升级会员
+     *
+     * @param level 等级
+     * @param growthValue 成长值
      */
-    public void extend(int months) {
-        if (!isForever) {
-            if (endTime.isBefore(LocalDateTime.now())) {
-                endTime = LocalDateTime.now().plusMonths(months);
-            } else {
-                endTime = endTime.plusMonths(months);
-            }
-            updateTime = LocalDateTime.now();
+    public void upgrade(Integer level, Integer growthValue) {
+        if (level <= this.memberLevel) {
+            throw new BusinessException(ResultCode.MEMBER_LEVEL_INVALID);
         }
+        
+        this.memberLevel = level;
+        
+        if (growthValue != null && growthValue > 0) {
+            this.growthValue += growthValue;
+        }
+        
+        this.updateTime = LocalDateTime.now();
+    }
+
+    /**
+     * 延长会员有效期
+     *
+     * @param months 月数
+     */
+    public void extend(Integer months) {
+        if (this.isForever) {
+            return;
+        }
+        
+        if (months == null || months <= 0) {
+            throw new BusinessException(ResultCode.INVALID_MONTHS);
+        }
+        
+        LocalDateTime now = LocalDateTime.now();
+        
+        if (this.endTime == null || this.endTime.isBefore(now)) {
+            this.endTime = now.plusMonths(months);
+        } else {
+            this.endTime = this.endTime.plusMonths(months);
+        }
+        
+        this.updateTime = now;
     }
 
     /**
@@ -161,90 +202,129 @@ public class Member implements Serializable {
     }
 
     /**
-     * 增加免邮次数
+     * 增加成长值
+     *
+     * @param growthValue 成长值
      */
-    public void addFreeShippingCount(int count) {
-        if (count > 0) {
-            this.freeShippingCount += count;
-            this.updateTime = LocalDateTime.now();
+    public void addGrowthValue(Integer growthValue) {
+        if (growthValue == null || growthValue <= 0) {
+            throw new BusinessException(ResultCode.INVALID_GROWTH_VALUE);
         }
-    }
-
-    /**
-     * 增加免退次数
-     */
-    public void addFreeReturnCount(int count) {
-        if (count > 0) {
-            this.freeReturnCount += count;
-            this.updateTime = LocalDateTime.now();
-        }
+        
+        this.growthValue += growthValue;
+        this.updateTime = LocalDateTime.now();
     }
 
     /**
      * 增加积分
+     *
+     * @param points 积分
      */
-    public void addPoints(int points) {
-        if (points > 0) {
-            this.points += points;
-            this.updateTime = LocalDateTime.now();
+    public void addPoints(Integer points) {
+        if (points == null || points <= 0) {
+            throw new BusinessException(ResultCode.INVALID_POINTS);
         }
+        
+        this.points += points;
+        this.updateTime = LocalDateTime.now();
     }
 
     /**
      * 使用积分
+     *
+     * @param points 积分
      */
-    public boolean usePoints(int points) {
-        if (points <= 0 || this.points < points) {
-            return false;
+    public void usePoints(Integer points) {
+        if (points == null || points <= 0) {
+            throw new BusinessException(ResultCode.INVALID_POINTS);
+        }
+        
+        if (this.points < points) {
+            throw new BusinessException(ResultCode.POINTS_NOT_ENOUGH);
         }
         
         this.points -= points;
         this.usedPoints += points;
         this.updateTime = LocalDateTime.now();
-        return true;
     }
 
     /**
-     * 增加成长值
+     * 使用免邮次数
      */
-    public void addGrowthValue(int growthValue) {
-        if (growthValue > 0) {
-            this.growthValue += growthValue;
-            this.updateTime = LocalDateTime.now();
-        }
-    }
-
-    /**
-     * 使用免邮特权
-     */
-    public boolean useFreeShipping() {
+    public void useFreeShipping() {
         if (this.freeShippingCount <= 0) {
-            return false;
+            throw new BusinessException(ResultCode.FREE_SHIPPING_NOT_ENOUGH);
         }
         
         this.freeShippingCount--;
         this.updateTime = LocalDateTime.now();
-        return true;
     }
 
     /**
-     * 使用免退特权
+     * 使用免退次数
      */
-    public boolean useFreeReturn() {
+    public void useFreeReturn() {
         if (this.freeReturnCount <= 0) {
-            return false;
+            throw new BusinessException(ResultCode.FREE_RETURN_NOT_ENOUGH);
         }
         
         this.freeReturnCount--;
         this.updateTime = LocalDateTime.now();
-        return true;
+    }
+
+    /**
+     * 增加免邮次数
+     *
+     * @param count 次数
+     */
+    public void addFreeShippingCount(Integer count) {
+        if (count == null || count <= 0) {
+            throw new BusinessException(ResultCode.INVALID_COUNT);
+        }
+        
+        this.freeShippingCount += count;
+        this.updateTime = LocalDateTime.now();
+    }
+
+    /**
+     * 增加免退次数
+     *
+     * @param count 次数
+     */
+    public void addFreeReturnCount(Integer count) {
+        if (count == null || count <= 0) {
+            throw new BusinessException(ResultCode.INVALID_COUNT);
+        }
+        
+        this.freeReturnCount += count;
+        this.updateTime = LocalDateTime.now();
     }
 
     /**
      * 是否有效会员
+     *
+     * @return 是否有效
      */
     public boolean isValid() {
-        return this.status == 1 && (this.isForever || this.endTime.isAfter(LocalDateTime.now()));
+        if (this.status != 1) {
+            return false;
+        }
+        
+        if (this.isForever) {
+            return true;
+        }
+        
+        return this.endTime != null && this.endTime.isAfter(LocalDateTime.now());
+    }
+
+    /**
+     * 是否可用积分
+     *
+     * @param points 积分
+     * @return 是否可用
+     */
+    public boolean canUsePoints(Integer points) {
+        return this.status == 1 && this.points >= points;
     }
 
     @Override

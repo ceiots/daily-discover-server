@@ -6,6 +6,8 @@ import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.user.User;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
+import com.example.user.domain.model.UserAuth;
+import com.example.user.domain.model.UserProfile;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +22,7 @@ public interface UserRepository {
      * @param userId 用户ID
      * @return 用户
      */
-    Optional<User> findById(UserId userId);
+    Optional<User> findById(Long userId);
 
     /**
      * 根据用户名查询用户
@@ -36,7 +38,7 @@ public interface UserRepository {
      * @param mobile 手机号
      * @return 用户
      */
-    Optional<User> findByMobile(Mobile mobile);
+    Optional<User> findByMobile(String mobile);
 
     /**
      * 根据邮箱查询用户
@@ -44,7 +46,7 @@ public interface UserRepository {
      * @param email 邮箱
      * @return 用户
      */
-    Optional<User> findByEmail(Email email);
+    Optional<User> findByEmail(String email);
 
     /**
      * 保存用户
@@ -68,7 +70,72 @@ public interface UserRepository {
      * @param userId 用户ID
      * @return 是否删除成功
      */
-    boolean delete(UserId userId);
+    boolean delete(Long userId);
+
+    /**
+     * 获取用户详情
+     *
+     * @param userId 用户ID
+     * @return 用户详情对象
+     */
+    Optional<UserProfile> findProfileByUserId(Long userId);
+
+    /**
+     * 保存用户详情
+     *
+     * @param userProfile 用户详情对象
+     * @return 保存后的用户详情对象
+     */
+    UserProfile saveProfile(UserProfile userProfile);
+
+    /**
+     * 更新用户详情
+     *
+     * @param userProfile 用户详情对象
+     * @return 更新后的用户详情对象
+     */
+    UserProfile updateProfile(UserProfile userProfile);
+
+    /**
+     * 获取用户授权信息
+     *
+     * @param userId 用户ID
+     * @return 用户授权信息列表
+     */
+    List<UserAuth> findAuthsByUserId(Long userId);
+
+    /**
+     * 通过标识类型和标识获取用户授权信息
+     *
+     * @param identityType 标识类型
+     * @param identifier   标识
+     * @return 用户授权信息
+     */
+    Optional<UserAuth> findAuthByIdentity(String identityType, String identifier);
+
+    /**
+     * 保存用户授权信息
+     *
+     * @param userAuth 用户授权信息
+     * @return 保存后的用户授权信息
+     */
+    UserAuth saveAuth(UserAuth userAuth);
+
+    /**
+     * 更新用户授权信息
+     *
+     * @param userAuth 用户授权信息
+     * @return 更新后的用户授权信息
+     */
+    UserAuth updateAuth(UserAuth userAuth);
+
+    /**
+     * 删除用户授权信息
+     *
+     * @param id 授权ID
+     * @return 是否删除成功
+     */
+    boolean deleteAuth(Long id);
 
     /**
      * 批量删除用户

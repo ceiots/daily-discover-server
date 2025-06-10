@@ -5,9 +5,11 @@ import lombok.Getter;
 
 /**
  * 用户注册事件
+ * 在用户成功注册后触发，可用于后续的账户创建、积分发放等操作
  */
 @Getter
 public class UserRegisteredEvent extends DomainEvent {
+
     /**
      * 用户ID
      */
@@ -19,21 +21,21 @@ public class UserRegisteredEvent extends DomainEvent {
     private final String username;
 
     /**
-     * 注册方式：1-用户名，2-手机号，3-邮箱
+     * 注册IP
      */
-    private final Integer registerType;
+    private final String registerIp;
 
     /**
      * 构造函数
      *
-     * @param userId 用户ID
-     * @param username 用户名
-     * @param registerType 注册方式
+     * @param userId     用户ID
+     * @param username   用户名
+     * @param registerIp 注册IP
      */
-    public UserRegisteredEvent(UserId userId, String username, Integer registerType) {
+    public UserRegisteredEvent(UserId userId, String username, String registerIp) {
         super();
         this.userId = userId;
         this.username = username;
-        this.registerType = registerType;
+        this.registerIp = registerIp;
     }
 } 

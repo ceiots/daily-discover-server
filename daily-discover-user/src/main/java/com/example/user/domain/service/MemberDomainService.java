@@ -1,124 +1,230 @@
 package com.example.user.domain.service;
 
+import com.example.user.domain.model.member.Member;
+import com.example.user.domain.model.member.MemberLevel;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.member.Member;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * 会员领域服务接口
  */
-public interface MemberDomainService {
+public interface MemberDomainService extends BaseDomainService {
+
     /**
      * 创建会员
      *
      * @param userId 用户ID
-     * @return 会员
+     * @param level  会员等级
+     * @param isForever 是否永久会员
+     * @param months 会员有效期（月）
+     * @return 会员对象
      */
-    Member createMember(UserId userId);
+    Member createMember(UserId userId, int level, boolean isForever, int months);
 
     /**
-     * 会员升级
+     * 获取会员信息
+     *
+     * @param userId 用户ID
+     * @return 会员对象
+     */
+    Optional<Member> getMember(UserId userId);
+
+    /**
+     * 获取会员信息
      *
      * @param memberId 会员ID
+     * @return 会员对象
+     */
+    Optional<Member> getMemberById(MemberId memberId);
+
+    /**
+     * 升级会员
+     *
+     * @param memberId 会员ID
+     * @param level    会员等级
      * @param growthValue 成长值
-     * @return 会员
+     * @return 升级后的会员对象
      */
-    Member upgradeMember(MemberId memberId, int growthValue);
+    Member upgradeMember(MemberId memberId, int level, int growthValue);
 
     /**
-     * 延长会员时间
+     * 延长会员有效期
      *
      * @param memberId 会员ID
-     * @param months 延长月数
-     * @return 会员
+     * @param months   延长月数
+     * @return 延长后的会员对象
      */
-    Member extendMembership(MemberId memberId, int months);
+    Member extendMember(MemberId memberId, int months);
 
     /**
      * 设置为永久会员
      *
      * @param memberId 会员ID
-     * @return 会员
+     * @return 设置后的会员对象
      */
-    Member setForeverMembership(MemberId memberId);
-
-    /**
-     * 增加积分
-     *
-     * @param memberId 会员ID
-     * @param points 积分
-     * @param source 来源
-     * @return 会员
-     */
-    Member addPoints(MemberId memberId, int points, String source);
-
-    /**
-     * 使用积分
-     *
-     * @param memberId 会员ID
-     * @param points 积分
-     * @param usage 用途
-     * @return 是否成功
-     */
-    boolean usePoints(MemberId memberId, int points, String usage);
-
-    /**
-     * 增加成长值
-     *
-     * @param memberId 会员ID
-     * @param growthValue 成长值
-     * @param source 来源
-     * @return 会员
-     */
-    Member addGrowthValue(MemberId memberId, int growthValue, String source);
-
-    /**
-     * 增加免邮次数
-     *
-     * @param memberId 会员ID
-     * @param count 次数
-     * @return 会员
-     */
-    Member addFreeShippingCount(MemberId memberId, int count);
-
-    /**
-     * 使用免邮特权
-     *
-     * @param memberId 会员ID
-     * @return 是否成功
-     */
-    boolean useFreeShipping(MemberId memberId);
-
-    /**
-     * 增加免退次数
-     *
-     * @param memberId 会员ID
-     * @param count 次数
-     * @return 会员
-     */
-    Member addFreeReturnCount(MemberId memberId, int count);
-
-    /**
-     * 使用免退特权
-     *
-     * @param memberId 会员ID
-     * @return 是否成功
-     */
-    boolean useFreeReturn(MemberId memberId);
+    Member setForeverMember(MemberId memberId);
 
     /**
      * 禁用会员
      *
      * @param memberId 会员ID
-     * @return 是否成功
+     * @return 禁用后的会员对象
      */
-    boolean disableMember(MemberId memberId);
+    Member disableMember(MemberId memberId);
 
     /**
      * 启用会员
      *
      * @param memberId 会员ID
-     * @return 是否成功
+     * @return 启用后的会员对象
      */
-    boolean enableMember(MemberId memberId);
+    Member enableMember(MemberId memberId);
+
+    /**
+     * 增加成长值
+     *
+     * @param memberId    会员ID
+     * @param growthValue 成长值
+     * @return 增加后的会员对象
+     */
+    Member addGrowthValue(MemberId memberId, int growthValue);
+
+    /**
+     * 增加积分
+     *
+     * @param memberId 会员ID
+     * @param points   积分
+     * @return 增加后的会员对象
+     */
+    Member addPoints(MemberId memberId, int points);
+
+    /**
+     * 使用积分
+     *
+     * @param memberId 会员ID
+     * @param points   积分
+     * @return 使用后的会员对象
+     */
+    Member usePoints(MemberId memberId, int points);
+
+    /**
+     * 获取会员等级列表
+     *
+     * @return 会员等级列表
+     */
+    List<MemberLevel> getMemberLevels();
+
+    /**
+     * 获取会员等级
+     *
+     * @param level 等级
+     * @return 会员等级对象
+     */
+    Optional<MemberLevel> getMemberLevel(int level);
+
+    /**
+     * 创建会员等级
+     *
+     * @param memberLevel 会员等级对象
+     * @return 创建后的会员等级对象
+     */
+    MemberLevel createMemberLevel(MemberLevel memberLevel);
+
+    /**
+     * 更新会员等级
+     *
+     * @param memberLevel 会员等级对象
+     * @return 更新后的会员等级对象
+     */
+    MemberLevel updateMemberLevel(MemberLevel memberLevel);
+
+    /**
+     * 删除会员等级
+     *
+     * @param level 等级
+     * @return 是否删除成功
+     */
+    boolean deleteMemberLevel(int level);
+    
+    /**
+     * 检查会员是否有效
+     * 
+     * @param member 会员对象
+     * @return 是否有效
+     */
+    default boolean isValidMember(Member member) {
+        if (member == null) {
+            return false;
+        }
+        
+        // 检查会员状态
+        if (member.getStatus() != 1) {
+            return false;
+        }
+        
+        // 检查会员有效期
+        if (member.getIsForever()) {
+            return true;
+        }
+        
+        LocalDateTime endTime = member.getEndTime();
+        return endTime != null && endTime.isAfter(LocalDateTime.now());
+    }
+    
+    /**
+     * 计算会员下一等级所需成长值
+     * 
+     * @param currentLevel 当前等级
+     * @param currentGrowth 当前成长值
+     * @return 升级所需成长值，如果已是最高等级则返回0
+     */
+    default int calculateGrowthToNextLevel(int currentLevel, int currentGrowth) {
+        Optional<MemberLevel> currentLevelOpt = getMemberLevel(currentLevel);
+        Optional<MemberLevel> nextLevelOpt = getMemberLevel(currentLevel + 1);
+        
+        if (currentLevelOpt.isEmpty() || nextLevelOpt.isEmpty()) {
+            return 0; // 当前等级不存在或已是最高等级
+        }
+        
+        int nextLevelMinGrowth = nextLevelOpt.get().getGrowthMin();
+        return Math.max(0, nextLevelMinGrowth - currentGrowth);
+    }
+    
+    /**
+     * 根据成长值计算会员等级
+     * 
+     * @param growthValue 成长值
+     * @return 对应的会员等级
+     */
+    default int calculateLevelByGrowth(int growthValue) {
+        List<MemberLevel> levels = getMemberLevels();
+        
+        // 按等级降序排序
+        levels.sort((a, b) -> Integer.compare(b.getLevel(), a.getLevel()));
+        
+        // 找到第一个成长值下限小于等于当前成长值的等级
+        for (MemberLevel level : levels) {
+            if (growthValue >= level.getGrowthMin()) {
+                return level.getLevel();
+            }
+        }
+        
+        // 默认返回1级
+        return 1;
+    }
+    
+    /**
+     * 检查是否可以使用积分
+     * 
+     * @param member 会员对象
+     * @param points 要使用的积分
+     * @return 是否可以使用
+     */
+    default boolean canUsePoints(Member member, int points) {
+        return member != null && member.getPoints() >= points;
+    }
 } 
