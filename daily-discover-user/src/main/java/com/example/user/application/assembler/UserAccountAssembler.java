@@ -2,8 +2,8 @@ package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserAccountDTO;
 import com.example.user.application.dto.UserAccountLogDTO;
-import com.example.user.domain.model.UserAccount;
-import com.example.user.domain.model.UserAccountLog;
+import com.example.user.domain.model.user.UserAccount;
+import com.example.user.domain.model.user.UserAccountLog;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -70,4 +70,13 @@ public interface UserAccountAssembler {
      * @return 账户流水领域模型列表
      */
     List<UserAccountLog> toDomain(List<UserAccountLogDTO> userAccountLogDTOList);
+    
+    /**
+     * 将账户流水领域模型转换为DTO (别名方法，与toDTO功能相同)
+     *
+     * @param userAccountLog 账户流水领域模型
+     * @return 账户流水DTO
+     */
+    @Mapping(source = "userId.value", target = "userId")
+    UserAccountLogDTO toLogDTO(UserAccountLog userAccountLog);
 } 

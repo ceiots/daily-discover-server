@@ -1,6 +1,6 @@
 package com.example.controller;
 
-import com.example.common.api.CommonResult;
+import com.example.common.result.Result;
 import com.example.service.OllamaService;
 import com.example.util.UserIdExtractor;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -46,7 +46,7 @@ public class AiCustomerServiceController {
      * 创建会话
      */
     @PostMapping("/create-session")
-    public CommonResult<String> createSession(
+    public Result<String> createSession(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @RequestBody Map<String, Object> request) {
@@ -64,10 +64,10 @@ public class AiCustomerServiceController {
                 sessionId, userId, productId
             );
             
-            return CommonResult.success(sessionId);
+            return Result.success(sessionId);
         } catch (Exception e) {
             log.error("创建会话失败", e);
-            return CommonResult.failed("创建会话失败：" + e.getMessage());
+            return Result.failed("创建会话失败：" + e.getMessage());
         }
     }
 
@@ -75,7 +75,7 @@ public class AiCustomerServiceController {
      * 获取常见问题
      */
     @GetMapping("/common-questions")
-    public CommonResult<List<String>> getCommonQuestions(
+    public Result<List<String>> getCommonQuestions(
             @RequestParam("productId") Long productId,
             @RequestParam(value = "categoryId", required = false) Long categoryId) {
         
@@ -88,10 +88,10 @@ public class AiCustomerServiceController {
                 String.class, productId, categoryId
             );
             
-            return CommonResult.success(questions);
+            return Result.success(questions);
         } catch (Exception e) {
             log.error("获取常见问题失败", e);
-            return CommonResult.failed("获取常见问题失败：" + e.getMessage());
+            return Result.failed("获取常见问题失败：" + e.getMessage());
         }
     }
 
@@ -99,7 +99,7 @@ public class AiCustomerServiceController {
      * 获取快速回答
      */
     @GetMapping("/quick-answer")
-    public CommonResult<String> getQuickAnswer(
+    public Result<String> getQuickAnswer(
             @RequestParam("productId") Long productId,
             @RequestParam("query") String query) {
         
@@ -108,7 +108,7 @@ public class AiCustomerServiceController {
             String cacheKey = query + "_" + productId;
             String cachedAnswer = commonAnswersCache.getIfPresent(cacheKey);
             if (cachedAnswer != null) {
-                return CommonResult.success(cachedAnswer);
+                return Result.success(cachedAnswer);
             }
             
             // 简化版：使用关键词匹配
@@ -125,13 +125,13 @@ public class AiCustomerServiceController {
                 String answer = matchedQuestions.get(0).get("answer").toString();
                 // 缓存结果
                 commonAnswersCache.put(cacheKey, answer);
-                return CommonResult.success(answer);
+                return Result.success(answer);
             }
             
-            return CommonResult.success(null);
+            return Result.success(null);
         } catch (Exception e) {
             log.error("获取快速回答失败", e);
-            return CommonResult.failed("获取快速回答失败：" + e.getMessage());
+            return Result.failed("获取快速回答失败：" + e.getMessage());
         }
     }
 
@@ -227,7 +227,7 @@ public class AiCustomerServiceController {
      * 获取聊天历史
      */
     @GetMapping("/chat-history")
-    public CommonResult<List<Map<String, Object>>> getChatHistory(
+    public Result<List<Map<String, Object>>> getChatHistory(
             @RequestParam("sessionId") String sessionId) {
         try {
             List<Map<String, Object>> messages = jdbcTemplate.queryForList(
@@ -238,10 +238,10 @@ public class AiCustomerServiceController {
                 sessionId
             );
             
-            return CommonResult.success(messages);
+            return Result.success(messages);
         } catch (Exception e) {
             log.error("获取聊天历史失败", e);
-            return CommonResult.failed("获取聊天历史失败：" + e.getMessage());
+            return Result.failed("获取聊天历史失败：" + e.getMessage());
         }
     }
 
@@ -249,7 +249,7 @@ public class AiCustomerServiceController {
      * 保存聊天消息
      */
     @PostMapping("/save-message")
-    public CommonResult<Boolean> saveMessage(@RequestBody Map<String, Object> request) {
+    public Result<Boolean> saveMessage(@RequestBody Map<String, Object> request) {
         try {
             String sessionId = (String) request.get("sessionId");
             String message = (String) request.get("message");
@@ -261,10 +261,10 @@ public class AiCustomerServiceController {
                 sessionId, message, type, productId
             );
             
-            return CommonResult.success(true);
+            return Result.success(true);
         } catch (Exception e) {
             log.error("保存聊天消息失败", e);
-            return CommonResult.failed("保存聊天消息失败：" + e.getMessage());
+            return Result.failed("保存聊天消息失败：" + e.getMessage());
         }
     }
 

@@ -2,13 +2,13 @@ package com.example.user.api.controller;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.common.result.Result;
 import com.example.user.api.vo.MemberLevelVO;
 import com.example.user.api.vo.MemberVO;
 import com.example.user.application.dto.MemberDTO;
 import com.example.user.application.dto.MemberLevelDTO;
 import com.example.user.application.service.MemberService;
 import com.example.user.domain.repository.MemberQueryCondition;
+import com.example.common.result.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

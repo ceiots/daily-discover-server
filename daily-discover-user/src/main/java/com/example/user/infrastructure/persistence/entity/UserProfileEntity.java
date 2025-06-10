@@ -32,9 +32,29 @@ public class UserProfileEntity implements Serializable {
     private Long userId;
 
     /**
+     * 昵称
+     */
+    private String nickname;
+
+    /**
      * 真实姓名
      */
     private String realName;
+
+    /**
+     * 性别:0-未知,1-男,2-女
+     */
+    private Integer gender;
+
+    /**
+     * 头像
+     */
+    private String avatar;
+
+    /**
+     * 封面图片
+     */
+    private String coverImage;
 
     /**
      * 证件类型:1-身份证,2-护照,3-军官证

@@ -6,8 +6,9 @@ import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
 import com.example.user.domain.model.member.MemberLevel;
-import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.user.UserPointsLog;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,18 +19,52 @@ public interface MemberRepository {
     /**
      * 根据ID查询会员
      *
-     * @param memberId 会员ID
-     * @return 会员
+     * @param id 会员ID
+     * @return 会员信息
      */
-    Optional<Member> findById(MemberId memberId);
+    Optional<Member> findById(MemberId id);
 
     /**
      * 根据用户ID查询会员
      *
      * @param userId 用户ID
-     * @return 会员
+     * @return 会员信息
      */
     Optional<Member> findByUserId(UserId userId);
+
+    /**
+     * 根据会员等级查询会员列表
+     *
+     * @param memberLevel 会员等级
+     * @return 会员列表
+     */
+    List<Member> findByMemberLevel(Integer memberLevel);
+
+    /**
+     * 根据状态查询会员列表
+     *
+     * @param status 状态
+     * @return 会员列表
+     */
+    List<Member> findByStatus(Integer status);
+
+    /**
+     * 查询已过期的会员
+     *
+     * @param expiryDate 过期时间
+     * @return 会员列表
+     */
+    List<Member> findExpiredMembers(LocalDateTime expiryDate);
+
+    /**
+     * 分页查询会员
+     *
+     * @param pageRequest 分页请求
+     * @param status 状态
+     * @param memberLevel 会员等级
+     * @return 会员分页结果
+     */
+    PageResult<Member> findPage(PageRequest pageRequest, Integer status, Integer memberLevel);
 
     /**
      * 保存会员
@@ -50,44 +85,145 @@ public interface MemberRepository {
     /**
      * 删除会员
      *
-     * @param memberId 会员ID
-     * @return 是否删除成功
+     * @param id 会员ID
+     * @return 是否成功
      */
-    boolean delete(MemberId memberId);
+    boolean delete(MemberId id);
 
     /**
      * 更新会员状态
      *
-     * @param memberId 会员ID
+     * @param id 会员ID
      * @param status 状态
-     * @return 是否更新成功
+     * @return 是否成功
      */
-    boolean updateStatus(MemberId memberId, Integer status);
+    boolean updateStatus(MemberId id, Integer status);
 
     /**
-     * 分页查询会员
+     * 更新会员等级
      *
-     * @param pageRequest 分页请求参数
-     * @param condition 查询条件
-     * @return 会员分页结果
+     * @param userId 用户ID
+     * @param memberLevel 会员等级
+     * @return 是否成功
      */
-    PageResult<Member> findPage(PageRequest pageRequest, MemberQueryCondition condition);
+    boolean updateMemberLevel(UserId userId, Integer memberLevel);
 
     /**
-     * 查询会员列表
+     * 更新积分
      *
-     * @param condition 查询条件
-     * @return 会员列表
+     * @param userId 用户ID
+     * @param points 积分变动
+     * @return 是否成功
      */
-    List<Member> findList(MemberQueryCondition condition);
+    boolean updatePoints(UserId userId, Integer points);
 
     /**
-     * 根据会员等级查询会员列表
+     * 更新成长值
      *
-     * @param level 会员等级
-     * @return 会员列表
+     * @param userId 用户ID
+     * @param growthValue 成长值变动
+     * @return 是否成功
      */
-    List<Member> findByLevel(Integer level);
+    boolean updateGrowthValue(UserId userId, Integer growthValue);
+
+    /**
+     * 更新已使用积分
+     *
+     * @param userId 用户ID
+     * @param points 积分变动
+     * @return 是否成功
+     */
+    boolean updateUsedPoints(UserId userId, Integer points);
+
+    /**
+     * 更新免邮次数
+     *
+     * @param userId 用户ID
+     * @param count 次数变动
+     * @return 是否成功
+     */
+    boolean updateFreeShippingCount(UserId userId, Integer count);
+
+    /**
+     * 更新免退次数
+     *
+     * @param userId 用户ID
+     * @param count 次数变动
+     * @return 是否成功
+     */
+    boolean updateFreeReturnCount(UserId userId, Integer count);
+
+    /**
+     * 延长会员有效期
+     *
+     * @param userId 用户ID
+     * @param endTime 新的结束时间
+     * @return 是否成功
+     */
+    boolean extendMembership(UserId userId, LocalDateTime endTime);
+
+    /**
+     * 根据ID查询会员等级
+     *
+     * @param id 会员等级ID
+     * @return 会员等级
+     */
+    Optional<MemberLevel> findMemberLevelById(Long id);
+
+    /**
+     * 根据等级查询会员等级
+     *
+     * @param level 等级
+     * @return 会员等级
+     */
+    Optional<MemberLevel> findMemberLevelByLevel(Integer level);
+
+    /**
+     * 查询所有会员等级
+     *
+     * @return 会员等级列表
+     */
+    List<MemberLevel> findAllMemberLevels();
+
+    /**
+     * 保存会员等级
+     *
+     * @param memberLevel 会员等级
+     * @return 保存后的会员等级
+     */
+    MemberLevel saveMemberLevel(MemberLevel memberLevel);
+
+    /**
+     * 更新会员等级
+     *
+     * @param memberLevel 会员等级
+     * @return 更新后的会员等级
+     */
+    MemberLevel updateMemberLevel(MemberLevel memberLevel);
+
+    /**
+     * 删除会员等级
+     *
+     * @param id 会员等级ID
+     * @return 是否成功
+     */
+    boolean deleteMemberLevel(Long id);
+
+    /**
+     * 根据成长值查询对应的会员等级
+     *
+     * @param growthValue 成长值
+     * @return 会员等级
+     */
+    Optional<MemberLevel> findMemberLevelByGrowthValue(Integer growthValue);
+
+    /**
+     * 统计某个会员等级的会员数量
+     *
+     * @param memberLevel 会员等级
+     * @return 会员数量
+     */
+    int countByMemberLevel(Integer memberLevel);
 
     /**
      * 根据成长值查询会员等级编号

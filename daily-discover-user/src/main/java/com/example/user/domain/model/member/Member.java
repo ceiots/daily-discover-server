@@ -1,9 +1,10 @@
 package com.example.user.domain.model.member;
 
 import com.example.common.exception.BusinessException;
-import com.example.common.result.ResultCode;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.infrastructure.common.result.ResultCode;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

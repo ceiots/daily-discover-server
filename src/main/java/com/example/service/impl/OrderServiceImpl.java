@@ -29,7 +29,7 @@ import com.example.model.OrderItem;
 import com.example.util.DateUtils;
 import com.example.config.ImageConfig;
 import com.example.dto.AddressDto;
-import com.example.common.api.CommonResult;
+import com.example.common.result.Result;
 import com.example.dto.OrderCreateDTO;
 import com.example.dto.OrderItemDTO;
 import com.example.service.AddressService;
@@ -105,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
      */
     // 订单结算服务，如果需要使用请先注入
     @Transactional
-    public CommonResult<Order> createOrder(OrderCreateDTO orderDTO) {
+    public Result<Order> createOrder(OrderCreateDTO orderDTO) {
         try {
             // 处理地址信息
             if (orderDTO.getAddressDto() != null) {
@@ -149,10 +149,10 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
     
-            return CommonResult.success(orderDTO.getOrder());
+            return Result.success(orderDTO.getOrder());
         } catch (Exception e) {
             logger.error("Error creating order: " + e.getMessage());
-            return CommonResult.failed(e.getMessage());
+            return Result.failed(e.getMessage());
         }
     }
 
@@ -220,28 +220,28 @@ public class OrderServiceImpl implements OrderService {
      * @return 取消结果
      */
     @Transactional
-    public CommonResult<Boolean> cancelOrder(Long orderId) {
+    public Result<Boolean> cancelOrder(Long orderId) {
         Order order = getOrderById(orderId.toString());
             if (order == null) {
             logger.warn("订单不存在，订单ID: {}", orderId);
-                return CommonResult.failed("订单不存在");
+                return Result.failed("订单不存在");
             }
             
         // 验证订单是否属于该用户
         if (!order.getUserId().equals(orderId)) {
             logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, order.getUserId());
-            return CommonResult.failed("订单不属于该用户");
+            return Result.failed("订单不属于该用户");
         }
         
         // 只有待付款状态的订单可以取消
             if (order.getStatus() != ORDER_STATUS_PENDING_PAYMENT) {
             logger.warn("订单状态不允许取消，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
-            return CommonResult.failed("订单状态不允许取消");
+            return Result.failed("订单状态不允许取消");
             }
             
             // 更新订单状态为已取消
         orderMapper.updateOrderStatus(orderId.toString(), ORDER_STATUS_CANCELLED);
-        return CommonResult.success(true);
+        return Result.success(true);
     }
 
 
@@ -485,28 +485,28 @@ public class OrderServiceImpl implements OrderService {
      * @return 支付结果
      */
     @Transactional
-    public CommonResult<Boolean> payOrder(Long orderId) {
+    public Result<Boolean> payOrder(Long orderId) {
         Order order = getOrderById(orderId.toString());
         if (order == null) {
             logger.warn("订单不存在，订单ID: {}", orderId);
-            return CommonResult.failed("订单不存在");
+            return Result.failed("订单不存在");
         }
         
         // 验证订单是否属于该用户
         if (!order.getUserId().equals(orderId)) {
             logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, order.getUserId());
-            return CommonResult.failed("订单不属于该用户");
+            return Result.failed("订单不属于该用户");
         }
         
         // 只有待付款状态的订单可以支付
         if (order.getStatus() != ORDER_STATUS_PENDING_PAYMENT) {
             logger.warn("订单状态不允许支付，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
-            return CommonResult.failed("订单状态不允许支付");
+            return Result.failed("订单状态不允许支付");
         }
         
         // 更新订单状态为待发货
         orderMapper.updateOrderStatus(orderId.toString(), ORDER_STATUS_PENDING_DELIVERY);
-        return CommonResult.success(true);
+        return Result.success(true);
     }
 
     /**
@@ -516,28 +516,28 @@ public class OrderServiceImpl implements OrderService {
      * @return 退款申请结果
      */
     @Transactional
-    public CommonResult<Boolean> refundOrder(Long orderId, String reason) {
+    public Result<Boolean> refundOrder(Long orderId, String reason) {
         Order order = getOrderById(orderId.toString());
             if (order == null) {
             logger.warn("订单不存在，订单ID: {}", orderId);
-                return CommonResult.failed("订单不存在");
+                return Result.failed("订单不存在");
             }
             
         // 验证订单是否属于该用户
         if (!order.getUserId().equals(orderId)) {
             logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, order.getUserId());
-            return CommonResult.failed("订单不属于该用户");
+            return Result.failed("订单不属于该用户");
         }
         
         // 只有待付款状态的订单可以退款
         if (order.getStatus() != ORDER_STATUS_PENDING_PAYMENT) {
             logger.warn("订单状态不允许退款，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
-            return CommonResult.failed("订单状态不允许退款");
+            return Result.failed("订单状态不允许退款");
         }
         
         // 更新订单状态为已退款
         orderMapper.updateOrderStatus(orderId.toString(), ORDER_STATUS_COMPLETED);
-        return CommonResult.success(true);
+        return Result.success(true);
     }
 
     /**
@@ -548,28 +548,28 @@ public class OrderServiceImpl implements OrderService {
      * @return 退货申请结果
      */
     @Transactional
-    public CommonResult<Boolean> returnOrder(Long orderId, List<OrderItemDTO> items, String reason) {
+    public Result<Boolean> returnOrder(Long orderId, List<OrderItemDTO> items, String reason) {
         Order order = getOrderById(orderId.toString());
             if (order == null) {
             logger.warn("订单不存在，订单ID: {}", orderId);
-                return CommonResult.failed("订单不存在");
+                return Result.failed("订单不存在");
             }
             
         // 验证订单是否属于该用户
         if (!order.getUserId().equals(orderId)) {
             logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, order.getUserId());
-            return CommonResult.failed("订单不属于该用户");
+            return Result.failed("订单不属于该用户");
         }
         
         // 只有待付款状态的订单可以退货
         if (order.getStatus() != ORDER_STATUS_PENDING_PAYMENT) {
             logger.warn("订单状态不允许退货，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
-            return CommonResult.failed("订单状态不允许退货");
+            return Result.failed("订单状态不允许退货");
         }
         
         // 更新订单状态为已退货
         orderMapper.updateOrderStatus(orderId.toString(), ORDER_STATUS_COMPLETED);
-        return CommonResult.success(true);
+        return Result.success(true);
     }
 
     /**
@@ -578,28 +578,28 @@ public class OrderServiceImpl implements OrderService {
      * @return 确认结果
      */
     @Transactional
-    public CommonResult<Boolean> confirmReceiveOrder(Long orderId) {
+    public Result<Boolean> confirmReceiveOrder(Long orderId) {
         Order order = getOrderById(orderId.toString());
             if (order == null) {
             logger.warn("订单不存在，订单ID: {}", orderId);
-                return CommonResult.failed("订单不存在");
+                return Result.failed("订单不存在");
             }
             
         // 验证订单是否属于该用户
         if (!order.getUserId().equals(orderId)) {
             logger.warn("订单不属于该用户，订单ID: {}, 用户ID: {}", orderId, order.getUserId());
-            return CommonResult.failed("订单不属于该用户");
+            return Result.failed("订单不属于该用户");
         }
         
         // 只有待收货状态的订单可以确认收货
         if (order.getStatus() != ORDER_STATUS_PENDING_RECEIPT) {
             logger.warn("订单状态不允许确认收货，订单ID: {}, 当前状态: {}", orderId, order.getStatus());
-            return CommonResult.failed("订单状态不允许确认收货");
+            return Result.failed("订单状态不允许确认收货");
         }
         
         // 更新订单状态为已完成
         orderMapper.updateOrderStatus(orderId.toString(), ORDER_STATUS_COMPLETED);
-        return CommonResult.success(true);
+        return Result.success(true);
     }
 
     /**
@@ -608,14 +608,14 @@ public class OrderServiceImpl implements OrderService {
      * @param status 订单状态，null表示全部
      * @return 订单列表
      */
-    public CommonResult<List<Order>> getOrdersByUserId(Long userId, Integer status) {
+    public Result<List<Order>> getOrdersByUserId(Long userId, Integer status) {
             List<Order> orders;
         if (status != null && status != 0) {
             orders = orderMapper.getUserOrdersByIdAndStatus(userId, status);
             } else {
             orders = orderMapper.getUserOrdersById(userId);
         }
-        return CommonResult.success(orders);
+        return Result.success(orders);
     }
    
 } 

@@ -2,12 +2,13 @@ package com.example.user.api.controller;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.common.result.Result;
 import com.example.user.api.vo.UserAccountLogVO;
 import com.example.user.api.vo.UserAccountVO;
 import com.example.user.application.dto.UserAccountDTO;
 import com.example.user.application.dto.UserAccountLogDTO;
 import com.example.user.application.service.UserAccountService;
+import com.example.common.result.Result;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -16,6 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +48,7 @@ public class UserAccountController {
             @ApiParam("来源") @RequestParam Integer source,
             @ApiParam("来源ID") @RequestParam(required = false) String sourceId,
             @ApiParam("描述") @RequestParam(required = false) String description) {
-        UserAccountDTO userAccountDTO = userAccountService.recharge(userId, amount, source, sourceId, description);
+        UserAccountDTO userAccountDTO = userAccountService.increaseBalance(userId, amount, source, sourceId, description);
         UserAccountVO userAccountVO = convertToUserAccountVO(userAccountDTO);
         return Result.success(userAccountVO);
     }
@@ -59,7 +61,7 @@ public class UserAccountController {
             @ApiParam("来源") @RequestParam Integer source,
             @ApiParam("来源ID") @RequestParam(required = false) String sourceId,
             @ApiParam("描述") @RequestParam(required = false) String description) {
-        UserAccountDTO userAccountDTO = userAccountService.consume(userId, amount, source, sourceId, description);
+        UserAccountDTO userAccountDTO = userAccountService.decreaseBalance(userId, amount, source, sourceId, description);
         UserAccountVO userAccountVO = convertToUserAccountVO(userAccountDTO);
         return Result.success(userAccountVO);
     }
@@ -72,7 +74,7 @@ public class UserAccountController {
             @ApiParam("来源") @RequestParam Integer source,
             @ApiParam("来源ID") @RequestParam(required = false) String sourceId,
             @ApiParam("描述") @RequestParam(required = false) String description) {
-        UserAccountDTO userAccountDTO = userAccountService.refund(userId, amount, source, sourceId, description);
+        UserAccountDTO userAccountDTO = userAccountService.increaseBalance(userId, amount, source, sourceId, description);
         UserAccountVO userAccountVO = convertToUserAccountVO(userAccountDTO);
         return Result.success(userAccountVO);
     }
@@ -85,7 +87,7 @@ public class UserAccountController {
             @ApiParam("来源") @RequestParam Integer source,
             @ApiParam("来源ID") @RequestParam(required = false) String sourceId,
             @ApiParam("描述") @RequestParam(required = false) String description) {
-        UserAccountDTO userAccountDTO = userAccountService.withdraw(userId, amount, source, sourceId, description);
+        UserAccountDTO userAccountDTO = userAccountService.decreaseBalance(userId, amount, source, sourceId, description);
         UserAccountVO userAccountVO = convertToUserAccountVO(userAccountDTO);
         return Result.success(userAccountVO);
     }
@@ -122,7 +124,13 @@ public class UserAccountController {
             @PathVariable Long userId,
             @ApiParam("金额") @RequestParam BigDecimal amount,
             @ApiParam("描述") @RequestParam(required = false) String description) {
-        UserAccountDTO userAccountDTO = userAccountService.adjustBalance(userId, amount, description);
+        // 如果金额为正，则增加余额，否则减少余额
+        UserAccountDTO userAccountDTO;
+        if (amount.compareTo(BigDecimal.ZERO) >= 0) {
+            userAccountDTO = userAccountService.increaseBalance(userId, amount, 5, null, description); // 5-系统调整
+        } else {
+            userAccountDTO = userAccountService.decreaseBalance(userId, amount.abs(), 5, null, description); // 5-系统调整
+        }
         UserAccountVO userAccountVO = convertToUserAccountVO(userAccountDTO);
         return Result.success(userAccountVO);
     }
@@ -135,14 +143,31 @@ public class UserAccountController {
             @ApiParam("每页大小") @RequestParam(defaultValue = "10") Integer pageSize,
             @ApiParam("类型") @RequestParam(required = false) Integer type,
             @ApiParam("来源") @RequestParam(required = false) Integer source) {
-        PageRequest pageRequest = new PageRequest(pageNum, pageSize);
-        PageResult<UserAccountLogDTO> pageResult = userAccountService.getAccountLogs(userId, pageRequest, type, source);
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setPageNum(pageNum);
+        pageRequest.setPageSize(pageSize);
+        
+        PageResult<UserAccountLogDTO> pageResult;
+        if (type != null || source != null) {
+            // 如果有类型或来源过滤，使用列表方法然后手动分页
+            List<UserAccountLogDTO> logs = userAccountService.getAccountLogs(userId, type, source, null);
+            
+            // 手动分页
+            int start = (pageNum - 1) * pageSize;
+            int end = Math.min(start + pageSize, logs.size());
+            List<UserAccountLogDTO> pageData = start < logs.size() ? logs.subList(start, end) : Collections.emptyList();
+            
+            pageResult = new PageResult<>(pageNum, pageSize, logs.size(), pageData);
+        } else {
+            // 否则使用分页方法
+            pageResult = userAccountService.getAccountLogs(userId, pageRequest);
+        }
         
         List<UserAccountLogVO> userAccountLogVOList = pageResult.getList().stream()
                 .map(this::convertToUserAccountLogVO)
                 .collect(Collectors.toList());
         
-        return Result.success(new PageResult<>(userAccountLogVOList, pageResult.getTotal(), pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize()));
+        return Result.success(new PageResult<>(pageResult.getPageNum(), pageResult.getPageSize(), pageResult.getTotal(), userAccountLogVOList));
     }
 
     /**

@@ -21,6 +21,15 @@ public class MemberLevel implements Serializable {
      * ID
      */
     private Long id;
+    
+    /**
+     * 设置ID
+     *
+     * @param id ID
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     /**
      * 等级

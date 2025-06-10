@@ -1,6 +1,6 @@
 package com.example.user.domain.repository;
 
-import com.example.user.domain.model.UserLoginLog;
+import com.example.user.domain.model.user.UserLoginLog;
 
 import java.util.List;
 import java.util.Optional;

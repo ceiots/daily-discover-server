@@ -1,11 +1,12 @@
 package com.example.user.domain.model.user;
 
 import com.example.common.exception.BusinessException;
-import com.example.common.result.ResultCode;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
 import com.example.user.domain.model.valueobject.Password;
+import com.example.user.infrastructure.common.result.ResultCode;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,15 @@ public class User implements Serializable {
      * 用户ID
      */
     private UserId id;
+    
+    /**
+     * 设置用户ID
+     *
+     * @param id 用户ID
+     */
+    public void setId(UserId id) {
+        this.id = id;
+    }
 
     /**
      * 用户名

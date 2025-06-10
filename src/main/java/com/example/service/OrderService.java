@@ -28,7 +28,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import com.example.common.api.CommonResult;
+import com.example.common.result.Result;
 import com.example.dto.OrderCreateDTO;
 import com.example.dto.OrderItemDTO;
 
@@ -56,21 +56,21 @@ public interface OrderService {
      * @param orderDTO 订单创建信息
      * @return 订单信息
      */
-    CommonResult<Order> createOrder(OrderCreateDTO orderDTO);
+    Result<Order> createOrder(OrderCreateDTO orderDTO);
     
     /**
      * 支付订单
      * @param orderId 订单ID
      * @return 支付结果
      */
-    CommonResult<Boolean> payOrder(Long orderId);
+    Result<Boolean> payOrder(Long orderId);
     
     /**
      * 取消订单
      * @param orderId 订单ID
      * @return 取消结果
      */
-    CommonResult<Boolean> cancelOrder(Long orderId);
+    Result<Boolean> cancelOrder(Long orderId);
     
     /**
      * 申请退款
@@ -78,7 +78,7 @@ public interface OrderService {
      * @param reason 退款原因
      * @return 退款申请结果
      */
-    CommonResult<Boolean> refundOrder(Long orderId, String reason);
+    Result<Boolean> refundOrder(Long orderId, String reason);
     
     /**
      * 申请退货退款
@@ -87,14 +87,14 @@ public interface OrderService {
      * @param reason 退货原因
      * @return 退货申请结果
      */
-    CommonResult<Boolean> returnOrder(Long orderId, List<OrderItemDTO> items, String reason);
+    Result<Boolean> returnOrder(Long orderId, List<OrderItemDTO> items, String reason);
     
     /**
      * 确认收货
      * @param orderId 订单ID
      * @return 确认结果
      */
-    CommonResult<Boolean> confirmReceiveOrder(Long orderId);
+    Result<Boolean> confirmReceiveOrder(Long orderId);
     
     /**
      * 获取订单详情
@@ -109,7 +109,7 @@ public interface OrderService {
      * @param status 订单状态，null表示全部
      * @return 订单列表
      */
-    CommonResult<List<Order>> getOrdersByUserId(Long userId, Integer status);
+    Result<List<Order>> getOrdersByUserId(Long userId, Integer status);
 
     // ... existing code ...
     /**

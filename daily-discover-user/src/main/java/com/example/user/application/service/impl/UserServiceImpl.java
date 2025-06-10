@@ -3,7 +3,6 @@ package com.example.user.application.service.impl;
 import com.example.common.exception.BusinessException;
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.common.result.ResultCode;
 import com.example.user.application.assembler.UserAssembler;
 import com.example.user.application.dto.LoginDTO;
 import com.example.user.application.dto.RegisterDTO;
@@ -16,7 +15,10 @@ import com.example.user.domain.model.user.User;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
 import com.example.user.domain.repository.UserQueryCondition;
+import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserDomainService;
+import com.example.user.infrastructure.common.result.ResultCode;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,22 +35,26 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserDomainService userDomainService;
-    private final UserRepository userRepository;
     private final UserAssembler userAssembler;
+
+    @Override
+    public BaseDomainService getBaseDomainService() {
+        return userDomainService;
+    }
 
     @Override
     @Transactional
     public UserDTO register(RegisterDTO registerDTO) {
         // 验证用户名、手机号、邮箱是否已存在
-        if (userRepository.existsByUsername(registerDTO.getUsername())) {
+        if (userDomainService.existsByUsername(registerDTO.getUsername())) {
             throw new BusinessException(ResultCode.USERNAME_EXISTS);
         }
         
-        if (registerDTO.getMobile() != null && userRepository.existsByMobile(Mobile.of(registerDTO.getMobile()))) {
+        if (registerDTO.getMobile() != null && userDomainService.existsByMobile(registerDTO.getMobile())) {
             throw new BusinessException(ResultCode.MOBILE_EXISTS);
         }
         
-        if (registerDTO.getEmail() != null && userRepository.existsByEmail(Email.of(registerDTO.getEmail()))) {
+        if (registerDTO.getEmail() != null && userDomainService.existsByEmail(registerDTO.getEmail())) {
             throw new BusinessException(ResultCode.EMAIL_EXISTS);
         }
         
@@ -180,7 +186,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // 查询用户
-        Optional<User> userOpt = userRepository.findByMobile(Mobile.of(mobile));
+        Optional<User> userOpt = userDomainService.findByMobile(mobile);
         
         if (userOpt.isEmpty()) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -219,7 +225,7 @@ public class UserServiceImpl implements UserService {
         User user = userDomainService.getUserById(userId);
         
         // 获取用户详情
-        Optional<UserProfile> profileOpt = userRepository.findProfileByUserId(user.getId());
+        Optional<UserProfile> profileOpt = userDomainService.findProfileByUserId(user.getId());
         
         if (profileOpt.isEmpty()) {
             throw new BusinessException(ResultCode.USER_PROFILE_NOT_FOUND);
@@ -231,7 +237,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserProfileDTO updateUserProfile(UserProfileDTO userProfileDTO) {
-        Optional<UserProfile> profileOpt = userRepository.findProfileById(userProfileDTO.getId());
+        Optional<UserProfile> profileOpt = userDomainService.findProfileById(userProfileDTO.getId());
         
         if (profileOpt.isEmpty()) {
             throw new BusinessException(ResultCode.USER_PROFILE_NOT_FOUND);
@@ -250,7 +256,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PageResult<UserDTO> getUserPage(PageRequest pageRequest, UserQueryCondition condition) {
-        PageResult<User> pageResult = userRepository.findPage(pageRequest, condition);
+        PageResult<User> pageResult = userDomainService.findUserPage(pageRequest, condition);
         
         List<UserDTO> userDTOList = pageResult.getList().stream()
                 .map(userAssembler::toDTO)
@@ -261,7 +267,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDTO> getUserList(UserQueryCondition condition) {
-        List<User> userList = userRepository.findList(condition);
+        List<User> userList = userDomainService.findUserList(condition);
         
         return userList.stream()
                 .map(userAssembler::toDTO)

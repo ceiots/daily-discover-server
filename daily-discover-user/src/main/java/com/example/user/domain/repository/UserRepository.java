@@ -4,10 +4,10 @@ import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.user.User;
+import com.example.user.domain.model.user.UserAuth;
+import com.example.user.domain.model.user.UserProfile;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
-import com.example.user.domain.model.UserAuth;
-import com.example.user.domain.model.UserProfile;
 
 import java.util.List;
 import java.util.Optional;

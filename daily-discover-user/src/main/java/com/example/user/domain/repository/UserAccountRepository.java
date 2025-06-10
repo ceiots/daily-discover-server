@@ -1,8 +1,8 @@
 package com.example.user.domain.repository;
 
-import com.example.user.domain.model.UserAccount;
-import com.example.user.domain.model.UserAccountLog;
-import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.user.UserAccount;
+import com.example.user.domain.model.user.UserAccountLog;
+import com.example.user.domain.model.user.UserPointsLog;
 
 import java.math.BigDecimal;
 import java.util.List;

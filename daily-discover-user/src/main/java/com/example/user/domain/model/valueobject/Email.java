@@ -1,7 +1,8 @@
 package com.example.user.domain.model.valueobject;
 
 import com.example.common.exception.BusinessException;
-import com.example.common.result.ResultCode;
+import com.example.user.infrastructure.common.result.ResultCode;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -2,9 +2,9 @@ package com.example.user.domain.service;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.user.domain.model.UserAccount;
-import com.example.user.domain.model.UserAccountLog;
-import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.user.UserAccount;
+import com.example.user.domain.model.user.UserAccountLog;
+import com.example.user.domain.model.user.UserPointsLog;
 import com.example.user.domain.model.id.UserId;
 
 import java.math.BigDecimal;

@@ -1,6 +1,6 @@
 package com.example.controller;
 
-import com.example.common.api.CommonResult;
+import com.example.common.api.Result;
 import com.example.model.Address;
 import com.example.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +21,9 @@ public class AddressController {
      * @return 操作结果
      */
     @PostMapping("/save")
-    public CommonResult<Void> save(@RequestBody Address userAddress) {
+    public Result<Void> save(@RequestBody Address userAddress) {
         userAddressService.save(userAddress);
-        return CommonResult.success(null);
+        return Result.success(null);
     }
 
     /**
@@ -32,9 +32,9 @@ public class AddressController {
      * @return 操作结果
      */
     @PostMapping("/update")
-    public CommonResult<Void> update(@RequestBody Address userAddress) {
+    public Result<Void> update(@RequestBody Address userAddress) {
         userAddressService.update(userAddress);
-        return CommonResult.success(null);
+        return Result.success(null);
     }
 
     /**
@@ -43,9 +43,9 @@ public class AddressController {
      * @return 操作结果
      */
     @PostMapping("/delete/{userAddressId}")
-    public CommonResult<Void> deleteById(@PathVariable("userAddressId") Long userAddressId) {
+    public Result<Void> deleteById(@PathVariable("userAddressId") Long userAddressId) {
         userAddressService.deleteById(userAddressId);
-        return CommonResult.success(null);
+        return Result.success(null);
     }
 
     /**
@@ -55,9 +55,9 @@ public class AddressController {
      * @return 操作结果
      */
     @PostMapping("/setDefault")
-    public CommonResult<Void> setDefaultAddr(@RequestParam("userId") Long userId, @RequestParam("userAddressId") Long userAddressId) {
+    public Result<Void> setDefaultAddr(@RequestParam("userId") Long userId, @RequestParam("userAddressId") Long userAddressId) {
         userAddressService.setDefaultAddr(userId, userAddressId);
-        return CommonResult.success(null);
+        return Result.success(null);
     }
 
     /**
@@ -66,9 +66,9 @@ public class AddressController {
      * @return 收货地址信息
      */
     @GetMapping("/getDefaultByUserId")
-    public CommonResult<Address> getDefaultByUserId(@RequestParam("userId") Long userId) {
+    public Result<Address> getDefaultByUserId(@RequestParam("userId") Long userId) {
         Address userAddress = userAddressService.getDefaultByUserId(userId);
-        return CommonResult.success(userAddress);
+        return Result.success(userAddress);
     }
 
     /**
@@ -77,8 +77,8 @@ public class AddressController {
      * @return 收货地址信息列表
      */
     @GetMapping("/getAllByUserId")
-    public CommonResult<List<Address>> getAllByUserId(@RequestParam("userId") Long userId) {
+    public Result<List<Address>> getAllByUserId(@RequestParam("userId") Long userId) {
         List<Address> userAddressList = userAddressService.getAllByUserId(userId);
-        return CommonResult.success(userAddressList);
+        return Result.success(userAddressList);
     }
 }

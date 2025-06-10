@@ -2,9 +2,9 @@ package com.example.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.example.user.domain.model.UserAccount;
-import com.example.user.domain.model.UserAccountLog;
-import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.user.UserAccount;
+import com.example.user.domain.model.user.UserAccountLog;
+import com.example.user.domain.model.user.UserPointsLog;
 import com.example.user.domain.repository.UserAccountRepository;
 import com.example.user.infrastructure.persistence.converter.UserAccountConverter;
 import com.example.user.infrastructure.persistence.converter.UserAccountLogConverter;

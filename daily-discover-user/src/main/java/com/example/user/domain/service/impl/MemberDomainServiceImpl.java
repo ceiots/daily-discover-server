@@ -1,7 +1,6 @@
 package com.example.user.domain.service.impl;
 
 import com.example.common.exception.BusinessException;
-import com.example.common.result.ResultCode;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
@@ -9,6 +8,8 @@ import com.example.user.domain.model.member.MemberLevel;
 import com.example.user.domain.repository.MemberLevelRepository;
 import com.example.user.domain.repository.MemberRepository;
 import com.example.user.domain.service.MemberDomainService;
+import com.example.user.infrastructure.common.result.ResultCode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

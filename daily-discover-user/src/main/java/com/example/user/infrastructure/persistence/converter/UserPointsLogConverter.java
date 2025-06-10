@@ -1,11 +1,13 @@
 package com.example.user.infrastructure.persistence.converter;
 
-import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.user.UserPointsLog;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.infrastructure.persistence.entity.UserPointsLogEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 /**
  * 用户积分记录实体转换器
@@ -32,4 +34,20 @@ public interface UserPointsLogConverter {
      */
     @Mapping(target = "userId", expression = "java(new UserId(entity.getUserId()))")
     UserPointsLog toDomain(UserPointsLogEntity entity);
+    
+    /**
+     * 将实体列表转换为领域模型列表
+     *
+     * @param entities 实体列表
+     * @return 领域模型列表
+     */
+    List<UserPointsLog> toDomainList(List<UserPointsLogEntity> entities);
+    
+    /**
+     * 将领域模型列表转换为实体列表
+     *
+     * @param pointsLogs 领域模型列表
+     * @return 实体列表
+     */
+    List<UserPointsLogEntity> toEntityList(List<UserPointsLog> pointsLogs);
 } 

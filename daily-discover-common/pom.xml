@@ -35,6 +35,12 @@
             <optional>true</optional>
         </dependency>
 
+         <!-- 数据库相关依赖 -->
+         <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+        
         <!-- 添加Swagger依赖 -->
         <dependency>
             <groupId>io.springfox</groupId>
@@ -58,4 +64,24 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.7.8</version>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.example.DailyDiscoverApplication</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project> 

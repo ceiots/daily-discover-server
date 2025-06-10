@@ -1,8 +1,9 @@
 package com.example.user.application.service;
 
 import com.example.common.exception.BusinessException;
-import com.example.common.result.ResultCode;
 import com.example.user.domain.service.BaseDomainService;
+import com.example.user.infrastructure.common.result.ResultCode;
+
 import org.springframework.beans.BeanUtils;
 
 /**

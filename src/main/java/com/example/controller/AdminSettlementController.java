@@ -1,6 +1,6 @@
 package com.example.controller;
 
-import com.example.common.api.CommonResult;
+import com.example.common.result.Result;
 import com.example.model.Order;
 import com.example.service.OrderSettlementService;
 import com.example.util.UserIdExtractor;
@@ -34,7 +34,7 @@ public class AdminSettlementController {
      * 获取所有待结算订单
      */
     @GetMapping("/pending")
-    public CommonResult<List<Order>> getPendingSettlementOrders(
+    public Result<List<Order>> getPendingSettlementOrders(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @RequestParam(value = "shopId", required = false) Long shopId,
@@ -46,7 +46,7 @@ public class AdminSettlementController {
         // 验证用户权限（实际项目中需要验证是否为管理员）
         Long userId = userIdExtractor.extractUserId(token, userIdHeader);
         if (userId == null) {
-            return CommonResult.unauthorized(null);
+            return Result.unauthorized(null);
         }
         
         // 获取待结算订单
@@ -58,14 +58,14 @@ public class AdminSettlementController {
             orders = orderSettlementService.getAllPendingSettlementOrders(startDate, endDate);
         }
         
-        return CommonResult.success(orders);
+        return Result.success(orders);
     }
     
     /**
      * 获取所有已结算订单
      */
     @GetMapping("/settled")
-    public CommonResult<List<Order>> getSettledOrders(
+    public Result<List<Order>> getSettledOrders(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @RequestParam(value = "shopId", required = false) Long shopId,
@@ -77,7 +77,7 @@ public class AdminSettlementController {
         // 验证用户权限（实际项目中需要验证是否为管理员）
         Long userId = userIdExtractor.extractUserId(token, userIdHeader);
         if (userId == null) {
-            return CommonResult.unauthorized(null);
+            return Result.unauthorized(null);
         }
         
         // 获取已结算订单
@@ -89,14 +89,14 @@ public class AdminSettlementController {
             orders = orderSettlementService.getAllSettledOrders(startDate, endDate);
         }
         
-        return CommonResult.success(orders);
+        return Result.success(orders);
     }
     
     /**
      * 结算订单（管理员操作）
      */
     @PostMapping("/settle/{orderId}")
-    public CommonResult<Boolean> settleOrder(
+    public Result<Boolean> settleOrder(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @PathVariable("orderId") Long orderId) {
@@ -104,15 +104,15 @@ public class AdminSettlementController {
         // 验证用户权限（实际项目中需要验证是否为管理员）
         Long userId = userIdExtractor.extractUserId(token, userIdHeader);
         if (userId == null) {
-            return CommonResult.unauthorized(null);
+            return Result.unauthorized(null);
         }
         
         // 结算订单
         boolean success = orderSettlementService.settleOrder(orderId);
         if (success) {
-            return CommonResult.success(true, "订单结算成功");
+            return Result.success(true, "订单结算成功");
         } else {
-            return CommonResult.failed("订单结算失败");
+            return Result.failed("订单结算失败");
         }
     }
     
@@ -120,7 +120,7 @@ public class AdminSettlementController {
      * 批量结算订单（管理员操作）
      */
     @PostMapping("/batch-settle")
-    public CommonResult<Map<String, Object>> batchSettleOrders(
+    public Result<Map<String, Object>> batchSettleOrders(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @RequestBody List<Long> orderIds) {
@@ -128,7 +128,7 @@ public class AdminSettlementController {
         // 验证用户权限（实际项目中需要验证是否为管理员）
         Long userId = userIdExtractor.extractUserId(token, userIdHeader);
         if (userId == null) {
-            return CommonResult.unauthorized(null);
+            return Result.unauthorized(null);
         }
         
         // 批量结算订单
@@ -141,14 +141,14 @@ public class AdminSettlementController {
                 "failed", orderIds.size() - successCount
         );
         
-        return CommonResult.success(result, "批量结算完成");
+        return Result.success(result, "批量结算完成");
     }
     
     /**
      * 获取结算统计数据
      */
     @GetMapping("/statistics")
-    public CommonResult<Map<String, Object>> getSettlementStatistics(
+    public Result<Map<String, Object>> getSettlementStatistics(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "userId", required = false) String userIdHeader,
             @RequestParam(value = "startDate", required = false) 
@@ -159,7 +159,7 @@ public class AdminSettlementController {
         // 验证用户权限（实际项目中需要验证是否为管理员）
         Long userId = userIdExtractor.extractUserId(token, userIdHeader);
         if (userId == null) {
-            return CommonResult.unauthorized(null);
+            return Result.unauthorized(null);
         }
         
         // 获取结算统计数据（实际项目中需要实现）
@@ -171,6 +171,6 @@ public class AdminSettlementController {
                 "commissionAmount", 0.00
         );
         
-        return CommonResult.success(statistics);
+        return Result.success(statistics);
     }
 }
