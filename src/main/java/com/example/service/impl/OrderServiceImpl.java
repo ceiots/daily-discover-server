@@ -18,8 +18,6 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 
 import com.example.mapper.AddressMapper;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 import com.example.mapper.OrderItemMapper;
 import com.example.mapper.OrderMapper;

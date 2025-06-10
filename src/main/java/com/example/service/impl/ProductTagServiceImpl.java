@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.common.exception.ApiException;
+import com.example.common.exception.BusinessException;
 import com.example.mapper.ProductTagMapper;
 import com.example.model.ProductTag;
 import com.example.service.ProductTagService;
@@ -101,7 +101,7 @@ public class ProductTagServiceImpl implements ProductTagService {
             return rows > 0;
         } catch (Exception e) {
             log.error("移除商品标签失败", e);
-            throw new ApiException("移除商品标签失败: " + e.getMessage());
+            throw new BusinessException("移除商品标签失败: " + e.getMessage());
         }
     }
     
