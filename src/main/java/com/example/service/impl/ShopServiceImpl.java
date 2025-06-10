@@ -1,9 +1,9 @@
 package com.example.service.impl;
 
+import com.example.common.util.FileUploadUtil;
 import com.example.mapper.ShopMapper;
 import com.example.model.Shop;
 import com.example.service.ShopService;
-import com.example.util.FileUploadUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

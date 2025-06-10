@@ -11,9 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.common.util.JwtTokenUtil;
 import com.example.mapper.UserMapper;
 import com.example.model.User;
-import com.example.util.JwtTokenUtil;
 
 import java.util.UUID;
 

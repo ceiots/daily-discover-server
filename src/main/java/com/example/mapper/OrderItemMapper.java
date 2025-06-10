@@ -1,8 +1,9 @@
 package com.example.mapper;
 
+import com.example.common.util.SpecificationsTypeHandler;
 // 检查导入路径是否正确
 import com.example.model.OrderItem;
-import com.example.util.SpecificationsTypeHandler; // 新增导入语句
+
 import org.apache.ibatis.annotations.*;
 import java.util.List;
 

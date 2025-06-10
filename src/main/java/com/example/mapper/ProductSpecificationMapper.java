@@ -4,8 +4,8 @@ import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.example.common.util.JsonTypeHandler;
 import com.example.model.ProductSpecification;
-import com.example.util.JsonTypeHandler;
 
 @Mapper
 public interface ProductSpecificationMapper extends BaseMapper<ProductSpecification> {

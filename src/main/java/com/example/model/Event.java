@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.jsoup.Jsoup;
 
-import com.example.config.ImageConfig;
+import com.example.common.config.ImageConfig;
 
 public class Event {
     private Long id;

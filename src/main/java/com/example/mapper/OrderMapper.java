@@ -16,9 +16,9 @@ import org.apache.ibatis.annotations.Update;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.example.common.util.SpecificationsTypeHandler;
 import com.example.model.Order;
 import com.example.model.OrderItem;
-import com.example.util.SpecificationsTypeHandler;
 
 @Mapper
 public interface OrderMapper {

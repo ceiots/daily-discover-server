@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.common.util.FileUploadUtil;
 import com.example.mapper.ProductMapper;
 import com.example.model.Product;
 import com.example.model.Specification;
 import com.example.service.ProductService;
 import com.example.service.ShopService;
-import com.example.util.FileUploadUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

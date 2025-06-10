@@ -4,11 +4,9 @@ import com.example.mapper.OrderMapper;
 import com.example.model.Order;
 import com.example.model.Address;
 import com.example.model.OrderItem;
-import com.example.util.DateUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
-import com.example.config.ImageConfig;
 import com.example.dto.AddressDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,9 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import com.example.common.config.ImageConfig;
 import com.example.common.result.Result;
+import com.example.common.util.DateUtils;
 import com.example.dto.OrderCreateDTO;
 import com.example.dto.OrderItemDTO;
 

@@ -1,11 +1,12 @@
 // src/main/java/com/example/model/Comment.java
 package com.example.model;
 
-import com.example.config.ImageConfig;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import com.example.common.config.ImageConfig;
 
 
 @Data

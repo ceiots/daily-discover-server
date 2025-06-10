@@ -31,7 +31,7 @@ public interface ProductStatisticsMapper extends BaseMapper<ProductStatistics> {
         @Result(property = "negativeReviews", column = "negative_reviews"),
         @Result(property = "lastActiveTime", column = "last_active_time"),
         @Result(property = "dailyViewsTrend", column = "daily_views_trend", 
-                typeHandler = com.example.util.JsonTypeHandler.class),
+                typeHandler = com.example.common.util.JsonTypeHandler.class),
         @Result(property = "createTime", column = "create_time"),
         @Result(property = "updateTime", column = "update_time")
     })
@@ -50,7 +50,7 @@ public interface ProductStatisticsMapper extends BaseMapper<ProductStatistics> {
         @Result(property = "negativeReviews", column = "negative_reviews"),
         @Result(property = "lastActiveTime", column = "last_active_time"),
         @Result(property = "dailyViewsTrend", column = "daily_views_trend", 
-                typeHandler = com.example.util.JsonTypeHandler.class),
+                typeHandler = com.example.common.util.JsonTypeHandler.class),
         @Result(property = "createTime", column = "create_time"),
         @Result(property = "updateTime", column = "update_time")
     })
@@ -111,7 +111,7 @@ public interface ProductStatisticsMapper extends BaseMapper<ProductStatistics> {
         @Result(property = "negativeReviews", column = "negative_reviews"),
         @Result(property = "lastActiveTime", column = "last_active_time"),
         @Result(property = "dailyViewsTrend", column = "daily_views_trend", 
-                typeHandler = com.example.util.JsonTypeHandler.class),
+                typeHandler = com.example.common.util.JsonTypeHandler.class),
         @Result(property = "createTime", column = "create_time"),
         @Result(property = "updateTime", column = "update_time")
     })
@@ -132,7 +132,7 @@ public interface ProductStatisticsMapper extends BaseMapper<ProductStatistics> {
         @Result(property = "negativeReviews", column = "negative_reviews"),
         @Result(property = "lastActiveTime", column = "last_active_time"),
         @Result(property = "dailyViewsTrend", column = "daily_views_trend", 
-                typeHandler = com.example.util.JsonTypeHandler.class),
+                typeHandler = com.example.common.util.JsonTypeHandler.class),
         @Result(property = "createTime", column = "create_time"),
         @Result(property = "updateTime", column = "update_time")
     })

@@ -1,6 +1,6 @@
 package com.example.model;
 
-import com.example.config.ImageConfig;
+import com.example.common.config.ImageConfig;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 

@@ -11,9 +11,9 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import com.example.common.util.SpecificationsTypeHandler;
 import com.example.model.CartItem;
 import com.example.model.Specification;
-import com.example.util.SpecificationsTypeHandler;
 
 @Mapper
 public interface CartItemMapper {

@@ -7,7 +7,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.util.JsonTypeHandler;
+import com.example.common.util.JsonTypeHandler;
+
 import lombok.Data;
 
 /**

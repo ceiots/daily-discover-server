@@ -25,11 +25,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.config.ImageConfig;
+import com.example.common.config.ImageConfig;
+import com.example.common.util.JwtTokenUtil;
 import com.example.dto.ResetPasswordRequest;
 import com.example.model.User;
 import com.example.service.UserService;
-import com.example.util.JwtTokenUtil;
 
 @RestController
 @RequestMapping("/user")

@@ -1,8 +1,8 @@
 package com.example.controller;
 
 import com.example.common.result.Result;
+import com.example.common.util.UserIdExtractor;
 import com.example.service.OllamaService;
-import com.example.util.UserIdExtractor;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;

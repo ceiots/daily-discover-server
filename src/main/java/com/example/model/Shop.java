@@ -6,7 +6,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.config.ImageConfig;
+import com.example.common.config.ImageConfig;
+
 import lombok.Data;
 
 @Data

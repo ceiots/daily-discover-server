@@ -38,4 +38,14 @@ public class UserRegisteredEvent extends DomainEvent {
         this.username = username;
         this.registerIp = registerIp;
     }
+    
+    /**
+     * 获取事件类型
+     *
+     * @return 事件类型
+     */
+    @Override
+    public String getEventType() {
+        return "USER_REGISTERED";
+    }
 } 

@@ -1,7 +1,7 @@
 package com.example.util;
 
 import org.apache.ibatis.type.MappedTypes;
-import com.example.config.ListTypeHandler;
+import com.example.common.config.ListTypeHandler;
 import com.example.model.ProductDetail;
 import java.util.List;
 
