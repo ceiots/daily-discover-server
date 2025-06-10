@@ -42,6 +42,7 @@ public class UserFollow implements Serializable {
     /**
      * 备注
      */
+    @Setter
     private String remark;
 
     /**
@@ -62,23 +63,26 @@ public class UserFollow implements Serializable {
      * @return 用户关注
      */
     public static UserFollow create(UserId userId, UserId followUserId) {
-        UserFollow follow = new UserFollow();
-        follow.userId = userId;
-        follow.followUserId = followUserId;
-        follow.status = 1;
-        follow.createTime = LocalDateTime.now();
-        follow.updateTime = LocalDateTime.now();
-        return follow;
+        return create(userId, followUserId, null);
     }
 
     /**
-     * 设置备注
+     * 创建用户关注
      *
+     * @param userId 用户ID
+     * @param followUserId 被关注用户ID
      * @param remark 备注
+     * @return 用户关注
      */
-    public void setRemark(String remark) {
-        this.remark = remark;
-        this.updateTime = LocalDateTime.now();
+    public static UserFollow create(UserId userId, UserId followUserId, String remark) {
+        UserFollow userFollow = new UserFollow();
+        userFollow.userId = userId;
+        userFollow.followUserId = followUserId;
+        userFollow.status = 1;
+        userFollow.remark = remark;
+        userFollow.createTime = LocalDateTime.now();
+        userFollow.updateTime = LocalDateTime.now();
+        return userFollow;
     }
 
     /**

@@ -257,6 +257,14 @@ public interface MemberService extends BaseApplicationService {
     boolean deleteMemberLevel(Integer level);
 
     /**
+     * 删除会员等级
+     *
+     * @param id 会员等级ID
+     * @return 是否删除成功
+     */
+    boolean deleteMemberLevel(Long id);
+
+    /**
      * 获取积分记录列表
      *
      * @param memberId    会员ID

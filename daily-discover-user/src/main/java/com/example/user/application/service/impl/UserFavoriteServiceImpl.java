@@ -62,8 +62,8 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
                 .map(userFavoriteAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(favoriteDTOs, pageResult.getTotal(), pageResult.getPages(), 
-                pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), favoriteDTOs);
     }
 
     @Override

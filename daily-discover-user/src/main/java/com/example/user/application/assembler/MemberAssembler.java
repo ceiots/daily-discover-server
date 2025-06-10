@@ -39,9 +39,25 @@ public interface MemberAssembler {
      * @param memberDTO 会员DTO
      * @return 会员实体
      */
-    @Mapping(target = "id", source = "id", qualifiedByName = "longToMemberId")
-    @Mapping(target = "userId", source = "userId", qualifiedByName = "longToUserId")
-    Member toEntity(MemberDTO memberDTO);
+    default Member toEntity(MemberDTO memberDTO) {
+        if (memberDTO == null) {
+            return null;
+        }
+        
+        UserId userId = longToUserId(memberDTO.getUserId());
+        Member member = Member.create(
+            userId, 
+            memberDTO.getMemberLevel(), 
+            memberDTO.getIsForever(), 
+            null // 这里没有月数信息，可以根据实际需求调整
+        );
+        
+        if (memberDTO.getId() != null) {
+            member.setId(new com.example.user.domain.model.id.MemberId(memberDTO.getId()));
+        }
+        
+        return member;
+    }
 
     /**
      * MemberLevel实体转MemberLevelDTO

@@ -58,8 +58,8 @@ public class UserLoginLogServiceImpl implements UserLoginLogService {
                 .map(userLoginLogAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(logDTOs, pageResult.getTotal(), pageResult.getPages(), 
-                pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), logDTOs);
     }
 
     @Override

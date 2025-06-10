@@ -54,8 +54,8 @@ public class UserDeviceServiceImpl implements UserDeviceService {
                 .map(userDeviceAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(deviceDTOs, pageResult.getTotal(), pageResult.getPages(), 
-                pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), deviceDTOs);
     }
 
     @Override

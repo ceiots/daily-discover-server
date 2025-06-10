@@ -2,7 +2,7 @@ package com.example.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.UserProfile;
+import com.example.user.domain.model.user.UserProfile;
 import com.example.user.domain.repository.UserProfileRepository;
 import com.example.user.infrastructure.persistence.entity.UserProfileEntity;
 import com.example.user.infrastructure.persistence.mapper.UserProfileMapper;
@@ -25,6 +25,27 @@ public class UserProfileRepositoryImpl implements UserProfileRepository {
         LambdaQueryWrapper<UserProfileEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserProfileEntity::getUserId, userId);
         UserProfileEntity entity = userProfileMapper.selectOne(wrapper);
+        
+        if (entity == null) {
+            return Optional.empty();
+        }
+        
+        UserProfile profile = UserProfile.create(new UserId(entity.getUserId()), entity.getNickname());
+        profile.setId(entity.getId());
+        profile.setRealName(entity.getRealName());
+        profile.setGender(entity.getGender());
+        profile.setBirthday(entity.getBirthday());
+        profile.setBio(entity.getBio());
+        profile.setAvatar(entity.getAvatar());
+        profile.setCoverImage(entity.getCoverImage());
+        profile.setUpdateTime(entity.getUpdateTime());
+        
+        return Optional.of(profile);
+    }
+
+    @Override
+    public Optional<UserProfile> findById(Long id) {
+        UserProfileEntity entity = userProfileMapper.selectById(id);
         
         if (entity == null) {
             return Optional.empty();
@@ -83,4 +104,6 @@ public class UserProfileRepositoryImpl implements UserProfileRepository {
     public boolean delete(Long id) {
         return userProfileMapper.deleteById(id) > 0;
     }
+
+    
 } 

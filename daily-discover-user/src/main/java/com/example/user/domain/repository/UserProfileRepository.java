@@ -1,7 +1,7 @@
 package com.example.user.domain.repository;
 
-import com.example.user.domain.model.UserProfile;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.UserProfile;
 
 import java.util.Optional;
 
@@ -17,6 +17,14 @@ public interface UserProfileRepository {
      * @return 用户资料
      */
     Optional<UserProfile> findByUserId(Long userId);
+    
+    /**
+     * 根据ID查询用户资料
+     *
+     * @param id 资料ID
+     * @return 用户资料
+     */
+    Optional<UserProfile> findById(Long id);
 
     /**
      * 保存用户资料

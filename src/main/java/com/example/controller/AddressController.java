@@ -1,6 +1,6 @@
 package com.example.controller;
 
-import com.example.common.api.Result;
+import com.example.common.result.Result;
 import com.example.model.Address;
 import com.example.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;

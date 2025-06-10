@@ -1,8 +1,9 @@
 package com.example.user.application.assembler;
 
 import com.example.user.application.dto.UserAuthDTO;
-import com.example.user.domain.model.UserAuth;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.UserAuth;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

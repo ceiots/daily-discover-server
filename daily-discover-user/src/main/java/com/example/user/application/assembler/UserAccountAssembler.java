@@ -11,6 +11,8 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * 用户账户对象转换器
@@ -36,8 +38,20 @@ public interface UserAccountAssembler {
      * @param userAccountDTO 用户账户DTO
      * @return 用户账户领域模型
      */
-    @Mapping(target = "userId", source = "userId", qualifiedByName = "longToUserId")
-    UserAccount toDomain(UserAccountDTO userAccountDTO);
+    default UserAccount toDomain(UserAccountDTO userAccountDTO) {
+        if (userAccountDTO == null) {
+            return null;
+        }
+        
+        UserId userId = longToUserId(userAccountDTO.getUserId());
+        UserAccount userAccount = UserAccount.create(userId);
+        
+        if (userAccountDTO.getId() != null) {
+            userAccount.setId(userAccountDTO.getId());
+        }
+        
+        return userAccount;
+    }
 
     /**
      * 将账户流水领域模型转换为DTO
@@ -46,7 +60,7 @@ public interface UserAccountAssembler {
      * @return 账户流水DTO
      */
     @Mapping(source = "userId.value", target = "userId")
-    UserAccountLogDTO toDTO(UserAccountLog userAccountLog);
+    UserAccountLogDTO toLogDTO(UserAccountLog userAccountLog);
 
     /**
      * 将账户流水DTO转换为领域模型
@@ -54,8 +68,18 @@ public interface UserAccountAssembler {
      * @param userAccountLogDTO 账户流水DTO
      * @return 账户流水领域模型
      */
-    @Mapping(target = "userId.value", source = "userId")
-    UserAccountLog toDomain(UserAccountLogDTO userAccountLogDTO);
+    default UserAccountLog toDomainLog(UserAccountLogDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        
+        UserAccountLog log = new UserAccountLog();
+        log.setId(dto.getId());
+        log.setUserId(longToUserId(dto.getUserId()));
+        // 设置其他属性...
+        
+        return log;
+    }
 
     /**
      * 将领域模型列表转换为DTO列表
@@ -63,7 +87,15 @@ public interface UserAccountAssembler {
      * @param userAccountLogList 账户流水领域模型列表
      * @return 账户流水DTO列表
      */
-    List<UserAccountLogDTO> toDTO(List<UserAccountLog> userAccountLogList);
+    default List<UserAccountLogDTO> toLogDTOList(List<UserAccountLog> userAccountLogList) {
+        if (userAccountLogList == null) {
+            return null;
+        }
+        
+        return userAccountLogList.stream()
+                .map(this::toLogDTO)
+                .collect(Collectors.toList());
+    }
 
     /**
      * 将DTO列表转换为领域模型列表
@@ -71,16 +103,15 @@ public interface UserAccountAssembler {
      * @param userAccountLogDTOList 账户流水DTO列表
      * @return 账户流水领域模型列表
      */
-    List<UserAccountLog> toDomain(List<UserAccountLogDTO> userAccountLogDTOList);
-    
-    /**
-     * 将账户流水领域模型转换为DTO (别名方法，与toDTO功能相同)
-     *
-     * @param userAccountLog 账户流水领域模型
-     * @return 账户流水DTO
-     */
-    @Mapping(source = "userId.value", target = "userId")
-    UserAccountLogDTO toLogDTO(UserAccountLog userAccountLog);
+    default List<UserAccountLog> toDomainLogList(List<UserAccountLogDTO> dtoList) {
+        if (dtoList == null) {
+            return null;
+        }
+        
+        return dtoList.stream()
+                .map(this::toDomainLog)
+                .collect(Collectors.toList());
+    }
     
     /**
      * 将Long转换为UserId

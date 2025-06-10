@@ -1,17 +1,20 @@
 package com.example.user.domain.model;
 
 import com.example.user.domain.model.id.UserId;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * 用户积分记录实体
  */
 @Getter
-@Setter
-public class UserPointsLog {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class UserPointsLog implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * ID
@@ -71,100 +74,120 @@ public class UserPointsLog {
     /**
      * 创建获取积分记录
      *
-     * @param userId 用户ID
-     * @param points 积分
+     * @param userId       用户ID
+     * @param points       积分
      * @param beforePoints 变动前积分
-     * @param afterPoints 变动后积分
-     * @param source 来源
-     * @param sourceId 来源ID
-     * @param description 描述
+     * @param afterPoints  变动后积分
+     * @param source       来源
+     * @param sourceId     来源ID
+     * @param description  描述
      * @return 积分记录
      */
-    public static UserPointsLog createGainLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints, 
-                                             Integer source, String sourceId, String description) {
+    public static UserPointsLog createGainLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints,
+                                            Integer source, String sourceId, String description) {
         UserPointsLog log = new UserPointsLog();
-        log.setUserId(userId);
-        log.setType(1); // 获取
-        log.setPoints(points);
-        log.setBeforePoints(beforePoints);
-        log.setAfterPoints(afterPoints);
-        log.setSource(source);
-        log.setSourceId(sourceId);
-        log.setDescription(description);
-        log.setCreateTime(LocalDateTime.now());
+        log.userId = userId;
+        log.type = 1; // 获取
+        log.points = points;
+        log.beforePoints = beforePoints;
+        log.afterPoints = afterPoints;
+        log.source = source;
+        log.sourceId = sourceId;
+        log.description = description;
+        log.createTime = LocalDateTime.now();
         return log;
     }
 
     /**
      * 创建消费积分记录
      *
-     * @param userId 用户ID
-     * @param points 积分
+     * @param userId       用户ID
+     * @param points       积分
      * @param beforePoints 变动前积分
-     * @param afterPoints 变动后积分
-     * @param source 来源
-     * @param sourceId 来源ID
-     * @param description 描述
+     * @param afterPoints  变动后积分
+     * @param source       来源
+     * @param sourceId     来源ID
+     * @param description  描述
      * @return 积分记录
      */
-    public static UserPointsLog createUseLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints, 
+    public static UserPointsLog createUseLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints,
                                            Integer source, String sourceId, String description) {
         UserPointsLog log = new UserPointsLog();
-        log.setUserId(userId);
-        log.setType(2); // 消费
-        log.setPoints(points);
-        log.setBeforePoints(beforePoints);
-        log.setAfterPoints(afterPoints);
-        log.setSource(source);
-        log.setSourceId(sourceId);
-        log.setDescription(description);
-        log.setCreateTime(LocalDateTime.now());
+        log.userId = userId;
+        log.type = 2; // 消费
+        log.points = points;
+        log.beforePoints = beforePoints;
+        log.afterPoints = afterPoints;
+        log.source = source;
+        log.sourceId = sourceId;
+        log.description = description;
+        log.createTime = LocalDateTime.now();
         return log;
     }
 
     /**
-     * 创建积分过期记录
+     * 创建过期积分记录
      *
-     * @param userId 用户ID
-     * @param points 积分
+     * @param userId       用户ID
+     * @param points       积分
      * @param beforePoints 变动前积分
-     * @param afterPoints 变动后积分
-     * @param description 描述
+     * @param afterPoints  变动后积分
+     * @param description  描述
      * @return 积分记录
      */
-    public static UserPointsLog createExpireLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints, String description) {
+    public static UserPointsLog createExpireLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints,
+                                              String description) {
         UserPointsLog log = new UserPointsLog();
-        log.setUserId(userId);
-        log.setType(3); // 过期
-        log.setPoints(points);
-        log.setBeforePoints(beforePoints);
-        log.setAfterPoints(afterPoints);
-        log.setSource(5); // 系统
-        log.setDescription(description);
-        log.setCreateTime(LocalDateTime.now());
+        log.userId = userId;
+        log.type = 3; // 过期
+        log.points = points;
+        log.beforePoints = beforePoints;
+        log.afterPoints = afterPoints;
+        log.source = 5; // 系统
+        log.description = description;
+        log.createTime = LocalDateTime.now();
         return log;
     }
 
     /**
-     * 创建积分调整记录
+     * 创建调整积分记录
      *
-     * @param userId 用户ID
-     * @param points 积分
+     * @param userId       用户ID
+     * @param points       积分
      * @param beforePoints 变动前积分
-     * @param afterPoints 变动后积分
-     * @param description 描述
+     * @param afterPoints  变动后积分
+     * @param description  描述
      * @return 积分记录
      */
-    public static UserPointsLog createAdjustLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints, String description) {
+    public static UserPointsLog createAdjustLog(UserId userId, Integer points, Integer beforePoints, Integer afterPoints,
+                                              String description) {
         UserPointsLog log = new UserPointsLog();
-        log.setUserId(userId);
-        log.setType(4); // 调整
-        log.setPoints(points);
-        log.setBeforePoints(beforePoints);
-        log.setAfterPoints(afterPoints);
-        log.setSource(5); // 系统
-        log.setDescription(description);
-        log.setCreateTime(LocalDateTime.now());
+        log.userId = userId;
+        log.type = 4; // 调整
+        log.points = points;
+        log.beforePoints = beforePoints;
+        log.afterPoints = afterPoints;
+        log.source = 5; // 系统
+        log.description = description;
+        log.createTime = LocalDateTime.now();
         return log;
+    }
+    
+    /**
+     * 设置ID
+     *
+     * @param id ID
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    /**
+     * 设置过期时间
+     *
+     * @param expireTime 过期时间
+     */
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
     }
 } 

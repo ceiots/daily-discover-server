@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 用户设备数据转换器
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {})
 public interface UserDeviceAssembler {
 
     UserDeviceAssembler INSTANCE = Mappers.getMapper(UserDeviceAssembler.class);

@@ -1,10 +1,13 @@
 package com.example.user.domain.service;
 
-import com.example.user.domain.model.User;
+import com.example.common.model.PageRequest;
+import com.example.common.model.PageResult;
+import com.example.user.domain.model.user.User;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.UserProfile;
+import com.example.user.domain.model.user.UserProfile;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
+import com.example.user.domain.repository.UserQueryCondition;
 
 import java.util.List;
 import java.util.Optional;
@@ -217,4 +220,37 @@ public interface UserDomainService extends BaseDomainService {
      * @return 是否符合要求
      */
     boolean validatePasswordStrength(String password);
+
+    /**
+     * 根据用户ID查询用户详情
+     *
+     * @param userId 用户ID
+     * @return 用户详情
+     */
+    Optional<UserProfile> findProfileByUserId(UserId userId);
+
+    /**
+     * 根据ID查询用户详情
+     *
+     * @param id 详情ID
+     * @return 用户详情
+     */
+    Optional<UserProfile> findProfileById(Long id);
+
+    /**
+     * 分页查询用户
+     *
+     * @param pageRequest 分页请求
+     * @param condition 查询条件
+     * @return 用户分页结果
+     */
+    PageResult<User> findPage(PageRequest pageRequest, UserQueryCondition condition);
+
+    /**
+     * 查询用户列表
+     *
+     * @param condition 查询条件
+     * @return 用户列表
+     */
+    List<User> findList(UserQueryCondition condition);
 } 

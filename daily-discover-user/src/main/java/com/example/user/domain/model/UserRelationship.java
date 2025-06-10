@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * 用户关系领域模型
+ * 用户关系实体
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -40,13 +40,14 @@ public class UserRelationship implements Serializable {
     private Integer relationType;
 
     /**
-     * 状态:0-解除,1-有效
+     * 状态:0-无效,1-有效
      */
     private Integer status;
 
     /**
      * 备注
      */
+    @Setter
     private String remark;
 
     /**
@@ -65,47 +66,37 @@ public class UserRelationship implements Serializable {
      * @param userId 用户ID
      * @param relatedUserId 关联用户ID
      * @param relationType 关系类型
-     * @return 用户关系
+     * @return 用户关系对象
      */
     public static UserRelationship create(UserId userId, UserId relatedUserId, Integer relationType) {
         UserRelationship relationship = new UserRelationship();
         relationship.userId = userId;
         relationship.relatedUserId = relatedUserId;
         relationship.relationType = relationType;
-        relationship.status = 1;
+        relationship.status = 1; // 有效状态
         relationship.createTime = LocalDateTime.now();
         relationship.updateTime = LocalDateTime.now();
         return relationship;
     }
 
     /**
-     * 设置备注
-     *
-     * @param remark 备注
+     * 设置无效
      */
-    public void setRemark(String remark) {
-        this.remark = remark;
-        this.updateTime = LocalDateTime.now();
-    }
-
-    /**
-     * 解除关系
-     */
-    public void dissolve() {
+    public void disable() {
         this.status = 0;
         this.updateTime = LocalDateTime.now();
     }
 
     /**
-     * 恢复关系
+     * 设置有效
      */
-    public void restore() {
+    public void enable() {
         this.status = 1;
         this.updateTime = LocalDateTime.now();
     }
 
     /**
-     * 是否有效关系
+     * 是否有效
      *
      * @return 是否有效
      */

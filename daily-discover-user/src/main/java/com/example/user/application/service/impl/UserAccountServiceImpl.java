@@ -6,7 +6,9 @@ import com.example.common.model.PageResult;
 import com.example.user.application.assembler.UserAccountAssembler;
 import com.example.user.application.dto.UserAccountDTO;
 import com.example.user.application.dto.UserAccountLogDTO;
+import com.example.user.application.dto.UserPointsLogDTO;
 import com.example.user.application.service.UserAccountService;
+import com.example.user.application.service.UserPointsLogService;
 import com.example.user.domain.model.UserAccount;
 import com.example.user.domain.model.UserAccountLog;
 import com.example.user.domain.model.id.UserId;
@@ -33,6 +35,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     private final UserAccountDomainService userAccountDomainService;
     private final UserAccountAssembler userAccountAssembler;
+    private final UserPointsLogService userPointsLogService;
 
     @Override
     public BaseDomainService getBaseDomainService() {
@@ -288,11 +291,14 @@ public class UserAccountServiceImpl implements UserAccountService {
                 .map(userAccountAssembler::toLogDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(logDTOs, pageResult.getTotal(), pageResult.getPages(), pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), logDTOs);    
     }
 
     @Override
     public List<UserAccountLogDTO> getAccountLogs(Long userId, Integer type, Integer source, Integer limit) {
+        // 实现账户流水查询
+        // 这里应该调用领域服务中的方法
         List<UserAccountLog> logs = userAccountDomainService.getAccountLogsByUserIdAndTypeAndSource(new UserId(userId), type, source, limit);
         
         return logs.stream()
@@ -301,146 +307,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
     
     @Override
-    public List<UserAccountLogDTO> getPointsLogs(Long userId, Integer type, Integer limit) {
-        // 实现积分日志查询
-        // 这里应该调用领域服务中的方法
-        return userAccountDomainService.getPointsLogsByUserIdAndType(new UserId(userId), type, limit)
-                .stream()
-                .map(userAccountAssembler::toLogDTO)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    @Transactional
-    public UserAccountDTO recharge(Long userId, BigDecimal amount, Integer source, String sourceId, String description) {
-        // 参数校验
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ResultCode.INVALID_AMOUNT);
-        }
-        
-        // 充值实际上是增加余额
-        UserAccountLog log = userAccountDomainService.increaseBalance(new UserId(userId), amount, source, sourceId, description);
-        
-        // 获取更新后的账户
-        Optional<UserAccount> accountOpt = userAccountDomainService.getUserAccount(new UserId(userId));
-        if (accountOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
-        }
-        
-        return userAccountAssembler.toDTO(accountOpt.get());
-    }
-    
-    @Override
-    @Transactional
-    public UserAccountDTO consume(Long userId, BigDecimal amount, Integer source, String sourceId, String description) {
-        // 参数校验
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ResultCode.INVALID_AMOUNT);
-        }
-        
-        // 检查余额是否足够
-        if (!userAccountDomainService.isBalanceEnough(new UserId(userId), amount)) {
-            throw new BusinessException(ResultCode.BALANCE_NOT_ENOUGH);
-        }
-        
-        // 消费实际上是减少余额
-        UserAccountLog log = userAccountDomainService.decreaseBalance(new UserId(userId), amount, source, sourceId, description);
-        
-        // 获取更新后的账户
-        Optional<UserAccount> accountOpt = userAccountDomainService.getUserAccount(new UserId(userId));
-        if (accountOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
-        }
-        
-        return userAccountAssembler.toDTO(accountOpt.get());
-    }
-    
-    @Override
-    @Transactional
-    public UserAccountDTO refund(Long userId, BigDecimal amount, Integer source, String sourceId, String description) {
-        // 参数校验
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ResultCode.INVALID_AMOUNT);
-        }
-        
-        // 退款实际上是增加余额
-        UserAccountLog log = userAccountDomainService.increaseBalance(new UserId(userId), amount, source, sourceId, description);
-        
-        // 获取更新后的账户
-        Optional<UserAccount> accountOpt = userAccountDomainService.getUserAccount(new UserId(userId));
-        if (accountOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
-        }
-        
-        return userAccountAssembler.toDTO(accountOpt.get());
-    }
-    
-    @Override
-    @Transactional
-    public UserAccountDTO withdraw(Long userId, BigDecimal amount, Integer source, String sourceId, String description) {
-        // 参数校验
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ResultCode.INVALID_AMOUNT);
-        }
-        
-        // 检查余额是否足够
-        if (!userAccountDomainService.isBalanceEnough(new UserId(userId), amount)) {
-            throw new BusinessException(ResultCode.BALANCE_NOT_ENOUGH);
-        }
-        
-        // 提现实际上是减少余额
-        UserAccountLog log = userAccountDomainService.decreaseBalance(new UserId(userId), amount, source, sourceId, description);
-        
-        // 获取更新后的账户
-        Optional<UserAccount> accountOpt = userAccountDomainService.getUserAccount(new UserId(userId));
-        if (accountOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
-        }
-        
-        return userAccountAssembler.toDTO(accountOpt.get());
-    }
-    
-    @Override
-    @Transactional
-    public UserAccountDTO adjustBalance(Long userId, BigDecimal amount, String description) {
-        // 调整余额，可以是正数（增加）也可以是负数（减少）
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
-            throw new BusinessException(ResultCode.INVALID_AMOUNT);
-        }
-        
-        UserAccountLog log;
-        if (amount.compareTo(BigDecimal.ZERO) > 0) {
-            // 正数，增加余额
-            log = userAccountDomainService.increaseBalance(new UserId(userId), amount, 5, null, description); // 5-系统调整
-        } else {
-            // 负数，减少余额
-            BigDecimal absAmount = amount.abs();
-            // 检查余额是否足够
-            if (!userAccountDomainService.isBalanceEnough(new UserId(userId), absAmount)) {
-                throw new BusinessException(ResultCode.BALANCE_NOT_ENOUGH);
-            }
-            log = userAccountDomainService.decreaseBalance(new UserId(userId), absAmount, 5, null, description); // 5-系统调整
-        }
-        
-        // 获取更新后的账户
-        Optional<UserAccount> accountOpt = userAccountDomainService.getUserAccount(new UserId(userId));
-        if (accountOpt.isEmpty()) {
-            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
-        }
-        
-        return userAccountAssembler.toDTO(accountOpt.get());
-    }
-    
-    @Override
-    public PageResult<UserAccountLogDTO> getAccountLogs(Long userId, PageRequest pageRequest, Integer type, Integer source) {
-        // 获取账户流水
-        PageResult<UserAccountLog> pageResult = userAccountDomainService.getAccountLogsByUserIdAndTypeAndSource(
-            new UserId(userId), type, source, pageRequest);
-        
-        List<UserAccountLogDTO> logDTOs = pageResult.getList().stream()
-                .map(userAccountAssembler::toLogDTO)
-                .collect(Collectors.toList());
-        
-        return new PageResult<>(logDTOs, pageResult.getTotal(), pageResult.getPages(), pageRequest.getPageNum(), pageRequest.getPageSize());
+    public List<UserPointsLogDTO> getPointsLogs(Long userId, Integer type, Integer limit) {
+        // 委托给积分服务处理
+        return userPointsLogService.getPointsLogs(userId, type, limit);
     }
 } 

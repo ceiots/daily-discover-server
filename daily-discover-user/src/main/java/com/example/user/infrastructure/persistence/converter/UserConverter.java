@@ -1,8 +1,8 @@
 package com.example.user.infrastructure.persistence.converter;
 
-import com.example.user.domain.model.User;
-import com.example.user.domain.model.UserRole;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.User;
+import com.example.user.domain.model.user.UserRole;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
 import com.example.user.domain.model.valueobject.Password;

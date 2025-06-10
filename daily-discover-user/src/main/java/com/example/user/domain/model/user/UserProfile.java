@@ -1,4 +1,4 @@
-package com.example.user.domain.model;
+package com.example.user.domain.model.user;
 
 import com.example.user.domain.model.id.UserId;
 import lombok.AccessLevel;

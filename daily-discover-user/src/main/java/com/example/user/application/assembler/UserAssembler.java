@@ -4,12 +4,12 @@ import com.example.user.api.vo.UserVO;
 import com.example.user.api.vo.UserProfileVO;
 import com.example.user.application.dto.UserDTO;
 import com.example.user.application.dto.UserProfileDTO;
-import com.example.user.domain.model.User;
-import com.example.user.domain.model.UserProfile;
+import com.example.user.domain.model.user.User;
+import com.example.user.domain.model.user.UserProfile;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
-import com.example.user.domain.model.UserRole;
+import com.example.user.domain.model.user.UserRole;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -44,11 +44,43 @@ public interface UserAssembler {
      * @param userDTO 用户DTO
      * @return 用户实体
      */
-    @Mapping(target = "id", source = "id", qualifiedByName = "longToUserId")
-    @Mapping(target = "email", source = "email", qualifiedByName = "stringToEmail")
-    @Mapping(target = "mobile", source = "mobile", qualifiedByName = "stringToMobile")
-    @Mapping(target = "roles", source = "roles", qualifiedByName = "stringListToRoles")
-    User toEntity(UserDTO userDTO);
+    default User toEntity(UserDTO userDTO) {
+        if (userDTO == null) {
+            return null;
+        }
+        
+        // 使用User.create方法创建实例
+        User user = User.create(
+            userDTO.getUsername(), 
+            "defaultPassword", // 注意：这里需要根据实际情况设置密码
+            userDTO.getNickname()
+        );
+        
+        // 设置其他属性
+        if (userDTO.getId() != null) {
+            user.setId(longToUserId(userDTO.getId()));
+        }
+        
+        // 设置邮箱
+        if (userDTO.getEmail() != null) {
+            user.changeEmail(stringToEmail(userDTO.getEmail()));
+        }
+        
+        // 设置手机号
+        if (userDTO.getMobile() != null) {
+            user.changeMobile(stringToMobile(userDTO.getMobile()));
+        }
+        
+        // 设置角色
+        if (userDTO.getRoles() != null) {
+            List<UserRole> roles = stringListToRoles(userDTO.getRoles());
+            for (UserRole role : roles) {
+                user.addRole(role);
+            }
+        }
+        
+        return user;
+    }
 
     /**
      * UserProfile实体转UserProfileDTO
@@ -65,8 +97,52 @@ public interface UserAssembler {
      * @param userProfileDTO 用户详情DTO
      * @return 用户详情实体
      */
-    @Mapping(target = "userId.value", source = "userId")
-    UserProfile toProfileEntity(UserProfileDTO userProfileDTO);
+    default UserProfile toProfileEntity(UserProfileDTO userProfileDTO) {
+        if (userProfileDTO == null) {
+            return null;
+        }
+        
+        // 使用UserProfile.create方法创建实例
+        UserId userId = longToUserId(userProfileDTO.getUserId());
+        // 由于UserProfileDTO中没有nickname字段，我们使用realName或默认值
+        String displayName = userProfileDTO.getRealName() != null ? 
+                            userProfileDTO.getRealName() : "用户" + userProfileDTO.getUserId();
+        UserProfile profile = UserProfile.create(userId, displayName);
+        
+        // 设置其他属性
+        if (userProfileDTO.getId() != null) {
+            profile.setId(userProfileDTO.getId());
+        }
+        if (userProfileDTO.getRealName() != null) {
+            profile.setRealName(userProfileDTO.getRealName());
+        }
+        if (userProfileDTO.getBirthday() != null) {
+            profile.setBirthday(userProfileDTO.getBirthday());
+        }
+        if (userProfileDTO.getBio() != null) {
+            profile.setBio(userProfileDTO.getBio());
+        }
+        if (userProfileDTO.getProfession() != null) {
+            profile.setProfession(userProfileDTO.getProfession());
+        }
+        
+        // 设置地区信息
+        StringBuilder region = new StringBuilder();
+        if (userProfileDTO.getProvince() != null) {
+            region.append(userProfileDTO.getProvince());
+        }
+        if (userProfileDTO.getCity() != null) {
+            region.append(" ").append(userProfileDTO.getCity());
+        }
+        if (userProfileDTO.getDistrict() != null) {
+            region.append(" ").append(userProfileDTO.getDistrict());
+        }
+        if (region.length() > 0) {
+            profile.setRegion(region.toString());
+        }
+        
+        return profile;
+    }
 
     /**
      * 更新UserProfile实体

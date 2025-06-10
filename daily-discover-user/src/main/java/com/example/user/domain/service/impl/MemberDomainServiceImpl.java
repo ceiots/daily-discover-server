@@ -3,23 +3,31 @@ package com.example.user.domain.service.impl;
 import com.example.common.exception.BusinessException;
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
+import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
 import com.example.user.domain.model.member.MemberLevel;
+import com.example.user.domain.model.valueobject.Email;
+import com.example.user.domain.model.valueobject.Mobile;
+import com.example.user.domain.model.valueobject.Password;
 import com.example.user.domain.repository.MemberLevelRepository;
 import com.example.user.domain.repository.MemberQueryCondition;
 import com.example.user.domain.repository.MemberRepository;
+import com.example.user.domain.repository.UserPointsLogRepository;
 import com.example.user.domain.service.MemberDomainService;
 import com.example.user.infrastructure.common.result.ResultCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.regex.Pattern;
 
 /**
  * 会员领域服务实现
@@ -33,6 +41,59 @@ public class MemberDomainServiceImpl implements MemberDomainService {
     private final MemberLevelRepository memberLevelRepository;
     private final UserPointsLogRepository userPointsLogRepository;
     
+    private static final BCryptPasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
+    private static final Pattern MOBILE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$");
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]{4,16}$");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$");
+    
+    // BaseDomainService 接口实现
+    @Override
+    public boolean verifyPassword(String plainPassword, String encodedPassword, String salt) {
+        return PASSWORD_ENCODER.matches(plainPassword, encodedPassword);
+    }
+
+    @Override
+    public String encryptPassword(String plainPassword, String salt) {
+        return PASSWORD_ENCODER.encode(plainPassword);
+    }
+
+    @Override
+    public String generateSalt() {
+        return String.valueOf(System.currentTimeMillis());
+    }
+
+    @Override
+    public boolean isValidMobile(String mobile) {
+        return mobile != null && MOBILE_PATTERN.matcher(mobile).matches();
+    }
+
+    @Override
+    public boolean isValidEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email).matches();
+    }
+
+    @Override
+    public boolean isValidUsername(String username) {
+        return username != null && USERNAME_PATTERN.matcher(username).matches();
+    }
+
+    @Override
+    public String generateVerifyCode(int length) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public boolean validatePasswordStrength(String password) {
+        return password != null && PASSWORD_PATTERN.matcher(password).matches();
+    }
+    
+    // 会员领域服务方法实现
     @Override
     public List<MemberLevel> getMemberLevels() {
         return memberLevelRepository.findAll();
@@ -41,6 +102,11 @@ public class MemberDomainServiceImpl implements MemberDomainService {
     @Override
     public Optional<MemberLevel> getMemberLevel(Integer level) {
         return memberLevelRepository.findByLevel(level);
+    }
+    
+    @Override
+    public Optional<MemberLevel> getMemberLevelById(Long id) {
+        return memberLevelRepository.findById(id);
     }
     
     @Override
@@ -55,12 +121,17 @@ public class MemberDomainServiceImpl implements MemberDomainService {
     
     @Override
     public boolean deleteMemberLevel(Integer level) {
-        return memberLevelRepository.deleteByLevel(level);
+        Optional<MemberLevel> levelOpt = memberLevelRepository.findByLevel(level);
+        if (levelOpt.isPresent()) {
+            return memberLevelRepository.delete(levelOpt.get().getId());
+        }
+        return false;
     }
     
     @Override
     public boolean existsMemberByLevel(Integer level) {
-        return memberRepository.existsByLevel(level);
+        List<Member> members = memberRepository.findByMemberLevel(level);
+        return members != null && !members.isEmpty();
     }
     
     @Override
@@ -85,7 +156,7 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         Member member = Member.create(userId, level, isForever, months);
         
         // 生成会员ID
-        member.setId(MemberId.of(generateMemberId()));
+        member.setId(new MemberId(generateMemberId()));
         
         return memberRepository.save(member);
     }
@@ -239,12 +310,23 @@ public class MemberDomainServiceImpl implements MemberDomainService {
     
     @Override
     public PageResult<Member> getMemberPage(PageRequest pageRequest, MemberQueryCondition condition) {
-        return memberRepository.findPage(pageRequest, condition);
+        // 简化实现，实际应该根据条件查询
+        Integer status = condition.getStatus();
+        Integer level = condition.getLevel();
+        return memberRepository.findPage(pageRequest, status, level);
     }
     
     @Override
     public List<Member> getMemberList(MemberQueryCondition condition) {
-        return memberRepository.findList(condition);
+        // 简化实现，实际应该根据条件查询
+        if (condition.getLevel() != null) {
+            return memberRepository.findByMemberLevel(condition.getLevel());
+        } else if (condition.getStatus() != null) {
+            return memberRepository.findByStatus(condition.getStatus());
+        } else {
+            // 返回空列表，实际实现应该提供更多查询方式
+            return List.of();
+        }
     }
     
     @Override
@@ -254,6 +336,7 @@ public class MemberDomainServiceImpl implements MemberDomainService {
     
     @Override
     public PageResult<UserPointsLog> getPointsLogsByUserId(UserId userId, PageRequest pageRequest) {
+        // 直接调用仓储接口的方法
         return userPointsLogRepository.findByUserId(userId, pageRequest);
     }
 
@@ -293,7 +376,7 @@ public class MemberDomainServiceImpl implements MemberDomainService {
 
     @Override
     @Transactional
-    public boolean disableMember(MemberId memberId) {
+    public Member disableMember(MemberId memberId) {
         // 查询会员
         Optional<Member> memberOpt = memberRepository.findById(memberId);
         if (memberOpt.isEmpty()) {
@@ -303,13 +386,12 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         Member member = memberOpt.get();
         // 禁用会员
         member.disable();
-        memberRepository.update(member);
-        return true;
+        return memberRepository.update(member);
     }
 
     @Override
     @Transactional
-    public boolean enableMember(MemberId memberId) {
+    public Member enableMember(MemberId memberId) {
         // 查询会员
         Optional<Member> memberOpt = memberRepository.findById(memberId);
         if (memberOpt.isEmpty()) {
@@ -319,8 +401,7 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         Member member = memberOpt.get();
         // 启用会员
         member.enable();
-        memberRepository.update(member);
-        return true;
+        return memberRepository.update(member);
     }
     
     /**

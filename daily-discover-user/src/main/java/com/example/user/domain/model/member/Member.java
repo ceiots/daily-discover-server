@@ -263,14 +263,17 @@ public class Member implements Serializable {
 
     /**
      * 使用免退次数
+     * 
+     * @return 是否使用成功
      */
-    public void useFreeReturn() {
+    public boolean useFreeReturn() {
         if (this.freeReturnCount <= 0) {
-            throw new BusinessException(ResultCode.FREE_RETURN_NOT_ENOUGH);
+            return false;
         }
         
         this.freeReturnCount--;
         this.updateTime = LocalDateTime.now();
+        return true;
     }
 
     /**

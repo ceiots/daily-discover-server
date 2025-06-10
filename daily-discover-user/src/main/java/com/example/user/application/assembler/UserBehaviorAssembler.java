@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 用户行为数据转换器
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {})
 public interface UserBehaviorAssembler {
 
     UserBehaviorAssembler INSTANCE = Mappers.getMapper(UserBehaviorAssembler.class);

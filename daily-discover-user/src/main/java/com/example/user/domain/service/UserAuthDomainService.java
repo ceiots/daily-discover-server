@@ -1,7 +1,7 @@
 package com.example.user.domain.service;
 
-import com.example.user.domain.model.UserAuth;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.UserAuth;
 
 import java.util.List;
 import java.util.Optional;

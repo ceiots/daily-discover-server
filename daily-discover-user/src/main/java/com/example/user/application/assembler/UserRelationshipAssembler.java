@@ -9,6 +9,7 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户关系数据转换器
@@ -34,9 +35,25 @@ public interface UserRelationshipAssembler {
      * @param userRelationshipDTO 用户关系DTO
      * @return 用户关系领域模型
      */
-    @Mapping(source = "userId", target = "userId", qualifiedByName = "longToUserId")
-    @Mapping(source = "relatedUserId", target = "relatedUserId", qualifiedByName = "longToUserId")
-    UserRelationship toDomain(UserRelationshipDTO userRelationshipDTO);
+    default UserRelationship toDomain(UserRelationshipDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        
+        UserId userId = longToUserId(dto.getUserId());
+        UserId relatedUserId = longToUserId(dto.getRelatedUserId());
+        UserRelationship relationship = UserRelationship.create(userId, relatedUserId, dto.getRelationType());
+        
+        if (dto.getId() != null) {
+            relationship.setId(dto.getId());
+        }
+        
+        if (dto.getRemark() != null) {
+            relationship.setRemark(dto.getRemark());
+        }
+        
+        return relationship;
+    }
 
     /**
      * 将领域模型列表转换为DTO列表
@@ -44,7 +61,15 @@ public interface UserRelationshipAssembler {
      * @param userRelationshipList 用户关系领域模型列表
      * @return 用户关系DTO列表
      */
-    List<UserRelationshipDTO> toDTO(List<UserRelationship> userRelationshipList);
+    default List<UserRelationshipDTO> toDTO(List<UserRelationship> userRelationshipList) {
+        if (userRelationshipList == null) {
+            return null;
+        }
+        
+        return userRelationshipList.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
 
     /**
      * 将DTO列表转换为领域模型列表
@@ -52,7 +77,15 @@ public interface UserRelationshipAssembler {
      * @param userRelationshipDTOList 用户关系DTO列表
      * @return 用户关系领域模型列表
      */
-    List<UserRelationship> toDomain(List<UserRelationshipDTO> userRelationshipDTOList);
+    default List<UserRelationship> toDomain(List<UserRelationshipDTO> dtoList) {
+        if (dtoList == null) {
+            return null;
+        }
+        
+        return dtoList.stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
     
     /**
      * 将UserId转换为Long

@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * 会员领域服务接口
  */
-public interface MemberDomainService {
+public interface MemberDomainService extends BaseDomainService {
 
     /**
      * 创建会员
@@ -129,6 +129,14 @@ public interface MemberDomainService {
      * @return 会员等级对象
      */
     Optional<MemberLevel> getMemberLevel(Integer level);
+
+    /**
+     * 获取会员等级
+     *
+     * @param id 会员等级ID
+     * @return 会员等级对象
+     */
+    Optional<MemberLevel> getMemberLevelById(Long id);
 
     /**
      * 创建会员等级
@@ -273,4 +281,21 @@ public interface MemberDomainService {
      * @return 会员列表
      */
     List<Member> getMemberList(MemberQueryCondition condition);
+
+    /**
+     * 增加免退次数
+     *
+     * @param memberId 会员ID
+     * @param count 次数
+     * @return 会员对象
+     */
+    Member addFreeReturnCount(MemberId memberId, int count);
+    
+    /**
+     * 使用免退特权
+     *
+     * @param memberId 会员ID
+     * @return 是否使用成功
+     */
+    boolean useFreeReturn(MemberId memberId);
 } 

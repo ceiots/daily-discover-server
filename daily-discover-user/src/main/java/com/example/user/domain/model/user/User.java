@@ -1,4 +1,4 @@
-package com.example.user.domain.model;
+package com.example.user.domain.model.user;
 
 import com.example.common.exception.BusinessException;
 import com.example.user.infrastructure.common.result.ResultCode;
@@ -94,6 +94,16 @@ public class User implements Serializable {
      * 最后登录IP
      */
     private String lastLoginIp;
+    
+    /**
+     * 注册时间
+     */
+    private LocalDateTime registerTime;
+    
+    /**
+     * 注册IP
+     */
+    private String registerIp;
 
     /**
      * 用户角色列表
@@ -180,6 +190,15 @@ public class User implements Serializable {
         updateTime = LocalDateTime.now();
         version++;
     }
+    
+    /**
+     * 设置密码
+     */
+    public void setPassword(Password password) {
+        this.password = password;
+        updateTime = LocalDateTime.now();
+        version++;
+    }
 
     /**
      * 更新手机号
@@ -212,6 +231,25 @@ public class User implements Serializable {
         if (gender != null) {
             this.gender = gender;
         }
+        updateTime = LocalDateTime.now();
+        version++;
+    }
+
+    /**
+     * 设置注册信息
+     */
+    public void setRegisterInfo(String registerIp, LocalDateTime registerTime) {
+        this.registerIp = registerIp;
+        this.registerTime = registerTime;
+        updateTime = LocalDateTime.now();
+    }
+    
+    /**
+     * 更新登录信息
+     */
+    public void updateLoginInfo(String loginIp, LocalDateTime loginTime) {
+        this.lastLoginIp = loginIp;
+        this.lastLoginTime = loginTime;
         updateTime = LocalDateTime.now();
         version++;
     }

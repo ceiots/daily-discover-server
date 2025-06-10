@@ -7,9 +7,9 @@ import com.example.user.application.assembler.UserFollowAssembler;
 import com.example.user.application.dto.UserDTO;
 import com.example.user.application.dto.UserFollowDTO;
 import com.example.user.application.service.UserFollowService;
-import com.example.user.domain.model.User;
 import com.example.user.domain.model.UserFollow;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.User;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserFollowDomainService;
 import lombok.RequiredArgsConstructor;
@@ -64,8 +64,8 @@ public class UserFollowServiceImpl implements UserFollowService {
                 .map(userFollowAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(followDTOs, pageResult.getTotal(), pageResult.getPages(), 
-                pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), followDTOs);
     }
 
     @Override
@@ -84,8 +84,8 @@ public class UserFollowServiceImpl implements UserFollowService {
                 .map(userFollowAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(fanDTOs, pageResult.getTotal(), pageResult.getPages(), 
-                pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), fanDTOs);
     }
 
     @Override

@@ -355,6 +355,25 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
+    public boolean deleteMemberLevel(Long id) {
+        // 检查等级是否存在
+        Optional<MemberLevel> existingLevelOpt = memberDomainService.getMemberLevelById(id);
+        if (existingLevelOpt.isEmpty()) {
+            throw new BusinessException(ResultCode.MEMBER_LEVEL_NOT_FOUND);
+        }
+        
+        // 检查是否有会员使用该等级
+        MemberLevel memberLevel = existingLevelOpt.get();
+        if (memberDomainService.existsMemberByLevel(memberLevel.getLevel())) {
+            throw new BusinessException(ResultCode.MEMBER_LEVEL_IN_USE);
+        }
+        
+        // 删除会员等级
+        return memberDomainService.deleteMemberLevel(memberLevel.getLevel());
+    }
+
+    @Override
     public PageResult<PointsLogDTO> getPointsLogs(Long memberId, PageRequest pageRequest) {
         // 检查会员是否存在
         Optional<Member> memberOpt = memberDomainService.getMemberById(new MemberId(memberId));
@@ -368,7 +387,8 @@ public class MemberServiceImpl implements MemberService {
         
         List<PointsLogDTO> pointsLogDTOs = memberAssembler.toPointsLogDTOList(pageResult.getList());
         
-        return new PageResult<>(pointsLogDTOs, pageResult.getTotal(), pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize());
+        return new PageResult<>(pageResult.getPageNum(), pageResult.getPageSize(), 
+                pageResult.getTotal(), pointsLogDTOs);
     }
 
     @Override
@@ -379,7 +399,8 @@ public class MemberServiceImpl implements MemberService {
                 .map(memberAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(memberDTOs, pageResult.getTotal(), pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize());
+        return new PageResult<>(pageResult.getPageNum(), pageResult.getPageSize(), 
+                pageResult.getTotal(), memberDTOs);
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.example.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.UserAuth;
+import com.example.user.domain.model.user.UserAuth;
 import com.example.user.domain.repository.UserAuthRepository;
 import com.example.user.infrastructure.persistence.converter.UserAuthConverter;
 import com.example.user.infrastructure.persistence.entity.UserAuthEntity;

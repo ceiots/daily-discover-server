@@ -121,4 +121,21 @@ public interface UserFavoriteRepository {
      * @return 是否收藏
      */
     boolean existsByUserIdAndTypeAndTargetId(UserId userId, Integer type, Long targetId);
+
+    /**
+     * 更新用户收藏
+     *
+     * @param userFavorite 用户收藏对象
+     * @return 更新后的用户收藏对象
+     */
+    UserFavorite update(UserFavorite userFavorite);
+
+    /**
+     * 统计目标收藏数
+     *
+     * @param type 类型
+     * @param targetId 目标ID
+     * @return 收藏数
+     */
+    Long countByTypeAndTargetId(Integer type, Long targetId);
 }

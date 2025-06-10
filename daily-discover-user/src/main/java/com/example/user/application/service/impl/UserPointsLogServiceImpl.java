@@ -7,7 +7,9 @@ import com.example.user.application.assembler.UserPointsLogAssembler;
 import com.example.user.application.dto.UserPointsLogDTO;
 import com.example.user.application.service.UserPointsLogService;
 import com.example.user.domain.model.UserPointsLog;
+import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.member.Member;
 import com.example.user.domain.repository.UserPointsLogRepository;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.MemberDomainService;
@@ -38,7 +40,7 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
 
     @Override
     public PageResult<UserPointsLogDTO> getPointsLogs(Long userId, PageRequest pageRequest) {
-        PageResult<UserPointsLog> pageResult = userPointsLogRepository.findPage(new UserId(userId), pageRequest);
+        PageResult<UserPointsLog> pageResult = userPointsLogRepository.findByUserId(new UserId(userId), pageRequest);
         
         List<UserPointsLogDTO> userPointsLogDTOList = pageResult.getList().stream()
                 .map(userPointsLogAssembler::toDTO)
@@ -50,8 +52,14 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
 
     @Override
     public List<UserPointsLogDTO> getPointsLogs(Long userId, Integer type, Integer limit) {
-        List<UserPointsLog> userPointsLogList = userPointsLogRepository.findByUserIdAndType(
-                new UserId(userId), type, limit);
+        // 由于仓储接口没有直接提供按类型查询的方法，我们需要先获取所有记录，然后在应用层过滤
+        List<UserPointsLog> allLogs = userPointsLogRepository.findByUserId(new UserId(userId));
+        
+        // 根据类型过滤
+        List<UserPointsLog> userPointsLogList = allLogs.stream()
+                .filter(log -> type == null || log.getType().equals(type))
+                .limit(limit != null ? limit : Long.MAX_VALUE)
+                .collect(Collectors.toList());
         
         return userPointsLogList.stream()
                 .map(userPointsLogAssembler::toDTO)
@@ -79,7 +87,15 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
         UserPointsLog savedUserPointsLog = userPointsLogRepository.save(userPointsLog);
         
         // 更新用户积分
-        memberDomainService.addPoints(new UserId(userId), points);
+        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+            memberDomainService.addPoints(member.getId(), points);
+        } else {
+            // 如果用户不是会员，创建会员
+            Member newMember = memberDomainService.createMember(new UserId(userId), 1, false, null);
+            memberDomainService.addPoints(newMember.getId(), points);
+        }
         
         return userPointsLogAssembler.toDTO(savedUserPointsLog);
     }
@@ -110,7 +126,13 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
         UserPointsLog savedUserPointsLog = userPointsLogRepository.save(userPointsLog);
         
         // 更新用户积分
-        memberDomainService.usePoints(new UserId(userId), points);
+        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+            memberDomainService.usePoints(member.getId(), points);
+        } else {
+            throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
+        }
         
         return userPointsLogAssembler.toDTO(savedUserPointsLog);
     }
@@ -123,6 +145,20 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
         
         // 创建积分记录
         UserPointsLog userPointsLog;
+        Optional<Member> memberOpt = memberDomainService.getMember(new UserId(userId));
+        Member member;
+        
+        if (memberOpt.isEmpty()) {
+            if (points <= 0) {
+                throw new BusinessException(ResultCode.MEMBER_NOT_FOUND);
+            }
+            // 如果用户不是会员且要增加积分，创建会员
+            member = memberDomainService.createMember(new UserId(userId), 1, false, null);
+        } else {
+            member = memberOpt.get();
+        }
+        
+        MemberId memberId = member.getId();
         
         if (points >= 0) {
             // 增加积分
@@ -137,7 +173,7 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
             );
             
             // 更新用户积分
-            memberDomainService.addPoints(new UserId(userId), points);
+            memberDomainService.addPoints(memberId, points);
         } else {
             // 扣减积分
             int absPoints = Math.abs(points);
@@ -158,7 +194,7 @@ public class UserPointsLogServiceImpl implements UserPointsLogService {
             );
             
             // 更新用户积分
-            memberDomainService.usePoints(new UserId(userId), absPoints);
+            memberDomainService.usePoints(memberId, absPoints);
         }
         
         // 保存积分记录

@@ -7,9 +7,9 @@ import com.example.user.application.assembler.UserRelationshipAssembler;
 import com.example.user.application.dto.UserDTO;
 import com.example.user.application.dto.UserRelationshipDTO;
 import com.example.user.application.service.UserRelationshipService;
-import com.example.user.domain.model.User;
 import com.example.user.domain.model.UserRelationship;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.User;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserRelationshipDomainService;
 import lombok.RequiredArgsConstructor;
@@ -68,8 +68,8 @@ public class UserRelationshipServiceImpl implements UserRelationshipService {
                 .map(userRelationshipAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(relationshipDTOs, pageResult.getTotal(), pageResult.getPages(), 
-                pageRequest.getPageNum(), pageRequest.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), relationshipDTOs);
     }
 
     @Override

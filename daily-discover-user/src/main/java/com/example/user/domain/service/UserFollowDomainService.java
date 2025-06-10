@@ -2,9 +2,9 @@ package com.example.user.domain.service;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
-import com.example.user.domain.model.User;
 import com.example.user.domain.model.UserFollow;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.user.User;
 
 import java.util.List;
 

@@ -9,8 +9,8 @@ import com.example.user.application.dto.RegisterDTO;
 import com.example.user.application.dto.UserDTO;
 import com.example.user.application.dto.UserProfileDTO;
 import com.example.user.application.service.UserService;
-import com.example.user.domain.model.User;
-import com.example.user.domain.model.UserProfile;
+import com.example.user.domain.model.user.User;
+import com.example.user.domain.model.user.UserProfile;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
@@ -46,15 +46,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDTO register(RegisterDTO registerDTO) {
         // 验证用户名、手机号、邮箱是否已存在
-        if (userDomainService.existsByUsername(registerDTO.getUsername())) {
+        if (userDomainService.getUserByUsername(registerDTO.getUsername()).isPresent()) {
             throw new BusinessException(ResultCode.USERNAME_EXISTS);
         }
         
-        if (registerDTO.getMobile() != null && userDomainService.existsByMobile(registerDTO.getMobile())) {
+        if (registerDTO.getMobile() != null && 
+            userDomainService.getUserByMobile(Mobile.of(registerDTO.getMobile())).isPresent()) {
             throw new BusinessException(ResultCode.MOBILE_EXISTS);
         }
         
-        if (registerDTO.getEmail() != null && userDomainService.existsByEmail(registerDTO.getEmail())) {
+        if (registerDTO.getEmail() != null && 
+            userDomainService.getUserByEmail(Email.of(registerDTO.getEmail())).isPresent()) {
             throw new BusinessException(ResultCode.EMAIL_EXISTS);
         }
         
@@ -186,7 +188,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // 查询用户
-        Optional<User> userOpt = userDomainService.findByMobile(mobile);
+        Optional<User> userOpt = userDomainService.getUserByMobile(Mobile.of(mobile));
         
         if (userOpt.isEmpty()) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
@@ -225,7 +227,7 @@ public class UserServiceImpl implements UserService {
         User user = userDomainService.getUserById(userId);
         
         // 获取用户详情
-        Optional<UserProfile> profileOpt = userDomainService.findProfileByUserId(user.getId());
+        Optional<UserProfile> profileOpt = userDomainService.findProfileByUserId(new UserId(userId));
         
         if (profileOpt.isEmpty()) {
             throw new BusinessException(ResultCode.USER_PROFILE_NOT_FOUND);
@@ -256,18 +258,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PageResult<UserDTO> getUserPage(PageRequest pageRequest, UserQueryCondition condition) {
-        PageResult<User> pageResult = userDomainService.findUserPage(pageRequest, condition);
+        PageResult<User> pageResult = userDomainService.findPage(pageRequest, condition);
         
         List<UserDTO> userDTOList = pageResult.getList().stream()
                 .map(userAssembler::toDTO)
                 .collect(Collectors.toList());
         
-        return new PageResult<>(userDTOList, pageResult.getTotal(), pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize());
+        return new PageResult<>(pageRequest.getPageNum(), pageRequest.getPageSize(), 
+                pageResult.getTotal(), userDTOList);
     }
 
     @Override
     public List<UserDTO> getUserList(UserQueryCondition condition) {
-        List<User> userList = userDomainService.findUserList(condition);
+        List<User> userList = userDomainService.findList(condition);
         
         return userList.stream()
                 .map(userAssembler::toDTO)

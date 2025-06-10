@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 用户收藏数据转换器
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {})
 public interface UserFavoriteAssembler {
 
     UserFavoriteAssembler INSTANCE = Mappers.getMapper(UserFavoriteAssembler.class);

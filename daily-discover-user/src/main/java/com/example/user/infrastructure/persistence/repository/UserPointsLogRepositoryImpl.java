@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -29,10 +28,9 @@ public class UserPointsLogRepositoryImpl implements UserPointsLogRepository {
     private final UserPointsLogConverter userPointsLogConverter;
 
     @Override
-    public Optional<UserPointsLog> findById(Long id) {
+    public UserPointsLog findById(Long id) {
         UserPointsLogEntity entity = userPointsLogMapper.selectById(id);
-        return Optional.ofNullable(entity)
-                .map(userPointsLogConverter::toDomain);
+        return entity != null ? userPointsLogConverter.manualToDomain(entity) : null;
     }
 
     @Override
@@ -48,23 +46,19 @@ public class UserPointsLogRepositoryImpl implements UserPointsLogRepository {
     }
 
     @Override
-    public List<UserPointsLog> findByUserId(UserId userId, Integer limit) {
+    public List<UserPointsLog> findByUserId(UserId userId) {
         LambdaQueryWrapper<UserPointsLogEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPointsLogEntity::getUserId, userId.getValue())
                 .orderByDesc(UserPointsLogEntity::getCreateTime);
         
-        if (limit != null && limit > 0) {
-            wrapper.last("LIMIT " + limit);
-        }
-        
         List<UserPointsLogEntity> entities = userPointsLogMapper.selectList(wrapper);
         return entities.stream()
-                .map(userPointsLogConverter::toDomain)
+                .map(userPointsLogConverter::manualToDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public PageResult<UserPointsLog> findPage(UserId userId, PageRequest pageRequest) {
+    public PageResult<UserPointsLog> findByUserId(UserId userId, PageRequest pageRequest) {
         LambdaQueryWrapper<UserPointsLogEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPointsLogEntity::getUserId, userId.getValue())
                 .orderByDesc(UserPointsLogEntity::getCreateTime);
@@ -73,7 +67,7 @@ public class UserPointsLogRepositoryImpl implements UserPointsLogRepository {
         IPage<UserPointsLogEntity> iPage = userPointsLogMapper.selectPage(page, wrapper);
         
         List<UserPointsLog> pointsLogs = iPage.getRecords().stream()
-                .map(userPointsLogConverter::toDomain)
+                .map(userPointsLogConverter::manualToDomain)
                 .collect(Collectors.toList());
         
         return new PageResult<>(
@@ -85,6 +79,35 @@ public class UserPointsLogRepositoryImpl implements UserPointsLogRepository {
     }
     
     @Override
+    public UserPointsLog update(UserPointsLog pointsLog) {
+        UserPointsLogEntity entity = userPointsLogConverter.toEntity(pointsLog);
+        userPointsLogMapper.updateById(entity);
+        return pointsLog;
+    }
+    
+    @Override
+    public boolean delete(Long id) {
+        int result = userPointsLogMapper.deleteById(id);
+        return result > 0;
+    }
+    
+    // 以下是额外实现的方法，不在接口中定义，但在领域服务中使用
+    
+    public List<UserPointsLog> findByUserId(UserId userId, Integer limit) {
+        LambdaQueryWrapper<UserPointsLogEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPointsLogEntity::getUserId, userId.getValue())
+                .orderByDesc(UserPointsLogEntity::getCreateTime);
+        
+        if (limit != null && limit > 0) {
+            wrapper.last("LIMIT " + limit);
+        }
+        
+        List<UserPointsLogEntity> entities = userPointsLogMapper.selectList(wrapper);
+        return entities.stream()
+                .map(userPointsLogConverter::manualToDomain)
+                .collect(Collectors.toList());
+    }
+    
     public List<UserPointsLog> findByUserIdAndType(UserId userId, Integer type, Integer limit) {
         LambdaQueryWrapper<UserPointsLogEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserPointsLogEntity::getUserId, userId.getValue());
@@ -101,7 +124,7 @@ public class UserPointsLogRepositoryImpl implements UserPointsLogRepository {
         
         List<UserPointsLogEntity> entities = userPointsLogMapper.selectList(wrapper);
         return entities.stream()
-                .map(userPointsLogConverter::toDomain)
+                .map(userPointsLogConverter::manualToDomain)
                 .collect(Collectors.toList());
     }
 }
