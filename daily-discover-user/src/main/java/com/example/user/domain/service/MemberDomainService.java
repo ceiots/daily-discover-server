@@ -1,9 +1,13 @@
 package com.example.user.domain.service;
 
-import com.example.user.domain.model.member.Member;
-import com.example.user.domain.model.member.MemberLevel;
+import com.example.common.model.PageRequest;
+import com.example.common.model.PageResult;
+import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
+import com.example.user.domain.model.member.Member;
+import com.example.user.domain.model.member.MemberLevel;
+import com.example.user.domain.repository.MemberQueryCondition;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +27,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param months 会员有效期（月）
      * @return 会员对象
      */
-    Member createMember(UserId userId, int level, boolean isForever, int months);
+    Member createMember(UserId userId, Integer level, Boolean isForever, Integer months);
 
     /**
      * 获取会员信息
@@ -49,7 +53,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param growthValue 成长值
      * @return 升级后的会员对象
      */
-    Member upgradeMember(MemberId memberId, int level, int growthValue);
+    Member upgradeMember(MemberId memberId, Integer level, Integer growthValue);
 
     /**
      * 延长会员有效期
@@ -58,7 +62,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param months   延长月数
      * @return 延长后的会员对象
      */
-    Member extendMember(MemberId memberId, int months);
+    Member extendMember(MemberId memberId, Integer months);
 
     /**
      * 设置为永久会员
@@ -91,7 +95,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param growthValue 成长值
      * @return 增加后的会员对象
      */
-    Member addGrowthValue(MemberId memberId, int growthValue);
+    Member addGrowthValue(MemberId memberId, Integer growthValue);
 
     /**
      * 增加积分
@@ -100,7 +104,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param points   积分
      * @return 增加后的会员对象
      */
-    Member addPoints(MemberId memberId, int points);
+    Member addPoints(MemberId memberId, Integer points);
 
     /**
      * 使用积分
@@ -109,7 +113,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param points   积分
      * @return 使用后的会员对象
      */
-    Member usePoints(MemberId memberId, int points);
+    Member usePoints(MemberId memberId, Integer points);
 
     /**
      * 获取会员等级列表
@@ -124,7 +128,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param level 等级
      * @return 会员等级对象
      */
-    Optional<MemberLevel> getMemberLevel(int level);
+    Optional<MemberLevel> getMemberLevel(Integer level);
 
     /**
      * 创建会员等级
@@ -148,7 +152,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param level 等级
      * @return 是否删除成功
      */
-    boolean deleteMemberLevel(int level);
+    boolean deleteMemberLevel(Integer level);
     
     /**
      * 检查会员是否有效
@@ -182,7 +186,7 @@ public interface MemberDomainService extends BaseDomainService {
      * @param currentGrowth 当前成长值
      * @return 升级所需成长值，如果已是最高等级则返回0
      */
-    default int calculateGrowthToNextLevel(int currentLevel, int currentGrowth) {
+    default int calculateGrowthToNextLevel(Integer currentLevel, Integer currentGrowth) {
         Optional<MemberLevel> currentLevelOpt = getMemberLevel(currentLevel);
         Optional<MemberLevel> nextLevelOpt = getMemberLevel(currentLevel + 1);
         
@@ -224,7 +228,49 @@ public interface MemberDomainService extends BaseDomainService {
      * @param points 要使用的积分
      * @return 是否可以使用
      */
-    default boolean canUsePoints(Member member, int points) {
+    default boolean canUsePoints(Member member, Integer points) {
         return member != null && member.getPoints() >= points;
     }
+
+    /**
+     * 检查会员等级是否存在会员使用
+     *
+     * @param level 会员等级
+     * @return 是否存在会员使用
+     */
+    boolean existsMemberByLevel(Integer level);
+    
+    /**
+     * 保存积分日志
+     *
+     * @param pointsLog 积分日志
+     * @return 保存后的积分日志
+     */
+    UserPointsLog savePointsLog(UserPointsLog pointsLog);
+    
+    /**
+     * 获取用户积分日志分页
+     *
+     * @param userId 用户ID
+     * @param pageRequest 分页请求
+     * @return 积分日志分页
+     */
+    PageResult<UserPointsLog> getPointsLogsByUserId(UserId userId, PageRequest pageRequest);
+    
+    /**
+     * 分页查询会员
+     *
+     * @param pageRequest 分页请求
+     * @param condition 查询条件
+     * @return 会员分页
+     */
+    PageResult<Member> getMemberPage(PageRequest pageRequest, MemberQueryCondition condition);
+    
+    /**
+     * 查询会员列表
+     *
+     * @param condition 查询条件
+     * @return 会员列表
+     */
+    List<Member> getMemberList(MemberQueryCondition condition);
 } 

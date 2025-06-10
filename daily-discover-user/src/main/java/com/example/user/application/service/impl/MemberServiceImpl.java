@@ -15,8 +15,6 @@ import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
 import com.example.user.domain.model.member.MemberLevel;
 import com.example.user.domain.repository.MemberQueryCondition;
-import com.example.user.domain.repository.MemberRepository;
-import com.example.user.domain.repository.PointsLogRepository;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.MemberDomainService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 会员应用服务实现类
@@ -34,8 +33,6 @@ import java.util.Optional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberDomainService memberDomainService;
-    private final MemberRepository memberRepository;
-    private final PointsLogRepository pointsLogRepository;
     private final MemberAssembler memberAssembler;
 
     @Override
@@ -211,7 +208,7 @@ public class MemberServiceImpl implements MemberService {
             null,
             description
         );
-        pointsLogRepository.save(pointsLog);
+        memberDomainService.savePointsLog(pointsLog);
         
         return memberAssembler.toDTO(member);
     }
@@ -245,7 +242,7 @@ public class MemberServiceImpl implements MemberService {
             null,
             description
         );
-        pointsLogRepository.save(pointsLog);
+        memberDomainService.savePointsLog(pointsLog);
         
         return memberAssembler.toDTO(updatedMember);
     }
@@ -309,7 +306,7 @@ public class MemberServiceImpl implements MemberService {
         }
         
         // 检查是否有会员使用该等级
-        if (memberRepository.existsByLevel(level)) {
+        if (memberDomainService.existsMemberByLevel(level)) {
             throw new BusinessException(ResultCode.MEMBER_LEVEL_IN_USE);
         }
         
@@ -327,7 +324,7 @@ public class MemberServiceImpl implements MemberService {
         
         // 获取积分记录
         UserId userId = memberOpt.get().getUserId();
-        PageResult<UserPointsLog> pageResult = pointsLogRepository.findPageByUserId(userId, pageRequest);
+        PageResult<UserPointsLog> pageResult = memberDomainService.getPointsLogsByUserId(userId, pageRequest);
         
         List<PointsLogDTO> pointsLogDTOs = memberAssembler.toPointsLogDTOList(pageResult.getList());
         
@@ -336,22 +333,22 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public PageResult<MemberDTO> getMemberPage(PageRequest pageRequest, MemberQueryCondition condition) {
-        PageResult<Member> pageResult = memberRepository.findPage(pageRequest, condition);
+        PageResult<Member> pageResult = memberDomainService.getMemberPage(pageRequest, condition);
         
         List<MemberDTO> memberDTOs = pageResult.getList().stream()
                 .map(memberAssembler::toDTO)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
         
         return new PageResult<>(memberDTOs, pageResult.getTotal(), pageResult.getPages(), pageResult.getPageNum(), pageResult.getPageSize());
     }
 
     @Override
     public List<MemberDTO> getMemberList(MemberQueryCondition condition) {
-        List<Member> memberList = memberRepository.findList(condition);
+        List<Member> memberList = memberDomainService.getMemberList(condition);
         
         return memberList.stream()
                 .map(memberAssembler::toDTO)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override

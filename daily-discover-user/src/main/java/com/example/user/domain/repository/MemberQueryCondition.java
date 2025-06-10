@@ -33,6 +33,11 @@ public class MemberQueryCondition {
     private String mobile;
     
     /**
+     * 会员等级
+     */
+    private Integer level;
+    
+    /**
      * 会员等级列表
      */
     private List<Integer> levelList;
@@ -61,6 +66,11 @@ public class MemberQueryCondition {
      * 是否永久会员
      */
     private Boolean isForever;
+    
+    /**
+     * 状态：0-禁用，1-正常
+     */
+    private Integer status;
     
     /**
      * 状态列表

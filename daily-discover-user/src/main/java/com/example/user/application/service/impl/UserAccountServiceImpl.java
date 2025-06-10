@@ -11,7 +11,6 @@ import com.example.user.application.service.UserAccountService;
 import com.example.user.domain.model.UserAccount;
 import com.example.user.domain.model.UserAccountLog;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.repository.UserAccountLogRepository;
 import com.example.user.domain.service.BaseDomainService;
 import com.example.user.domain.service.UserAccountDomainService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 public class UserAccountServiceImpl implements UserAccountService {
 
     private final UserAccountDomainService userAccountDomainService;
-    private final UserAccountLogRepository userAccountLogRepository;
     private final UserAccountAssembler userAccountAssembler;
 
     @Override
@@ -283,7 +281,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public PageResult<UserAccountLogDTO> getAccountLogs(Long userId, PageRequest pageRequest) {
-        PageResult<UserAccountLog> pageResult = userAccountLogRepository.findPageByUserId(new UserId(userId), pageRequest);
+        PageResult<UserAccountLog> pageResult = userAccountDomainService.getAccountLogsByUserId(new UserId(userId), pageRequest);
         
         List<UserAccountLogDTO> logDTOs = pageResult.getList().stream()
                 .map(userAccountAssembler::toLogDTO)
@@ -294,10 +292,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public List<UserAccountLogDTO> getAccountLogs(Long userId, Integer type, Integer source, Integer limit) {
-        List<UserAccountLog> logs = userAccountLogRepository.findByUserIdAndTypeAndSource(new UserId(userId), type, source, limit);
+        List<UserAccountLog> logs = userAccountDomainService.getAccountLogsByUserIdAndTypeAndSource(new UserId(userId), type, source, limit);
         
         return logs.stream()
                 .map(userAccountAssembler::toLogDTO)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<UserAccountLogDTO> getPointsLogs(Long userId, Integer type, Integer limit) {
+        // 实现积分日志查询
+        // 这里可以调用领域服务中的方法
+        return null;
     }
 } 

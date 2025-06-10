@@ -16,7 +16,6 @@ import com.example.user.domain.model.user.User;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
 import com.example.user.domain.repository.UserQueryCondition;
-import com.example.user.domain.repository.UserRepository;
 import com.example.user.domain.service.UserDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,5 +1,7 @@
 package com.example.user.domain.service;
 
+import com.example.common.model.PageRequest;
+import com.example.common.model.PageResult;
 import com.example.user.domain.model.UserAccount;
 import com.example.user.domain.model.UserAccountLog;
 import com.example.user.domain.model.UserPointsLog;
@@ -180,4 +182,24 @@ public interface UserAccountDomainService extends BaseDomainService {
      * @return 用户积分记录列表
      */
     List<UserPointsLog> getPointsLogs(Long userId, Integer type, Integer limit);
+
+    /**
+     * 获取用户账户日志分页
+     *
+     * @param userId 用户ID
+     * @param pageRequest 分页请求
+     * @return 账户日志分页
+     */
+    PageResult<UserAccountLog> getAccountLogsByUserId(UserId userId, PageRequest pageRequest);
+
+    /**
+     * 获取用户账户日志列表（按类型和来源）
+     *
+     * @param userId 用户ID
+     * @param type 类型
+     * @param source 来源
+     * @param limit 限制数量
+     * @return 账户日志列表
+     */
+    List<UserAccountLog> getAccountLogsByUserIdAndTypeAndSource(UserId userId, Integer type, Integer source, Integer limit);
 } 

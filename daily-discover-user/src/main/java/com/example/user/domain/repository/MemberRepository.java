@@ -5,7 +5,8 @@ import com.example.common.model.PageResult;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
-import com.example.user.domain.model.MemberLevel;
+import com.example.user.domain.model.member.MemberLevel;
+import com.example.user.domain.model.UserPointsLog;
 
 import java.util.List;
 import java.util.Optional;
@@ -158,4 +159,21 @@ public interface MemberRepository {
      * @return 是否删除成功
      */
     boolean deleteLevel(Long id);
+
+    /**
+     * 保存用户积分记录
+     *
+     * @param pointsLog 用户积分记录对象
+     * @return 保存后的用户积分记录对象
+     */
+    UserPointsLog savePointsLog(UserPointsLog pointsLog);
+
+    /**
+     * 根据用户ID分页查询积分记录
+     *
+     * @param userId 用户ID
+     * @param pageRequest 分页参数
+     * @return 积分记录分页结果
+     */
+    PageResult<UserPointsLog> getPointsLogsByUserId(UserId userId, PageRequest pageRequest);
 } 
