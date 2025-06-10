@@ -32,7 +32,7 @@ public class Password implements Serializable {
     
     public static Password create(String rawPassword) {
         if (rawPassword == null || rawPassword.isEmpty()) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "密码不能为空");
+            throw new BusinessException(ResultCode.PASSWORD_EMPTY);
         }
         validate(rawPassword);
         return new Password(ENCODER.encode(rawPassword));
@@ -40,7 +40,7 @@ public class Password implements Serializable {
     
     public static Password createWithoutValidation(String rawPassword) {
         if (rawPassword == null || rawPassword.isEmpty()) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "密码不能为空");
+            throw new BusinessException(ResultCode.PASSWORD_EMPTY);
         }
         return new Password(ENCODER.encode(rawPassword));
     }
@@ -59,8 +59,7 @@ public class Password implements Serializable {
     
     private static void validate(String password) {
         if (!PASSWORD_PATTERN.matcher(password).matches()) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, 
-                    "密码必须包含大小写字母和数字，长度为8-20位");
+            throw new BusinessException(ResultCode.PASSWORD_FORMAT_ERROR);
         }
     }
     

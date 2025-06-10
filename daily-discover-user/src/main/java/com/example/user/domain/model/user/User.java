@@ -1,11 +1,11 @@
 package com.example.user.domain.model.user;
 
 import com.example.common.exception.BusinessException;
+import com.example.user.infrastructure.common.result.ResultCode;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.Mobile;
 import com.example.user.domain.model.valueobject.Password;
-import com.example.user.infrastructure.common.result.ResultCode;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -174,7 +174,7 @@ public class User implements Serializable {
      */
     public void changePassword(String oldPassword, String newPassword) {
         if (!password.matches(oldPassword)) {
-            throw new BusinessException(ResultCode.PASSWORD_ERROR);
+            throw new BusinessException(ResultCode.PASSWORD_ERROR, "密码错误");
         }
         password = Password.create(newPassword);
         updateTime = LocalDateTime.now();

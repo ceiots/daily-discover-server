@@ -223,7 +223,7 @@ public class Member implements Serializable {
      */
     public void addPoints(Integer points) {
         if (points == null || points <= 0) {
-            throw new BusinessException(ResultCode.INVALID_POINTS);
+            throw new BusinessException(ResultCode.PARAM_ERROR, "积分无效");
         }
         
         this.points += points;
@@ -237,11 +237,11 @@ public class Member implements Serializable {
      */
     public void usePoints(Integer points) {
         if (points == null || points <= 0) {
-            throw new BusinessException(ResultCode.INVALID_POINTS);
+            throw new BusinessException(ResultCode.PARAM_ERROR, "积分无效");
         }
         
         if (this.points < points) {
-            throw new BusinessException(ResultCode.POINTS_NOT_ENOUGH);
+            throw new BusinessException(ResultCode.PARAM_ERROR, "积分不足");
         }
         
         this.points -= points;
@@ -254,7 +254,7 @@ public class Member implements Serializable {
      */
     public void useFreeShipping() {
         if (this.freeShippingCount <= 0) {
-            throw new BusinessException(ResultCode.FREE_SHIPPING_NOT_ENOUGH);
+            throw new BusinessException(ResultCode.PARAM_ERROR, "免邮次数不足");
         }
         
         this.freeShippingCount--;

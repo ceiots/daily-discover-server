@@ -2,8 +2,8 @@ package com.example.user.domain.repository;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
+import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.id.UserId;
-import com.example.user.domain.model.user.UserPointsLog;
 
 import java.util.List;
 import java.util.Optional;

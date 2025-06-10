@@ -5,9 +5,10 @@ import com.example.user.api.vo.MemberLevelVO;
 import com.example.user.application.dto.MemberDTO;
 import com.example.user.application.dto.MemberLevelDTO;
 import com.example.user.application.dto.PointsLogDTO;
+import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.member.Member;
 import com.example.user.domain.model.member.MemberLevel;
-import com.example.user.domain.model.UserPointsLog;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;

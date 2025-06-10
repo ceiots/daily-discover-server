@@ -2,11 +2,11 @@ package com.example.user.domain.repository;
 
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
+import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
 import com.example.user.domain.model.member.Member;
 import com.example.user.domain.model.member.MemberLevel;
-import com.example.user.domain.model.user.UserPointsLog;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -572,16 +572,6 @@ public class MemberServiceImpl implements MemberService {
         return memberAssembler.toDTO(updatedMember);
     }
     
-    @Override
-    public MemberDTO getMemberInfo(Long userId) {
-        return getMemberByUserId(userId);
-    }
-    
-    @Override
-    @Transactional
-    public MemberDTO openMember(Long userId, Integer level, Boolean isForever, Integer months) {
-        return createMember(userId, level, isForever, months);
-    }
     
     @Override
     @Transactional
