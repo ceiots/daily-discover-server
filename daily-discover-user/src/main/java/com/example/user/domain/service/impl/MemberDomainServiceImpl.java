@@ -5,7 +5,7 @@ import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
 import com.example.user.domain.event.DomainEventPublisher;
 import com.example.user.domain.event.MemberUpgradedEvent;
-import com.example.user.domain.event.PointsChangedEvent;
+// import com.example.user.domain.event.PointsChangedEvent; // 暂时注释，等后续修复文件编码问题后再启用
 import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
@@ -243,25 +243,25 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         }
 
         Member member = memberOpt.get();
+        // 记录变更前积分
         Integer beforePoints = member.getPoints();
-        
         // 增加积分
         member.addPoints(points);
         
-        // 保存更新后的会员信息
+        // 更新会员
         Member updatedMember = memberRepository.update(member);
         
-        // 发布积分变更事件
-        eventPublisher.publish(new PointsChangedEvent(
-            member.getUserId(),
-            beforePoints,
-            member.getPoints(),
-            points,
-            1, // 获取积分
-            5, // 系统赠送
-            null,
-            "会员积分增加"
-        ));
+        // TODO: 积分变更事件发布（暂时注释，等后续修复文件编码问题后再启用）
+        // eventPublisher.publish(new PointsChangedEvent(
+        //     member.getUserId(),
+        //     beforePoints,
+        //     member.getPoints(),
+        //     points,
+        //     1, // 获取积分
+        //     5, // 系统赠送
+        //     null,
+        //     "会员积分增加"
+        // ));
         
         log.info("会员积分增加成功: memberId={}, userId={}, beforePoints={}, afterPoints={}, points={}", 
                 memberId.getValue(), member.getUserId().getValue(), beforePoints, member.getPoints(), points);
