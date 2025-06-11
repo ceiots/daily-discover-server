@@ -3,6 +3,9 @@ package com.example.user.domain.service.impl;
 import com.example.common.exception.BusinessException;
 import com.example.common.model.PageRequest;
 import com.example.common.model.PageResult;
+import com.example.user.domain.event.DomainEventPublisher;
+import com.example.user.domain.event.MemberUpgradedEvent;
+import com.example.user.domain.event.PointsChangedEvent;
 import com.example.user.domain.model.UserPointsLog;
 import com.example.user.domain.model.id.MemberId;
 import com.example.user.domain.model.id.UserId;
@@ -40,6 +43,7 @@ public class MemberDomainServiceImpl implements MemberDomainService {
     private final MemberRepository memberRepository;
     private final MemberLevelRepository memberLevelRepository;
     private final UserPointsLogRepository userPointsLogRepository;
+    private final DomainEventPublisher eventPublisher;
     
     private static final BCryptPasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
     private static final Pattern MOBILE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
@@ -171,6 +175,7 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         }
 
         Member member = memberOpt.get();
+        Integer previousLevel = member.getMemberLevel();
         
         // 增加成长值（如果有）
         if (growthValue != null && growthValue > 0) {
@@ -180,7 +185,22 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         // 升级会员
         member.upgrade(level, member.getGrowthValue());
         
-        return memberRepository.update(member);
+        // 保存更新后的会员信息
+        Member updatedMember = memberRepository.update(member);
+        
+        // 发布会员升级事件
+        eventPublisher.publish(new MemberUpgradedEvent(
+            memberId,
+            member.getUserId(),
+            previousLevel,
+            level,
+            growthValue != null && growthValue > 0 ? "成长值达标自动升级" : "系统手动升级"
+        ));
+        
+        log.info("会员升级成功: memberId={}, userId={}, previousLevel={}, newLevel={}", 
+                memberId.getValue(), member.getUserId().getValue(), previousLevel, level);
+        
+        return updatedMember;
     }
 
     @Override
@@ -223,13 +243,30 @@ public class MemberDomainServiceImpl implements MemberDomainService {
         }
 
         Member member = memberOpt.get();
+        Integer beforePoints = member.getPoints();
+        
         // 增加积分
         member.addPoints(points);
         
-        // 记录积分流水（实际实现应该调用积分服务）
-        // 这里简化处理，不记录积分流水
+        // 保存更新后的会员信息
+        Member updatedMember = memberRepository.update(member);
         
-        return memberRepository.update(member);
+        // 发布积分变更事件
+        eventPublisher.publish(new PointsChangedEvent(
+            member.getUserId(),
+            beforePoints,
+            member.getPoints(),
+            points,
+            1, // 获取积分
+            5, // 系统赠送
+            null,
+            "会员积分增加"
+        ));
+        
+        log.info("会员积分增加成功: memberId={}, userId={}, beforePoints={}, afterPoints={}, points={}", 
+                memberId.getValue(), member.getUserId().getValue(), beforePoints, member.getPoints(), points);
+        
+        return updatedMember;
     }
 
     @Override

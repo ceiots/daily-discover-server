@@ -14,7 +14,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @EnableTransactionManagement
 @SpringBootApplication
-@MapperScan("com.example.infrastructure.repository.mapper")
+@MapperScan({
+    "com.example.*.infrastructure.repository.mapper",
+    "com.example.*.mapper"
+})
 @EnableScheduling
 public class DailyDiscoverApplication {
 

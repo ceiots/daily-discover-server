@@ -23,3 +23,4 @@ CREATE DATABASE demo;
 # 数据库使用语句
 USE demo;
 
+D:\install\maven-mvnd-2.0.0-rc-3-windows-amd64\bin\mvnd.exe  clean install
