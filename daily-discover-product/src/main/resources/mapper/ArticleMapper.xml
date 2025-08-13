@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dailydiscover.mapper.ArticleMapper">
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.dailydiscover.model.Article">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="subtitle" property="subtitle" />
+        <result column="author" property="author" />
+        <result column="read_time" property="readTime" />
+        <result column="category" property="category" />
+        <result column="image" property="image" />
+        <result column="content" property="content" />
+        <result column="tags" property="tags" typeHandler="com.dailydiscover.config.StringListTypeHandler" />
+        <result column="is_active" property="isActive" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+    
+    <!-- 查询语句可以保留在接口中的注解中，这里提供一个示例 -->
+    <select id="findAllArticles" resultMap="BaseResultMap">
+        SELECT * FROM articles
+    </select>
+</mapper>

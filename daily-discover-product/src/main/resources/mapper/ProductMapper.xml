@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dailydiscover.mapper.ProductMapper">
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.dailydiscover.model.Product">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="price" property="price" />
+        <result column="description" property="description" />
+        <result column="image_url" property="imageUrl" />
+        <result column="time_slot" property="timeSlot" />
+        <result column="category" property="category" />
+        <result column="original_price" property="originalPrice" />
+        <result column="tag" property="tag" />
+        <result column="reason" property="reason" />
+        <result column="is_hot_sale" property="isHotSale" />
+        <result column="is_high_quality" property="isHighQuality" />
+        <result column="is_fast_delivery" property="isFastDelivery" />
+        <result column="features" property="features" />
+        <result column="is_active" property="isActive" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+    
+    <!-- 查询语句可以保留在接口中的注解中，这里提供一个示例 -->
+    <select id="findAllProducts" resultMap="BaseResultMap">
+        SELECT * FROM products
+    </select>
+    
+    <!-- 查询具有特定特性的商品 -->
+    <select id="findFeaturedProducts" resultMap="BaseResultMap">
+        SELECT * FROM products 
+        WHERE is_active = true 
+        AND (is_hot_sale = true OR is_high_quality = true OR is_fast_delivery = true)
+    </select>
+</mapper>
