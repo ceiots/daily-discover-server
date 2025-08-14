@@ -19,6 +19,7 @@ public class Product {
     private Boolean isFastDelivery = false;
     private String features;
     private Boolean isActive = true;
+    private Integer sales = 0;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -188,6 +189,14 @@ public class Product {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Integer getSales() {
+        return sales;
+    }
+
+    public void setSales(Integer sales) {
+        this.sales = sales;
     }
 
     public LocalDateTime getCreatedAt() {
