@@ -157,28 +157,185 @@ const morningProducts = await getRecommendationsByTimeSlot('morning');
 
 ## 开发指南
 
-### 项目结构
+## 🏗️ 详细项目结构
+
 ```
 daily-discover-product/
-├── src/main/java/com/dailydiscover/
-│   ├── DailyDiscoverProductApplication.java    # 主应用类
-│   ├── controller/                             # 控制器层
-│   │   └── ProductController.java
-│   ├── service/                               # 服务层
-│   │   └── ProductService.java
-│   ├── repository/                            # 数据访问层
-│   │   └── ProductRepository.java
-│   ├── model/                                # 数据模型
-│   │   └── Product.java
-│   └── config/                               # 配置类
-│       └── DataInitializer.java
-├── src/main/resources/
-│   ├── application.properties                # 应用配置
-│   └── db/migration/                         # 数据库迁移脚本
-│       ├── V1__Create_Product_Table.sql
-│       └── V2__Insert_Sample_Data.sql
-└── pom.xml                                   # Maven 配置
+├── src/                        # 源代码目录
+│   ├── main/                   # 主要源代码目录
+│   │   ├── java/              # Java 源代码
+│   │   │   └── com/dailydiscover/ # 主包结构
+│   │   │       ├── DailyDiscoverProductApplication.java # 应用程序主类
+│   │   │       ├── config/     # 配置类
+│   │   │       │   └── StringListTypeHandler.java # 字符串列表类型处理器
+│   │   │       ├── controller/ # 控制器层
+│   │   │       │   ├── ArticleController.java # 文章控制器
+│   │   │       │   ├── ProductController.java # 商品控制器
+│   │   │       │   └── TopicController.java # 话题控制器
+│   │   │       ├── mapper/     # 数据访问层
+│   │   │       │   ├── ArticleMapper.java # 文章数据访问接口
+│   │   │       │   ├── ProductMapper.java # 商品数据访问接口
+│   │   │       │   └── TopicMapper.java # 话题数据访问接口
+│   │   │       ├── model/     # 数据模型层
+│   │   │       │   ├── Article.java # 文章实体类
+│   │   │       │   ├── Product.java # 商品实体类
+│   │   │       │   └── Topic.java # 话题实体类
+│   │   │       └── service/   # 服务层
+│   │   │           ├── ArticleService.java # 文章服务接口
+│   │   │           ├── ArticleServiceImpl.java # 文章服务实现
+│   │   │           ├── ProductService.java # 商品服务接口
+│   │   │           ├── ProductServiceImpl.java # 商品服务实现
+│   │   │           ├── TopicService.java # 话题服务接口
+│   │   │           └── TopicServiceImpl.java # 话题服务实现
+│   │   └── resources/         # 资源文件目录
+│   │       ├── application.properties # 应用配置文件
+│   │       ├── db/             # 数据库相关资源
+│   │       │   └── migration/  # 数据库迁移脚本
+│   │       │       ├── V1__Create_initial_tables.sql # 初始表创建脚本
+│   │       │       ├── V2__Add_product_images.sql # 商品图片表添加脚本
+│   │       │       ├── V3__Add_article_content.sql # 文章内容表添加脚本
+│   │       │       ├── V4__Add_topic_related.sql # 话题相关表添加脚本
+│   │       │       ├── V5__Add_user_system.sql # 用户系统表添加脚本
+│   │       │       └── V6__Add_recommendation_system.sql # 推荐系统表添加脚本
+│   │       ├── logback-spring.xml # 日志配置文件
+│   │       └── mapper/         # MyBatis 映射文件
+│   │           ├── ArticleMapper.xml # 文章映射配置
+│   │           ├── ProductMapper.xml # 商品映射配置
+│   │           └── TopicMapper.xml # 话题映射配置
+├── pom.xml                     # Maven 项目配置文件
+└── README.md                   # 项目说明文档
 ```
+
+### 目录结构说明
+
+#### 核心目录作用
+
+**src/main/java/com/dailydiscover/** - Java 源代码主包
+
+**DailyDiscoverProductApplication.java** - 应用程序主类
+- Spring Boot 应用程序入口点
+- 包含应用程序启动配置
+- 定义应用程序级别的 Bean
+
+**config/** - 配置类目录
+- **StringListTypeHandler.java**: MyBatis 类型处理器，用于处理数据库中的字符串列表类型
+- 负责字符串与列表类型之间的转换
+- 支持数据库字段与 Java 对象的映射
+
+**controller/** - 控制器层 (MVC 中的 Controller)
+- **ArticleController.java**: 文章相关 API 接口控制器
+  - 处理文章的 CRUD 操作
+  - 提供文章列表、详情、搜索等接口
+  - 实现文章推荐功能
+- **ProductController.java**: 商品相关 API 接口控制器
+  - 处理商品的 CRUD 操作
+  - 提供商品列表、详情、分类等接口
+  - 实现商品推荐和搜索功能
+- **TopicController.java**: 话题相关 API 接口控制器
+  - 处理话题的 CRUD 操作
+  - 提供话题列表、详情、热门话题等接口
+  - 实现话题推荐功能
+
+**mapper/** - 数据访问层 (MyBatis)
+- **ArticleMapper.java**: 文章数据访问接口
+  - 定义文章相关的数据库操作方法
+  - 使用 MyBatis 注解或 XML 映射文件
+  - 支持复杂的查询条件和分页
+- **ProductMapper.java**: 商品数据访问接口
+  - 定义商品相关的数据库操作方法
+  - 支持商品分类、价格区间查询
+  - 实现商品推荐算法的数据访问
+- **TopicMapper.java**: 话题数据访问接口
+  - 定义话题相关的数据库操作方法
+  - 支持话题热度统计
+  - 实现话题关联查询
+
+**model/** - 数据模型层 (Entity)
+- **Article.java**: 文章实体类
+  - 定义文章数据结构
+  - 包含文章标题、内容、作者、发布时间等字段
+  - 实现 JPA 实体注解
+- **Product.java**: 商品实体类
+  - 定义商品数据结构
+  - 包含商品名称、价格、描述、图片等字段
+  - 支持商品分类和标签
+- **Topic.java**: 话题实体类
+  - 定义话题数据结构
+  - 包含话题标题、描述、热度等字段
+  - 支持话题与文章、商品的关联
+
+**service/** - 服务层 (Business Logic)
+- **ArticleService.java/ArticleServiceImpl.java**: 文章服务接口及实现
+  - 实现文章业务逻辑
+  - 提供文章推荐算法
+  - 处理文章缓存和性能优化
+- **ProductService.java/ProductServiceImpl.java**: 商品服务接口及实现
+  - 实现商品业务逻辑
+  - 提供商品搜索和过滤功能
+  - 处理商品库存和价格管理
+- **TopicService.java/TopicServiceImpl.java**: 话题服务接口及实现
+  - 实现话题业务逻辑
+  - 提供话题热度计算
+  - 处理话题关联推荐
+
+**src/main/resources/** - 资源文件目录
+
+**application.properties** - 应用配置文件
+- 数据库连接配置
+- 服务器端口配置
+- 日志级别配置
+- 应用自定义配置
+
+**db/migration/** - 数据库迁移脚本
+- **V1__Create_initial_tables.sql**: 创建初始数据表
+  - 创建文章、商品、话题基础表
+  - 定义表结构和索引
+- **V2__Add_product_images.sql**: 添加商品图片表
+  - 支持商品多图片功能
+  - 定义图片与商品的关联关系
+- **V3__Add_article_content.sql**: 添加文章内容表
+  - 支持富文本内容存储
+  - 实现文章版本管理
+- **V4__Add_topic_related.sql**: 添加话题相关表
+  - 实现话题与文章、商品的关联
+  - 支持话题标签系统
+- **V5__Add_user_system.sql**: 添加用户系统表
+  - 实现用户注册和登录
+  - 支持用户权限管理
+- **V6__Add_recommendation_system.sql**: 添加推荐系统表
+  - 实现个性化推荐算法
+  - 支持用户行为追踪
+
+**mapper/** - MyBatis 映射文件
+- **ArticleMapper.xml**: 文章映射配置
+  - 定义文章相关的 SQL 查询
+  - 支持复杂查询和联表操作
+  - 实现文章推荐查询
+- **ProductMapper.xml**: 商品映射配置
+  - 定义商品相关的 SQL 查询
+  - 支持商品分类和筛选
+  - 实现商品搜索功能
+- **TopicMapper.xml**: 话题映射配置
+  - 定义话题相关的 SQL 查询
+  - 支持话题热度统计
+  - 实现话题关联查询
+
+**logback-spring.xml** - 日志配置文件
+- 定义日志输出格式
+- 配置日志文件存储位置
+- 设置不同环境的日志级别
+- 支持日志滚动和归档
+
+#### 架构设计特点
+
+1. **分层架构**: 采用经典的 MVC 分层架构，清晰分离控制器、服务、数据访问层
+2. **RESTful API**: 提供标准的 RESTful API 接口，支持前后端分离
+3. **数据库版本管理**: 使用 Flyway 进行数据库版本控制，支持平滑升级
+4. **缓存策略**: 在服务层实现缓存机制，提高系统性能
+5. **推荐系统**: 内置个性化推荐算法，支持基于用户行为的内容推荐
+6. **日志管理**: 完善的日志系统，支持多级别日志输出和文件管理
+7. **类型安全**: 使用 MyBatis 类型处理器，确保数据类型安全转换
+8. **扩展性**: 模块化设计，易于扩展新功能和业务模块
 
 ### 添加新功能
 1. 在 `model` 包中创建实体类
