@@ -25,7 +25,7 @@ public class MottoController {
         MottoEntity motto = mottoService.getTodayMotto();
         Map<String, Object> mottoData = new HashMap<>();
         mottoData.put("id", motto.getId());
-        mottoData.put("content", motto.getText());
+        mottoData.put("text", motto.getText());
         mottoData.put("author", "每日发现");
         mottoData.put("date", motto.getDate());
         
@@ -40,7 +40,7 @@ public class MottoController {
             .map(motto -> {
                 Map<String, Object> mottoData = new HashMap<>();
                 mottoData.put("id", motto.getId());
-                mottoData.put("content", motto.getText());
+                mottoData.put("text", motto.getText());
                 mottoData.put("author", "每日发现");
                 mottoData.put("date", motto.getDate());
                 return mottoData;
@@ -57,7 +57,7 @@ public class MottoController {
         if (motto != null) {
             Map<String, Object> mottoData = new HashMap<>();
             mottoData.put("id", motto.getId());
-            mottoData.put("content", motto.getText());
+            mottoData.put("text", motto.getText());
             mottoData.put("author", "每日发现");
             mottoData.put("date", motto.getDate());
             return ApiResponse.success(mottoData);
@@ -76,7 +76,7 @@ public class MottoController {
         if (createdMotto != null) {
             Map<String, Object> result = new HashMap<>();
             result.put("id", createdMotto.getId());
-            result.put("content", createdMotto.getText());
+            result.put("text", createdMotto.getText());
             result.put("author", "每日发现");
             result.put("date", createdMotto.getDate());
             return ApiResponse.success(result);
