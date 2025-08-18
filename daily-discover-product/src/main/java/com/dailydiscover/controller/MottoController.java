@@ -1,26 +1,33 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.ApiResponse;
+import com.dailydiscover.model.MottoEntity;
+import com.dailydiscover.service.MottoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/mottos")
 public class MottoController {
+
+    @Autowired
+    private MottoService mottoService;
     
     // 获取今日格言
     @GetMapping("/today")
     public ApiResponse<Map<String, Object>> getTodayMotto() {
-        // 模拟返回今日格言数据
+        MottoEntity motto = mottoService.getTodayMotto();
         Map<String, Object> mottoData = new HashMap<>();
-        mottoData.put("id", 1L);
-        mottoData.put("content", "每一天都是一个新的开始，珍惜当下，创造未来。");
-        mottoData.put("author", "佚名");
-        mottoData.put("date", java.time.LocalDate.now().toString());
+        mottoData.put("id", motto.getId());
+        mottoData.put("content", motto.getText());
+        mottoData.put("author", "每日发现");
+        mottoData.put("date", motto.getDate());
         
         return ApiResponse.success(mottoData);
     }
@@ -28,40 +35,52 @@ public class MottoController {
     // 获取所有格言
     @GetMapping
     public ApiResponse<List<Map<String, Object>>> getAllMottos() {
-        // 模拟返回所有格言数据
-        List<Map<String, Object>> mottos = Arrays.asList(
-            createMotto(1L, "每一天都是一个新的开始，珍惜当下，创造未来。", "佚名"),
-            createMotto(2L, "成功不是终点，失败不是终结，继续前进的勇气才是最重要的。", "温斯顿·丘吉尔"),
-            createMotto(3L, "生活就像骑自行车，想保持平衡就得往前走。", "阿尔伯特·爱因斯坦")
-        );
+        List<MottoEntity> mottos = mottoService.getAllMottos();
+        List<Map<String, Object>> result = mottos.stream()
+            .map(motto -> {
+                Map<String, Object> mottoData = new HashMap<>();
+                mottoData.put("id", motto.getId());
+                mottoData.put("content", motto.getText());
+                mottoData.put("author", "每日发现");
+                mottoData.put("date", motto.getDate());
+                return mottoData;
+            })
+            .collect(Collectors.toList());
         
-        return ApiResponse.success(mottos);
+        return ApiResponse.success(result);
     }
     
     // 根据ID获取格言
     @GetMapping("/{id}")
     public ApiResponse<Map<String, Object>> getMottoById(@PathVariable Long id) {
-        // 模拟根据ID获取格言
-        Map<String, Object> motto = createMotto(id, "每一天都是一个新的开始，珍惜当下，创造未来。", "佚名");
-        return ApiResponse.success(motto);
+        MottoEntity motto = mottoService.getMottoById(id);
+        if (motto != null) {
+            Map<String, Object> mottoData = new HashMap<>();
+            mottoData.put("id", motto.getId());
+            mottoData.put("content", motto.getText());
+            mottoData.put("author", "每日发现");
+            mottoData.put("date", motto.getDate());
+            return ApiResponse.success(mottoData);
+        }
+        return ApiResponse.error("格言不存在");
     }
     
     // 创建格言
     @PostMapping
     public ApiResponse<Map<String, Object>> createMotto(@RequestBody Map<String, Object> mottoData) {
-        // 模拟创建格言
-        mottoData.put("id", System.currentTimeMillis());
-        mottoData.put("createdAt", java.time.LocalDateTime.now().toString());
-        return ApiResponse.success(mottoData);
-    }
-    
-    // 辅助方法：创建格言数据
-    private Map<String, Object> createMotto(Long id, String content, String author) {
-        Map<String, Object> motto = new HashMap<>();
-        motto.put("id", id);
-        motto.put("content", content);
-        motto.put("author", author);
-        motto.put("date", java.time.LocalDate.now().toString());
-        return motto;
+        MottoEntity motto = new MottoEntity();
+        motto.setText((String) mottoData.get("content"));
+        motto.setDate((String) mottoData.get("date"));
+        
+        MottoEntity createdMotto = mottoService.createMotto(motto);
+        if (createdMotto != null) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", createdMotto.getId());
+            result.put("content", createdMotto.getText());
+            result.put("author", "每日发现");
+            result.put("date", createdMotto.getDate());
+            return ApiResponse.success(result);
+        }
+        return ApiResponse.error("创建格言失败");
     }
 }
