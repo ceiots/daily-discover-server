@@ -59,4 +59,55 @@
     <select id="findById" resultMap="BaseResultMap">
         SELECT * FROM products WHERE id = #{id}
     </select>
+    
+    <!-- 插入商品 -->
+    <insert id="insert" parameterType="com.dailydiscover.model.ProductEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO products (name, description, price, image_url, category_id, is_active, view_count, like_count, favorite_count, created_at, updated_at)
+        VALUES (#{name}, #{description}, #{price}, #{imageUrl}, #{categoryId}, #{isActive}, #{viewCount}, #{likeCount}, #{favoriteCount}, #{createdAt}, #{updatedAt})
+    </insert>
+    
+    <!-- 更新商品 -->
+    <update id="update" parameterType="com.dailydiscover.model.ProductEntity">
+        UPDATE products 
+        SET name = #{name}, 
+            description = #{description}, 
+            price = #{price}, 
+            image_url = #{imageUrl}, 
+            category_id = #{categoryId}, 
+            is_active = #{isActive}, 
+            view_count = #{viewCount}, 
+            like_count = #{likeCount}, 
+            favorite_count = #{favoriteCount}, 
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新商品浏览次数 -->
+    <update id="updateViewCount">
+        UPDATE products SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+    
+    <!-- 更新商品点赞次数 -->
+    <update id="updateLikeCount">
+        UPDATE products SET like_count = like_count + 1 WHERE id = #{id}
+    </update>
+    
+    <!-- 更新商品收藏次数 -->
+    <update id="updateFavoriteCount">
+        UPDATE products SET favorite_count = favorite_count + 1 WHERE id = #{id}
+    </update>
+    
+    <!-- 删除商品 -->
+    <delete id="delete">
+        DELETE FROM products WHERE id = #{id}
+    </delete>
+    
+    <!-- 批量插入商品 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO products (name, description, price, image_url, category_id, is_active, view_count, like_count, favorite_count, created_at, updated_at)
+        VALUES 
+        <foreach collection="products" item="product" separator=",">
+            (#{product.name}, #{product.description}, #{product.price}, #{product.imageUrl}, #{product.categoryId}, #{product.isActive}, #{product.viewCount}, #{product.likeCount}, #{product.favoriteCount}, #{product.createdAt}, #{product.updatedAt})
+        </foreach>
+    </insert>
 </mapper>

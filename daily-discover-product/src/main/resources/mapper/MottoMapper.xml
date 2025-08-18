@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dailydiscover.mapper.MottoMapper">
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.dailydiscover.model.MottoEntity">
+        <id column="id" property="id" />
+        <result column="text" property="text" />
+        <result column="date" property="date" />
+        <result column="is_active" property="isActive" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+    
+    <!-- 查找今日格言 -->
+    <select id="findTodayMotto" resultMap="BaseResultMap">
+        SELECT * FROM daily_mottos WHERE date = #{date} AND is_active = true ORDER BY created_at DESC LIMIT 1
+    </select>
+    
+    <!-- 查找所有格言 -->
+    <select id="findAllMottos" resultMap="BaseResultMap">
+        SELECT * FROM daily_mottos ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据ID查找格言 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM daily_mottos WHERE id = #{id}
+    </select>
+    
+    <!-- 根据日期查找格言 -->
+    <select id="findByDate" resultMap="BaseResultMap">
+        SELECT * FROM daily_mottos WHERE date = #{date} ORDER BY created_at DESC
+    </select>
+    
+    <!-- 查找所有活跃格言 -->
+    <select id="findActiveMottos" resultMap="BaseResultMap">
+        SELECT * FROM daily_mottos WHERE is_active = true ORDER BY created_at DESC
+    </select>
+    
+    <!-- 插入格言 -->
+    <insert id="insert" parameterType="com.dailydiscover.model.MottoEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO daily_mottos (text, date, is_active, created_at, updated_at) 
+        VALUES (#{text}, #{date}, #{isActive}, #{createdAt}, #{updatedAt})
+    </insert>
+    
+    <!-- 更新格言 -->
+    <update id="update" parameterType="com.dailydiscover.model.MottoEntity">
+        UPDATE daily_mottos SET text = #{text}, date = #{date}, is_active = #{isActive}, 
+        updated_at = #{updatedAt} WHERE id = #{id}
+    </update>
+    
+    <!-- 删除格言 -->
+    <delete id="deleteById">
+        DELETE FROM daily_mottos WHERE id = #{id}
+    </delete>
+    
+    <!-- 软删除格言 -->
+    <update id="softDeleteById">
+        UPDATE daily_mottos SET is_active = false, updated_at = NOW() WHERE id = #{id}
+    </update>
+</mapper>
