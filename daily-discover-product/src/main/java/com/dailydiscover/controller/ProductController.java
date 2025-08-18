@@ -2,7 +2,6 @@ package com.dailydiscover.controller;
 
 import com.dailydiscover.model.ProductEntity;
 import com.dailydiscover.service.ProductService;
-import com.dailydiscover.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
     
-    @Autowired
-    private RecommendationService recommendationService;
+
     
     // 获取所有活跃商品
     @GetMapping
@@ -104,19 +102,7 @@ public class ProductController {
         return productService.getLatestProducts();
     }
     
-    // 获取智能推荐商品
-    @GetMapping("/smart-recommendations")
-    public List<ProductEntity> getSmartRecommendations(@RequestParam(defaultValue = "6") int limit) {
-        return recommendationService.getSmartRecommendations(limit);
-    }
-    
-    // 获取个性化推荐商品
-    @GetMapping("/personalized-recommendations")
-    public List<ProductEntity> getPersonalizedRecommendations(
-            @RequestParam(required = false) String userId,
-            @RequestParam(defaultValue = "6") int limit) {
-        return recommendationService.getPersonalizedRecommendations(userId, limit);
-    }
+
     
     // 获取当前时间段
     private String getCurrentTimeSlot() {

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.math.BigDecimal;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -138,7 +139,7 @@ public class ProductServiceImpl implements ProductService {
         // 简化实现，返回原价
         Map<String, Object> result = new HashMap<>();
         ProductEntity product = getProductById(id);
-        result.put("price", product != null ? product.getPrice() : 0.0);
+        result.put("price", product != null ? product.getPrice() : BigDecimal.ZERO);
         return result;
     }
     
@@ -167,7 +168,7 @@ public class ProductServiceImpl implements ProductService {
         
         ProductEntity product1 = new ProductEntity();
         product1.setName("精选咖啡豆");
-        product1.setPrice(128.0);
+        product1.setPrice(new BigDecimal("128.0"));
         product1.setDescription("来自哥伦比亚的优质阿拉比卡咖啡豆，口感醇厚，香气浓郁");
         product1.setImageUrl("https://via.placeholder.com/300x200/8B4513/FFFFFF?text=咖啡豆");
         product1.setCategory("饮品");
@@ -176,7 +177,7 @@ public class ProductServiceImpl implements ProductService {
         
         ProductEntity product2 = new ProductEntity();
         product2.setName("手工陶瓷杯");
-        product2.setPrice(88.0);
+        product2.setPrice(new BigDecimal("88.0"));
         product2.setDescription("手工制作的陶瓷杯，独特的设计，适合日常使用");
         product2.setImageUrl("https://via.placeholder.com/300x200/DEB887/FFFFFF?text=陶瓷杯");
         product2.setCategory("生活用品");
@@ -185,7 +186,7 @@ public class ProductServiceImpl implements ProductService {
         
         ProductEntity product3 = new ProductEntity();
         product3.setName("天然精油");
-        product3.setPrice(158.0);
+        product3.setPrice(new BigDecimal("158.0"));
         product3.setDescription("纯天然植物精油，有助于放松身心，改善睡眠质量");
         product3.setImageUrl("https://via.placeholder.com/300x200/9370DB/FFFFFF?text=精油");
         product3.setCategory("个护健康");

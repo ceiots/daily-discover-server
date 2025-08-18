@@ -62,7 +62,7 @@ public class MottoController {
             mottoData.put("date", motto.getDate());
             return ApiResponse.success(mottoData);
         }
-        return ApiResponse.error("格言不存在");
+        return ApiResponse.error(404, "格言不存在");
     }
     
     // 创建格言
@@ -81,6 +81,6 @@ public class MottoController {
             result.put("date", createdMotto.getDate());
             return ApiResponse.success(result);
         }
-        return ApiResponse.error("创建格言失败");
+        return ApiResponse.error(500, "创建格言失败");
     }
 }
