@@ -7,10 +7,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 删除已存在的表
 DROP TABLE IF EXISTS user_likes;
 DROP TABLE IF EXISTS user_favorites;
-DROP TABLE IF EXISTS daily_recommend_products;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS daily_mottos;
-DROP TABLE IF EXISTS daily_themes;
 DROP TABLE IF EXISTS product_categories;
 
 -- 重新启用外键检查
@@ -48,37 +46,7 @@ CREATE TABLE products (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品表';
 
--- 每日主题表
-CREATE TABLE daily_themes (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(100) NOT NULL COMMENT '主题标题',
-    subtitle VARCHAR(200) COMMENT '主题副标题',
-    image_url VARCHAR(500) COMMENT '主题图片URL',
-    theme_date DATE NOT NULL COMMENT '主题日期',
-    theme_type VARCHAR(50) COMMENT '主题类型（如：重启日、松弛时刻等）',
-    is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    INDEX idx_date (theme_date),
-    INDEX idx_type (theme_type),
-    INDEX idx_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='每日主题表';
 
--- 每日推荐商品关联表
-CREATE TABLE daily_recommend_products (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    theme_id BIGINT NOT NULL COMMENT '主题ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    sort_order INT DEFAULT 0 COMMENT '排序顺序',
-    recommend_date DATE NOT NULL COMMENT '推荐日期',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    FOREIGN KEY (theme_id) REFERENCES daily_themes(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    UNIQUE KEY uk_theme_product_date (theme_id, product_id, recommend_date),
-    INDEX idx_date (recommend_date),
-    INDEX idx_sort (sort_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='每日推荐商品关联表';
 
 -- 用户点赞记录表
 CREATE TABLE user_likes (
@@ -86,7 +54,6 @@ CREATE TABLE user_likes (
     user_id BIGINT NOT NULL COMMENT '用户ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     UNIQUE KEY uk_user_product (user_id, product_id),
     INDEX idx_user (user_id),
     INDEX idx_product (product_id)
@@ -98,7 +65,6 @@ CREATE TABLE user_favorites (
     user_id BIGINT NOT NULL COMMENT '用户ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     UNIQUE KEY uk_user_product (user_id, product_id),
     INDEX idx_user (user_id),
     INDEX idx_product (product_id)
@@ -114,7 +80,6 @@ CREATE TABLE product_categories (
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    FOREIGN KEY (parent_id) REFERENCES product_categories(id) ON DELETE SET NULL,
     INDEX idx_parent (parent_id),
     INDEX idx_sort (sort_order),
     INDEX idx_active (is_active)
@@ -136,14 +101,6 @@ INSERT INTO daily_mottos (text, date) VALUES
 ('夜深人静，每个细节都值得被珍视，今晚就给自己最好的犒赏', CURDATE()),
 ('周末慢活，生活不该只有工作，趁现在让每一天都充满期待', CURDATE());
 
--- 插入示例主题
-INSERT INTO daily_themes (title, subtitle, image_url, theme_date, theme_type) VALUES
-('晨光序曲', '限时特惠！投资晨间仪式感，让每一天都从美好开始', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', CURDATE(), '晨光时光'),
-('午后诗篇', '爆款推荐！打造专属午后时光，朋友都羡慕的品质生活', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', CURDATE(), '午后时光'),
-('暮色温柔', '最后机会！为疲惫心灵寻找温暖，库存告急立即抢购', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', CURDATE(), '暮色时光'),
-('夜色私语', '独家优惠！今晚就给自己最好的，让每个夜晚都值得期待', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', CURDATE(), '夜色时光'),
-('周末叙事', '会员专享！升级周末生活方式，让生活从此与众不同', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop', CURDATE(), '周末时光');
-
 -- 插入示例商品
 INSERT INTO products (name, description, price, image_url, category_id) VALUES
 ('晨光序曲·咖啡杯', '⚡限时特惠！手工陶瓷限量版，原价268现价168，已售2000+件。90%用户反馈清晨幸福感提升，今日下单送专属杯垫，仅剩最后50个！', 168.00, 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=400&fit=crop', 1),
@@ -154,16 +111,3 @@ INSERT INTO products (name, description, price, image_url, category_id) VALUES
 ('午后诗篇·茶具', '🍵茶艺师推荐！天然木纹茶具，茶香提升150%，午后仪式感必备。228元限时优惠，送茶叶试喝装，朋友都说有品位！', 228.00, 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=400&fit=crop', 2),
 ('晨光序曲·桌布', '🌟餐桌美学！棉麻桌布，让早餐颜值提升300%，家人都夸有格调。158元特价，买即送餐巾，改变从早餐开始！', 158.00, 'https://images.unsplash.com/photo-1584184724797-1b4f5d1b0c4d?w=400&h=400&fit=crop', 1),
 ('暮色温柔·夜灯', '💡睡眠神器！智能调光夜灯，改善睡眠质量85%，都市人必备。298元限时特惠，送香薰精油，今晚就给自己最好的！', 298.00, 'https://images.unsplash.com/photo-1596558890593-1d4b0b5c6e6d?w=400&h=400&fit=crop', 3);
-
--- 插入每日推荐商品关联
-INSERT INTO daily_recommend_products (theme_id, product_id, sort_order, recommend_date) VALUES
-(1, 1, 1, CURDATE()),
-(1, 4, 2, CURDATE()),
-(1, 7, 3, CURDATE()),
-(2, 2, 1, CURDATE()),
-(2, 6, 2, CURDATE()),
-(3, 3, 1, CURDATE()),
-(3, 8, 2, CURDATE()),
-(4, 3, 1, CURDATE()),
-(4, 8, 2, CURDATE()),
-(5, 5, 1, CURDATE());
