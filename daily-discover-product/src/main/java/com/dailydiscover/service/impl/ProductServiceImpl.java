@@ -1,6 +1,6 @@
 package com.dailydiscover.service;
 
-import com.dailydiscover.mapper.DiscoverProductMapper;
+import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.model.ProductEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,31 +18,31 @@ import java.math.BigDecimal;
 public class ProductServiceImpl implements ProductService {
     
     @Autowired
-    private DiscoverProductMapper discoverProductMapper;
+    private ProductMapper productMapper;
     
     @Override
     public List<ProductEntity> getAllActiveProducts() {
-        return discoverProductMapper.findAllActiveProducts();
+        return productMapper.findAllActiveProducts();
     }
     
     @Override
     public ProductEntity getProductById(Long id) {
-        return discoverProductMapper.findById(id);
+        return productMapper.findById(id);
     }
     
     @Override
     public List<ProductEntity> getProductsByTimeSlot(String timeSlot) {
-        return discoverProductMapper.findByTimeSlot(timeSlot);
+        return productMapper.findByTimeSlot(timeSlot);
     }
     
     @Override
     public List<ProductEntity> getProductsByCategory(String category) {
-        return discoverProductMapper.findByCategory(category);
+        return productMapper.findByCategory(category);
     }
     
     @Override
     public List<ProductEntity> searchProducts(String keyword) {
-        return discoverProductMapper.searchProducts(keyword);
+        return productMapper.searchProducts(keyword);
     }
     
     @Override
@@ -53,7 +53,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.getIsActive() == null) {
             product.setIsActive(true);
         }
-        discoverProductMapper.insert(product);
+        productMapper.insert(product);
         return product;
     }
     
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
         product.setIsActive(productDetails.getIsActive());
         product.setUpdatedAt(LocalDateTime.now());
         
-        discoverProductMapper.update(product);
+        productMapper.update(product);
         return product;
     }
     
@@ -84,12 +84,12 @@ public class ProductServiceImpl implements ProductService {
         }
         product.setIsActive(false);
         product.setUpdatedAt(LocalDateTime.now());
-        discoverProductMapper.update(product);
+        productMapper.update(product);
     }
     
     @Override
     public List<ProductEntity> getLatestProducts() {
-        return discoverProductMapper.findLatestProducts();
+        return productMapper.findLatestProducts();
     }
     
     @Override
@@ -120,7 +120,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductEntity> getRelatedProducts(Long id, Integer categoryId) {
         if (categoryId != null) {
-            return discoverProductMapper.findByCategory(categoryId.toString());
+            return productMapper.findByCategory(categoryId.toString());
         }
         return new ArrayList<>();
     }
@@ -147,18 +147,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductEntity> getTodayProducts() {
         String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-        return discoverProductMapper.findTodayProducts(today);
+        return productMapper.findTodayProducts(today);
     }
     
     @Override
     public List<ProductEntity> getYesterdayProducts() {
         String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_DATE);
-        return discoverProductMapper.findYesterdayProducts(yesterday);
+        return productMapper.findYesterdayProducts(yesterday);
     }
     
     @Override
     public List<ProductEntity> getProductsByTheme(Long themeId) {
-        return discoverProductMapper.findByTheme(themeId);
+        return productMapper.findByTheme(themeId);
     }
     
     @Override

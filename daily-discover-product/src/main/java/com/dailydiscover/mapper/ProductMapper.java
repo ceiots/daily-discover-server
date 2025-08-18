@@ -2,6 +2,7 @@ package com.dailydiscover.mapper;
 
 import com.dailydiscover.model.ProductEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
@@ -45,4 +46,19 @@ public interface ProductMapper {
     
     // 批量插入商品
     int batchInsert(@Param("products") List<ProductEntity> products);
+    
+    // 根据时间段查找商品
+    List<ProductEntity> findByTimeSlot(@Param("timeSlot") String timeSlot);
+    
+    // 根据分类名称查找商品
+    List<ProductEntity> findByCategory(@Param("category") String category);
+    
+    // 搜索商品
+    List<ProductEntity> searchProducts(@Param("keyword") String keyword);
+    
+    // 查找最新商品
+    List<ProductEntity> findLatestProducts();
+    
+    // 根据主题查找商品
+    List<ProductEntity> findByTheme(@Param("themeId") Long themeId);
 }
