@@ -9,7 +9,8 @@ public class ProductEntity {
     private String description;
     private BigDecimal price;
     private String imageUrl;
-    private Long categoryId;
+    private String category;
+    private String timeSlot;
     private Boolean isActive;
     private Integer viewCount;
     private Integer likeCount;
@@ -26,13 +27,13 @@ public class ProductEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public ProductEntity(String name, String description, BigDecimal price, String imageUrl, Long categoryId) {
+    public ProductEntity(String name, String description, BigDecimal price, String imageUrl, String category) {
         this();
         this.name = name;
         this.description = description;
         this.price = price;
         this.imageUrl = imageUrl;
-        this.categoryId = categoryId;
+        this.category = category;
     }
 
     // Getters and Setters
@@ -76,12 +77,20 @@ public class ProductEntity {
         this.imageUrl = imageUrl;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
+    public String getCategory() {
+        return category;
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(String timeSlot) {
+        this.timeSlot = timeSlot;
     }
 
     public Boolean getIsActive() {
