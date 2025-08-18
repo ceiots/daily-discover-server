@@ -1,5 +1,0 @@
--- 为商品表添加新字段
-ALTER TABLE products ADD COLUMN is_hot_sale BOOLEAN DEFAULT FALSE;
-ALTER TABLE products ADD COLUMN is_high_quality BOOLEAN DEFAULT FALSE;
-ALTER TABLE products ADD COLUMN is_fast_delivery BOOLEAN DEFAULT FALSE;
-ALTER TABLE products ADD COLUMN features VARCHAR(500);
