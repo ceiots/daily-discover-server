@@ -1,6 +1,8 @@
 -- 每日发现页面数据库迁移脚本
 -- 创建支持每日发现功能的数据库表
 
+use daily_discover;
+
 -- 禁用外键检查
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -103,11 +105,11 @@ INSERT INTO daily_mottos (text, date) VALUES
 
 -- 插入示例商品
 INSERT INTO products (name, description, price, image_url, category_id) VALUES
-('晨光序曲·咖啡杯', '⚡限时特惠！手工陶瓷限量版，原价268现价168，已售2000+件。90%用户反馈清晨幸福感提升，今日下单送专属杯垫，仅剩最后50个！', 168.00, 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=400&fit=crop', 1),
-('午后诗篇·抱枕', '🔥爆款热卖！明星同款亚麻抱枕，小红书10万+推荐，柔软度提升300%。限时优惠129元，买2送1，朋友都在问的链接，立即抢购！', 129.00, 'https://images.unsplash.com/photo-1584184724797-1b4f5d1b0c4d?w=400&h=400&fit=crop', 2),
-('暮色温柔·香薰', '💖治愈必备！天然植物香薰，1000+用户5星好评，缓解焦虑效果显著。特价88元，库存告急最后100瓶，今晚下单送精美礼盒！', 88.00, 'https://images.unsplash.com/photo-1596558890593-1d4b0b5c6e6d?w=400&h=400&fit=crop', 3),
-('晨光序曲·花瓶', '✨设计师联名！北欧极简花瓶，ins风家居必备，提升空间格调200%。原价286现价186，限量发售，送干花束，手慢无！', 186.00, 'https://images.unsplash.com/photo-1584184724797-1b4f5d1b0c4d?w=400&h=400&fit=crop', 1),
-('周末叙事·毛毯', '🏆品质之选！100%羊毛毛毯，温暖度提升400%，周末宅家必备。特价268元，会员专享9折，送收纳袋，让每个周末都温暖！', 268.00, 'https://images.unsplash.com/photo-1596558890593-1d4b0b5c6e6d?w=400&h=400&fit=crop', 4),
-('午后诗篇·茶具', '🍵茶艺师推荐！天然木纹茶具，茶香提升150%，午后仪式感必备。228元限时优惠，送茶叶试喝装，朋友都说有品位！', 228.00, 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=400&fit=crop', 2),
-('晨光序曲·桌布', '🌟餐桌美学！棉麻桌布，让早餐颜值提升300%，家人都夸有格调。158元特价，买即送餐巾，改变从早餐开始！', 158.00, 'https://images.unsplash.com/photo-1584184724797-1b4f5d1b0c4d?w=400&h=400&fit=crop', 1),
-('暮色温柔·夜灯', '💡睡眠神器！智能调光夜灯，改善睡眠质量85%，都市人必备。298元限时特惠，送香薰精油，今晚就给自己最好的！', 298.00, 'https://images.unsplash.com/photo-1596558890593-1d4b0b5c6e6d?w=400&h=400&fit=crop', 3);
+('晨光序曲·咖啡杯', '⚡限时特惠！手工陶瓷限量版，原价268现价168，已售2000+件。90%用户反馈清晨幸福感提升，今日下单送专属杯垫，仅剩最后50个！', 168.00, 'https://img.freepik.com/free-photo/top-view-coffee-cup-with-donut_23-2149396433.jpg', 1),
+('午后诗篇·抱枕', '🔥爆款热卖！明星同款亚麻抱枕，小红书10万+推荐，柔软度提升300%。限时优惠129元，买2送1，朋友都在问的链接，立即抢购！', 129.00, 'https://img.freepik.com/free-photo/white-pillow-sofa_53876-138615.jpg', 2),
+('暮色温柔·香薰', '💖治愈必备！天然植物香薰，1000+用户5星好评，缓解焦虑效果显著。特价88元，库存告急最后100瓶，今晚下单送精美礼盒！', 88.00, 'https://img.freepik.com/free-photo/candles-with-aromatic-oils_23-2149396432.jpg', 3),
+('晨光序曲·花瓶', '✨设计师联名！北欧极简花瓶，ins风家居必备，提升空间格调200%。原价286现价186，限量发售，送干花束，手慢无！', 186.00, 'https://img.freepik.com/free-photo/vase-with-flowers-living-room-interior_53876-138616.jpg', 1),
+('周末叙事·毛毯', '🏆品质之选！100%羊毛毛毯，温暖度提升400%，周末宅家必备。特价268元，会员专享9折，送收纳袋，让每个周末都温暖！', 268.00, 'https://img.freepik.com/free-photo/blanket-sofa_53876-138617.jpg', 4),
+('午后诗篇·茶具', '🍵茶艺师推荐！天然木纹茶具，茶香提升150%，午后仪式感必备。228元限时优惠，送茶叶试喝装，朋友都说有品位！', 228.00, 'https://img.freepik.com/free-photo/tea-set-wooden-table_53876-138618.jpg', 2),
+('晨光序曲·桌布', '🌟餐桌美学！棉麻桌布，让早餐颜值提升300%，家人都夸有格调。158元特价，买即送餐巾，改变从早餐开始！', 158.00, 'https://img.freepik.com/free-photo/tablecloth-dining-table_53876-138619.jpg', 1),
+('暮色温柔·夜灯', '💡睡眠神器！智能调光夜灯，改善睡眠质量85%，都市人必备。298元限时特惠，送香薰精油，今晚就给自己最好的！', 298.00, 'https://img.freepik.com/free-photo/night-lamp-bedroom_53876-138620.jpg', 3);
