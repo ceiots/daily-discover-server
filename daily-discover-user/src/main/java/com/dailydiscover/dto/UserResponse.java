@@ -59,6 +59,46 @@ public class UserResponse {
     private String bio;
 
     /**
+     * 用户积分
+     */
+    private Integer points;
+
+    /**
+     * 用户等级：新用户、青铜会员、白银会员、黄金会员、钻石会员、VIP
+     */
+    private String level;
+
+    /**
+     * 会员类型：普通会员、青铜会员、白银会员、黄金会员、钻石会员、至尊会员
+     */
+    private String membership;
+
+    /**
+     * 收藏数量
+     */
+    private Integer favoritesCount;
+
+    /**
+     * 待付款订单数
+     */
+    private Integer ordersPendingPayment;
+
+    /**
+     * 待发货订单数
+     */
+    private Integer ordersPendingShipment;
+
+    /**
+     * 待收货订单数
+     */
+    private Integer ordersPendingReceipt;
+
+    /**
+     * 已完成订单数
+     */
+    private Integer ordersCompleted;
+
+    /**
      * 用户状态：0-正常，1-禁用
      */
     private Integer status;

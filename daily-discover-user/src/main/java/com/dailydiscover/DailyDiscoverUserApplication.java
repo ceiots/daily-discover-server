@@ -17,8 +17,8 @@ public class DailyDiscoverUserApplication {
     public static void main(String[] args) {
         SpringApplication.run(DailyDiscoverUserApplication.class, args);
         System.out.println("🎉 每日发现用户服务启动成功！");
-        System.out.println("📱 API文档地址: http://localhost:8080/api/user");
+        System.out.println("📱 API文档地址: http://localhost:8090/api/user");
         System.out.println("🔑 JWT认证已启用");
-        System.out.println("☕ 运行环境: JDK 21 + Spring Boot 3.2");
+        System.out.println("☕ 运行环境: JDK 17 + Spring Boot 3.2");
     }
 }

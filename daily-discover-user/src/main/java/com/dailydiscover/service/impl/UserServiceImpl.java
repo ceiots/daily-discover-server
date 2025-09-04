@@ -65,6 +65,17 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setStatus(0); // 正常状态
+        
+        // 设置新用户默认值
+        user.setPoints(100); // 新用户默认积分
+        user.setLevel("新用户"); // 新用户等级
+        user.setMembership("普通会员"); // 新用户会员类型
+        user.setFavoritesCount(0); // 收藏数量
+        user.setOrdersPendingPayment(0); // 待付款订单数
+        user.setOrdersPendingShipment(0); // 待发货订单数
+        user.setOrdersPendingReceipt(0); // 待收货订单数
+        user.setOrdersCompleted(0); // 已完成订单数
+        
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
 
