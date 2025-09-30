@@ -80,7 +80,8 @@ daily-discover-user/
 │       │                   │   ├── entity/        # 数据库实体
 │       │                   │   ├── mapper/        # MyBatis Mapper
 │       │                   │   ├── converter/     # 实体转换器
-│       │                   │   └── repository/    # 仓储实现
+│       │                   │   └── reposi
+tory/    # 仓储实现
 │       │                   │
 │       │                   ├── cache/             # 缓存实现
 │       │                   ├── integration/       # 外部系统集成
