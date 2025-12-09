@@ -1,5 +1,5 @@
--- 用户模块数据库迁移脚本
--- 创建用户相关表结构并初始化数据
+-- 用户核心业务表迁移脚本
+-- 创建用户基础信息、行为数据等核心业务表
 
 -- 使用数据库
 USE daily_discover;
@@ -118,42 +118,6 @@ CREATE TABLE IF NOT EXISTS privacy_settings (
     INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户隐私设置表';
 
--- 8. 帮助中心FAQ分类表
-CREATE TABLE IF NOT EXISTS help_faq_categories (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    category_id VARCHAR(50) NOT NULL COMMENT '分类ID',
-    category_name VARCHAR(100) NOT NULL COMMENT '分类名称',
-    sort_order INT DEFAULT 0 COMMENT '排序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_category_id (category_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帮助中心FAQ分类表';
-
--- 9. 帮助中心FAQ表
-CREATE TABLE IF NOT EXISTS help_faqs (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    category_id VARCHAR(50) NOT NULL COMMENT '分类ID',
-    faq_id VARCHAR(50) NOT NULL COMMENT 'FAQ ID',
-    question TEXT NOT NULL COMMENT '问题',
-    answer TEXT NOT NULL COMMENT '答案',
-    sort_order INT DEFAULT 0 COMMENT '排序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_category_id (category_id),
-    UNIQUE KEY uk_faq_id (faq_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帮助中心FAQ表';
-
--- 10. 反馈类型表
-CREATE TABLE IF NOT EXISTS feedback_types (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type_id VARCHAR(50) NOT NULL COMMENT '类型ID',
-    type_name VARCHAR(100) NOT NULL COMMENT '类型名称',
-    description TEXT COMMENT '描述',
-    icon VARCHAR(20) COMMENT '图标',
-    sort_order INT DEFAULT 0 COMMENT '排序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_type_id (type_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='反馈类型表';
-
 -- 初始化数据
 -- 1. 初始化用户等级配置
 INSERT INTO user_levels (level_name, min_points, max_points, color) VALUES
@@ -193,30 +157,6 @@ INSERT INTO notification_settings (user_id, push_notifications, email_notificati
 -- 7. 初始化隐私设置
 INSERT INTO privacy_settings (user_id, profile_visibility, activity_visibility, data_collection, personalized_ads, location_access, contacts_sync) VALUES
 (1, 'public', 'public', TRUE, FALSE, TRUE, FALSE);
-
--- 8. 初始化FAQ分类
-INSERT INTO help_faq_categories (category_id, category_name, sort_order) VALUES
-('account', '账号相关', 1),
-('payment', '支付相关', 2),
-('technical', '技术问题', 3);
-
--- 9. 初始化FAQ数据
-INSERT INTO help_faqs (category_id, faq_id, question, answer, sort_order) VALUES
-('account', 'account-1', '如何注册账号？', '您可以通过手机号或邮箱注册账号，具体步骤请参考注册指南。', 1),
-('account', 'account-2', '忘记密码怎么办？', '您可以在登录页面点击"忘记密码"，通过手机验证码或邮箱重置密码。', 2),
-('payment', 'payment-1', '支持哪些支付方式？', '我们支持微信支付、支付宝、银行卡等多种支付方式。', 1),
-('payment', 'payment-2', '支付失败怎么办？', '请检查网络连接和支付账户余额，如问题持续请联系客服。', 2),
-('technical', 'technical-1', '应用闪退怎么办？', '请尝试重启应用或重新安装，如问题持续请反馈给我们。', 1),
-('technical', 'technical-2', '如何清除缓存？', '您可以在设置页面找到清除缓存功能。', 2);
-
--- 10. 初始化反馈类型
-INSERT INTO feedback_types (type_id, type_name, description, icon, sort_order) VALUES
-('bug', '功能异常', '应用出现错误、崩溃或功能异常', '🐛', 1),
-('suggestion', '功能建议', '对应用功能的改进建议', '💡', 2),
-('content', '内容问题', '内容错误、侵权或不当内容', '📝', 3),
-('performance', '性能问题', '应用运行缓慢、卡顿等问题', '⚡', 4),
-('ui', '界面问题', '界面显示异常或用户体验问题', '🎨', 5),
-('other', '其他问题', '其他未分类的问题或建议', '❓', 6);
 
 -- 完成迁移
 COMMIT;
