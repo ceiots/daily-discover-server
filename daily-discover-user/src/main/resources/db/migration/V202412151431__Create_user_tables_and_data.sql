@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS privacy_settings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_user_id (user_id),
-    CONSTRAINT fk_privacy_settings_user FOREIGN KEY (user_id) REFERENCES users(id)
+    INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户隐私设置表';
 
 -- 8. 帮助中心FAQ分类表
@@ -217,12 +217,6 @@ INSERT INTO feedback_types (type_id, type_name, description, icon, sort_order) V
 ('performance', '性能问题', '应用运行缓慢、卡顿等问题', '⚡', 4),
 ('ui', '界面问题', '界面显示异常或用户体验问题', '🎨', 5),
 ('other', '其他问题', '其他未分类的问题或建议', '❓', 6);
-
--- 创建索引优化查询性能
-CREATE INDEX idx_users_points ON users(points);
-CREATE INDEX idx_browse_history_user_viewed ON browse_history(user_id, viewed_at);
-CREATE INDEX idx_collections_user_collected ON user_collections(user_id, collected_at);
-CREATE INDEX idx_posts_user_created ON user_posts(user_id, created_at);
 
 -- 完成迁移
 COMMIT;
