@@ -64,4 +64,12 @@ public interface UserService {
      * @return 是否成功
      */
     boolean deleteUser(Long userId);
+
+    /**
+     * 获取当前用户信息
+     * 
+     * @param userId 当前用户ID
+     * @return 用户信息
+     */
+    UserResponse getCurrentUser(Long userId);
 }

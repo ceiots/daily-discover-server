@@ -187,4 +187,33 @@ public class UserController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    /**
+     * 获取当前用户信息
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> getCurrentUser() {
+        long startTime = System.currentTimeMillis();
+        try {
+            LogTracer.traceMethod("UserController.getCurrentUser", null, null);
+            
+            // 这里需要从认证信息中获取当前用户ID
+            // 暂时使用默认用户ID 1，实际项目中应该从JWT token中获取
+            Long currentUserId = 1L;
+            
+            UserResponse userResponse = userService.getCurrentUser(currentUserId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", userResponse);
+            LogTracer.traceMethod("UserController.getCurrentUser", currentUserId, response);
+            LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            LogTracer.traceException("UserController.getCurrentUser", null, e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

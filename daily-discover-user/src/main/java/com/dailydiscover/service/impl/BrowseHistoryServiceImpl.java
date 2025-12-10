@@ -37,7 +37,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
             browseHistory.setCreatedAt(LocalDateTime.now());
             
             int result = browseHistoryMapper.insert(browseHistory);
-            LogTracer.traceDatabaseQuery("INSERT", "添加浏览记录", browseHistory, result);
+            LogTracer.traceDatabaseQuery("INSERT INTO browse_history", browseHistory, result);
             
             if (result <= 0) {
                 throw new RuntimeException("添加浏览记录失败");
@@ -45,7 +45,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
             
             BrowseHistoryResponse response = convertToResponse(browseHistory);
             LogTracer.traceMethod("BrowseHistoryService.addBrowseHistory", "浏览记录添加成功", response);
-            LogTracer.tracePerformance("BrowseHistoryService.addBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryService.addBrowseHistory", startTime, System.currentTimeMillis());
             
             return response;
         } catch (Exception e) {
@@ -65,14 +65,15 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
                        .orderByDesc("viewed_at");
             
             List<BrowseHistory> browseHistories = browseHistoryMapper.selectList(queryWrapper);
-            LogTracer.traceDatabaseQuery("SELECT", "查询用户浏览历史", queryWrapper, browseHistories.size());
+            LogTracer.traceDatabaseQuery("SELECT * FROM browse_history WHERE user_id = ? ORDER BY viewed_at DESC", 
+                new Object[]{userId}, browseHistories.size());
             
             List<BrowseHistoryResponse> responses = browseHistories.stream()
                     .map(this::convertToResponse)
                     .collect(Collectors.toList());
             
             LogTracer.traceMethod("BrowseHistoryService.getBrowseHistoryByUserId", "获取浏览历史成功", responses.size());
-            LogTracer.tracePerformance("BrowseHistoryService.getBrowseHistoryByUserId", startTime);
+            LogTracer.tracePerformance("BrowseHistoryService.getBrowseHistoryByUserId", startTime, System.currentTimeMillis());
             
             return responses;
         } catch (Exception e) {
@@ -89,11 +90,11 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
         
         try {
             int result = browseHistoryMapper.deleteById(id);
-            LogTracer.traceDatabaseQuery("DELETE", "删除浏览记录", id, result);
+            LogTracer.traceDatabaseQuery("DELETE FROM browse_history WHERE id = ?", new Object[]{id}, result);
             
             boolean success = result > 0;
             LogTracer.traceMethod("BrowseHistoryService.deleteBrowseHistory", "删除浏览记录完成", success);
-            LogTracer.tracePerformance("BrowseHistoryService.deleteBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryService.deleteBrowseHistory", startTime, System.currentTimeMillis());
             
             return success;
         } catch (Exception e) {
@@ -114,7 +115,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
             
             boolean success = result >= 0;
             LogTracer.traceMethod("BrowseHistoryService.clearBrowseHistory", "清空浏览历史完成", success);
-            LogTracer.tracePerformance("BrowseHistoryService.clearBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryService.clearBrowseHistory", startTime, System.currentTimeMillis());
             
             return success;
         } catch (Exception e) {
@@ -133,7 +134,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
             LogTracer.traceDatabaseQuery("SELECT", "统计用户浏览历史数量", userId, count);
             
             LogTracer.traceMethod("BrowseHistoryService.countBrowseHistory", "统计浏览历史数量完成", count);
-            LogTracer.tracePerformance("BrowseHistoryService.countBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryService.countBrowseHistory", startTime, System.currentTimeMillis());
             
             return count;
         } catch (Exception e) {

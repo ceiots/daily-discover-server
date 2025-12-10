@@ -221,4 +221,23 @@ public class UserServiceImpl implements UserService {
         
         return response;
     }
+
+    @Override
+    public UserResponse getCurrentUser(Long userId) {
+        long startTime = System.currentTimeMillis();
+        LogTracer.traceMethod("UserServiceImpl.getCurrentUser", userId, null);
+        
+        User user = userMapper.selectById(userId);
+        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", userId, user);
+        
+        if (user == null) {
+            LogTracer.traceException("UserServiceImpl.getCurrentUser", userId, new RuntimeException("用户不存在"));
+            throw new RuntimeException("用户不存在");
+        }
+        
+        UserResponse response = convertToResponse(user);
+        LogTracer.traceMethod("UserServiceImpl.getCurrentUser", userId, response);
+        LogTracer.tracePerformance("UserServiceImpl.getCurrentUser", startTime, System.currentTimeMillis());
+        return response;
+    }
 }

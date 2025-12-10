@@ -40,7 +40,8 @@ public class UserCollectionServiceImpl implements UserCollectionService {
                        .eq("item_id", userCollection.getItemId());
             
             UserCollection existingCollection = userCollectionMapper.selectOne(queryWrapper);
-            LogTracer.traceDatabaseQuery("SELECT", "检查是否已收藏", queryWrapper, existingCollection);
+            LogTracer.traceDatabaseQuery("SELECT * FROM user_collection WHERE user_id = ? AND item_type = ? AND item_id = ?", 
+                new Object[]{userCollection.getUserId(), userCollection.getItemType(), userCollection.getItemId()}, existingCollection);
             
             if (existingCollection != null) {
                 throw new RuntimeException("该内容已被收藏");
@@ -50,14 +51,14 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             userCollection.setCreatedAt(LocalDateTime.now());
             
             int insertResult = userCollectionMapper.insert(userCollection);
-            LogTracer.traceDatabaseQuery("INSERT", "添加收藏记录", userCollection, insertResult);
+            LogTracer.traceDatabaseQuery("INSERT INTO user_collection", userCollection, insertResult);
             
             // 创建响应
             UserCollectionResponse response = new UserCollectionResponse();
             BeanUtils.copyProperties(userCollection, response);
             
             LogTracer.traceMethod("UserCollectionService.addCollection", "收藏添加成功", response);
-            LogTracer.tracePerformance("UserCollectionService.addCollection", startTime);
+            LogTracer.tracePerformance("UserCollectionService.addCollection", startTime, System.currentTimeMillis());
             
             return response;
         } catch (Exception e) {
@@ -77,7 +78,8 @@ public class UserCollectionServiceImpl implements UserCollectionService {
                        .orderByDesc("created_at");
             
             List<UserCollection> collections = userCollectionMapper.selectList(queryWrapper);
-            LogTracer.traceDatabaseQuery("SELECT", "查询用户收藏列表", queryWrapper, collections.size());
+            LogTracer.traceDatabaseQuery("SELECT * FROM user_collection WHERE user_id = ? ORDER BY created_at DESC", 
+                new Object[]{userId}, collections.size());
             
             List<UserCollectionResponse> responses = collections.stream()
                     .map(collection -> {
@@ -88,7 +90,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
                     .collect(Collectors.toList());
             
             LogTracer.traceMethod("UserCollectionService.getCollectionsByUserId", "获取收藏列表成功", responses.size());
-            LogTracer.tracePerformance("UserCollectionService.getCollectionsByUserId", startTime);
+            LogTracer.tracePerformance("UserCollectionService.getCollectionsByUserId", startTime, System.currentTimeMillis());
             
             return responses;
         } catch (Exception e) {
@@ -105,18 +107,18 @@ public class UserCollectionServiceImpl implements UserCollectionService {
         
         try {
             UserCollection collection = userCollectionMapper.selectById(id);
-            LogTracer.traceDatabaseQuery("SELECT", "查询收藏记录", id, collection);
+            LogTracer.traceDatabaseQuery("SELECT * FROM user_collection WHERE id = ?", new Object[]{id}, collection);
             
             if (collection == null) {
                 throw new RuntimeException("收藏记录不存在");
             }
             
             int result = userCollectionMapper.deleteById(id);
-            LogTracer.traceDatabaseQuery("DELETE", "删除收藏记录", id, result);
+            LogTracer.traceDatabaseQuery("DELETE FROM user_collection WHERE id = ?", new Object[]{id}, result);
             
             boolean success = result > 0;
             LogTracer.traceMethod("UserCollectionService.deleteCollection", "删除收藏完成", success);
-            LogTracer.tracePerformance("UserCollectionService.deleteCollection", startTime);
+            LogTracer.tracePerformance("UserCollectionService.deleteCollection", startTime, System.currentTimeMillis());
             
             return success;
         } catch (Exception e) {
@@ -138,11 +140,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
                        .eq("item_id", itemId);
             
             UserCollection collection = userCollectionMapper.selectOne(queryWrapper);
-            LogTracer.traceDatabaseQuery("SELECT", "检查内容是否被收藏", queryWrapper, collection != null);
+            LogTracer.traceDatabaseQuery("SELECT * FROM user_collection WHERE user_id = ? AND item_type = ? AND item_id = ?", 
+                new Object[]{userId, itemType, itemId}, collection != null);
             
             boolean isCollected = collection != null;
             LogTracer.traceMethod("UserCollectionService.isItemCollected", "检查收藏状态完成", isCollected);
-            LogTracer.tracePerformance("UserCollectionService.isItemCollected", startTime);
+            LogTracer.tracePerformance("UserCollectionService.isItemCollected", startTime, System.currentTimeMillis());
             
             return isCollected;
         } catch (Exception e) {
@@ -161,11 +164,11 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             queryWrapper.eq("user_id", userId);
             
             Long count = userCollectionMapper.selectCount(queryWrapper);
-            LogTracer.traceDatabaseQuery("SELECT", "统计用户收藏数量", queryWrapper, count);
+            LogTracer.traceDatabaseQuery("SELECT COUNT(*) FROM user_collection WHERE user_id = ?", new Object[]{userId}, count);
             
             int result = count != null ? count.intValue() : 0;
             LogTracer.traceMethod("UserCollectionService.countCollections", "统计收藏数量完成", result);
-            LogTracer.tracePerformance("UserCollectionService.countCollections", startTime);
+            LogTracer.tracePerformance("UserCollectionService.countCollections", startTime, System.currentTimeMillis());
             
             return result;
         } catch (Exception e) {
@@ -185,11 +188,11 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             queryWrapper.eq("user_id", userId);
             
             int result = userCollectionMapper.delete(queryWrapper);
-            LogTracer.traceDatabaseQuery("DELETE", "清空用户收藏", queryWrapper, result);
+            LogTracer.traceDatabaseQuery("DELETE FROM user_collection WHERE user_id = ?", new Object[]{userId}, result);
             
             boolean success = result > 0;
             LogTracer.traceMethod("UserCollectionService.clearCollections", "清空收藏完成", success);
-            LogTracer.tracePerformance("UserCollectionService.clearCollections", startTime);
+            LogTracer.tracePerformance("UserCollectionService.clearCollections", startTime, System.currentTimeMillis());
             
             return success;
         } catch (Exception e) {
