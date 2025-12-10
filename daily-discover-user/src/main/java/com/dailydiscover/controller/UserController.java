@@ -3,6 +3,7 @@ package com.dailydiscover.controller;
 import com.dailydiscover.dto.UserResponse;
 import com.dailydiscover.entity.User;
 import com.dailydiscover.service.UserService;
+import com.dailydiscover.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,15 +28,19 @@ public class UserController {
      */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
+        long startTime = System.currentTimeMillis();
         try {
+            LogTracer.traceMethod("UserController.register", user, null);
             UserResponse userResponse = userService.register(user);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "注册成功");
             response.put("data", userResponse);
+            LogTracer.traceMethod("UserController.register", user, response);
+            LogTracer.tracePerformance("UserController.register", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("用户注册失败: {}", e.getMessage());
+            LogTracer.traceException("UserController.register", user, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -48,15 +53,19 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
+        long startTime = System.currentTimeMillis();
         try {
+            LogTracer.traceMethod("UserController.login", user, null);
             UserResponse userResponse = userService.login(user);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "登录成功");
             response.put("data", userResponse);
+            LogTracer.traceMethod("UserController.login", user, response);
+            LogTracer.tracePerformance("UserController.login", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("用户登录失败: {}", e.getMessage());
+            LogTracer.traceException("UserController.login", user, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -69,14 +78,18 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getUserById(@PathVariable Long id) {
+        long startTime = System.currentTimeMillis();
         try {
+            LogTracer.traceMethod("UserController.getUserById", id, null);
             UserResponse userResponse = userService.getUserById(id);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", userResponse);
+            LogTracer.traceMethod("UserController.getUserById", id, response);
+            LogTracer.tracePerformance("UserController.getUserById", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("获取用户信息失败: {}", e.getMessage());
+            LogTracer.traceException("UserController.getUserById", id, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -109,16 +122,20 @@ public class UserController {
      */
     @PutMapping("/{id}/profile")
     public ResponseEntity<Map<String, Object>> updateUserProfile(@PathVariable Long id, @RequestBody User user) {
+        long startTime = System.currentTimeMillis();
         try {
             user.setId(id);
+            LogTracer.traceMethod("UserController.updateUserProfile", user, null);
             UserResponse userResponse = userService.updateUserProfile(user);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "资料更新成功");
             response.put("data", userResponse);
+            LogTracer.traceMethod("UserController.updateUserProfile", user, response);
+            LogTracer.tracePerformance("UserController.updateUserProfile", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("更新用户资料失败: {}", e.getMessage());
+            LogTracer.traceException("UserController.updateUserProfile", user, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -152,14 +169,18 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Long id) {
+        long startTime = System.currentTimeMillis();
         try {
+            LogTracer.traceMethod("UserController.deleteUser", id, null);
             boolean result = userService.deleteUser(id);
             Map<String, Object> response = new HashMap<>();
             response.put("success", result);
             response.put("message", result ? "用户删除成功" : "用户删除失败");
+            LogTracer.traceMethod("UserController.deleteUser", id, response);
+            LogTracer.tracePerformance("UserController.deleteUser", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("删除用户失败: {}", e.getMessage());
+            LogTracer.traceException("UserController.deleteUser", id, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
