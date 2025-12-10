@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dailydiscover.mapper.UserLevelMapper">
+
+    <resultMap id="BaseResultMap" type="com.dailydiscover.entity.UserLevel">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="level_name" property="levelName" jdbcType="VARCHAR"/>
+        <result column="min_points" property="minPoints" jdbcType="INTEGER"/>
+        <result column="max_points" property="maxPoints" jdbcType="INTEGER"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 根据积分范围查询等级 -->
+    <select id="selectLevelByPoints" resultMap="BaseResultMap">
+        SELECT * FROM user_levels 
+        WHERE min_points &lt;= #{points} AND (max_points >= #{points} OR max_points IS NULL)
+        ORDER BY min_points DESC
+        LIMIT 1
+    </select>
+
+    <!-- 根据等级名称查询等级 -->
+    <select id="selectByLevelName" resultMap="BaseResultMap">
+        SELECT * FROM user_levels WHERE level_name = #{levelName}
+    </select>
+
+</mapper>

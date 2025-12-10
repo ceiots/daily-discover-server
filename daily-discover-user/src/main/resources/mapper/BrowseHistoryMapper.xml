@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dailydiscover.mapper.BrowseHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.dailydiscover.entity.BrowseHistory">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="item_type" property="itemType" jdbcType="VARCHAR"/>
+        <result column="item_id" property="itemId" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+        <result column="viewed_at" property="viewedAt" jdbcType="TIMESTAMP"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 删除用户的所有浏览历史 -->
+    <delete id="deleteByUserId">
+        DELETE FROM browse_history WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 统计用户浏览历史数量 -->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM browse_history WHERE user_id = #{userId}
+    </select>
+
+</mapper>

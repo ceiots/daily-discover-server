@@ -4,9 +4,6 @@ import lombok.Data;
 
 /**
  * 统一响应结果
- * 
- * @author Daily Discover Team
- * @since 2024-01-01
  */
 @Data
 public class Result<T> {

@@ -6,9 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * 每日发现用户服务启动类
- * 
- * @author Daily Discover Team
- * @since 2024-01-01
  */
 @SpringBootApplication
 @MapperScan("com.dailydiscover.mapper")

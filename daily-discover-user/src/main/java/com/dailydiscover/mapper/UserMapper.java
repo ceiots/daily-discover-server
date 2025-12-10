@@ -3,39 +3,44 @@ package com.dailydiscover.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.entity.User;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
 /**
- * 用户Mapper接口
- * 
- * @author Daily Discover Team
- * @since 2024-01-01
+ * 用户信息Mapper接口
  */
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
 
     /**
-     * 根据用户名查询用户（支持用户名、邮箱、手机号）
+     * 根据邮箱查询用户
+     * 
+     * @param email 邮箱
+     * @return 用户信息
      */
-    @Select("SELECT * FROM dd_user WHERE (username = #{username} OR email = #{username} OR phone = #{username}) AND deleted = 0")
-    User findByUsername(@Param("username") String username);
+    User selectByEmail(String email);
 
     /**
-     * 检查用户名是否存在
+     * 根据昵称查询用户
+     * 
+     * @param nickname 昵称
+     * @return 用户信息
      */
-    @Select("SELECT COUNT(*) FROM dd_user WHERE username = #{username} AND deleted = 0")
-    int countByUsername(@Param("username") String username);
+    User selectByNickname(String nickname);
 
     /**
-     * 检查邮箱是否存在
+     * 更新用户积分
+     * 
+     * @param userId 用户ID
+     * @param points 积分
+     * @return 影响行数
      */
-    @Select("SELECT COUNT(*) FROM dd_user WHERE email = #{email} AND deleted = 0")
-    int countByEmail(@Param("email") String email);
+    int updateUserPoints(Long userId, Integer points);
 
     /**
-     * 检查手机号是否存在
+     * 更新用户等级
+     * 
+     * @param userId 用户ID
+     * @param levelId 等级ID
+     * @return 影响行数
      */
-    @Select("SELECT COUNT(*) FROM dd_user WHERE phone = #{phone} AND deleted = 0")
-    int countByPhone(@Param("phone") String phone);
+    int updateUserLevel(Long userId, Long levelId);
 }

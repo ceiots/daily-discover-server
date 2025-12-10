@@ -13,9 +13,6 @@ import java.util.Map;
 
 /**
  * JWT工具类
- * 
- * @author Daily Discover Team
- * @since 2024-01-01
  */
 @Slf4j
 @Component

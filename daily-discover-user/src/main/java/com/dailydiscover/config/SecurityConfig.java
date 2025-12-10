@@ -16,9 +16,6 @@ import java.util.Arrays;
 
 /**
  * Spring Security配置
- * 
- * @author Daily Discover Team
- * @since 2024-01-01
  */
 @Configuration
 @EnableWebSecurity

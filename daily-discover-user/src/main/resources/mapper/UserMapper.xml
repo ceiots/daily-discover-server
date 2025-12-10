@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dailydiscover.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.dailydiscover.entity.User">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="bio" property="bio" jdbcType="VARCHAR"/>
+        <result column="points" property="points" jdbcType="INTEGER"/>
+        <result column="level_id" property="levelId" jdbcType="BIGINT"/>
+        <result column="membership" property="membership" jdbcType="VARCHAR"/>
+        <result column="avatar_url" property="avatarUrl" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 根据邮箱查询用户 -->
+    <select id="selectByEmail" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE email = #{email}
+    </select>
+
+    <!-- 根据昵称查询用户 -->
+    <select id="selectByNickname" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE nickname = #{nickname}
+    </select>
+
+    <!-- 更新用户积分 -->
+    <update id="updateUserPoints">
+        UPDATE users SET points = #{points}, updated_at = NOW() WHERE id = #{userId}
+    </update>
+
+    <!-- 更新用户等级 -->
+    <update id="updateUserLevel">
+        UPDATE users SET level_id = #{levelId}, updated_at = NOW() WHERE id = #{userId}
+    </update>
+
+</mapper>

@@ -1,17 +1,15 @@
 package com.dailydiscover.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.dailydiscover.dto.LoginRequest;
-import com.dailydiscover.dto.RegisterRequest;
 import com.dailydiscover.dto.UserResponse;
 import com.dailydiscover.entity.User;
+import com.dailydiscover.entity.UserLevel;
+import com.dailydiscover.mapper.UserLevelMapper;
 import com.dailydiscover.mapper.UserMapper;
 import com.dailydiscover.service.UserService;
-import com.dailydiscover.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +17,6 @@ import java.time.LocalDateTime;
 
 /**
  * 用户服务实现类
- * 
- * @author Daily Discover Team
- * @since 2024-01-01
  */
 @Slf4j
 @Service
@@ -29,113 +24,62 @@ import java.time.LocalDateTime;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final UserLevelMapper userLevelMapper;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public UserResponse register(RegisterRequest request) {
-        log.info("用户注册请求: {}", request.getUsername());
-
-        // 验证密码一致性
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("两次输入的密码不一致");
-        }
-
-        // 检查用户名是否已存在
-        if (isUsernameExists(request.getUsername())) {
-            throw new RuntimeException("用户名已存在");
-        }
-
+    @Transactional
+    public UserResponse register(User user) {
+        log.info("用户注册: {}", user.getEmail());
+        
         // 检查邮箱是否已存在
-        if (isEmailExists(request.getEmail())) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", user.getEmail());
+        if (userMapper.selectOne(queryWrapper) != null) {
             throw new RuntimeException("邮箱已被注册");
         }
-
-        // 检查手机号是否已存在（如果提供了手机号）
-        if (request.getPhone() != null && !request.getPhone().isEmpty() && isPhoneExists(request.getPhone())) {
-            throw new RuntimeException("手机号已被注册");
-        }
-
-        // 创建用户
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setNickname(request.getNickname());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setStatus(0); // 正常状态
         
-        // 设置新用户默认值
-        user.setPoints(100); // 新用户默认积分
-        user.setLevel("新用户"); // 新用户等级
-        user.setMembership("普通会员"); // 新用户会员类型
-        user.setFavoritesCount(0); // 收藏数量
-        user.setOrdersPendingPayment(0); // 待付款订单数
-        user.setOrdersPendingShipment(0); // 待发货订单数
-        user.setOrdersPendingReceipt(0); // 待收货订单数
-        user.setOrdersCompleted(0); // 已完成订单数
+        // 设置用户默认属性
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        user.setPoints(0);
+        user.setLevelId(1L); // 默认等级
         
-        user.setCreateTime(LocalDateTime.now());
-        user.setUpdateTime(LocalDateTime.now());
-
-        // 保存用户
         userMapper.insert(user);
-
-        log.info("用户注册成功: {} (ID: {})", user.getUsername(), user.getId());
-
-        // 生成JWT Token
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
-
-        // 构建响应
+        
+        // 创建用户响应
         UserResponse response = new UserResponse();
         BeanUtils.copyProperties(user, response);
-        response.setToken(token);
-        response.setTokenExpireTime(LocalDateTime.now().plusDays(1));
-
+        
         return response;
     }
 
     @Override
-    public UserResponse login(LoginRequest request) {
-        log.info("用户登录请求: {}", request.getUsername());
-
-        // 查找用户
-        User user = getUserByUsername(request.getUsername());
-        if (user == null) {
-            throw new RuntimeException("用户名或密码错误");
+    public UserResponse login(User user) {
+        log.info("用户登录: {}", user.getEmail());
+        
+        // 根据邮箱查找用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", user.getEmail());
+        User existingUser = userMapper.selectOne(queryWrapper);
+        
+        if (existingUser == null) {
+            throw new RuntimeException("用户不存在");
         }
-
+        
         // 验证密码
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("用户名或密码错误");
+        if (!existingUser.getPassword().equals(user.getPassword())) {
+            throw new RuntimeException("密码错误");
         }
-
-        // 检查用户状态
-        if (user.getStatus() != 0) {
-            throw new RuntimeException("账户已被禁用，请联系管理员");
-        }
-
-        // 生成JWT Token
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
-
-        // 更新最后登录信息
-        updateLastLoginInfo(user.getId(), "127.0.0.1"); // 实际项目中应获取真实IP
-
-        log.info("用户登录成功: {} (ID: {})", user.getUsername(), user.getId());
-
-        // 构建响应
+        
+        // 更新最后登录时间
+        existingUser.setLastLoginAt(LocalDateTime.now());
+        userMapper.updateById(existingUser);
+        
+        // 创建用户响应
         UserResponse response = new UserResponse();
-        BeanUtils.copyProperties(user, response);
-        response.setToken(token);
-        response.setTokenExpireTime(LocalDateTime.now().plusDays(1));
-
+        BeanUtils.copyProperties(existingUser, response);
+        
         return response;
-    }
-
-    @Override
-    public User getUserByUsername(String username) {
-        return userMapper.findByUsername(username);
     }
 
     @Override
@@ -144,92 +88,95 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
-
-        UserResponse response = new UserResponse();
-        BeanUtils.copyProperties(user, response);
-        return response;
+        return convertToResponse(user);
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public UserResponse updateUser(Long userId, User updateUser) {
-        User existingUser = userMapper.selectById(userId);
+    public UserResponse getUserByEmail(String email) {
+        User user = userMapper.selectByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        return convertToResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateUserProfile(User user) {
+        log.info("更新用户信息: {}", user.getId());
+        
+        User existingUser = userMapper.selectById(user.getId());
         if (existingUser == null) {
             throw new RuntimeException("用户不存在");
         }
-
-        // 更新允许修改的字段
-        if (updateUser.getNickname() != null) {
-            existingUser.setNickname(updateUser.getNickname());
-        }
-        if (updateUser.getAvatar() != null) {
-            existingUser.setAvatar(updateUser.getAvatar());
-        }
-        if (updateUser.getGender() != null) {
-            existingUser.setGender(updateUser.getGender());
-        }
-        if (updateUser.getBirthday() != null) {
-            existingUser.setBirthday(updateUser.getBirthday());
-        }
-        if (updateUser.getBio() != null) {
-            existingUser.setBio(updateUser.getBio());
-        }
-
-        existingUser.setUpdateTime(LocalDateTime.now());
+        
+        // 更新用户信息
+        BeanUtils.copyProperties(user, existingUser, "id", "email", "password", "createdAt");
+        existingUser.setUpdatedAt(LocalDateTime.now());
+        
         userMapper.updateById(existingUser);
-
-        log.info("用户信息更新成功: {} (ID: {})", existingUser.getUsername(), userId);
-
+        
+        // 创建用户响应
         UserResponse response = new UserResponse();
         BeanUtils.copyProperties(existingUser, response);
+        
         return response;
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
+    @Transactional
+    public UserResponse updateUserPoints(Long userId, Integer points) {
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
 
-        // 验证旧密码
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new RuntimeException("原密码错误");
+        int result = userMapper.updateUserPoints(userId, points);
+        if (result > 0) {
+            // 更新用户等级
+            updateUserLevel(userId, points);
+            // 重新获取更新后的用户信息
+            User updatedUser = userMapper.selectById(userId);
+            return convertToResponse(updatedUser);
+        }
+        throw new RuntimeException("积分更新失败");
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
         }
 
-        // 更新密码
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdateTime(LocalDateTime.now());
-        userMapper.updateById(user);
-
-        log.info("用户密码修改成功: {} (ID: {})", user.getUsername(), userId);
-        return true;
+        int result = userMapper.deleteById(userId);
+        return result > 0;
     }
 
-    @Override
-    public boolean isUsernameExists(String username) {
-        return userMapper.countByUsername(username) > 0;
+    /**
+     * 更新用户等级
+     */
+    private void updateUserLevel(Long userId, Integer points) {
+        UserLevel userLevel = userLevelMapper.selectLevelByPoints(points);
+        if (userLevel != null) {
+            userMapper.updateUserLevel(userId, userLevel.getId());
+        }
     }
 
-    @Override
-    public boolean isEmailExists(String email) {
-        return userMapper.countByEmail(email) > 0;
-    }
-
-    @Override
-    public boolean isPhoneExists(String phone) {
-        return userMapper.countByPhone(phone) > 0;
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void updateLastLoginInfo(Long userId, String ip) {
-        User user = new User();
-        user.setId(userId);
-        user.setLastLoginTime(LocalDateTime.now());
-        user.setLastLoginIp(ip);
-        user.setUpdateTime(LocalDateTime.now());
-        userMapper.updateById(user);
+    /**
+     * 将User实体转换为UserResponse DTO
+     */
+    private UserResponse convertToResponse(User user) {
+        UserResponse response = new UserResponse();
+        BeanUtils.copyProperties(user, response);
+        
+        // 设置等级名称
+        UserLevel userLevel = userLevelMapper.selectById(user.getLevelId());
+        if (userLevel != null) {
+            response.setLevelName(userLevel.getLevelName());
+        }
+        
+        return response;
     }
 }
