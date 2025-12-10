@@ -40,7 +40,7 @@ public class BrowseHistoryController {
             result.put("data", response);
             
             LogTracer.traceMethod("BrowseHistoryController.addBrowseHistory", "浏览记录添加成功", result);
-            LogTracer.tracePerformance("BrowseHistoryController.addBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryController.addBrowseHistory", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class BrowseHistoryController {
             result.put("total", history.size());
             
             LogTracer.traceMethod("BrowseHistoryController.getBrowseHistoryByUserId", "获取浏览记录成功", result);
-            LogTracer.tracePerformance("BrowseHistoryController.getBrowseHistoryByUserId", startTime);
+            LogTracer.tracePerformance("BrowseHistoryController.getBrowseHistoryByUserId", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -95,7 +95,7 @@ public class BrowseHistoryController {
             response.put("message", result ? "浏览记录删除成功" : "浏览记录删除失败");
             
             LogTracer.traceMethod("BrowseHistoryController.deleteBrowseHistory", "删除浏览记录完成", response);
-            LogTracer.tracePerformance("BrowseHistoryController.deleteBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryController.deleteBrowseHistory", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -122,7 +122,7 @@ public class BrowseHistoryController {
             response.put("message", result ? "浏览记录清空成功" : "浏览记录清空失败");
             
             LogTracer.traceMethod("BrowseHistoryController.clearBrowseHistory", "清空用户浏览记录完成", response);
-            LogTracer.tracePerformance("BrowseHistoryController.clearBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryController.clearBrowseHistory", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -149,7 +149,7 @@ public class BrowseHistoryController {
             result.put("count", count);
             
             LogTracer.traceMethod("BrowseHistoryController.countBrowseHistory", "获取浏览记录数量完成", result);
-            LogTracer.tracePerformance("BrowseHistoryController.countBrowseHistory", startTime);
+            LogTracer.tracePerformance("BrowseHistoryController.countBrowseHistory", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {

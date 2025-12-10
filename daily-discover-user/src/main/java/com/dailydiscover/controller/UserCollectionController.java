@@ -40,7 +40,7 @@ public class UserCollectionController {
             result.put("data", response);
             
             LogTracer.traceMethod("UserCollectionController.addCollection", "收藏添加成功", result);
-            LogTracer.tracePerformance("UserCollectionController.addCollection", startTime);
+            LogTracer.tracePerformance("UserCollectionController.addCollection", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class UserCollectionController {
             result.put("total", collections.size());
             
             LogTracer.traceMethod("UserCollectionController.getCollectionsByUserId", "获取收藏列表成功", result);
-            LogTracer.tracePerformance("UserCollectionController.getCollectionsByUserId", startTime);
+            LogTracer.tracePerformance("UserCollectionController.getCollectionsByUserId", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -95,7 +95,7 @@ public class UserCollectionController {
             response.put("message", result ? "收藏删除成功" : "收藏删除失败");
             
             LogTracer.traceMethod("UserCollectionController.deleteCollection", "删除收藏完成", response);
-            LogTracer.tracePerformance("UserCollectionController.deleteCollection", startTime);
+            LogTracer.tracePerformance("UserCollectionController.deleteCollection", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -125,7 +125,7 @@ public class UserCollectionController {
             response.put("isCollected", isCollected);
             
             LogTracer.traceMethod("UserCollectionController.isItemCollected", "检查收藏状态完成", response);
-            LogTracer.tracePerformance("UserCollectionController.isItemCollected", startTime);
+            LogTracer.tracePerformance("UserCollectionController.isItemCollected", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -152,7 +152,7 @@ public class UserCollectionController {
             response.put("count", count);
             
             LogTracer.traceMethod("UserCollectionController.countCollections", "获取收藏数量完成", response);
-            LogTracer.tracePerformance("UserCollectionController.countCollections", startTime);
+            LogTracer.tracePerformance("UserCollectionController.countCollections", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -179,7 +179,7 @@ public class UserCollectionController {
             response.put("message", result ? "收藏清空成功" : "收藏清空失败");
             
             LogTracer.traceMethod("UserCollectionController.clearCollections", "清空用户收藏完成", response);
-            LogTracer.tracePerformance("UserCollectionController.clearCollections", startTime);
+            LogTracer.tracePerformance("UserCollectionController.clearCollections", startTime, System.currentTimeMillis());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {

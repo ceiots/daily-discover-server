@@ -111,7 +111,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
         
         try {
             int result = browseHistoryMapper.deleteByUserId(userId);
-            LogTracer.traceDatabaseQuery("DELETE", "清空用户浏览历史", userId, result);
+            LogTracer.traceDatabaseQuery("DELETE FROM browse_history WHERE user_id = ?", new Object[]{userId}, result);
             
             boolean success = result >= 0;
             LogTracer.traceMethod("BrowseHistoryService.clearBrowseHistory", "清空浏览历史完成", success);
@@ -131,7 +131,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
         
         try {
             int count = browseHistoryMapper.countByUserId(userId);
-            LogTracer.traceDatabaseQuery("SELECT", "统计用户浏览历史数量", userId, count);
+            LogTracer.traceDatabaseQuery("SELECT COUNT(*) FROM browse_history WHERE user_id = ?", new Object[]{userId}, count);
             
             LogTracer.traceMethod("BrowseHistoryService.countBrowseHistory", "统计浏览历史数量完成", count);
             LogTracer.tracePerformance("BrowseHistoryService.countBrowseHistory", startTime, System.currentTimeMillis());
