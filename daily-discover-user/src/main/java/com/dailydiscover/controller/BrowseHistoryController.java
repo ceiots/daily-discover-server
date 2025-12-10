@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/browse-history")
+@RequestMapping("/browse-history")
 @RequiredArgsConstructor
 public class BrowseHistoryController {
 

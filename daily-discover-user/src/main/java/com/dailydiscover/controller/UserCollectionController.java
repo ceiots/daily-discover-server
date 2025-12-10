@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/collections")
+@RequestMapping("/collections")
 @RequiredArgsConstructor
 public class UserCollectionController {
 
