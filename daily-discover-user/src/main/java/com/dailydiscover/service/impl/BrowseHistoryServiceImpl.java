@@ -37,7 +37,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
             browseHistory.setCreatedAt(LocalDateTime.now());
             
             int result = browseHistoryMapper.insert(browseHistory);
-            LogTracer.traceDatabaseQuery("INSERT INTO browse_history", browseHistory, result);
+            LogTracer.traceDatabaseQuery("INSERT INTO browse_history", new Object[]{browseHistory}, result);
             
             if (result <= 0) {
                 throw new RuntimeException("添加浏览记录失败");

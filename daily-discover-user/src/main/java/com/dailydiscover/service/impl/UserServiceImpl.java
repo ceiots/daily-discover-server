@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
         user.setLevelId(1L); // 默认等级
         
         int insertResult = userMapper.insert(user);
-        LogTracer.traceDatabaseQuery("INSERT INTO user", user, insertResult);
+        LogTracer.traceDatabaseQuery("INSERT INTO user", new Object[]{user}, insertResult);
         
         // 创建用户响应
         UserResponse response = new UserResponse();
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
         // 更新最后登录时间
         existingUser.setLastLoginAt(LocalDateTime.now());
         int updateResult = userMapper.updateById(existingUser);
-        LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", existingUser, updateResult);
+        LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", new Object[]{existingUser}, updateResult);
         
         // 创建用户响应
         UserResponse response = new UserResponse();
@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
         LogTracer.traceMethod("UserServiceImpl.getUserById", userId, null);
         
         User user = userMapper.selectById(userId);
-        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", userId, user);
+        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{userId}, user);
         
         if (user == null) {
             LogTracer.traceException("UserServiceImpl.getUserById", userId, new RuntimeException("用户不存在"));
@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
         LogTracer.traceMethod("UserServiceImpl.updateUserProfile", user, null);
         
         User existingUser = userMapper.selectById(user.getId());
-        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", user.getId(), existingUser);
+        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{user.getId()}, existingUser);
         
         if (existingUser == null) {
             LogTracer.traceException("UserServiceImpl.updateUserProfile", user, new RuntimeException("用户不存在"));
@@ -143,7 +143,7 @@ public class UserServiceImpl implements UserService {
         existingUser.setUpdatedAt(LocalDateTime.now());
         
         int updateResult = userMapper.updateById(existingUser);
-        LogTracer.traceDatabaseQuery("UPDATE user SET ... WHERE id = ?", existingUser, updateResult);
+        LogTracer.traceDatabaseQuery("UPDATE user SET ... WHERE id = ?", new Object[]{existingUser}, updateResult);
         
         // 创建用户响应
         UserResponse response = new UserResponse();
@@ -180,7 +180,7 @@ public class UserServiceImpl implements UserService {
         LogTracer.traceMethod("UserServiceImpl.deleteUser", userId, null);
         
         User user = userMapper.selectById(userId);
-        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", userId, user);
+        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{userId}, user);
         
         if (user == null) {
             LogTracer.traceException("UserServiceImpl.deleteUser", userId, new RuntimeException("用户不存在"));
@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
         }
 
         int result = userMapper.deleteById(userId);
-        LogTracer.traceDatabaseQuery("DELETE FROM user WHERE id = ?", userId, result);
+        LogTracer.traceDatabaseQuery("DELETE FROM user WHERE id = ?", new Object[]{userId}, result);
         
         boolean deleteResult = result > 0;
         LogTracer.traceMethod("UserServiceImpl.deleteUser", userId, deleteResult);
@@ -228,7 +228,7 @@ public class UserServiceImpl implements UserService {
         LogTracer.traceMethod("UserServiceImpl.getCurrentUser", userId, null);
         
         User user = userMapper.selectById(userId);
-        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", userId, user);
+        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{userId}, user);
         
         if (user == null) {
             LogTracer.traceException("UserServiceImpl.getCurrentUser", userId, new RuntimeException("用户不存在"));

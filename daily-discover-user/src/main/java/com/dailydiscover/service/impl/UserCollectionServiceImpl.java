@@ -51,7 +51,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             userCollection.setCreatedAt(LocalDateTime.now());
             
             int insertResult = userCollectionMapper.insert(userCollection);
-            LogTracer.traceDatabaseQuery("INSERT INTO user_collection", userCollection, insertResult);
+            LogTracer.traceDatabaseQuery("INSERT INTO user_collection", new Object[]{userCollection}, insertResult);
             
             // 创建响应
             UserCollectionResponse response = new UserCollectionResponse();
