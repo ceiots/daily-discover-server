@@ -1,7 +1,6 @@
 target/
 
-# 架构设计文档（不提交到版本控制）
-src/main/java/com/dailydiscover/controller/controller_layer_guide.md
-src/main/java/com/dailydiscover/service/service_layer_guide.md
-src/main/java/com/dailydiscover/mapper/mapper_layer_guide.md
-src/main/resources/db/migration/database_design_guidelines.md
+# 忽略所有Markdown文档，除了README.md
+*.md
+!README.md
+!**/README.md
