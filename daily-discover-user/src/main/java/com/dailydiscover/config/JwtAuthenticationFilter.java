@@ -1,5 +1,6 @@
 package com.dailydiscover.config;
 
+import com.dailydiscover.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String AUTH_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    
+    private final JwtUtil jwtUtil;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
@@ -40,9 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 // 验证Token并获取用户信息
                 if (isValidToken(token)) {
-                    // 从Token中解析用户信息（这里简化处理，实际应该解析JWT）
-                    String username = extractUsernameFromToken(token);
-                    List<SimpleGrantedAuthority> authorities = extractAuthoritiesFromToken(token);
+                    // 从Token中解析用户信息
+                    String username = jwtUtil.getUsernameFromToken(token);
+                    List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
                     
                     // 创建认证对象
                     UsernamePasswordAuthenticationToken authentication = 
@@ -63,29 +70,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 验证Token有效性（简化实现）
+     * 验证Token有效性
      */
     private boolean isValidToken(String token) {
-        // 这里应该使用JWT库验证Token签名和过期时间
-        // 简化实现：检查Token格式和长度
-        return token != null && token.length() > 10 && !token.contains("invalid");
-    }
-
-    /**
-     * 从Token中提取用户名（简化实现）
-     */
-    private String extractUsernameFromToken(String token) {
-        // 这里应该使用JWT库解析Token
-        // 简化实现：返回模拟用户名
-        return "user_" + token.hashCode();
-    }
-
-    /**
-     * 从Token中提取权限信息（简化实现）
-     */
-    private List<SimpleGrantedAuthority> extractAuthoritiesFromToken(String token) {
-        // 这里应该使用JWT库解析Token中的权限信息
-        // 简化实现：返回基础权限
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        // 使用JwtUtil验证Token
+        try {
+            // 检查Token是否过期
+            if (jwtUtil.isTokenExpired(token)) {
+                return false;
+            }
+            // 获取用户名（验证签名）
+            jwtUtil.getUsernameFromToken(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

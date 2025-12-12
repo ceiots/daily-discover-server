@@ -3,10 +3,14 @@ package com.dailydiscover.controller;
 import com.dailydiscover.dto.UserResponse;
 import com.dailydiscover.entity.User;
 import com.dailydiscover.service.UserService;
+import com.dailydiscover.util.JwtUtil;
 import com.dailydiscover.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -22,6 +26,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 用户注册
@@ -57,9 +62,14 @@ public class UserController {
         try {
             LogTracer.traceMethod("UserController.login", user, null);
             UserResponse userResponse = userService.login(user);
+            
+            // 生成JWT Token
+            String token = jwtUtil.generateToken(userResponse.getId(), userResponse.getEmail());
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "登录成功");
+            response.put("token", token);
             response.put("data", userResponse);
             LogTracer.traceMethod("UserController.login", user, response);
             LogTracer.tracePerformance("UserController.login", startTime, System.currentTimeMillis());
@@ -197,15 +207,23 @@ public class UserController {
         try {
             LogTracer.traceMethod("UserController.getCurrentUser", null, null);
             
-            // 这里需要从认证信息中获取当前用户ID
-            // 暂时使用默认用户ID 1，实际项目中应该从JWT token中获取
-            Long currentUserId = 1L;
+            // 从SecurityContext中获取认证信息
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "用户未认证");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
             
-            UserResponse userResponse = userService.getCurrentUser(currentUserId);
+            // 获取用户名（即email）
+            String email = authentication.getName();
+            
+            UserResponse userResponse = userService.getUserByEmail(email);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", userResponse);
-            LogTracer.traceMethod("UserController.getCurrentUser", currentUserId, response);
+            LogTracer.traceMethod("UserController.getCurrentUser", email, response);
             LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
