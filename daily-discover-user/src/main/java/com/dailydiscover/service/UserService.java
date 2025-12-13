@@ -19,10 +19,11 @@ public interface UserService {
     /**
      * 用户登录
      * 
-     * @param user 用户实体
+     * @param phone 手机号
+     * @param password 密码
      * @return 用户信息
      */
-    UserResponse login(User user);
+    UserResponse login(String phone, String password);
 
     /**
      * 根据ID获取用户信息
@@ -33,12 +34,12 @@ public interface UserService {
     UserResponse getUserById(Long userId);
 
     /**
-     * 根据邮箱获取用户信息
+     * 根据手机号获取用户信息
      * 
-     * @param email 邮箱
+     * @param phone 手机号
      * @return 用户信息
      */
-    UserResponse getUserByEmail(String email);
+    UserResponse getUserByPhone(String phone);
 
     /**
      * 更新用户个人信息

@@ -57,25 +57,28 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
         long startTime = System.currentTimeMillis();
         try {
-            LogTracer.traceMethod("UserController.login", user, null);
-            UserResponse userResponse = userService.login(user);
+            String phone = loginRequest.get("phone");
+            String password = loginRequest.get("password");
+            
+            LogTracer.traceMethod("UserController.login", phone, null);
+            UserResponse userResponse = userService.login(phone, password);
             
             // 生成JWT Token
-            String token = jwtUtil.generateToken(userResponse.getId(), userResponse.getEmail());
+            String token = jwtUtil.generateToken(userResponse.getId(), userResponse.getPhone());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "登录成功");
             response.put("token", token);
             response.put("data", userResponse);
-            LogTracer.traceMethod("UserController.login", user, response);
+            LogTracer.traceMethod("UserController.login", phone, response);
             LogTracer.tracePerformance("UserController.login", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            LogTracer.traceException("UserController.login", user, e);
+            LogTracer.traceException("UserController.login", loginRequest, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -108,18 +111,18 @@ public class UserController {
     }
 
     /**
-     * 根据邮箱获取用户信息
+     * 根据手机号获取用户信息
      */
-    @GetMapping("/email/{email}")
-    public ResponseEntity<Map<String, Object>> getUserByEmail(@PathVariable String email) {
+    @GetMapping("/phone/{phone}")
+    public ResponseEntity<Map<String, Object>> getUserByPhone(@PathVariable String phone) {
         try {
-            UserResponse userResponse = userService.getUserByEmail(email);
+            UserResponse userResponse = userService.getUserByPhone(phone);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", userResponse);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("根据邮箱获取用户信息失败: {}", e.getMessage());
+            log.error("根据手机号获取用户信息失败: {}", e.getMessage());
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -216,14 +219,23 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
             
-            // 获取用户名（即email）
-            String email = authentication.getName();
+            // 获取用户名（即phone）
+            String phone = authentication.getName();
             
-            UserResponse userResponse = userService.getUserByEmail(email);
+            UserResponse userResponse = userService.getUserByPhone(phone);
+            if (userResponse == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                LogTracer.traceMethod("UserController.getCurrentUser", phone, response);
+                LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", userResponse);
-            LogTracer.traceMethod("UserController.getCurrentUser", email, response);
+            LogTracer.traceMethod("UserController.getCurrentUser", phone, response);
             LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
             return ResponseEntity.ok(response);
         } catch (Exception e) {

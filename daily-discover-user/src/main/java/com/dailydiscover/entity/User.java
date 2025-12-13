@@ -27,10 +27,10 @@ public class User {
     private String nickname;
 
     /**
-     * 邮箱
+     * 手机号
      */
-    @TableField("email")
-    private String email;
+    @TableField("phone")
+    private String phone;
 
     /**
      * 个人简介

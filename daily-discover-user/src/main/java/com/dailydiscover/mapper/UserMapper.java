@@ -11,12 +11,12 @@ import org.apache.ibatis.annotations.Mapper;
 public interface UserMapper extends BaseMapper<User> {
 
     /**
-     * 根据邮箱查询用户
+     * 根据手机号查询用户
      * 
-     * @param email 邮箱
+     * @param phone 手机号
      * @return 用户信息
      */
-    User selectByEmail(String email);
+    User selectByPhone(String phone);
 
     /**
      * 根据昵称查询用户

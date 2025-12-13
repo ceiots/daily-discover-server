@@ -10,11 +10,15 @@
 ## 数据库迁移
 
 ### 命令行批量执行
+
+# 数据库迁移
 ```bash
-# 一次性执行所有SQL文件
 mysql -u root -p daily_discover < src/main/resources/db/migration/create_database.sql
+```
 
 # 执行用户表迁移
-mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_core_tables.sql
+```bash
+mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_base_tables.sql
+mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_behavior_tables.sql
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_config_tables.sql
 ```

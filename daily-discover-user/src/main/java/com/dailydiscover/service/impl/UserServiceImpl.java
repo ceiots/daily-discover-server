@@ -33,14 +33,14 @@ public class UserServiceImpl implements UserService {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserServiceImpl.register", user, null);
         
-        // 检查邮箱是否已存在
+        // 检查手机号是否已存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", user.getEmail());
+        queryWrapper.eq("phone", user.getPhone());
         User existingUser = userMapper.selectOne(queryWrapper);
         
         if (existingUser != null) {
-            LogTracer.traceException("UserServiceImpl.register", user, new RuntimeException("邮箱已被注册"));
-            throw new RuntimeException("邮箱已被注册");
+            LogTracer.traceException("UserServiceImpl.register", user, new RuntimeException("手机号已被注册"));
+            throw new RuntimeException("手机号已被注册");
         }
         
         // 设置用户默认属性
@@ -62,36 +62,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse login(User user) {
+    public UserResponse login(String phone, String password) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.login", user, null);
+        LogTracer.traceMethod("UserServiceImpl.login", phone, null);
         
-        // 根据邮箱查找用户
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", user.getEmail());
-        User existingUser = userMapper.selectOne(queryWrapper);
+        // 根据手机号查询用户
+        User user = userMapper.selectByPhone(phone);
         
-        if (existingUser == null) {
-            LogTracer.traceException("UserServiceImpl.login", user, new RuntimeException("用户不存在"));
+        if (user == null) {
+            LogTracer.traceException("UserServiceImpl.login", phone, new RuntimeException("用户不存在"));
             throw new RuntimeException("用户不存在");
         }
         
         // 验证密码
-        if (!existingUser.getPassword().equals(user.getPassword())) {
-            LogTracer.traceException("UserServiceImpl.login", user, new RuntimeException("密码错误"));
+        if (!user.getPassword().equals(password)) {
+            LogTracer.traceException("UserServiceImpl.login", phone, new RuntimeException("密码错误"));
             throw new RuntimeException("密码错误");
         }
         
         // 更新最后登录时间
-        existingUser.setLastLoginAt(LocalDateTime.now());
-        int updateResult = userMapper.updateById(existingUser);
-        LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", new Object[]{existingUser}, updateResult);
+        user.setLastLoginAt(LocalDateTime.now());
+        int updateResult = userMapper.updateById(user);
+        LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", new Object[]{user}, updateResult);
         
         // 创建用户响应
         UserResponse response = new UserResponse();
-        BeanUtils.copyProperties(existingUser, response);
+        BeanUtils.copyProperties(user, response);
         
-        LogTracer.traceMethod("UserServiceImpl.login", user, response);
+        LogTracer.traceMethod("UserServiceImpl.login", phone, response);
         LogTracer.tracePerformance("UserServiceImpl.login", startTime, System.currentTimeMillis());
         return response;
     }
@@ -116,12 +114,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserByEmail(String email) {
-        User user = userMapper.selectByEmail(email);
+    public UserResponse getUserByPhone(String phone) {
+        long startTime = System.currentTimeMillis();
+        LogTracer.traceMethod("UserServiceImpl.getUserByPhone", phone, null);
+        
+        // 根据手机号查询用户
+        User user = userMapper.selectByPhone(phone);
+        
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            // 用户不存在时返回null，而不是抛出异常
+            return null;
         }
-        return convertToResponse(user);
+        
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setNickname(user.getNickname());
+        response.setPhone(user.getPhone());
+        
+        LogTracer.traceMethod("UserServiceImpl.getUserByPhone", phone, response);
+        LogTracer.tracePerformance("UserServiceImpl.getUserByPhone", startTime, System.currentTimeMillis());
+        return response;
     }
 
     @Override
@@ -129,6 +141,17 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUserProfile(User user) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserServiceImpl.updateUserProfile", user, null);
+        
+        // 检查手机号是否已被其他用户使用
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("phone", user.getPhone());
+        queryWrapper.ne("id", user.getId());
+        User otherUser = userMapper.selectOne(queryWrapper);
+        
+        if (otherUser != null) {
+            LogTracer.traceException("UserServiceImpl.updateUserProfile", user, new RuntimeException("手机号已被其他用户使用"));
+            throw new RuntimeException("手机号已被其他用户使用");
+        }
         
         User existingUser = userMapper.selectById(user.getId());
         LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{user.getId()}, existingUser);
@@ -139,7 +162,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // 更新用户信息
-        BeanUtils.copyProperties(user, existingUser, "id", "email", "password", "createdAt");
+        BeanUtils.copyProperties(user, existingUser, "id", "phone", "password", "createdAt");
         existingUser.setUpdatedAt(LocalDateTime.now());
         
         int updateResult = userMapper.updateById(existingUser);

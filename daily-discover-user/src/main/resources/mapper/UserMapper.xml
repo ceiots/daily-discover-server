@@ -15,9 +15,9 @@
         <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
     </resultMap>
 
-    <!-- 根据邮箱查询用户 -->
-    <select id="selectByEmail" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE email = #{email}
+    <!-- 根据手机号查询用户 -->
+    <select id="selectByPhone" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE phone = #{phone}
     </select>
 
     <!-- 根据昵称查询用户 -->

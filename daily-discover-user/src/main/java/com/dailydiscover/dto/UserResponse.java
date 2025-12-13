@@ -21,9 +21,9 @@ public class UserResponse {
     private String nickname;
 
     /**
-     * 邮箱
+     * 手机号
      */
-    private String email;
+    private String phone;
 
     /**
      * 个人简介
