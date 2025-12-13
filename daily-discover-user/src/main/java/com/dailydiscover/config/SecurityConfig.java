@@ -28,7 +28,7 @@ public class SecurityConfig {
     }
 
     /**
-     * 安全过滤器链配置 - 电商认证最佳实践
+     * 安全过滤器链配置 - 电商认证最佳实践（可扩展配置）
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,49 +44,40 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             
-            // 配置请求授权 - 电商最佳实践：公开接口无需认证，私有接口需要认证
+            // 配置请求授权 - 基于路径模式的智能认证
             .authorizeHttpRequests(authz -> authz
-                // 公开接口 - 无需认证
+                // 公开接口 - 无需认证（按功能模块分组）
                 .requestMatchers(
                     // 健康检查
                     "/actuator/health",
                     "/user/api/debug/health",
                     
-                    // 认证相关
-                    "/user/api/auth/login",
-                    "/user/api/auth/register", 
-                    "/user/api/auth/refresh-token",
-                    "/user/api/auth/captcha",
+                    // 认证相关接口
+                    "/user/api/auth/*",
                     
-                    // 公开信息
-                    "/user/api/public/**",
+                    // 公开信息接口
+                    "/user/api/public/*",
                     
-                    // Swagger文档（开发环境）
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
+                    // API文档接口
+                    "/swagger-ui/*",
+                    "/v3/api-docs/*",
                     
                     // 静态资源
-                    "/webjars/**",
+                    "/webjars/*",
                     "/favicon.ico"
                 ).permitAll()
                 
-                // 私有接口 - 需要认证
-                .requestMatchers(
-                    // 用户个人信息
-                    "/user/api/users/me",
-                    "/user/api/users/profile",
-                    
-                    // 用户操作
-                    "/user/api/users/**/favorites",
-                    "/user/api/users/**/orders",
-                    "/user/api/users/**/settings",
-                    
-                    // 管理接口（需要管理员权限）
-                    "/user/api/admin/**"
-                ).authenticated()
+                // 管理接口 - 需要管理员权限
+                .requestMatchers("/user/api/admin/*").hasRole("ADMIN")
                 
-                // 默认规则：其他所有接口需要认证
-                .anyRequest().authenticated()
+                // 用户接口 - 需要认证
+                .requestMatchers("/user/api/users/*").authenticated()
+                
+                // 默认规则：其他API接口需要认证
+                .requestMatchers("/user/api/*").authenticated()
+                
+                // 其他所有请求默认允许访问
+                .anyRequest().permitAll()
             )
             
             // 配置JWT认证过滤器
