@@ -97,5 +97,52 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     UNIQUE KEY uk_user_token (user_id, token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='刷新令牌表';
 
+-- 5. 创建用户会话表（用于管理用户登录状态）
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    session_token VARCHAR(255) NOT NULL COMMENT '会话令牌',
+    refresh_token VARCHAR(255) NOT NULL COMMENT '刷新令牌',
+    device_info VARCHAR(200) COMMENT '设备信息',
+    ip_address VARCHAR(45) COMMENT 'IP地址',
+    expires_at TIMESTAMP NOT NULL COMMENT '过期时间',
+    refresh_expires_at TIMESTAMP NOT NULL COMMENT '刷新令牌过期时间',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '是否活跃',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_session_token (session_token),
+    INDEX idx_refresh_token (refresh_token),
+    INDEX idx_expires_at (expires_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户会话表';
+
+-- 6. 创建密码重置令牌表
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    token VARCHAR(255) NOT NULL COMMENT '重置令牌',
+    expires_at TIMESTAMP NOT NULL COMMENT '过期时间',
+    is_used BOOLEAN DEFAULT FALSE COMMENT '是否已使用',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_token (token),
+    INDEX idx_expires_at (expires_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='密码重置令牌表';
+
+-- 7. 创建登录尝试记录表（用于安全控制）
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL COMMENT '用户名',
+    ip_address VARCHAR(45) NOT NULL COMMENT 'IP地址',
+    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '尝试时间',
+    is_success BOOLEAN DEFAULT FALSE COMMENT '是否成功',
+    failure_reason VARCHAR(200) COMMENT '失败原因',
+    INDEX idx_username (username),
+    INDEX idx_ip_address (ip_address),
+    INDEX idx_attempt_time (attempt_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='登录尝试记录表';
+
 -- 完成迁移
 COMMIT;
