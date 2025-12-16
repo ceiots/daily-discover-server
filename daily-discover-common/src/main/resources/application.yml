@@ -1,0 +1,55 @@
+# 通用模块应用配置
+# 当作为独立服务运行时生效
+
+spring:
+  application:
+    name: daily-discover-common
+  
+  # 服务器配置
+  server:
+    port: 8090
+    servlet:
+      context-path: /common
+    
+  # 数据源配置（可根据需要启用）
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/daily_discover_common?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+
+# JWT配置
+jwt:
+  secret: dailyDiscoverCommonSecretKeyForJWTTokenGeneration
+  expiration: 86400000  # 24小时
+
+# 日志配置
+logging:
+  level:
+    com.dailydiscover.common: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+# Swagger配置
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /common/api-docs
+
+# 自定义配置
+daily-discover:
+  common:
+    # 运行模式：library（库模式）或 standalone（独立服务模式）
+    mode: standalone
+    
+    # 认证服务配置
+    auth:
+      enabled: true
+      default-users:
+        - username: admin
+          password: admin123
+          nickname: 管理员
+          phone: 13800138000
+          bio: 系统管理员

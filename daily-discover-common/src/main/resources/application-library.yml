@@ -1,0 +1,32 @@
+# 库模式配置
+# 当作为公共库被其他服务引入时生效
+
+spring:
+  # 禁用Web服务器启动
+  main:
+    web-application-type: none
+  
+  # 禁用自动配置（可选）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+# 库模式下的JWT配置（通过环境变量或主应用配置覆盖）
+jwt:
+  secret: ${JWT_SECRET:defaultLibrarySecretKey}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# 库模式日志配置
+logging:
+  level:
+    com.dailydiscover.common: INFO
+
+# 自定义配置 - 库模式
+daily-discover:
+  common:
+    mode: library
+    
+    # 认证服务配置（由主应用提供）
+    auth:
+      enabled: false  # 库模式下禁用独立认证服务

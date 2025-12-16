@@ -11,7 +11,26 @@
 
     <artifactId>daily-discover-common</artifactId>
     <packaging>jar</packaging>
-    <description>每日发现通用模块</description>
+    <description>每日发现通用模块 - 可作为公共库或独立服务</description>
+    
+    <!-- 配置profiles，支持不同运行模式 -->
+    <profiles>
+        <profile>
+            <id>library</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <skip.spring-boot.execution>true</skip.spring-boot.execution>
+            </properties>
+        </profile>
+        <profile>
+            <id>standalone</id>
+            <properties>
+                <skip.spring-boot.execution>false</skip.spring-boot.execution>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
         <!-- Spring Boot 基础依赖 -->
@@ -63,6 +82,25 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        
+        <!-- JWT依赖 -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
     
     <build>
@@ -76,14 +114,14 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
-            <!-- 显式配置spring-boot-maven-plugin，设置skip=true跳过执行 -->
+            <!-- 配置spring-boot-maven-plugin，支持profile切换 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>${skip.spring-boot.execution}</skip>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-</project> 
+</project>
