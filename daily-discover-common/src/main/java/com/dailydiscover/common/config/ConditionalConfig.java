@@ -26,13 +26,4 @@ public class ConditionalConfig {
     public static class LibraryConfig {
         // 库模式下的配置
     }
-
-    /**
-     * 认证服务配置（仅在独立服务模式下启用）
-     */
-    @Configuration
-    @ConditionalOnProperty(name = "daily-discover.common.auth.enabled", havingValue = "true")
-    public static class AuthServiceConfig {
-        // 认证服务相关配置
-    }
 }

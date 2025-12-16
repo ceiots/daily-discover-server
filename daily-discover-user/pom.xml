@@ -30,6 +30,13 @@
     </properties>
 
     <dependencies>
+        <!-- 每日发现通用模块依赖 -->
+        <dependency>
+            <groupId>com.dailydiscover</groupId>
+            <artifactId>daily-discover-common</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- Spring Boot Web Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

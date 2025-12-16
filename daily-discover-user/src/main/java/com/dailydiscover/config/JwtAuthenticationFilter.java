@@ -75,15 +75,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean isValidToken(String token) {
         // 使用JwtUtil验证Token
         try {
-            // 检查Token是否过期
-            if (jwtUtil.isTokenExpired(token)) {
-                return false;
-            }
-            // 获取用户名（验证签名）
-            jwtUtil.getUsernameFromToken(token);
-            return true;
+            return jwtUtil.validateToken(token);
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * 获取用户ID从Token
+     */
+    private Long getUserIdFromToken(String token) {
+        try {
+            return jwtUtil.getUserIdFromToken(token);
+        } catch (Exception e) {
+            return null;
         }
     }
 }

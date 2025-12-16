@@ -27,6 +27,18 @@ public class User {
     private String nickname;
 
     /**
+     * 用户名（用于登录）
+     */
+    @TableField("username")
+    private String username;
+
+    /**
+     * 邮箱（用于登录和找回密码）
+     */
+    @TableField("email")
+    private String email;
+
+    /**
      * 手机号
      */
     @TableField("phone")
@@ -63,16 +75,64 @@ public class User {
     private String avatarUrl;
 
     /**
-     * 密码
+     * 密码（加密存储）
      */
     @TableField("password")
     private String password;
+
+    /**
+     * 邮箱是否已验证
+     */
+    @TableField("email_verified")
+    private Boolean emailVerified;
+
+    /**
+     * 手机号是否已验证
+     */
+    @TableField("phone_verified")
+    private Boolean phoneVerified;
 
     /**
      * 最后登录时间
      */
     @TableField("last_login_at")
     private LocalDateTime lastLoginAt;
+
+    /**
+     * 登录次数
+     */
+    @TableField("login_count")
+    private Integer loginCount;
+
+    /**
+     * 用户状态：ACTIVE, INACTIVE, BANNED
+     */
+    @TableField("status")
+    private String status;
+
+    /**
+     * 验证码
+     */
+    @TableField("verification_code")
+    private String verificationCode;
+
+    /**
+     * 验证码过期时间
+     */
+    @TableField("verification_code_expires_at")
+    private LocalDateTime verificationCodeExpiresAt;
+
+    /**
+     * 密码重置令牌
+     */
+    @TableField("reset_token")
+    private String resetToken;
+
+    /**
+     * 重置令牌过期时间
+     */
+    @TableField("reset_token_expires_at")
+    private LocalDateTime resetTokenExpiresAt;
 
     /**
      * 创建时间

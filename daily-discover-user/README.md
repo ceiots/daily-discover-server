@@ -22,3 +22,9 @@ mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_us
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_behavior_tables.sql
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_config_tables.sql
 ```
+
+# tailscale 配置
+tailscale funnel --bg --set-path=/common/api http://127.0.0.1:8090/common/api
+tailscale funnel --bg --set-path=/user/api http://127.0.0.1:8091/user/api
+tailscale funnel --bg --set-path=/product/api http://127.0.0.1:8092/product/api
+tailscale funnel --bg --set-path=/api/dailylife http://127.0.0.1:3001/api/dailylife
