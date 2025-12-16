@@ -7,49 +7,55 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * 刷新令牌实体类
+ * 登录尝试记录实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("refresh_tokens")
-public class RefreshToken {
-
+@TableName("login_attempts")
+public class LoginAttempt {
+    
     /**
      * 主键ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
-
+    
     /**
-     * 用户ID
+     * 用户ID（可为空，表示匿名登录尝试）
      */
     @TableField("user_id")
     private Long userId;
-
+    
     /**
-     * 刷新令牌
+     * 登录标识（用户名、邮箱或手机号）
      */
-    @TableField("token")
-    private String token;
-
-    /**
-     * 设备信息
-     */
-    @TableField("device_info")
-    private String deviceInfo;
-
+    @TableField("identifier")
+    private String identifier;
+    
     /**
      * IP地址
      */
     @TableField("ip_address")
     private String ipAddress;
-
+    
     /**
-     * 过期时间
+     * 设备信息
      */
-    @TableField("expires_at")
-    private LocalDateTime expiresAt;
-
+    @TableField("device_info")
+    private String deviceInfo;
+    
+    /**
+     * 登录结果（成功/失败）
+     */
+    @TableField("result")
+    private String result;
+    
+    /**
+     * 失败原因（如果失败）
+     */
+    @TableField("failure_reason")
+    private String failureReason;
+    
     /**
      * 创建时间
      */

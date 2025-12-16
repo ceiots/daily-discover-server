@@ -2,7 +2,11 @@ package com.dailydiscover.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dailydiscover.dto.*;
+import com.dailydiscover.entity.LoginAttempt;
+import com.dailydiscover.entity.RefreshToken;
 import com.dailydiscover.entity.User;
+import com.dailydiscover.mapper.LoginAttemptMapper;
+import com.dailydiscover.mapper.RefreshTokenMapper;
 import com.dailydiscover.mapper.UserMapper;
 import com.dailydiscover.service.AuthService;
 import com.dailydiscover.util.JwtUtil;
@@ -22,11 +26,20 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
     
     private final UserMapper userMapper;
+    private final RefreshTokenMapper refreshTokenMapper;
+    private final LoginAttemptMapper loginAttemptMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     
     @Override
     public AuthResponse login(LoginRequest request) {
+        // 记录登录尝试
+        LoginAttempt loginAttempt = new LoginAttempt();
+        loginAttempt.setIdentifier(request.getUsername());
+        // IP地址和设备信息在实际应用中应从请求中获取
+        // 这里暂时留空，待后续从请求上下文中获取
+        loginAttempt.setCreatedAt(LocalDateTime.now());
+        
         // 根据用户名或邮箱查找用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", request.getUsername())
@@ -35,13 +48,27 @@ public class AuthServiceImpl implements AuthService {
         
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
+            // 记录失败的登录尝试
+            loginAttempt.setResult("失败");
+            loginAttempt.setFailureReason("用户不存在");
+            loginAttemptMapper.insert(loginAttempt);
             throw new RuntimeException("用户不存在");
         }
         
         // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            // 记录失败的登录尝试
+            loginAttempt.setUserId(user.getId());
+            loginAttempt.setResult("失败");
+            loginAttempt.setFailureReason("密码错误");
+            loginAttemptMapper.insert(loginAttempt);
             throw new RuntimeException("密码错误");
         }
+        
+        // 记录成功的登录尝试
+        loginAttempt.setUserId(user.getId());
+        loginAttempt.setResult("成功");
+        loginAttemptMapper.insert(loginAttempt);
         
         // 更新最后登录时间
         user.setLastLoginAt(LocalDateTime.now());
@@ -49,12 +76,23 @@ public class AuthServiceImpl implements AuthService {
         
         // 生成Token
         String token = jwtUtil.generateToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String refreshTokenValue = jwtUtil.generateRefreshToken(user);
+        
+        // 创建并保存刷新令牌到数据库
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setUserId(user.getId());
+        refreshToken.setToken(refreshTokenValue);
+        // 设备信息和IP地址在实际应用中应从请求中获取
+        // 这里暂时留空，待后续从请求上下文中获取
+        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 7天有效期
+        refreshToken.setCreatedAt(LocalDateTime.now());
+        
+        refreshTokenMapper.insert(refreshToken);
         
         AuthResponse response = new AuthResponse();
         response.setUser(user);
         response.setToken(token);
-        response.setRefreshToken(refreshToken);
+        response.setRefreshToken(refreshTokenValue);
         response.setExpiresIn(jwtUtil.getExpiration());
         
         return response;
@@ -103,12 +141,23 @@ public class AuthServiceImpl implements AuthService {
         
         // 生成Token
         String token = jwtUtil.generateToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String refreshTokenValue = jwtUtil.generateRefreshToken(user);
+        
+        // 创建并保存刷新令牌到数据库
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setUserId(user.getId());
+        refreshToken.setToken(refreshTokenValue);
+        // 设备信息和IP地址在实际应用中应从请求中获取
+        // 这里暂时留空，待后续从请求上下文中获取
+        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 7天有效期
+        refreshToken.setCreatedAt(LocalDateTime.now());
+        
+        refreshTokenMapper.insert(refreshToken);
         
         AuthResponse response = new AuthResponse();
         response.setUser(user);
         response.setToken(token);
-        response.setRefreshToken(refreshToken);
+        response.setRefreshToken(refreshTokenValue);
         response.setExpiresIn(jwtUtil.getExpiration());
         
         return response;
@@ -116,27 +165,35 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public AuthResponse refreshToken(TokenRefreshRequest request) {
-        // 验证刷新令牌
-        if (!jwtUtil.validateRefreshToken(request.getRefreshToken())) {
+        // 从数据库中查找刷新令牌
+        QueryWrapper<RefreshToken> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("token", request.getRefreshToken())
+                   .gt("expires_at", LocalDateTime.now());
+        
+        RefreshToken refreshToken = refreshTokenMapper.selectOne(queryWrapper);
+        if (refreshToken == null) {
             throw new RuntimeException("刷新令牌无效或已过期");
         }
         
-        // 从刷新令牌中获取用户ID
-        Long userId = jwtUtil.getUserIdFromRefreshToken(request.getRefreshToken());
-        User user = userMapper.selectById(userId);
-        
+        // 获取用户信息
+        User user = userMapper.selectById(refreshToken.getUserId());
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
         
-        // 生成新的Token
+        // 生成新的Token和新的刷新令牌
         String token = jwtUtil.generateToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String newRefreshTokenValue = jwtUtil.generateRefreshToken(user);
+        
+        // 更新数据库中的刷新令牌
+        refreshToken.setToken(newRefreshTokenValue);
+        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 重新设置7天有效期
+        refreshTokenMapper.updateById(refreshToken);
         
         AuthResponse response = new AuthResponse();
         response.setUser(user);
         response.setToken(token);
-        response.setRefreshToken(refreshToken);
+        response.setRefreshToken(newRefreshTokenValue);
         response.setExpiresIn(jwtUtil.getExpiration());
         
         return response;
@@ -182,10 +239,19 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public void logout(String token) {
-        // 在实际应用中，可以将令牌加入黑名单
-        // 这里简单实现，直接验证令牌有效性
         if (StringUtils.hasText(token)) {
-            jwtUtil.validateToken(token);
+            try {
+                // 从令牌中获取用户ID
+                Long userId = jwtUtil.getUserIdFromToken(token);
+                
+                // 删除该用户的所有刷新令牌
+                QueryWrapper<RefreshToken> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("user_id", userId);
+                refreshTokenMapper.delete(queryWrapper);
+                
+            } catch (Exception e) {
+                // 如果令牌无效，忽略错误，直接完成登出
+            }
         }
     }
 }
