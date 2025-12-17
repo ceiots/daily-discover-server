@@ -1,7 +1,12 @@
 @echo off
-echo 启动 daily-discover-common 独立服务模式...
-
-REM 使用standalone profile启动
-mvn spring-boot:run -Pstandalone
-
+echo 🚀 启动每日发现通用模块独立服务模式...
+echo.
+echo ☕ 检查 Java 环境...
+java -version
+echo.
+echo 📦 编译项目...
+call mvnw.cmd clean compile -Pstandalone
+echo.
+echo 🎯 启动服务...
+call mvnw.cmd spring-boot:run -Pstandalone
 pause

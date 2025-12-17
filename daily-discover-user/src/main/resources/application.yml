@@ -50,15 +50,7 @@ jwt:
   header: Authorization
   prefix: Bearer
 
-# SSH文件上传配置
-ssh:
-  remote:
-    host: localhost
-    port: 22
-    username: root
-    password: 000000
-    upload-path: /opt/uploads
-    timeout: 30000
+
 
 # 日志配置
 logging:

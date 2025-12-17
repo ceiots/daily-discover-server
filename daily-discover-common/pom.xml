@@ -142,12 +142,7 @@
             <version>0.0.3</version>
         </dependency>
         
-        <!-- JSch SSH/SFTP客户端 -->
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>0.1.55</version>
-        </dependency>
+
         
         <!-- WebSocket依赖 -->
         <dependency>

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
  * 可作为独立服务运行，也可作为公共库被其他服务引入
  */
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.dailydiscover.common"})
+@ComponentScan(basePackages = {"com.dailydiscover"})
 public class CommonApplication {
 
     public static void main(String[] args) {
