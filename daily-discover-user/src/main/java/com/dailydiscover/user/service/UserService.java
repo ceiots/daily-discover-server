@@ -1,4 +1,4 @@
-package com.dailydiscover.service;
+package com.dailydiscover.user.service;
 
 import com.dailydiscover.user.dto.UserResponse;
 import com.dailydiscover.user.entity.User;

@@ -1,4 +1,4 @@
-package com.dailydiscover.config;
+package com.dailydiscover.user.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

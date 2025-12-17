@@ -1,4 +1,4 @@
-package com.dailydiscover.service.impl;
+package com.dailydiscover.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dailydiscover.user.dto.*;
@@ -9,7 +9,7 @@ import com.dailydiscover.user.mapper.LoginAttemptMapper;
 import com.dailydiscover.user.mapper.RefreshTokenMapper;
 import com.dailydiscover.user.mapper.UserMapper;
 import com.dailydiscover.user.service.AuthService;
-import com.dailydiscover.util.JwtUtil;
+import com.dailydiscover.user.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

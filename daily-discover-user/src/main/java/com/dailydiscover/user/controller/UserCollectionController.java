@@ -1,9 +1,9 @@
-package com.dailydiscover.controller;
+package com.dailydiscover.user.controller;
 
 import com.dailydiscover.user.dto.UserCollectionResponse;
 import com.dailydiscover.user.entity.UserCollection;
 import com.dailydiscover.user.service.UserCollectionService;
-import com.dailydiscover.util.LogTracer;
+import com.dailydiscover.common.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

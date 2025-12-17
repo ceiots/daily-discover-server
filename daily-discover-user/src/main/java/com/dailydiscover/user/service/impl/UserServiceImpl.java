@@ -1,4 +1,4 @@
-package com.dailydiscover.service.impl;
+package com.dailydiscover.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dailydiscover.user.dto.UserResponse;
@@ -7,7 +7,7 @@ import com.dailydiscover.user.entity.UserLevel;
 import com.dailydiscover.user.mapper.UserLevelMapper;
 import com.dailydiscover.user.mapper.UserMapper;
 import com.dailydiscover.user.service.UserService;
-import com.dailydiscover.util.LogTracer;
+import com.dailydiscover.common.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

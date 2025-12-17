@@ -1,4 +1,4 @@
-package com.dailydiscover.util;
+package com.dailydiscover.user.util;
 
 import com.dailydiscover.user.entity.User;
 import io.jsonwebtoken.*;

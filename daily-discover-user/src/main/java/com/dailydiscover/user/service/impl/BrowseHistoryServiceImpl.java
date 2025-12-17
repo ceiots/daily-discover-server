@@ -1,11 +1,11 @@
-package com.dailydiscover.service.impl;
+package com.dailydiscover.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dailydiscover.user.dto.BrowseHistoryResponse;
 import com.dailydiscover.user.entity.BrowseHistory;
 import com.dailydiscover.user.mapper.BrowseHistoryMapper;
 import com.dailydiscover.user.service.BrowseHistoryService;
-import com.dailydiscover.util.LogTracer;
+import com.dailydiscover.common.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

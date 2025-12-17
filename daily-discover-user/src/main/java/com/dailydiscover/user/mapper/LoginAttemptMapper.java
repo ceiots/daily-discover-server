@@ -1,4 +1,4 @@
-package com.dailydiscover.mapper;
+package com.dailydiscover.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.user.entity.LoginAttempt;

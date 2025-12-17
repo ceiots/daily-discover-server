@@ -1,4 +1,4 @@
-package com.dailydiscover.controller;
+package com.dailydiscover.user.controller;
 
 import com.dailydiscover.common.result.Result;
 import com.dailydiscover.user.dto.*;

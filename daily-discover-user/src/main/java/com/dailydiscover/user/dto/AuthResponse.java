@@ -1,4 +1,4 @@
-package com.dailydiscover.dto;
+package com.dailydiscover.user.dto;
 
 import com.dailydiscover.user.entity.User;
 import lombok.Data;
