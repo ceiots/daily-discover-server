@@ -1,29 +1,12 @@
 @echo off
-chcp 65001 >nul
-setlocal
-
-REM Daily Discover Common Module Startup Script
-set "SERVICE_NAME=Daily Discover Common Module"
-
-REM Check if using standalone mode
-set "STANDALONE_MODE="
-if "%1"=="standalone" (
-    set "STANDALONE_MODE=-Pstandalone"
-    echo Using standalone mode
-)
-
-echo Starting %SERVICE_NAME%...
+echo 🚀 启动每日发现通用模块...
 echo.
-
-echo Checking Java environment...
+echo ☕ 检查 Java 环境...
 java -version
 echo.
-
-echo Compiling project...
-call mvnw.cmd clean compile %STANDALONE_MODE%
+echo 📦 编译项目...
+call mvnw.cmd clean compile
 echo.
-
-echo Starting service...
-call mvnw.cmd spring-boot:run %STANDALONE_MODE%
-
+echo 🎯 启动服务...
+call mvnw.cmd spring-boot:run
 pause

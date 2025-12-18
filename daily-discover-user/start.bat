@@ -1,22 +1,12 @@
 @echo off
-chcp 65001 >nul
-setlocal
-
-REM Daily Discover User Service Startup Script
-set "SERVICE_NAME=Daily Discover User Service"
-
-echo Starting %SERVICE_NAME%...
+echo 🚀 启动每日发现用户服务...
 echo.
-
-echo Checking Java environment...
+echo ☕ 检查 Java 环境...
 java -version
 echo.
-
-echo Compiling project...
+echo 📦 编译项目...
 call mvnw.cmd clean compile
 echo.
-
-echo Starting service...
+echo 🎯 启动服务...
 call mvnw.cmd spring-boot:run
-
 pause

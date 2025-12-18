@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 每日发现用户服务启动类
  */
 @SpringBootApplication
-@MapperScan("com.dailydiscover.mapper")
+@MapperScan("com.dailydiscover.user.mapper")
 public class DailyDiscoverUserApplication {
 
     public static void main(String[] args) {
