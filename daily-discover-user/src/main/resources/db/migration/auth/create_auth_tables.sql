@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS login_attempts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT COMMENT '用户ID（可为空，表示匿名登录尝试）',
     identifier VARCHAR(100) NOT NULL COMMENT '登录标识（手机号）',
-    ip_address VARCHAR(45) NOT NULL COMMENT 'IP地址',
+    ip_address VARCHAR(45) COMMENT 'IP地址',
     device_info VARCHAR(200) COMMENT '设备信息',
     result VARCHAR(20) NOT NULL COMMENT '登录结果（成功/失败）',
     failure_reason VARCHAR(200) COMMENT '失败原因（如果失败）',

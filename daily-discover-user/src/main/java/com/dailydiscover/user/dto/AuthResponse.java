@@ -9,6 +9,10 @@ import lombok.Data;
 @Data
 public class AuthResponse {
     
+    private boolean success = true;
+    
+    private String message;
+    
     private User user;
     
     private String token;
