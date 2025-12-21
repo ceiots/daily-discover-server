@@ -30,18 +30,18 @@ public class JwtUtil {
     /**
      * 生成JWT Token
      */
-    public String generateToken(Long userId, String username) {
+    public String generateToken(Long userId, String phone) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        claims.put("username", username);
-        return createToken(claims, username, expiration);
+        claims.put("phone", phone);
+        return createToken(claims, phone, expiration);
     }
 
     /**
      * 生成JWT Token（基于User对象）
      */
     public String generateToken(User user) {
-        return generateToken(user.getId(), user.getUsername());
+        return generateToken(user.getId(), user.getPhone());
     }
 
     /**
@@ -50,9 +50,9 @@ public class JwtUtil {
     public String generateRefreshToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
-        claims.put("username", user.getUsername());
+        claims.put("phone", user.getPhone());
         claims.put("type", "refresh");
-        return createToken(claims, user.getUsername(), REFRESH_EXPIRATION);
+        return createToken(claims, user.getPhone(), REFRESH_EXPIRATION);
     }
 
     /**
@@ -74,9 +74,9 @@ public class JwtUtil {
     }
 
     /**
-     * 从Token中获取用户名
+     * 从Token中获取手机号
      */
-    public String getUsernameFromToken(String token) {
+    public String getPhoneFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
@@ -153,12 +153,12 @@ public class JwtUtil {
     }
 
     /**
-     * 验证Token（带用户名）
+     * 验证Token（带手机号）
      */
-    public Boolean validateToken(String token, String username) {
+    public Boolean validateToken(String token, String phone) {
         try {
-            final String tokenUsername = getUsernameFromToken(token);
-            return (tokenUsername.equals(username) && !isTokenExpired(token));
+            final String tokenPhone = getPhoneFromToken(token);
+            return (tokenPhone.equals(phone) && !isTokenExpired(token));
         } catch (Exception e) {
             log.error("Token验证失败: {}", e.getMessage());
             return false;

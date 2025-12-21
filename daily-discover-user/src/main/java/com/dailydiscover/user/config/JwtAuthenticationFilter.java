@@ -48,12 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 验证Token并获取用户信息
                 if (isValidToken(token)) {
                     // 从Token中解析用户信息
-                    String username = jwtUtil.getUsernameFromToken(token);
+                    String phone = jwtUtil.getPhoneFromToken(token);
                     List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
                     
                     // 创建认证对象
                     UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        new UsernamePasswordAuthenticationToken(phone, null, authorities);
                     
                     // 设置认证信息到SecurityContext
                     SecurityContextHolder.getContext().setAuthentication(authentication);

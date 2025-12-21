@@ -35,16 +35,16 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest request) {
         // 记录登录尝试
         LoginAttempt loginAttempt = new LoginAttempt();
-        loginAttempt.setIdentifier(request.getUsername());
+        loginAttempt.setIdentifier(request.getPhone());
         // IP地址和设备信息在实际应用中应从请求中获取
         // 这里暂时留空，待后续从请求上下文中获取
         loginAttempt.setCreatedAt(LocalDateTime.now());
         
-        // 根据用户名或邮箱查找用户
+        // 根据手机号或邮箱查找用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", request.getUsername())
+        queryWrapper.eq("phone", request.getPhone())
                    .or()
-                   .eq("email", request.getUsername());
+                   .eq("email", request.getPhone());
         
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
@@ -105,31 +105,23 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("密码和确认密码不一致");
         }
         
-        // 检查用户名是否已存在
-        QueryWrapper<User> usernameQuery = new QueryWrapper<>();
-        usernameQuery.eq("username", request.getUsername());
-        if (userMapper.selectOne(usernameQuery) != null) {
-            throw new RuntimeException("用户名已存在");
-        }
-        
-        // 检查邮箱是否已存在
-        QueryWrapper<User> emailQuery = new QueryWrapper<>();
-        emailQuery.eq("email", request.getEmail());
-        if (userMapper.selectOne(emailQuery) != null) {
-            throw new RuntimeException("邮箱已被注册");
+        // 检查手机号是否已存在
+        QueryWrapper<User> phoneQuery = new QueryWrapper<>();
+        phoneQuery.eq("phone", request.getPhone());
+        if (userMapper.selectOne(phoneQuery) != null) {
+            throw new RuntimeException("手机号已被注册");
         }
         
         // 创建新用户
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         
-        // 设置昵称（如果未提供则使用用户名）
+        // 设置昵称（如果未提供则使用手机号）
         if (StringUtils.hasText(request.getNickname())) {
             user.setNickname(request.getNickname());
         } else {
-            user.setNickname(request.getUsername());
+            user.setNickname(request.getPhone());
         }
         
         user.setPhone(request.getPhone());
@@ -206,13 +198,13 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("新密码和确认密码不一致");
         }
         
-        // 根据邮箱查找用户
+        // 根据邮箱查找用户（暂时使用邮箱作为手机号输入）
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", request.getEmail());
+        queryWrapper.eq("phone", request.getEmail());
         
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
-            throw new RuntimeException("邮箱未注册");
+            throw new RuntimeException("手机号未注册");
         }
         
         // 更新密码

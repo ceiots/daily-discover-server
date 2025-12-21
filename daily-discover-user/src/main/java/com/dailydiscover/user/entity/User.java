@@ -27,22 +27,12 @@ public class User {
     private String nickname;
 
     /**
-     * 用户名（用于登录）
-     */
-    @TableField("username")
-    private String username;
-
-    /**
-     * 邮箱（用于登录和找回密码）
-     */
-    @TableField("email")
-    private String email;
-
-    /**
-     * 手机号
+     * 手机号（用于登录）
      */
     @TableField("phone")
     private String phone;
+
+
 
     /**
      * 个人简介
@@ -80,11 +70,7 @@ public class User {
     @TableField("password")
     private String password;
 
-    /**
-     * 邮箱是否已验证
-     */
-    @TableField("email_verified")
-    private Boolean emailVerified;
+
 
     /**
      * 手机号是否已验证
