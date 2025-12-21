@@ -23,6 +23,11 @@ mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_us
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_config_tables.sql
 ```
 
+# 执行认证表迁移
+```bash
+mysql -u root -p daily_discover < src/main/resources/db/migration/auth/create_auth_tables.sql
+```
+
 # tailscale 配置
 tailscale funnel --bg --set-path=/common/api http://127.0.0.1:8090/common/api
 tailscale funnel --bg --set-path=/user/api http://127.0.0.1:8091/user/api

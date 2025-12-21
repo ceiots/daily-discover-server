@@ -40,11 +40,9 @@ public class AuthServiceImpl implements AuthService {
         // 这里暂时留空，待后续从请求上下文中获取
         loginAttempt.setCreatedAt(LocalDateTime.now());
         
-        // 根据手机号或邮箱查找用户
+        // 根据手机号查找用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("phone", request.getPhone())
-                   .or()
-                   .eq("email", request.getPhone());
+        queryWrapper.eq("phone", request.getPhone());
         
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
