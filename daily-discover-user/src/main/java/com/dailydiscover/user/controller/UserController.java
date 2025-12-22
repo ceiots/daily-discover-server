@@ -82,7 +82,15 @@ public class UserController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            
+            // 根据错误类型返回不同的HTTP状态码
+            if (e.getMessage().contains("用户不存在")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            } else if (e.getMessage().contains("密码错误")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            } else {
+                return ResponseEntity.badRequest().body(response);
+            }
         }
     }
 
