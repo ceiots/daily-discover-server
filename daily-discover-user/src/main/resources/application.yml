@@ -55,7 +55,26 @@ jwt:
 # 日志配置
 logging:
   level:
+    # 应用包路径日志级别
+    com.dailydiscover.user: INFO
+    com.dailydiscover.common: INFO
+    # 请求日志拦截器详细日志
+    com.dailydiscover.common.interceptor.RequestLoggingInterceptor: INFO
+    # Spring框架日志级别
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    # 数据库相关日志
+    com.baomidou.mybatisplus: WARN
+    org.apache.ibatis: WARN
+    # 其他日志级别
     com.dailydiscover: debug
     org.springframework.security: debug
+  
+  # 日志文件配置
+  file:
+    name: logs/daily-discover-user.log
+    
+  # 日志格式
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
