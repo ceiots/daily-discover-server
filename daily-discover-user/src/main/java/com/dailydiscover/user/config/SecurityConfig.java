@@ -2,6 +2,7 @@ package com.dailydiscover.user.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -124,8 +125,10 @@ public class SecurityConfig {
 
     /**
      * 密码编码器配置 - 使用BCrypt加密算法
+     * 使用@Primary注解避免与Spring Security自动配置的Bean冲突
      */
     @Bean
+    @Primary
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
