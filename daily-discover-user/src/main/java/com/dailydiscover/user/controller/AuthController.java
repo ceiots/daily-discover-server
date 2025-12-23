@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import com.dailydiscover.user.dto.*;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.AuthService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

@@ -51,8 +51,11 @@ public class AuthServiceImpl implements AuthService {
             loginAttempt.setFailureReason("用户不存在");
             loginAttemptMapper.insert(loginAttempt);
             
-            // 抛出异常而不是返回错误响应
-            throw new RuntimeException("用户不存在");
+            // 返回认证失败的响应而不是抛出异常
+            AuthResponse response = new AuthResponse();
+            response.setSuccess(false);
+            response.setMessage("用户不存在");
+            return response;
         }
         
         // 验证密码
@@ -63,8 +66,11 @@ public class AuthServiceImpl implements AuthService {
             loginAttempt.setFailureReason("密码错误");
             loginAttemptMapper.insert(loginAttempt);
             
-            // 抛出异常而不是返回错误响应
-            throw new RuntimeException("密码错误");
+            // 返回认证失败的响应而不是抛出异常
+            AuthResponse response = new AuthResponse();
+            response.setSuccess(false);
+            response.setMessage("密码错误");
+            return response;
         }
         
         // 记录成功的登录尝试

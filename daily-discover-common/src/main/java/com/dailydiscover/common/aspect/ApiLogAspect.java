@@ -1,7 +1,9 @@
 package com.dailydiscover.common.aspect;
 
 import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.common.config.ApiLogConfig;
 import com.dailydiscover.common.util.LogTracer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -26,7 +28,10 @@ import java.util.Map;
 @Aspect
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ApiLogAspect {
+    
+    private final ApiLogConfig apiLogConfig;
     
     /**
      * 定义切点：所有标记了@ApiLog注解的方法
@@ -41,21 +46,48 @@ public class ApiLogAspect {
     public void controllerPointcut() {}
     
     /**
+     * 定义切点：所有RestController注解的类的方法
+     */
+    @Pointcut("@within(org.springframework.web.bind.annotation.RestController)")
+    public void restControllerPointcut() {}
+    
+    /**
+     * 定义切点：所有RequestMapping注解的方法
+     */
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.RequestMapping) || " +
+              "@annotation(org.springframework.web.bind.annotation.GetMapping) || " +
+              "@annotation(org.springframework.web.bind.annotation.PostMapping) || " +
+              "@annotation(org.springframework.web.bind.annotation.PutMapping) || " +
+              "@annotation(org.springframework.web.bind.annotation.DeleteMapping) || " +
+              "@annotation(org.springframework.web.bind.annotation.PatchMapping)")
+    public void requestMappingPointcut() {}
+    
+    /**
      * 环绕通知：记录API调用日志
      */
-    @Around("apiLogPointcut() || controllerPointcut()")
+    @Around("apiLogPointcut() || controllerPointcut() || restControllerPointcut() || requestMappingPointcut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 检查是否启用API日志
+        if (!apiLogConfig.isEnabled()) {
+            return joinPoint.proceed();
+        }
+        
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
+        
+        // 检查是否在排除列表中
+        if (isExcluded(joinPoint)) {
+            return joinPoint.proceed();
+        }
         
         // 获取方法上的@ApiLog注解
         ApiLog apiLog = method.getAnnotation(ApiLog.class);
         
-        // 如果没有@ApiLog注解，使用默认配置
-        boolean logRequest = apiLog == null || apiLog.logRequest();
-        boolean logResponse = apiLog == null || apiLog.logResponse();
-        boolean logExecutionTime = apiLog == null || apiLog.logExecutionTime();
-        boolean logException = apiLog == null || apiLog.logException();
+        // 如果没有@ApiLog注解，使用配置文件中的默认配置
+        boolean logRequest = apiLog == null ? apiLogConfig.isLogRequest() : apiLog.logRequest();
+        boolean logResponse = apiLog == null ? apiLogConfig.isLogResponse() : apiLog.logResponse();
+        boolean logExecutionTime = apiLog == null ? apiLogConfig.isLogExecutionTime() : apiLog.logExecutionTime();
+        boolean logException = apiLog == null ? apiLogConfig.isLogException() : apiLog.logException();
         
         String methodName = getMethodName(joinPoint);
         String apiDescription = apiLog != null && !apiLog.value().isEmpty() ? apiLog.value() : methodName;
@@ -197,5 +229,46 @@ public class ApiLogAspect {
     private String getMethodName(ProceedingJoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         return signature.getDeclaringTypeName() + "." + signature.getName();
+    }
+    
+    /**
+     * 检查是否在排除列表中
+     */
+    private boolean isExcluded(ProceedingJoinPoint joinPoint) {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        String className = signature.getDeclaringTypeName();
+        String methodName = signature.getName();
+        
+        // 检查包排除
+        if (!apiLogConfig.getExcludePackages().isEmpty()) {
+            String[] excludePackages = apiLogConfig.getExcludePackages().split(",");
+            for (String pkg : excludePackages) {
+                if (className.startsWith(pkg.trim())) {
+                    return true;
+                }
+            }
+        }
+        
+        // 检查类排除
+        if (!apiLogConfig.getExcludeClasses().isEmpty()) {
+            String[] excludeClasses = apiLogConfig.getExcludeClasses().split(",");
+            for (String clazz : excludeClasses) {
+                if (className.equals(clazz.trim())) {
+                    return true;
+                }
+            }
+        }
+        
+        // 检查方法排除
+        if (!apiLogConfig.getExcludeMethods().isEmpty()) {
+            String[] excludeMethods = apiLogConfig.getExcludeMethods().split(",");
+            for (String method : excludeMethods) {
+                if (methodName.equals(method.trim())) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 }
