@@ -27,12 +27,6 @@ public class VerificationCode {
     private Long userId;
 
     /**
-     * 邮箱
-     */
-    @TableField("email")
-    private String email;
-
-    /**
      * 手机号
      */
     @TableField("phone")
@@ -45,7 +39,7 @@ public class VerificationCode {
     private String code;
 
     /**
-     * 验证码类型：LOGIN, REGISTER, RESET_PASSWORD, CHANGE_EMAIL, CHANGE_PHONE
+     * 验证码类型：LOGIN, REGISTER, RESET_PASSWORD, CHANGE_PHONE
      */
     @TableField("type")
     private String type;

@@ -200,9 +200,9 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("新密码和确认密码不一致");
         }
         
-        // 根据邮箱查找用户（暂时使用邮箱作为手机号输入）
+        // 根据手机号查找用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("phone", request.getEmail());
+        queryWrapper.eq("phone", request.getPhone());
         
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {

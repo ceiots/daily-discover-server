@@ -16,12 +16,6 @@ import java.util.List;
 public interface VerificationCodeMapper extends BaseMapper<VerificationCode> {
 
     /**
-     * 根据邮箱和类型查找有效的验证码
-     */
-    @Select("SELECT * FROM verification_codes WHERE email = #{email} AND type = #{type} AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1")
-    VerificationCode findValidByEmailAndType(@Param("email") String email, @Param("type") String type);
-
-    /**
      * 根据手机号和类型查找有效的验证码
      */
     @Select("SELECT * FROM verification_codes WHERE phone = #{phone} AND type = #{type} AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1")
