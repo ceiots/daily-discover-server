@@ -1,16 +1,18 @@
 package com.dailydiscover.user.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.dailydiscover.user.dto.*;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.AuthService;
+import com.dailydiscover.common.result.Result;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import java.util.HashMap;
-import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,28 +30,24 @@ public class AuthController {
      * 用户登录
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Validated @RequestBody LoginRequest request) {
+    public ResponseEntity<Result<AuthResponse>> login(@Validated @RequestBody LoginRequest request) {
         try {
             AuthResponse response = authService.login(request);
             
             // 检查登录是否成功，如果不成功则返回错误状态码
             if (!response.isSuccess()) {
                 // 统一使用业务错误码，HTTP状态码统一为422（Unprocessable Entity）
-                Map<String, Object> error = new HashMap<>();
-                error.put("code", getErrorCode(response.getMessage()));
-                error.put("message", response.getMessage());
-                
-                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+                Result<AuthResponse> result = Result.failure(response.getMessage());
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(result);
             }
             
-            // 登录成功，直接返回数据，无需包装success字段
-            return ResponseEntity.ok(response);
+            // 登录成功，使用Result包装
+            Result<AuthResponse> result = Result.success("登录成功", response);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             // 系统异常使用500
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "SYSTEM_ERROR");
-            error.put("message", "系统异常，请稍后重试");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            Result<AuthResponse> result = Result.failure("系统异常，请稍后重试");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
     
@@ -76,25 +74,22 @@ public class AuthController {
      * 用户注册
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Validated @RequestBody RegisterRequest request) {
+    public ResponseEntity<Result<AuthResponse>> register(@Validated @RequestBody RegisterRequest request) {
         try {
             AuthResponse response = authService.register(request);
             
             // 检查注册是否成功
             if (!response.isSuccess()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("code", getErrorCode(response.getMessage()));
-                error.put("message", response.getMessage());
-                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+                Result<AuthResponse> result = Result.failure(response.getMessage());
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(result);
             }
             
-            // 注册成功，直接返回数据
-            return ResponseEntity.ok(response);
+            // 注册成功，使用Result包装
+            Result<AuthResponse> result = Result.success("注册成功", response);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "REGISTRATION_ERROR");
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            Result<AuthResponse> result = Result.failure(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
     }
     
@@ -102,25 +97,22 @@ public class AuthController {
      * 刷新Token
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@Validated @RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<Result<AuthResponse>> refreshToken(@Validated @RequestBody TokenRefreshRequest request) {
         try {
             AuthResponse response = authService.refreshToken(request);
             
             // 检查刷新是否成功
             if (!response.isSuccess()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("code", getErrorCode(response.getMessage()));
-                error.put("message", response.getMessage());
-                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+                Result<AuthResponse> result = Result.failure(response.getMessage());
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(result);
             }
             
-            // 刷新成功，直接返回数据
-            return ResponseEntity.ok(response);
+            // 刷新成功，使用Result包装
+            Result<AuthResponse> result = Result.success("Token刷新成功", response);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "TOKEN_REFRESH_ERROR");
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            Result<AuthResponse> result = Result.failure(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
     }
     
@@ -128,19 +120,16 @@ public class AuthController {
      * 重置密码
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Validated @RequestBody PasswordResetRequest request) {
+    public ResponseEntity<Result<Boolean>> resetPassword(@Validated @RequestBody PasswordResetRequest request) {
         try {
             authService.resetPassword(request);
             
-            // 重置成功，返回简单消息
-            Map<String, Object> result = new HashMap<>();
-            result.put("message", "密码重置成功");
+            // 重置成功，使用Result包装
+            Result<Boolean> result = Result.success("密码重置成功", true);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "PASSWORD_RESET_ERROR");
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            Result<Boolean> result = Result.failure(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
     }
     
@@ -148,17 +137,16 @@ public class AuthController {
      * 验证Token
      */
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyToken(@RequestBody String token) {
+    public ResponseEntity<Result<User>> verifyToken(@RequestBody String token) {
         try {
             User user = authService.verifyToken(token);
             
-            // 验证成功，直接返回用户信息
-            return ResponseEntity.ok(user);
+            // 验证成功，使用Result包装
+            Result<User> result = Result.success("Token验证成功", user);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "TOKEN_VERIFICATION_ERROR");
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            Result<User> result = Result.failure(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }
     }
     
@@ -166,18 +154,17 @@ public class AuthController {
      * 获取当前用户信息
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+    public ResponseEntity<Result<User>> getCurrentUser(HttpServletRequest request) {
         try {
             String token = extractTokenFromRequest(request);
             User user = authService.getCurrentUser(token);
             
-            // 获取成功，直接返回用户信息
-            return ResponseEntity.ok(user);
+            // 获取成功，使用Result包装
+            Result<User> result = Result.success("获取用户信息成功", user);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "USER_INFO_ERROR");
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            Result<User> result = Result.failure(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }
     }
     
@@ -185,20 +172,17 @@ public class AuthController {
      * 用户登出
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<Result<Boolean>> logout(HttpServletRequest request) {
         try {
             String token = extractTokenFromRequest(request);
             authService.logout(token);
             
-            // 登出成功，返回简单消息
-            Map<String, Object> result = new HashMap<>();
-            result.put("message", "登出成功");
+            // 登出成功，使用Result包装
+            Result<Boolean> result = Result.success("登出成功", true);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("code", "LOGOUT_ERROR");
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            Result<Boolean> result = Result.failure(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
     }
     
