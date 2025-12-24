@@ -61,47 +61,26 @@ public class LogTracer {
     /**
      * 追踪API调用
      * @param apiName API名称
-     * @param request 请求参数
-     * @param response 响应结果
+     * @param data 请求或响应数据
      */
-    public static void traceApiCall(String apiName, Object request, Object response) {
+    public static void traceApiCall(String apiName, Object data) {
         String callerLocation = getCallerLocation();
         
         // 优化日志格式，提取关键信息
-        String optimizedRequest = optimizeLogData(request);
-        String optimizedResponse = optimizeLogData(response);
+        String optimizedData = optimizeLogData(data);
         
-        log.info("🌐 API调用 | 位置: {} | API: {} | 请求: {} | 响应: {}", callerLocation, apiName, optimizedRequest, optimizedResponse);
+        log.info("🌐 API调用 | 位置: {} | API: {} | 数据: {}", callerLocation, apiName, optimizedData);
     }
     
     /**
-     * 优化日志数据，提取关键信息
+     * 优化日志数据，保持原始格式
      */
     private static String optimizeLogData(Object data) {
         if (data == null) {
             return "无数据";
         }
         
-        if (data instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) data;
-            // 如果是响应数据，提取关键字段
-            if (map.containsKey("success") || map.containsKey("message")) {
-                StringBuilder sb = new StringBuilder();
-                if (map.containsKey("success")) {
-                    sb.append("success=").append(map.get("success"));
-                }
-                if (map.containsKey("message")) {
-                    if (sb.length() > 0) sb.append(", ");
-                    sb.append("message=").append(map.get("message"));
-                }
-                if (map.containsKey("code")) {
-                    if (sb.length() > 0) sb.append(", ");
-                    sb.append("code=").append(map.get("code"));
-                }
-                return sb.length() > 0 ? sb.toString() : data.toString();
-            }
-        }
-        
+        // 直接返回原始数据，保持与接口返回格式一致
         return data.toString();
     }
     

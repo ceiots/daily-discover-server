@@ -96,11 +96,11 @@ public class ApiLogAspect {
         if (logRequest) {
             Object[] args = joinPoint.getArgs();
             Map<String, Object> requestInfo = buildRequestInfo(joinPoint, args);
-            LogTracer.traceApiCall(apiDescription, requestInfo, null);
+            LogTracer.traceApiCall(apiDescription, requestInfo);
         }
         
         long startTime = System.currentTimeMillis();
-        Object result = null;
+        Object result;
         
         try {
             // 执行目标方法
@@ -111,8 +111,8 @@ public class ApiLogAspect {
                 // 构建响应信息，包含请求参数用于上下文
                 Map<String, Object> responseInfo = new HashMap<>();
                 responseInfo.put("请求参数", getRequestParams(joinPoint));
-                responseInfo.put("响应结果", result);
-                LogTracer.traceApiCall(apiDescription + " - 响应", responseInfo, null);
+                responseInfo.put("响应数据", result);
+                LogTracer.traceApiCall(apiDescription + " - 响应", responseInfo);
             }
             
             return result;
