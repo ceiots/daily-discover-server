@@ -66,7 +66,43 @@ public class LogTracer {
      */
     public static void traceApiCall(String apiName, Object request, Object response) {
         String callerLocation = getCallerLocation();
-        log.info("🌐 API调用 | 位置: {} | API: {} | 请求: {} | 响应: {}", callerLocation, apiName, request, response);
+        
+        // 优化日志格式，提取关键信息
+        String optimizedRequest = optimizeLogData(request);
+        String optimizedResponse = optimizeLogData(response);
+        
+        log.info("🌐 API调用 | 位置: {} | API: {} | 请求: {} | 响应: {}", callerLocation, apiName, optimizedRequest, optimizedResponse);
+    }
+    
+    /**
+     * 优化日志数据，提取关键信息
+     */
+    private static String optimizeLogData(Object data) {
+        if (data == null) {
+            return "无数据";
+        }
+        
+        if (data instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) data;
+            // 如果是响应数据，提取关键字段
+            if (map.containsKey("success") || map.containsKey("message")) {
+                StringBuilder sb = new StringBuilder();
+                if (map.containsKey("success")) {
+                    sb.append("success=").append(map.get("success"));
+                }
+                if (map.containsKey("message")) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append("message=").append(map.get("message"));
+                }
+                if (map.containsKey("code")) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append("code=").append(map.get("code"));
+                }
+                return sb.length() > 0 ? sb.toString() : data.toString();
+            }
+        }
+        
+        return data.toString();
     }
     
     /**

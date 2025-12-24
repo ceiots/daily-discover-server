@@ -108,7 +108,11 @@ public class ApiLogAspect {
             
             // 记录响应信息
             if (logResponse) {
-                LogTracer.traceApiCall(apiDescription + " - 响应", null, result);
+                // 构建响应信息，包含请求参数用于上下文
+                Map<String, Object> responseInfo = new HashMap<>();
+                responseInfo.put("请求参数", getRequestParams(joinPoint));
+                responseInfo.put("响应结果", result);
+                LogTracer.traceApiCall(apiDescription + " - 响应", responseInfo, null);
             }
             
             return result;

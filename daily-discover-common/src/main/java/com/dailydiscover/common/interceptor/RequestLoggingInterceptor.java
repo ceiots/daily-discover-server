@@ -108,14 +108,17 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
             responseInfo.append("\n├─ URL: ").append(request.getRequestURI());
             responseInfo.append("\n├─ 状态码: ").append(response.getStatus());
             responseInfo.append("\n├─ 耗时: ").append(duration).append("ms");
-            responseInfo.append("\n└─ 响应头:");
             
-            // 记录响应头
-            response.getHeaderNames().forEach(headerName -> 
-                response.getHeaders(headerName).forEach(headerValue -> 
-                    responseInfo.append("\n   ├─ ").append(headerName).append(": ").append(headerValue)
-                )
-            );
+            // 记录重要的响应头（过滤掉不必要的头信息）
+            Map<String, String> importantHeaders = getImportantResponseHeaders(response);
+            if (!importantHeaders.isEmpty()) {
+                responseInfo.append("\n└─ 重要响应头:");
+                importantHeaders.forEach((key, value) -> 
+                    responseInfo.append("\n   ├─ ").append(key).append(": ").append(value)
+                );
+            } else {
+                responseInfo.append("\n└─ 响应头: 无重要头信息");
+            }
             
             log.info(responseInfo.toString());
             
@@ -163,5 +166,72 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         }
         
         return headers;
+    }
+    
+    /**
+     * 获取重要的响应头信息（过滤掉不必要的头）
+     */
+    private Map<String, String> getImportantResponseHeaders(HttpServletResponse response) {
+        Map<String, String> importantHeaders = new HashMap<>();
+        
+        // 需要过滤掉的不重要头信息
+        String[] excludedHeaders = {
+            "Vary",
+            "X-Content-Type-Options",
+            "X-XSS-Protection", 
+            "Cache-Control",
+            "Pragma",
+            "Expires",
+            "X-Frame-Options",
+            "Transfer-Encoding",
+            "Connection",
+            "Date"
+        };
+        
+        // 重要的头信息（需要保留的）
+        String[] importantHeaderKeys = {
+            "Content-Type",
+            "Content-Length",
+            "Location",
+            "Set-Cookie",
+            "Authorization",
+            "X-Request-ID",
+            "X-Trace-ID",
+            "X-Response-Time",
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset"
+        };
+        
+        // 首先检查是否有重要的头信息
+        for (String headerKey : importantHeaderKeys) {
+            String headerValue = response.getHeader(headerKey);
+            if (headerValue != null && !headerValue.trim().isEmpty()) {
+                importantHeaders.put(headerKey, headerValue);
+            }
+        }
+        
+        // 如果没有找到重要头信息，则检查其他非排除的头信息
+        if (importantHeaders.isEmpty()) {
+            response.getHeaderNames().forEach(headerName -> {
+                // 检查是否在排除列表中
+                boolean shouldExclude = false;
+                for (String excludedHeader : excludedHeaders) {
+                    if (excludedHeader.equalsIgnoreCase(headerName)) {
+                        shouldExclude = true;
+                        break;
+                    }
+                }
+                
+                if (!shouldExclude) {
+                    String headerValue = response.getHeader(headerName);
+                    if (headerValue != null && !headerValue.trim().isEmpty()) {
+                        importantHeaders.put(headerName, headerValue);
+                    }
+                }
+            });
+        }
+        
+        return importantHeaders;
     }
 }

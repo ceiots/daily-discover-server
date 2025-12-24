@@ -37,7 +37,18 @@ public class AuthController {
                 Map<String, Object> result = new HashMap<>();
                 result.put("success", false);
                 result.put("message", response.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                result.put("errorCode", response.getErrorCode());
+                
+                // 根据错误类型返回不同的状态码
+                if ("USER_NOT_FOUND".equals(response.getErrorCode())) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+                } else if ("INVALID_PASSWORD".equals(response.getErrorCode())) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+                } else if ("ACCOUNT_LOCKED".equals(response.getErrorCode())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                }
             }
             
             Map<String, Object> result = new HashMap<>();
@@ -47,8 +58,9 @@ public class AuthController {
         } catch (Exception e) {
             Map<String, Object> result = new HashMap<>();
             result.put("success", false);
-            result.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            result.put("message", "系统异常，请稍后重试");
+            result.put("errorCode", "SYSTEM_ERROR");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
     
