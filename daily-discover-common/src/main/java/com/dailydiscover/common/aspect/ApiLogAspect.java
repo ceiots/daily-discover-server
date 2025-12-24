@@ -111,7 +111,7 @@ public class ApiLogAspect {
                 // 构建响应信息，包含请求参数用于上下文
                 Map<String, Object> responseInfo = new HashMap<>();
                 responseInfo.put("请求参数", getRequestParams(joinPoint));
-                responseInfo.put("响应数据", result);
+                responseInfo.put("响应数据", extractResponseData(result));
                 LogTracer.traceApiCall(apiDescription + " - 响应", responseInfo);
             }
             
@@ -196,6 +196,45 @@ public class ApiLogAspect {
         String[] sensitiveKeywords = {"password", "pwd", "secret", "token", "key"};
         String lowerParamName = parameterName.toLowerCase();
         return Arrays.stream(sensitiveKeywords).anyMatch(lowerParamName::contains);
+    }
+    
+    /**
+     * 提取响应数据，处理ResponseEntity和Result对象
+     */
+    private Object extractResponseData(Object result) {
+        if (result == null) {
+            return null;
+        }
+        
+        // 处理ResponseEntity对象
+        if (result instanceof org.springframework.http.ResponseEntity) {
+            org.springframework.http.ResponseEntity<?> responseEntity = 
+                (org.springframework.http.ResponseEntity<?>) result;
+            
+            Object body = responseEntity.getBody();
+            if (body != null) {
+                // 处理Result对象 - 直接返回业务层数据
+                if (body instanceof com.dailydiscover.common.result.Result) {
+                    com.dailydiscover.common.result.Result<?> resultObj = 
+                        (com.dailydiscover.common.result.Result<?>) body;
+                    
+                    Map<String, Object> resultData = new HashMap<>();
+                    resultData.put("code", resultObj.getCode());
+                    resultData.put("message", resultObj.getMessage());
+                    resultData.put("data", resultObj.getData());
+                    resultData.put("timestamp", resultObj.getTimestamp());
+                    
+                    return resultData;
+                } else {
+                    return body;
+                }
+            }
+            
+            return null;
+        }
+        
+        // 直接返回非ResponseEntity对象
+        return result;
     }
     
     /**
