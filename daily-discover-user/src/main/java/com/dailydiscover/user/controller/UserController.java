@@ -208,7 +208,7 @@ public class UserController {
      * 获取当前用户信息
      */
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser() {
+    public ResponseEntity<Result<UserResponse>> getCurrentUser() {
         long startTime = System.currentTimeMillis();
         try {
             LogTracer.traceMethod("UserController.getCurrentUser", null, null);
@@ -216,10 +216,8 @@ public class UserController {
             // 从SecurityContext中获取认证信息
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "用户未认证");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                Result<UserResponse> result = Result.failure("用户未认证");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
             }
             
             // 获取用户名（即phone）
@@ -227,26 +225,20 @@ public class UserController {
             
             UserResponse userResponse = userService.getUserByPhone(phone);
             if (userResponse == null) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", false);
-                response.put("message", "用户不存在");
-                LogTracer.traceMethod("UserController.getCurrentUser", phone, response);
+                Result<UserResponse> result = Result.failure("用户不存在");
+                LogTracer.traceMethod("UserController.getCurrentUser", phone, result);
                 LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
             }
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", userResponse);
-            LogTracer.traceMethod("UserController.getCurrentUser", phone, response);
+            Result<UserResponse> result = Result.success("获取用户信息成功", userResponse);
+            LogTracer.traceMethod("UserController.getCurrentUser", phone, result);
             LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             LogTracer.traceException("UserController.getCurrentUser", null, e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            Result<UserResponse> result = Result.failure(e.getMessage());
+            return ResponseEntity.badRequest().body(result);
         }
     }
 
