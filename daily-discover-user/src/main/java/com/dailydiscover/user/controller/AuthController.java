@@ -37,18 +37,39 @@ public class AuthController {
                 Map<String, Object> result = new HashMap<>();
                 result.put("success", false);
                 result.put("message", response.getMessage());
-                result.put("errorCode", response.getErrorCode());
                 
-                // 根据错误类型返回不同的状态码
-                if ("USER_NOT_FOUND".equals(response.getErrorCode())) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-                } else if ("INVALID_PASSWORD".equals(response.getErrorCode())) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
-                } else if ("ACCOUNT_LOCKED".equals(response.getErrorCode())) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
-                } else {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                // 根据错误消息推断错误类型
+                String message = response.getMessage();
+                String errorCode = "GENERAL_ERROR"; // 默认错误码
+                
+                // 根据错误消息推断错误类型
+                if (message != null) {
+                    if (message.contains("用户不存在")) {
+                        errorCode = "USER_NOT_FOUND";
+                    } else if (message.contains("密码")) {
+                        errorCode = "INVALID_PASSWORD";
+                    } else if (message.contains("锁定")) {
+                        errorCode = "ACCOUNT_LOCKED";
+                    }
                 }
+                
+                result.put("errorCode", errorCode);
+                
+                // 更灵活的错误码匹配，支持多种可能的错误码格式
+                if (errorCode != null) {
+                    if (errorCode.contains("NOT_FOUND") || errorCode.contains("USER_NOT_FOUND") || 
+                        errorCode.contains("NOT_EXIST") || (message != null && message.contains("用户不存在"))) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+                    } else if (errorCode.contains("INVALID_PASSWORD") || errorCode.contains("PASSWORD_ERROR") || 
+                               (message != null && message.contains("密码"))) {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+                    } else if (errorCode.contains("ACCOUNT_LOCKED") || errorCode.contains("LOCKED")) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+                    }
+                }
+                
+                // 默认返回400
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
             }
             
             Map<String, Object> result = new HashMap<>();
