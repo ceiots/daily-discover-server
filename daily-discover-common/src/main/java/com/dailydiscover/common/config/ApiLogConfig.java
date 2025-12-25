@@ -18,26 +18,6 @@ public class ApiLogConfig {
     private boolean enabled = true;
     
     /**
-     * 是否记录请求参数
-     */
-    private boolean logRequest = true;
-    
-    /**
-     * 是否记录响应结果
-     */
-    private boolean logResponse = true;
-    
-    /**
-     * 是否记录执行时间
-     */
-    private boolean logExecutionTime = true;
-    
-    /**
-     * 是否记录异常信息
-     */
-    private boolean logException = true;
-    
-    /**
      * 需要排除的包路径（逗号分隔）
      */
     private String excludePackages = "";

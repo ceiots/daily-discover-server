@@ -2,7 +2,7 @@ package com.dailydiscover.common.aspect;
 
 import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.common.config.ApiLogConfig;
-import com.dailydiscover.common.util.LogTracer;
+import com.dailydiscover.common.util.ApiLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -16,14 +16,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * API日志切面
  * 自动记录标记了@ApiLog注解的接口方法的请求、响应、执行时间等信息
- * 
  */
 @Aspect
 @Component
@@ -46,26 +42,9 @@ public class ApiLogAspect {
     public void controllerPointcut() {}
     
     /**
-     * 定义切点：所有RestController注解的类的方法
-     */
-    @Pointcut("@within(org.springframework.web.bind.annotation.RestController)")
-    public void restControllerPointcut() {}
-    
-    /**
-     * 定义切点：所有RequestMapping注解的方法
-     */
-    @Pointcut("@annotation(org.springframework.web.bind.annotation.RequestMapping) || " +
-              "@annotation(org.springframework.web.bind.annotation.GetMapping) || " +
-              "@annotation(org.springframework.web.bind.annotation.PostMapping) || " +
-              "@annotation(org.springframework.web.bind.annotation.PutMapping) || " +
-              "@annotation(org.springframework.web.bind.annotation.DeleteMapping) || " +
-              "@annotation(org.springframework.web.bind.annotation.PatchMapping)")
-    public void requestMappingPointcut() {}
-    
-    /**
      * 环绕通知：记录API调用日志
      */
-    @Around("apiLogPointcut() || controllerPointcut() || restControllerPointcut() || requestMappingPointcut()")
+    @Around("apiLogPointcut() || controllerPointcut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         // 检查是否启用API日志
         if (!apiLogConfig.isEnabled()) {
@@ -82,22 +61,8 @@ public class ApiLogAspect {
         
         // 获取方法上的@ApiLog注解
         ApiLog apiLog = method.getAnnotation(ApiLog.class);
-        
-        // 如果没有@ApiLog注解，使用配置文件中的默认配置
-        boolean logRequest = apiLog == null ? apiLogConfig.isLogRequest() : apiLog.logRequest();
-        boolean logResponse = apiLog == null ? apiLogConfig.isLogResponse() : apiLog.logResponse();
-        boolean logExecutionTime = apiLog == null ? apiLogConfig.isLogExecutionTime() : apiLog.logExecutionTime();
-        boolean logException = apiLog == null ? apiLogConfig.isLogException() : apiLog.logException();
-        
-        String methodName = getMethodName(joinPoint);
-        String apiDescription = apiLog != null && !apiLog.value().isEmpty() ? apiLog.value() : methodName;
-        
-        // 记录请求信息
-        if (logRequest) {
-            Object[] args = joinPoint.getArgs();
-            Map<String, Object> requestInfo = buildRequestInfo(joinPoint, args);
-            LogTracer.traceApiCall(apiDescription, requestInfo);
-        }
+        String apiDescription = apiLog != null && !apiLog.value().isEmpty() ? apiLog.value() : 
+                               method.getDeclaringClass().getSimpleName() + "." + method.getName();
         
         long startTime = System.currentTimeMillis();
         Object result;
@@ -105,173 +70,40 @@ public class ApiLogAspect {
         try {
             // 执行目标方法
             result = joinPoint.proceed();
+            long duration = System.currentTimeMillis() - startTime;
             
-            // 记录响应信息
-            if (logResponse) {
-                // 构建响应信息，包含请求参数用于上下文
-                Map<String, Object> responseInfo = new HashMap<>();
-                responseInfo.put("请求参数", getRequestParams(joinPoint));
-                responseInfo.put("响应数据", extractResponseData(result));
-                LogTracer.traceApiCall(apiDescription + " - 响应", responseInfo);
+            // 记录成功日志
+            HttpServletRequest request = getCurrentRequest();
+            if (request != null) {
+                ApiLogger.logApiCall(apiDescription, request, result, duration, true);
             }
             
             return result;
             
         } catch (Throwable throwable) {
-            // 记录异常信息
-            if (logException) {
-                LogTracer.traceException(methodName, getRequestParams(joinPoint), 
-                    throwable instanceof Exception ? (Exception) throwable : new Exception(throwable));
-            }
-            throw throwable;
+            long duration = System.currentTimeMillis() - startTime;
             
-        } finally {
-            // 记录执行时间
-            if (logExecutionTime) {
-                long endTime = System.currentTimeMillis();
-                LogTracer.tracePerformance(methodName, startTime, endTime);
+            // 记录异常日志
+            HttpServletRequest request = getCurrentRequest();
+            if (request != null && throwable instanceof Exception) {
+                ApiLogger.logException(apiDescription, request, (Exception) throwable, duration);
             }
+            
+            throw throwable;
         }
     }
     
     /**
-     * 构建请求信息
+     * 获取当前HTTP请求
      */
-    private Map<String, Object> buildRequestInfo(ProceedingJoinPoint joinPoint, Object[] args) {
-        Map<String, Object> requestInfo = new HashMap<>();
-        
-        // 添加HTTP请求信息
+    private HttpServletRequest getCurrentRequest() {
         try {
             ServletRequestAttributes attributes = (ServletRequestAttributes) 
                 RequestContextHolder.getRequestAttributes();
-            if (attributes != null) {
-                HttpServletRequest request = attributes.getRequest();
-                requestInfo.put("URL", request.getRequestURL().toString());
-                requestInfo.put("HTTP Method", request.getMethod());
-                requestInfo.put("IP", getClientIP(request));
-                requestInfo.put("User-Agent", request.getHeader("User-Agent"));
-            }
+            return attributes != null ? attributes.getRequest() : null;
         } catch (Exception e) {
-            // 忽略获取HTTP请求信息的异常
-        }
-        
-        // 添加方法参数信息
-        requestInfo.put("Method Parameters", getRequestParams(joinPoint));
-        
-        return requestInfo;
-    }
-    
-    /**
-     * 获取方法参数信息
-     */
-    private Map<String, Object> getRequestParams(ProceedingJoinPoint joinPoint) {
-        Map<String, Object> params = new HashMap<>();
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        String[] parameterNames = signature.getParameterNames();
-        Object[] args = joinPoint.getArgs();
-        
-        if (parameterNames != null && parameterNames.length == args.length) {
-            for (int i = 0; i < parameterNames.length; i++) {
-                // 敏感信息过滤（如密码等）
-                if (isSensitiveParameter(parameterNames[i])) {
-                    params.put(parameterNames[i], "***");
-                } else {
-                    params.put(parameterNames[i], args[i]);
-                }
-            }
-        } else {
-            // 如果无法获取参数名，使用索引
-            for (int i = 0; i < args.length; i++) {
-                params.put("arg" + i, args[i]);
-            }
-        }
-        
-        return params;
-    }
-    
-    /**
-     * 判断是否为敏感参数
-     */
-    private boolean isSensitiveParameter(String parameterName) {
-        String[] sensitiveKeywords = {"password", "pwd", "secret", "token", "key"};
-        String lowerParamName = parameterName.toLowerCase();
-        return Arrays.stream(sensitiveKeywords).anyMatch(lowerParamName::contains);
-    }
-    
-    /**
-     * 提取响应数据，处理ResponseEntity和Result对象
-     */
-    private Object extractResponseData(Object result) {
-        if (result == null) {
             return null;
         }
-        
-        // 处理ResponseEntity对象
-        if (result instanceof org.springframework.http.ResponseEntity) {
-            org.springframework.http.ResponseEntity<?> responseEntity = 
-                (org.springframework.http.ResponseEntity<?>) result;
-            
-            Object body = responseEntity.getBody();
-            if (body != null) {
-                // 处理Result对象 - 直接返回业务层数据
-                if (body instanceof com.dailydiscover.common.result.Result) {
-                    com.dailydiscover.common.result.Result<?> resultObj = 
-                        (com.dailydiscover.common.result.Result<?>) body;
-                    
-                    Map<String, Object> resultData = new HashMap<>();
-                    resultData.put("code", resultObj.getCode());
-                    resultData.put("message", resultObj.getMessage());
-                    resultData.put("data", resultObj.getData());
-                    resultData.put("timestamp", resultObj.getTimestamp());
-                    
-                    return resultData;
-                } else {
-                    return body;
-                }
-            }
-            
-            return null;
-        }
-        
-        // 直接返回非ResponseEntity对象
-        return result;
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIP(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        
-        // 对于多个IP的情况，取第一个IP
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-        
-        return ip;
-    }
-    
-    /**
-     * 获取完整的方法名
-     */
-    private String getMethodName(ProceedingJoinPoint joinPoint) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        return signature.getDeclaringTypeName() + "." + signature.getName();
     }
     
     /**
