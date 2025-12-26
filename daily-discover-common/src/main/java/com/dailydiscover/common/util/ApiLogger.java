@@ -38,6 +38,10 @@ public class ApiLogger {
         // 业务状态
         logBuilder.append(" | 状态: ").append(success ? "成功" : "失败");
         
+        // 响应码信息
+        int statusCode = getResponseStatusCode();
+        logBuilder.append(" | 响应码: ").append(statusCode);
+        
         // 性能信息
         logBuilder.append(" | 耗时: ").append(duration).append("ms");
         
@@ -88,5 +92,21 @@ public class ApiLogger {
         }
         
         return request.getRemoteAddr();
+    }
+    
+    /**
+     * 获取HTTP响应状态码
+     */
+    private static int getResponseStatusCode() {
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) 
+                RequestContextHolder.getRequestAttributes();
+            if (attributes != null && attributes.getResponse() != null) {
+                return attributes.getResponse().getStatus();
+            }
+        } catch (Exception e) {
+            // 忽略异常，返回默认状态码
+        }
+        return 200; // 默认返回200
     }
 }

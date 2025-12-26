@@ -1,34 +1,17 @@
-# 通用模块应用配置
-# 当作为独立服务运行时生效
+# 通用模块配置
+# 作为公共库被其他服务引入时生效
 
 spring:
-  application:
-    name: daily-discover-common
-  
-  # 服务器配置
-  server:
-    port: 8090
-    servlet:
-      context-path: /common
-  
-  # 禁用数据库自动配置（通用模块不需要数据库）
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration
+  # 禁用Web服务器启动
+  main:
+    web-application-type: none
 
 # 日志配置
 logging:
   level:
-    com.dailydiscover.common: DEBUG
-    org.springframework.web: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+    com.dailydiscover.common: INFO
 
 # 自定义配置
 daily-discover:
   common:
-    # 运行模式：library（库模式）或 standalone（独立服务模式）
-    mode: standalone
+    mode: library

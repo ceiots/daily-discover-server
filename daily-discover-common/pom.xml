@@ -26,29 +26,12 @@
         <spring-boot.version>3.2.0</spring-boot.version>
         <hutool.version>5.8.25</hutool.version>
         <jackson.version>2.16.1</jackson.version>
+        <!-- 配置为库模式，不启动Web服务器 -->
+        <skip.spring-boot.execution>true</skip.spring-boot.execution>
     </properties>
     
     <name>每日发现通用模块</name>
     <description>每日发现通用模块 - 所有微服务共享的通用组件</description>
-    
-    <!-- 配置profiles，支持不同运行模式 -->
-    <profiles>
-        <profile>
-            <id>library</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <skip.spring-boot.execution>true</skip.spring-boot.execution>
-            </properties>
-        </profile>
-        <profile>
-            <id>standalone</id>
-            <properties>
-                <skip.spring-boot.execution>false</skip.spring-boot.execution>
-            </properties>
-        </profile>
-    </profiles>
 
     <dependencies>
         <!-- Spring Boot 基础依赖 -->
