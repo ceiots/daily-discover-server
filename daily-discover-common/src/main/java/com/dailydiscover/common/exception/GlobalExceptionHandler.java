@@ -63,6 +63,18 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理HTTP方法不支持异常 - RESTful风格：直接返回405状态码
+     */
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Void> handleHttpRequestMethodNotSupportedException(org.springframework.web.HttpRequestMethodNotSupportedException e) {
+        log.warn("HTTP方法不支持 - 方法: {}, URI: {}", 
+            e.getMethod(), 
+            e.getMessage().contains("for URI") ? e.getMessage().split("for URI")[1] : "未知");
+        // HTTP方法不支持使用405 Method Not Allowed状态码
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+    }
+
+    /**
      * 处理其他异常 - RESTful风格：直接返回500状态码
      */
     @ExceptionHandler(Exception.class)

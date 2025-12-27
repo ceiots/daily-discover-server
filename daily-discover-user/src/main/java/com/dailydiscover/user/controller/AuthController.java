@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import com.dailydiscover.user.dto.*;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.AuthService;
+import com.dailydiscover.common.util.ApiLogger;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -26,19 +27,26 @@ public class AuthController {
      * 用户登录 - RESTful风格
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Validated @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Validated @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        long startTime = System.currentTimeMillis();
         try {
             AuthResponse response = authService.login(request);
             
             // RESTful风格：直接返回数据，HTTP状态码表示结果
             if (response.isSuccess()) {
+                
                 // 登录成功，返回200 OK
                 return ResponseEntity.ok(response);
             } else {
+                
+                
                 // 业务错误：用户不存在、密码错误等，返回422 Unprocessable Entity
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
             }
         } catch (Exception e) {
+            // 使用ApiLogger记录异常日志
+            ApiLogger.logException("用户登录", httpRequest, e, System.currentTimeMillis() - startTime);
+            ApiLogger.error("登录系统异常 - 手机号: {}, 异常信息: {}", request.getPhone(), e.getMessage(), e);
             // 系统异常，返回500 Internal Server Error
             AuthResponse errorResponse = new AuthResponse();
             errorResponse.setSuccess(false);
@@ -47,24 +55,7 @@ public class AuthController {
         }
     }
     
-    /**
-     * 根据错误消息获取错误码
-     */
-    private String getErrorCode(String message) {
-        if (message == null) {
-            return "GENERAL_ERROR";
-        }
-        
-        if (message.contains("用户不存在")) {
-            return "USER_NOT_FOUND";
-        } else if (message.contains("密码")) {
-            return "INVALID_PASSWORD";
-        } else if (message.contains("锁定")) {
-            return "ACCOUNT_LOCKED";
-        }
-        
-        return "GENERAL_ERROR";
-    }
+
     
     /**
      * 用户注册 - RESTful风格
