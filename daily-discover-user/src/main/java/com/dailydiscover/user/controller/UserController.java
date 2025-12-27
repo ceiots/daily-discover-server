@@ -36,13 +36,13 @@ public class UserController {
     public ResponseEntity<UserResponse> register(@RequestBody User user) {
         long startTime = System.currentTimeMillis();
         try {
-            LogTracer.traceMethod("UserController.register", user, null);
+            LogTracer.traceBusinessMethod(user, null);
             UserResponse userResponse = userService.register(user);
-            LogTracer.traceMethod("UserController.register", user, userResponse);
-            LogTracer.tracePerformance("UserController.register", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(user, userResponse);
+            LogTracer.traceBusinessPerformance(startTime);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
-            LogTracer.traceException("UserController.register", user, e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
     }
@@ -57,7 +57,7 @@ public class UserController {
             String phone = loginRequest.get("phone");
             String password = loginRequest.get("password");
             
-            LogTracer.traceMethod("UserController.login", phone, null);
+            LogTracer.traceBusinessMethod(phone, null);
             UserResponse userResponse = userService.login(phone, password);
             
             // 生成JWT Token
@@ -67,11 +67,11 @@ public class UserController {
             data.put("token", token);
             data.put("user", userResponse);
             
-            LogTracer.traceMethod("UserController.login", phone, data);
-            LogTracer.tracePerformance("UserController.login", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(phone, data);
+            LogTracer.traceBusinessPerformance(startTime);
             return ResponseEntity.ok(data);
         } catch (Exception e) {
-            LogTracer.traceException("UserController.login", loginRequest, e);
+            LogTracer.traceBusinessException(e);
             
             // 根据错误类型返回不同的HTTP状态码
             if (e.getMessage().contains("用户不存在")) {
@@ -113,14 +113,14 @@ public class UserController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String phone = authentication.getName();
             
-            LogTracer.traceMethod("UserController.getUserInfo", phone, null);
+            LogTracer.traceBusinessMethod(phone, null);
             UserResponse userResponse = userService.getUserByPhone(phone);
             
-            LogTracer.traceMethod("UserController.getUserInfo", phone, userResponse);
-            LogTracer.tracePerformance("UserController.getUserInfo", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(phone, userResponse);
+            LogTracer.traceBusinessPerformance(startTime);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
-            LogTracer.traceException("UserController.getUserInfo", null, e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -147,13 +147,13 @@ public class UserController {
         long startTime = System.currentTimeMillis();
         try {
             user.setId(id);
-            LogTracer.traceMethod("UserController.updateUserProfile", user, null);
+            LogTracer.traceBusinessMethod(user, null);
             UserResponse userResponse = userService.updateUserProfile(user);
-            LogTracer.traceMethod("UserController.updateUserProfile", user, userResponse);
-            LogTracer.tracePerformance("UserController.updateUserProfile", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(user, userResponse);
+            LogTracer.traceBusinessPerformance(startTime);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
-            LogTracer.traceException("UserController.updateUserProfile", user, e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -179,13 +179,13 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         long startTime = System.currentTimeMillis();
         try {
-            LogTracer.traceMethod("UserController.deleteUser", id, null);
+            LogTracer.traceBusinessMethod(id, null);
             boolean result = userService.deleteUser(id);
-            LogTracer.traceMethod("UserController.deleteUser", id, result);
-            LogTracer.tracePerformance("UserController.deleteUser", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(id, result);
+            LogTracer.traceBusinessPerformance(startTime);
             return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            LogTracer.traceException("UserController.deleteUser", id, e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -197,7 +197,7 @@ public class UserController {
     public ResponseEntity<UserResponse> getCurrentUser() {
         long startTime = System.currentTimeMillis();
         try {
-            LogTracer.traceMethod("UserController.getCurrentUser", null, null);
+            LogTracer.traceBusinessMethod(null, null);
             
             // 从SecurityContext中获取认证信息
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -210,16 +210,16 @@ public class UserController {
             
             UserResponse userResponse = userService.getUserByPhone(phone);
             if (userResponse == null) {
-                LogTracer.traceMethod("UserController.getCurrentUser", phone, null);
-                LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
+                LogTracer.traceBusinessMethod(phone, null);
+                LogTracer.traceBusinessPerformance(startTime);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             
-            LogTracer.traceMethod("UserController.getCurrentUser", phone, userResponse);
-            LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(phone, userResponse);
+            LogTracer.traceBusinessPerformance(startTime);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
-            LogTracer.traceException("UserController.getCurrentUser", null, e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.badRequest().build();
         }
     }

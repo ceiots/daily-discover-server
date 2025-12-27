@@ -116,17 +116,17 @@ public class UserCollectionController {
     @GetMapping("/user/{userId}/count")
     public ResponseEntity<Integer> countCollections(@PathVariable Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionController.countCollections", "开始获取收藏数量", userId);
+        LogTracer.traceBusinessMethod(userId, null);
         
         try {
             int count = userCollectionService.countCollections(userId);
             
-            LogTracer.traceMethod("UserCollectionController.countCollections", "获取收藏数量完成", count);
-            LogTracer.tracePerformance("UserCollectionController.countCollections", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(userId, count);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return ResponseEntity.ok(count);
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionController.countCollections", "获取收藏数量失败", e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -137,13 +137,13 @@ public class UserCollectionController {
     @DeleteMapping("/user/{userId}/clear")
     public ResponseEntity<Void> clearCollections(@PathVariable Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionController.clearCollections", "开始清空用户收藏", userId);
+        LogTracer.traceBusinessMethod(userId, null);
         
         try {
             boolean result = userCollectionService.clearCollections(userId);
             
-            LogTracer.traceMethod("UserCollectionController.clearCollections", "清空用户收藏完成", result);
-            LogTracer.tracePerformance("UserCollectionController.clearCollections", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(userId, result);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
         } catch (Exception e) {

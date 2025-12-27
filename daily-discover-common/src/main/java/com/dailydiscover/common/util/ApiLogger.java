@@ -8,8 +8,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 /**
  * HTTP API日志记录器
@@ -21,13 +19,19 @@ import java.util.stream.Collectors;
 public class ApiLogger {
     
     /**
-     * 记录HTTP API调用信息
+     * 记录HTTP API调用信息（自动获取调用方法名）
      */
     public static void logHttpApiCall(String apiDescription, HttpServletRequest request, Object response, long duration, boolean success) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         
+        // 如果apiDescription为空，自动获取调用方法名
+        String actualDescription = apiDescription;
+        if (apiDescription == null || apiDescription.trim().isEmpty()) {
+            actualDescription = extractMethodNameFromStackTrace();
+        }
+        
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("🌐 HTTP API调用 | ").append(apiDescription)
+        logBuilder.append("🌐 HTTP API调用 | ").append(actualDescription)
                   .append(" | ").append(timestamp);
         
         // HTTP层面信息
@@ -51,13 +55,19 @@ public class ApiLogger {
     }
     
     /**
-     * 记录HTTP API异常信息
+     * 记录HTTP API异常信息（自动获取调用方法名）
      */
     public static void logHttpApiException(String apiDescription, HttpServletRequest request, Exception exception, long duration) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         
+        // 如果apiDescription为空，自动获取调用方法名
+        String actualDescription = apiDescription;
+        if (apiDescription == null || apiDescription.trim().isEmpty()) {
+            actualDescription = extractMethodNameFromStackTrace();
+        }
+        
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("❌ HTTP API异常 | ").append(apiDescription)
+        logBuilder.append("❌ HTTP API异常 | ").append(actualDescription)
                   .append(" | ").append(timestamp);
         
         // HTTP层面信息
@@ -123,5 +133,24 @@ public class ApiLogger {
         // 简化处理：直接使用toString，限制长度
         String str = response.toString();
         return str.length() > 100 ? str.substring(0, 100) + "..." : str;
+    }
+    
+    /**
+     * 从调用栈中提取方法名（参考LogTracer实现）
+     */
+    private static String extractMethodNameFromStackTrace() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        
+        // 跳过ApiLogger类本身的方法调用，找到调用者的方法
+        for (int i = 3; i < stackTrace.length; i++) {
+            StackTraceElement element = stackTrace[i];
+            if (!element.getClassName().contains("ApiLogger") && 
+                !element.getClassName().contains("LogTracer") &&
+                !element.getClassName().contains("Aspect")) {
+                // 返回完整的类名和方法名
+                return element.getClassName() + "." + element.getMethodName();
+            }
+        }
+        return "Unknown Method";
     }
 }
