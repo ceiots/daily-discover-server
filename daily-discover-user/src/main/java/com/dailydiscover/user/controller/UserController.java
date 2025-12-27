@@ -1,6 +1,5 @@
 package com.dailydiscover.user.controller;
 
-import com.dailydiscover.common.result.Result;
 import com.dailydiscover.user.dto.UserResponse;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.UserService;
@@ -34,18 +33,17 @@ public class UserController {
      * 用户注册
      */
     @PostMapping("/register")
-    public ResponseEntity<Result<UserResponse>> register(@RequestBody User user) {
+    public ResponseEntity<UserResponse> register(@RequestBody User user) {
         long startTime = System.currentTimeMillis();
         try {
             LogTracer.traceMethod("UserController.register", user, null);
             UserResponse userResponse = userService.register(user);
             LogTracer.traceMethod("UserController.register", user, userResponse);
             LogTracer.tracePerformance("UserController.register", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(Result.success("注册成功", userResponse));
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             LogTracer.traceException("UserController.register", user, e);
-            Result<UserResponse> error = Result.failure(e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
     }
 
@@ -53,7 +51,7 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/login")
-    public ResponseEntity<Result<Map<String, Object>>> login(@RequestBody Map<String, String> loginRequest) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
         long startTime = System.currentTimeMillis();
         try {
             String phone = loginRequest.get("phone");
@@ -69,21 +67,19 @@ public class UserController {
             data.put("token", token);
             data.put("user", userResponse);
             
-            Result<Map<String, Object>> result = Result.success("登录成功", data);
-            LogTracer.traceMethod("UserController.login", phone, result);
+            LogTracer.traceMethod("UserController.login", phone, data);
             LogTracer.tracePerformance("UserController.login", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(data);
         } catch (Exception e) {
             LogTracer.traceException("UserController.login", loginRequest, e);
-            Result<Map<String, Object>> result = Result.failure(e.getMessage());
             
             // 根据错误类型返回不同的HTTP状态码
             if (e.getMessage().contains("用户不存在")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             } else if (e.getMessage().contains("密码错误")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             } else {
-                return ResponseEntity.badRequest().body(result);
+                return ResponseEntity.badRequest().build();
             }
         }
     }
@@ -111,7 +107,7 @@ public class UserController {
      * 获取用户信息
      */
     @GetMapping("/info")
-    public ResponseEntity<Result<UserResponse>> getUserInfo() {
+    public ResponseEntity<UserResponse> getUserInfo() {
         long startTime = System.currentTimeMillis();
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -120,14 +116,12 @@ public class UserController {
             LogTracer.traceMethod("UserController.getUserInfo", phone, null);
             UserResponse userResponse = userService.getUserByPhone(phone);
             
-            Result<UserResponse> result = Result.success("获取用户信息成功", userResponse);
-            LogTracer.traceMethod("UserController.getUserInfo", phone, result);
+            LogTracer.traceMethod("UserController.getUserInfo", phone, userResponse);
             LogTracer.tracePerformance("UserController.getUserInfo", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             LogTracer.traceException("UserController.getUserInfo", null, e);
-            Result<UserResponse> result = Result.failure(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
@@ -135,15 +129,13 @@ public class UserController {
      * 根据手机号获取用户信息
      */
     @GetMapping("/phone/{phone}")
-    public ResponseEntity<Result<UserResponse>> getUserByPhone(@PathVariable String phone) {
+    public ResponseEntity<UserResponse> getUserByPhone(@PathVariable String phone) {
         try {
             UserResponse userResponse = userService.getUserByPhone(phone);
-            Result<UserResponse> result = Result.success("获取用户信息成功", userResponse);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             log.error("根据手机号获取用户信息失败: {}", e.getMessage());
-            Result<UserResponse> result = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -151,20 +143,18 @@ public class UserController {
      * 更新用户资料
      */
     @PutMapping("/{id}/profile")
-    public ResponseEntity<Result<UserResponse>> updateUserProfile(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<UserResponse> updateUserProfile(@PathVariable Long id, @RequestBody User user) {
         long startTime = System.currentTimeMillis();
         try {
             user.setId(id);
             LogTracer.traceMethod("UserController.updateUserProfile", user, null);
             UserResponse userResponse = userService.updateUserProfile(user);
-            Result<UserResponse> result = Result.success("资料更新成功", userResponse);
-            LogTracer.traceMethod("UserController.updateUserProfile", user, result);
+            LogTracer.traceMethod("UserController.updateUserProfile", user, userResponse);
             LogTracer.tracePerformance("UserController.updateUserProfile", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             LogTracer.traceException("UserController.updateUserProfile", user, e);
-            Result<UserResponse> result = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -172,15 +162,13 @@ public class UserController {
      * 更新用户积分
      */
     @PutMapping("/{id}/points")
-    public ResponseEntity<Result<UserResponse>> updateUserPoints(@PathVariable Long id, @RequestParam Integer points) {
+    public ResponseEntity<UserResponse> updateUserPoints(@PathVariable Long id, @RequestParam Integer points) {
         try {
             UserResponse userResponse = userService.updateUserPoints(id, points);
-            Result<UserResponse> result = Result.success("积分更新成功", userResponse);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             log.error("更新用户积分失败: {}", e.getMessage());
-            Result<UserResponse> result = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -188,19 +176,17 @@ public class UserController {
      * 删除用户
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Result<Boolean>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         long startTime = System.currentTimeMillis();
         try {
             LogTracer.traceMethod("UserController.deleteUser", id, null);
             boolean result = userService.deleteUser(id);
-            Result<Boolean> response = result ? Result.success("用户删除成功", true) : Result.failure("用户删除失败");
-            LogTracer.traceMethod("UserController.deleteUser", id, response);
+            LogTracer.traceMethod("UserController.deleteUser", id, result);
             LogTracer.tracePerformance("UserController.deleteUser", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(response);
+            return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             LogTracer.traceException("UserController.deleteUser", id, e);
-            Result<Boolean> response = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -208,7 +194,7 @@ public class UserController {
      * 获取当前用户信息
      */
     @GetMapping("/me")
-    public ResponseEntity<Result<UserResponse>> getCurrentUser() {
+    public ResponseEntity<UserResponse> getCurrentUser() {
         long startTime = System.currentTimeMillis();
         try {
             LogTracer.traceMethod("UserController.getCurrentUser", null, null);
@@ -216,8 +202,7 @@ public class UserController {
             // 从SecurityContext中获取认证信息
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                Result<UserResponse> result = Result.failure("用户未认证");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             
             // 获取用户名（即phone）
@@ -225,20 +210,17 @@ public class UserController {
             
             UserResponse userResponse = userService.getUserByPhone(phone);
             if (userResponse == null) {
-                Result<UserResponse> result = Result.failure("用户不存在");
-                LogTracer.traceMethod("UserController.getCurrentUser", phone, result);
+                LogTracer.traceMethod("UserController.getCurrentUser", phone, null);
                 LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             
-            Result<UserResponse> result = Result.success("获取用户信息成功", userResponse);
-            LogTracer.traceMethod("UserController.getCurrentUser", phone, result);
+            LogTracer.traceMethod("UserController.getCurrentUser", phone, userResponse);
             LogTracer.tracePerformance("UserController.getCurrentUser", startTime, System.currentTimeMillis());
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             LogTracer.traceException("UserController.getCurrentUser", null, e);
-            Result<UserResponse> result = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.badRequest().build();
         }
     }
 

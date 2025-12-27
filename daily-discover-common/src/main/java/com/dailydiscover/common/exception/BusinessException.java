@@ -1,7 +1,5 @@
 package com.dailydiscover.common.exception;
 
-import com.dailydiscover.common.result.IResultCode;
-import com.dailydiscover.common.result.ResultCode;
 import lombok.Getter;
 
 /**
@@ -14,7 +12,7 @@ public class BusinessException extends RuntimeException {
     /**
      * 错误码
      */
-    private final IResultCode resultCode;
+    private final int errorCode;
 
     /**
      * 构造函数
@@ -23,50 +21,29 @@ public class BusinessException extends RuntimeException {
      */
     public BusinessException(String message) {
         super(message);
-        this.resultCode = ResultCode.FAILURE;
+        this.errorCode = 400;
     }
 
     /**
      * 构造函数
      *
-     * @param resultCode 返回码
+     * @param errorCode 错误码
+     * @param message   消息
      */
-    public BusinessException(IResultCode resultCode) {
-        super(resultCode.getMessage());
-        this.resultCode = resultCode;
-    }
-
-    /**
-     * 构造函数
-     *
-     * @param resultCode 返回码
-     * @param message    消息
-     */
-    public BusinessException(IResultCode resultCode, String message) {
+    public BusinessException(int errorCode, String message) {
         super(message);
-        this.resultCode = resultCode;
+        this.errorCode = errorCode;
     }
 
     /**
      * 构造函数
      *
-     * @param resultCode 返回码
-     * @param cause      异常
+     * @param errorCode 错误码
+     * @param message   消息
+     * @param cause     异常
      */
-    public BusinessException(IResultCode resultCode, Throwable cause) {
-        super(cause);
-        this.resultCode = resultCode;
-    }
-
-    /**
-     * 构造函数
-     *
-     * @param resultCode 返回码
-     * @param message    消息
-     * @param cause      异常
-     */
-    public BusinessException(IResultCode resultCode, String message, Throwable cause) {
+    public BusinessException(int errorCode, String message, Throwable cause) {
         super(message, cause);
-        this.resultCode = resultCode;
+        this.errorCode = errorCode;
     }
 }

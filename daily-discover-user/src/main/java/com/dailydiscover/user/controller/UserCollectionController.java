@@ -1,6 +1,5 @@
 package com.dailydiscover.user.controller;
 
-import com.dailydiscover.common.result.Result;
 import com.dailydiscover.user.dto.UserCollectionResponse;
 import com.dailydiscover.user.entity.UserCollection;
 import com.dailydiscover.user.service.UserCollectionService;
@@ -28,22 +27,20 @@ public class UserCollectionController {
      * 添加收藏
      */
     @PostMapping
-    public ResponseEntity<Result<UserCollectionResponse>> addCollection(@RequestBody UserCollection userCollection) {
+    public ResponseEntity<UserCollectionResponse> addCollection(@RequestBody UserCollection userCollection) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserCollectionController.addCollection", "开始添加收藏", userCollection);
         
         try {
             UserCollectionResponse response = userCollectionService.addCollection(userCollection);
-            Result<UserCollectionResponse> result = Result.success("收藏添加成功", response);
             
-            LogTracer.traceMethod("UserCollectionController.addCollection", "收藏添加成功", result);
+            LogTracer.traceMethod("UserCollectionController.addCollection", "收藏添加成功", response);
             LogTracer.tracePerformance("UserCollectionController.addCollection", startTime, System.currentTimeMillis());
             
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             LogTracer.traceException("UserCollectionController.addCollection", "添加收藏失败", e);
-            Result<UserCollectionResponse> result = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -51,22 +48,20 @@ public class UserCollectionController {
      * 获取用户的收藏列表
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Result<List<UserCollectionResponse>>> getCollectionsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<UserCollectionResponse>> getCollectionsByUserId(@PathVariable Long userId) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserCollectionController.getCollectionsByUserId", "开始获取收藏列表", userId);
         
         try {
             List<UserCollectionResponse> collections = userCollectionService.getCollectionsByUserId(userId);
-            Result<List<UserCollectionResponse>> result = Result.success(collections);
             
-            LogTracer.traceMethod("UserCollectionController.getCollectionsByUserId", "获取收藏列表成功", result);
+            LogTracer.traceMethod("UserCollectionController.getCollectionsByUserId", "获取收藏列表成功", collections);
             LogTracer.tracePerformance("UserCollectionController.getCollectionsByUserId", startTime, System.currentTimeMillis());
             
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(collections);
         } catch (Exception e) {
             LogTracer.traceException("UserCollectionController.getCollectionsByUserId", "获取收藏列表失败", e);
-            Result<List<UserCollectionResponse>> result = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -74,22 +69,20 @@ public class UserCollectionController {
      * 删除收藏
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Result<Boolean>> deleteCollection(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCollection(@PathVariable Long id) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserCollectionController.deleteCollection", "开始删除收藏", id);
         
         try {
             boolean result = userCollectionService.deleteCollection(id);
-            Result<Boolean> response = result ? Result.success("收藏删除成功", true) : Result.failure("收藏删除失败");
             
-            LogTracer.traceMethod("UserCollectionController.deleteCollection", "删除收藏完成", response);
+            LogTracer.traceMethod("UserCollectionController.deleteCollection", "删除收藏完成", result);
             LogTracer.tracePerformance("UserCollectionController.deleteCollection", startTime, System.currentTimeMillis());
             
-            return ResponseEntity.ok(response);
+            return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             LogTracer.traceException("UserCollectionController.deleteCollection", "删除收藏失败", e);
-            Result<Boolean> response = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -97,7 +90,7 @@ public class UserCollectionController {
      * 检查用户是否已收藏某个内容
      */
     @GetMapping("/check")
-    public ResponseEntity<Result<Boolean>> isItemCollected(
+    public ResponseEntity<Boolean> isItemCollected(
             @RequestParam Long userId,
             @RequestParam String itemType,
             @RequestParam String itemId) {
@@ -106,16 +99,14 @@ public class UserCollectionController {
         
         try {
             boolean isCollected = userCollectionService.isItemCollected(userId, itemType, itemId);
-            Result<Boolean> response = Result.success(isCollected);
             
-            LogTracer.traceMethod("UserCollectionController.isItemCollected", "检查收藏状态完成", response);
+            LogTracer.traceMethod("UserCollectionController.isItemCollected", "检查收藏状态完成", isCollected);
             LogTracer.tracePerformance("UserCollectionController.isItemCollected", startTime, System.currentTimeMillis());
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(isCollected);
         } catch (Exception e) {
             LogTracer.traceException("UserCollectionController.isItemCollected", "检查收藏状态失败", e);
-            Result<Boolean> response = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -123,22 +114,20 @@ public class UserCollectionController {
      * 统计用户收藏数量
      */
     @GetMapping("/user/{userId}/count")
-    public ResponseEntity<Result<Integer>> countCollections(@PathVariable Long userId) {
+    public ResponseEntity<Integer> countCollections(@PathVariable Long userId) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserCollectionController.countCollections", "开始获取收藏数量", userId);
         
         try {
             int count = userCollectionService.countCollections(userId);
-            Result<Integer> response = Result.success(count);
             
-            LogTracer.traceMethod("UserCollectionController.countCollections", "获取收藏数量完成", response);
+            LogTracer.traceMethod("UserCollectionController.countCollections", "获取收藏数量完成", count);
             LogTracer.tracePerformance("UserCollectionController.countCollections", startTime, System.currentTimeMillis());
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(count);
         } catch (Exception e) {
             LogTracer.traceException("UserCollectionController.countCollections", "获取收藏数量失败", e);
-            Result<Integer> response = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -146,22 +135,20 @@ public class UserCollectionController {
      * 清空用户的收藏
      */
     @DeleteMapping("/user/{userId}/clear")
-    public ResponseEntity<Result<Boolean>> clearCollections(@PathVariable Long userId) {
+    public ResponseEntity<Void> clearCollections(@PathVariable Long userId) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceMethod("UserCollectionController.clearCollections", "开始清空用户收藏", userId);
         
         try {
             boolean result = userCollectionService.clearCollections(userId);
-            Result<Boolean> response = result ? Result.success("收藏清空成功", true) : Result.failure("收藏清空失败");
             
-            LogTracer.traceMethod("UserCollectionController.clearCollections", "清空用户收藏完成", response);
+            LogTracer.traceMethod("UserCollectionController.clearCollections", "清空用户收藏完成", result);
             LogTracer.tracePerformance("UserCollectionController.clearCollections", startTime, System.currentTimeMillis());
             
-            return ResponseEntity.ok(response);
+            return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             LogTracer.traceException("UserCollectionController.clearCollections", "清空用户收藏失败", e);
-            Result<Boolean> response = Result.failure(e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().build();
         }
     }
 }
