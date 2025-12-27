@@ -34,7 +34,7 @@ public class AuthController {
             AuthResponse response = authService.login(request);
             
             // 使用LogTracer记录业务API调用
-            LogTracer.traceBusinessApiCall("用户登录", response);
+            LogTracer.traceBusinessApiCall(response);
             // RESTful风格：直接返回数据，HTTP状态码表示结果
             if (response.isSuccess()) {
                 

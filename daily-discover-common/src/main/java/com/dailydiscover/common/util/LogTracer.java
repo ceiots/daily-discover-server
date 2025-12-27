@@ -35,13 +35,44 @@ public class LogTracer {
     
     /**
      * 追踪业务方法调用（包含入参和出参）
-     * @param methodName 方法名
      * @param params 入参信息
      * @param result 返回结果
      */
-    public static <T> void traceBusinessMethod(String methodName, Object params, T result) {
+    public static <T> void traceBusinessMethod(Object params, T result) {
         String callerLocation = getCallerLocation();
+        String methodName = extractMethodNameFromStackTrace();
         log.info("📋 业务方法追踪 | 位置: {} | 方法: {} | 入参: {} | 出参: {}", callerLocation, methodName, params, result);
+    }
+    
+    /**
+     * 追踪业务方法调用（仅入参）
+     * @param params 入参信息
+     */
+    public static void traceBusinessMethodWithParams(Object params) {
+        traceBusinessMethod(params, null);
+    }
+    
+    /**
+     * 追踪业务方法调用（仅出参）
+     * @param result 返回结果
+     */
+    public static <T> void traceBusinessMethodWithResult(T result) {
+        traceBusinessMethod(null, result);
+    }
+    
+    /**
+     * 从调用栈中提取方法名
+     */
+    private static String extractMethodNameFromStackTrace() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        // 跳过LogTracer类本身的方法调用
+        for (int i = 3; i < stackTrace.length; i++) {
+            StackTraceElement element = stackTrace[i];
+            if (!element.getClassName().contains("LogTracer")) {
+                return element.getClassName() + "." + element.getMethodName();
+            }
+        }
+        return "Unknown Method";
     }
     
     /**
@@ -52,21 +83,22 @@ public class LogTracer {
      */
     public static <T> void traceDatabaseQuery(String sql, Object params, T result) {
         String callerLocation = getCallerLocation();
-        log.info("🗃️  数据库查询 | 位置: {} | SQL: {} | 参数: {} | 结果: {}", callerLocation, sql, params, result);
+        String methodName = extractMethodNameFromStackTrace();
+        log.info("🗃️  数据库查询 | 位置: {} | 方法: {} | SQL: {} | 参数: {} | 结果: {}", callerLocation, methodName, sql, params, result);
     }
     
     /**
      * 追踪业务API调用（业务层面，非HTTP层面）
-     * @param apiName API名称
      * @param data 请求或响应数据
      */
-    public static void traceBusinessApiCall(String apiName, Object data) {
+    public static void traceBusinessApiCall(Object data) {
         String callerLocation = getCallerLocation();
+        String methodName = extractMethodNameFromStackTrace();
         
         // 优化日志格式，提取关键信息
         String optimizedData = optimizeLogData(data);
         
-        log.info("💼 业务API调用 | 位置: {} | API: {} | 数据: {}", callerLocation, apiName, optimizedData);
+        log.info("💼 业务API调用 | 位置: {} | 方法: {} | 数据: {}", callerLocation, methodName, optimizedData);
     }
     
     /**
@@ -83,12 +115,12 @@ public class LogTracer {
     
     /**
      * 追踪业务操作
-     * @param operation 操作描述
      * @param details 操作详情
      */
-    public static void traceBusinessOperation(String operation, Object details) {
+    public static void traceBusinessOperation(Object details) {
         String callerLocation = getCallerLocation();
-        log.info("💼 业务操作 | 位置: {} | 操作: {} | 详情: {}", callerLocation, operation, details);
+        String methodName = extractMethodNameFromStackTrace();
+        log.info("💼 业务操作 | 位置: {} | 方法: {} | 详情: {}", callerLocation, methodName, details);
     }
     
     /**
@@ -102,13 +134,13 @@ public class LogTracer {
     
     /**
      * 追踪业务性能信息
-     * @param operation 操作名称
      * @param startTime 开始时间
      */
-    public static void traceBusinessPerformance(String operation, long startTime) {
+    public static void traceBusinessPerformance(long startTime) {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
         String callerLocation = getCallerLocation();
+        String methodName = extractMethodNameFromStackTrace();
         
         String performanceLevel;
         if (duration < 100) {
@@ -119,7 +151,7 @@ public class LogTracer {
             performanceLevel = "🐌 缓慢";
         }
         
-        log.info("⏱️  业务性能追踪 | 位置: {} | 操作: {} | 耗时: {}ms | 级别: {}", callerLocation, operation, duration, performanceLevel);
+        log.info("⏱️  业务性能追踪 | 位置: {} | 方法: {} | 耗时: {}ms | 级别: {}", callerLocation, methodName, duration, performanceLevel);
     }
     
     /**
