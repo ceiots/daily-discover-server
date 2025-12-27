@@ -95,12 +95,12 @@ public class UserCollectionController {
             @RequestParam String itemType,
             @RequestParam String itemId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceBusinessMethod(Map.of("userId", userId, "itemType", itemType, "itemId", itemId));
+        LogTracer.traceBusinessMethod(Map.of("userId", userId, "itemType", itemType, "itemId", itemId), null);
         
         try {
             boolean isCollected = userCollectionService.isItemCollected(userId, itemType, itemId);
             
-            LogTracer.traceBusinessMethod(isCollected);
+            LogTracer.traceBusinessMethod(Map.of("userId", userId, "itemType", itemType, "itemId", itemId), isCollected);
             LogTracer.traceBusinessPerformance(startTime);
             
             return ResponseEntity.ok(isCollected);

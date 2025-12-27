@@ -30,7 +30,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
     @Transactional
     public UserCollectionResponse addCollection(UserCollection userCollection) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionService.addCollection", "开始添加收藏", userCollection);
+        LogTracer.traceBusinessMethod(userCollection, null);
         
         try {
             // 检查是否已收藏

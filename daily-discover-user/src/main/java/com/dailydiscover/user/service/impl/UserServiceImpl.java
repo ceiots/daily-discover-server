@@ -131,8 +131,8 @@ public class UserServiceImpl implements UserService {
         response.setNickname(user.getNickname());
         response.setPhone(user.getPhone());
         
-        LogTracer.traceMethod("UserServiceImpl.getUserByPhone", phone, response);
-        LogTracer.tracePerformance("UserServiceImpl.getUserByPhone", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(phone, response);
+        LogTracer.traceBusinessPerformance(startTime);
         return response;
     }
 
@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse updateUserProfile(User user) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.updateUserProfile", user, null);
+        LogTracer.traceBusinessMethod(user, null);
         
         // 检查手机号是否已被其他用户使用
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
         User otherUser = userMapper.selectOne(queryWrapper);
         
         if (otherUser != null) {
-            LogTracer.traceException("UserServiceImpl.updateUserProfile", user, new RuntimeException("手机号已被其他用户使用"));
+            LogTracer.traceBusinessException(new RuntimeException("手机号已被其他用户使用"));
             throw new RuntimeException("手机号已被其他用户使用");
         }
         
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
         LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{user.getId()}, existingUser);
         
         if (existingUser == null) {
-            LogTracer.traceException("UserServiceImpl.updateUserProfile", user, new RuntimeException("用户不存在"));
+            LogTracer.traceBusinessException(new RuntimeException("用户不存在"));
             throw new RuntimeException("用户不存在");
         }
         
