@@ -6,6 +6,7 @@ import com.dailydiscover.user.dto.*;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.AuthService;
 import com.dailydiscover.common.util.ApiLogger;
+import com.dailydiscover.common.util.LogTracer;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +33,8 @@ public class AuthController {
         try {
             AuthResponse response = authService.login(request);
             
+            // 使用LogTracer记录业务API调用
+            LogTracer.traceBusinessApiCall("用户登录", response);
             // RESTful风格：直接返回数据，HTTP状态码表示结果
             if (response.isSuccess()) {
                 
@@ -44,9 +47,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
             }
         } catch (Exception e) {
-            // 使用ApiLogger记录异常日志
-            ApiLogger.logException("用户登录", httpRequest, e, System.currentTimeMillis() - startTime);
-            ApiLogger.error("登录系统异常 - 手机号: {}, 异常信息: {}", request.getPhone(), e.getMessage(), e);
+            
             // 系统异常，返回500 Internal Server Error
             AuthResponse errorResponse = new AuthResponse();
             errorResponse.setSuccess(false);

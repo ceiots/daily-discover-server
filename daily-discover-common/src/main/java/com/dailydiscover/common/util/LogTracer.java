@@ -6,16 +6,13 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- * 统一日志追踪工具类
- * 用于统一输出入参信息、响应信息、数据库查询结果等
- * 所有微服务通用的日志追踪工具
+ * 业务日志追踪工具类
+ * 专门用于记录业务层面的方法调用、数据库操作、业务流程等
+ * 职责：业务逻辑层面的日志追踪
  */
 @Slf4j
 @Component
 public class LogTracer {
-    
-    private static final String SEPARATOR = "========================================";
-    private static final String SUB_SEPARATOR = "----------------------------------------";
     
     /**
      * 获取调用位置信息
@@ -37,14 +34,14 @@ public class LogTracer {
     }
     
     /**
-     * 追踪方法调用（包含入参和出参）
+     * 追踪业务方法调用（包含入参和出参）
      * @param methodName 方法名
      * @param params 入参信息
      * @param result 返回结果
      */
-    public static <T> void traceMethod(String methodName, Object params, T result) {
+    public static <T> void traceBusinessMethod(String methodName, Object params, T result) {
         String callerLocation = getCallerLocation();
-        log.info("📋 方法追踪 | 位置: {} | 方法: {} | 入参: {} | 出参: {}", callerLocation, methodName, params, result);
+        log.info("📋 业务方法追踪 | 位置: {} | 方法: {} | 入参: {} | 出参: {}", callerLocation, methodName, params, result);
     }
     
     /**
@@ -59,17 +56,17 @@ public class LogTracer {
     }
     
     /**
-     * 追踪API调用
+     * 追踪业务API调用（业务层面，非HTTP层面）
      * @param apiName API名称
      * @param data 请求或响应数据
      */
-    public static void traceApiCall(String apiName, Object data) {
+    public static void traceBusinessApiCall(String apiName, Object data) {
         String callerLocation = getCallerLocation();
         
         // 优化日志格式，提取关键信息
         String optimizedData = optimizeLogData(data);
         
-        log.info("🌐 API调用 | 位置: {} | API: {} | 数据: {}", callerLocation, apiName, optimizedData);
+        log.info("💼 业务API调用 | 位置: {} | API: {} | 数据: {}", callerLocation, apiName, optimizedData);
     }
     
     /**
@@ -95,26 +92,34 @@ public class LogTracer {
     }
     
     /**
-     * 追踪异常信息
-     * @param methodName 方法名
-     * @param params 入参
-     * @param exception 异常信息
+     * 追踪业务异常信息
+     * @param exception 异常对象
      */
-    public static void traceException(String methodName, Object params, Exception exception) {
+    public static void traceBusinessException(Exception exception) {
         String callerLocation = getCallerLocation();
-        log.error("❌ 异常追踪 | 位置: {} | 方法: {} | 入参: {} | 异常: {}", callerLocation, methodName, params, exception.getMessage());
+        log.error("❌ 业务异常追踪 | 位置: {} | 异常类型: {} | 异常信息: {}", callerLocation, exception.getClass().getSimpleName(), exception.getMessage());
     }
     
     /**
-     * 性能追踪
-     * @param methodName 方法名
+     * 追踪业务性能信息
+     * @param operation 操作名称
      * @param startTime 开始时间
-     * @param endTime 结束时间
      */
-    public static void tracePerformance(String methodName, long startTime, long endTime) {
-        String callerLocation = getCallerLocation();
+    public static void traceBusinessPerformance(String operation, long startTime) {
+        long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
-        log.info("⚡ 性能追踪 | 位置: {} | 方法: {} | 耗时: {}ms", callerLocation, methodName, duration);
+        String callerLocation = getCallerLocation();
+        
+        String performanceLevel;
+        if (duration < 100) {
+            performanceLevel = "⚡ 快速";
+        } else if (duration < 500) {
+            performanceLevel = "🐢 一般";
+        } else {
+            performanceLevel = "🐌 缓慢";
+        }
+        
+        log.info("⏱️  业务性能追踪 | 位置: {} | 操作: {} | 耗时: {}ms | 级别: {}", callerLocation, operation, duration, performanceLevel);
     }
     
     /**

@@ -13,6 +13,8 @@ public class AuthResponse {
     
     private String message;
     
+    private String errorDetail;
+    
     private User user;
     
     private String token;

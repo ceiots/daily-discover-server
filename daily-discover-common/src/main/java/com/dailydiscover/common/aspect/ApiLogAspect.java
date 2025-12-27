@@ -75,7 +75,7 @@ public class ApiLogAspect {
             // 记录成功日志
             HttpServletRequest request = getCurrentRequest();
             if (request != null) {
-                ApiLogger.logApiCall(apiDescription, request, result, duration, true);
+                ApiLogger.logHttpApiCall(apiDescription, request, result, duration, true);
             }
             
             return result;
@@ -86,7 +86,7 @@ public class ApiLogAspect {
             // 记录异常日志
             HttpServletRequest request = getCurrentRequest();
             if (request != null && throwable instanceof Exception) {
-                ApiLogger.logException(apiDescription, request, (Exception) throwable, duration);
+                ApiLogger.logHttpApiException(apiDescription, request, (Exception) throwable, duration);
             }
             
             throw throwable;
