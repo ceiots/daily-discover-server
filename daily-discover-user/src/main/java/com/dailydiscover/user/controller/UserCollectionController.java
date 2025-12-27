@@ -29,12 +29,12 @@ public class UserCollectionController {
     @PostMapping
     public ResponseEntity<UserCollectionResponse> addCollection(@RequestBody UserCollection userCollection) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceBusinessMethod(userCollection);
+        LogTracer.traceBusinessMethod(userCollection, null);
         
         try {
             UserCollectionResponse response = userCollectionService.addCollection(userCollection);
             
-            LogTracer.traceBusinessMethod(response);
+            LogTracer.traceBusinessMethod(userCollection, response);
             LogTracer.traceBusinessPerformance(startTime);
             
             return ResponseEntity.ok(response);
@@ -50,12 +50,12 @@ public class UserCollectionController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<UserCollectionResponse>> getCollectionsByUserId(@PathVariable Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceBusinessMethod(userId);
+        LogTracer.traceBusinessMethod(userId, null);
         
         try {
             List<UserCollectionResponse> collections = userCollectionService.getCollectionsByUserId(userId);
             
-            LogTracer.traceBusinessMethod(collections);
+            LogTracer.traceBusinessMethod(userId, collections);
             LogTracer.traceBusinessPerformance(startTime);
             
             return ResponseEntity.ok(collections);
@@ -71,12 +71,12 @@ public class UserCollectionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCollection(@PathVariable Long id) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceBusinessMethod(id);
+        LogTracer.traceBusinessMethod(id, null);
         
         try {
             boolean result = userCollectionService.deleteCollection(id);
             
-            LogTracer.traceBusinessMethod(result);
+            LogTracer.traceBusinessMethod(id, result);
             LogTracer.traceBusinessPerformance(startTime);
             
             return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
@@ -147,7 +147,7 @@ public class UserCollectionController {
             
             return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionController.clearCollections", "清空用户收藏失败", e);
+            LogTracer.traceBusinessException(e);
             return ResponseEntity.badRequest().build();
         }
     }
