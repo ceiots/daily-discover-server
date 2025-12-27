@@ -57,12 +57,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             UserCollectionResponse response = new UserCollectionResponse();
             BeanUtils.copyProperties(userCollection, response);
             
-            LogTracer.traceMethod("UserCollectionService.addCollection", "收藏添加成功", response);
-            LogTracer.tracePerformance("UserCollectionService.addCollection", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(userCollection, response);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return response;
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionService.addCollection", "添加收藏失败", e);
+            LogTracer.traceBusinessException(e);
             throw e;
         }
     }
@@ -70,7 +70,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
     @Override
     public List<UserCollectionResponse> getCollectionsByUserId(Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionService.getCollectionsByUserId", "开始获取用户收藏列表", userId);
+        LogTracer.traceBusinessMethod(userId, null);
         
         try {
             QueryWrapper<UserCollection> queryWrapper = new QueryWrapper<>();
@@ -89,12 +89,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
                     })
                     .collect(Collectors.toList());
             
-            LogTracer.traceMethod("UserCollectionService.getCollectionsByUserId", "获取收藏列表成功", responses.size());
-            LogTracer.tracePerformance("UserCollectionService.getCollectionsByUserId", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(userId, responses.size());
+            LogTracer.traceBusinessPerformance(startTime);
             
             return responses;
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionService.getCollectionsByUserId", "获取收藏列表失败", e);
+            LogTracer.traceBusinessException(e);
             throw e;
         }
     }
@@ -103,7 +103,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
     @Transactional
     public boolean deleteCollection(Long id) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionService.deleteCollection", "开始删除收藏", id);
+        LogTracer.traceBusinessMethod(id, null);
         
         try {
             UserCollection collection = userCollectionMapper.selectById(id);
@@ -117,12 +117,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             LogTracer.traceDatabaseQuery("DELETE FROM user_collection WHERE id = ?", new Object[]{id}, result);
             
             boolean success = result > 0;
-            LogTracer.traceMethod("UserCollectionService.deleteCollection", "删除收藏完成", success);
-            LogTracer.tracePerformance("UserCollectionService.deleteCollection", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(id, success);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return success;
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionService.deleteCollection", "删除收藏失败", e);
+            LogTracer.traceBusinessException(e);
             throw e;
         }
     }
@@ -130,8 +130,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
     @Override
     public boolean isItemCollected(Long userId, String itemType, String itemId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionService.isItemCollected", "开始检查收藏状态", 
-                new Object[]{userId, itemType, itemId});
+        LogTracer.traceBusinessMethod(new Object[]{userId, itemType, itemId}, null);
         
         try {
             QueryWrapper<UserCollection> queryWrapper = new QueryWrapper<>();
@@ -144,12 +143,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
                 new Object[]{userId, itemType, itemId}, collection != null);
             
             boolean isCollected = collection != null;
-            LogTracer.traceMethod("UserCollectionService.isItemCollected", "检查收藏状态完成", isCollected);
-            LogTracer.tracePerformance("UserCollectionService.isItemCollected", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(new Object[]{userId, itemType, itemId}, isCollected);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return isCollected;
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionService.isItemCollected", "检查收藏状态失败", e);
+            LogTracer.traceBusinessException(e);
             throw e;
         }
     }
@@ -157,7 +156,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
     @Override
     public int countCollections(Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionService.countCollections", "开始统计收藏数量", userId);
+        LogTracer.traceBusinessMethod("开始统计收藏数量", userId);
         
         try {
             QueryWrapper<UserCollection> queryWrapper = new QueryWrapper<>();
@@ -167,12 +166,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             LogTracer.traceDatabaseQuery("SELECT COUNT(*) FROM user_collection WHERE user_id = ?", new Object[]{userId}, count);
             
             int result = count != null ? count.intValue() : 0;
-            LogTracer.traceMethod("UserCollectionService.countCollections", "统计收藏数量完成", result);
-            LogTracer.tracePerformance("UserCollectionService.countCollections", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(userId, result);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return result;
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionService.countCollections", "统计收藏数量失败", e);
+            LogTracer.traceBusinessException(e);
             throw e;
         }
     }
@@ -181,7 +180,7 @@ public class UserCollectionServiceImpl implements UserCollectionService {
     @Transactional
     public boolean clearCollections(Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserCollectionService.clearCollections", "开始清空用户收藏", userId);
+        LogTracer.traceBusinessMethod(userId, null);
         
         try {
             QueryWrapper<UserCollection> queryWrapper = new QueryWrapper<>();
@@ -191,12 +190,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             LogTracer.traceDatabaseQuery("DELETE FROM user_collection WHERE user_id = ?", new Object[]{userId}, result);
             
             boolean success = result > 0;
-            LogTracer.traceMethod("UserCollectionService.clearCollections", "清空收藏完成", success);
-            LogTracer.tracePerformance("UserCollectionService.clearCollections", startTime, System.currentTimeMillis());
+            LogTracer.traceBusinessMethod(userId, success);
+            LogTracer.traceBusinessPerformance(startTime);
             
             return success;
         } catch (Exception e) {
-            LogTracer.traceException("UserCollectionService.clearCollections", "清空收藏失败", e);
+            LogTracer.traceBusinessException(e);
             throw e;
         }
     }

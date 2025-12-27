@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse register(User user) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.register", user, null);
+        LogTracer.traceBusinessMethod(user, null);
         
         // 检查手机号是否已存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
         User existingUser = userMapper.selectOne(queryWrapper);
         
         if (existingUser != null) {
-            LogTracer.traceException("UserServiceImpl.register", user, new RuntimeException("手机号已被注册"));
+            LogTracer.traceBusinessException(new RuntimeException("手机号已被注册"));
             throw new RuntimeException("手机号已被注册");
         }
         
@@ -56,27 +56,27 @@ public class UserServiceImpl implements UserService {
         UserResponse response = new UserResponse();
         BeanUtils.copyProperties(user, response);
         
-        LogTracer.traceMethod("UserServiceImpl.register", user, response);
-        LogTracer.tracePerformance("UserServiceImpl.register", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(user, response);
+        LogTracer.traceBusinessPerformance(startTime);
         return response;
     }
 
     @Override
     public UserResponse login(String phone, String password) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.login", phone, null);
+        LogTracer.traceBusinessMethod(phone, null);
         
         // 根据手机号查询用户
         User user = userMapper.selectByPhone(phone);
         
         if (user == null) {
-            LogTracer.traceException("UserServiceImpl.login", phone, new RuntimeException("用户不存在"));
+            LogTracer.traceBusinessException(new RuntimeException("用户不存在"));
             throw new RuntimeException("用户不存在");
         }
         
         // 验证密码
         if (!user.getPassword().equals(password)) {
-            LogTracer.traceException("UserServiceImpl.login", phone, new RuntimeException("密码错误"));
+            LogTracer.traceBusinessException(new RuntimeException("密码错误"));
             throw new RuntimeException("密码错误");
         }
         
@@ -89,34 +89,34 @@ public class UserServiceImpl implements UserService {
         UserResponse response = new UserResponse();
         BeanUtils.copyProperties(user, response);
         
-        LogTracer.traceMethod("UserServiceImpl.login", phone, response);
-        LogTracer.tracePerformance("UserServiceImpl.login", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(phone, response);
+        LogTracer.traceBusinessPerformance(startTime);
         return response;
     }
 
     @Override
     public UserResponse getUserById(Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.getUserById", userId, null);
+        LogTracer.traceBusinessMethod(userId, null);
         
         User user = userMapper.selectById(userId);
         LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{userId}, user);
         
         if (user == null) {
-            LogTracer.traceException("UserServiceImpl.getUserById", userId, new RuntimeException("用户不存在"));
+            LogTracer.traceBusinessException(new RuntimeException("用户不存在"));
             throw new RuntimeException("用户不存在");
         }
         
         UserResponse response = convertToResponse(user);
-        LogTracer.traceMethod("UserServiceImpl.getUserById", userId, response);
-        LogTracer.tracePerformance("UserServiceImpl.getUserById", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(userId, response);
+        LogTracer.traceBusinessPerformance(startTime);
         return response;
     }
 
     @Override
     public UserResponse getUserByPhone(String phone) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.getUserByPhone", phone, null);
+        LogTracer.traceBusinessMethod(phone, null);
         
         // 根据手机号查询用户
         User user = userMapper.selectByPhone(phone);
@@ -172,8 +172,8 @@ public class UserServiceImpl implements UserService {
         UserResponse response = new UserResponse();
         BeanUtils.copyProperties(existingUser, response);
         
-        LogTracer.traceMethod("UserServiceImpl.updateUserProfile", user, response);
-        LogTracer.tracePerformance("UserServiceImpl.updateUserProfile", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(user, response);
+        LogTracer.traceBusinessPerformance(startTime);
         return response;
     }
 
@@ -200,13 +200,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean deleteUser(Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.deleteUser", userId, null);
+        LogTracer.traceBusinessMethod(userId, null);
         
         User user = userMapper.selectById(userId);
         LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{userId}, user);
         
         if (user == null) {
-            LogTracer.traceException("UserServiceImpl.deleteUser", userId, new RuntimeException("用户不存在"));
+            LogTracer.traceBusinessException(new RuntimeException("用户不存在"));
             throw new RuntimeException("用户不存在");
         }
 
@@ -214,8 +214,8 @@ public class UserServiceImpl implements UserService {
         LogTracer.traceDatabaseQuery("DELETE FROM user WHERE id = ?", new Object[]{userId}, result);
         
         boolean deleteResult = result > 0;
-        LogTracer.traceMethod("UserServiceImpl.deleteUser", userId, deleteResult);
-        LogTracer.tracePerformance("UserServiceImpl.deleteUser", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(userId, deleteResult);
+        LogTracer.traceBusinessPerformance(startTime);
         return deleteResult;
     }
 
@@ -248,19 +248,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getCurrentUser(Long userId) {
         long startTime = System.currentTimeMillis();
-        LogTracer.traceMethod("UserServiceImpl.getCurrentUser", userId, null);
+        LogTracer.traceBusinessMethod(userId, null);
         
         User user = userMapper.selectById(userId);
         LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", new Object[]{userId}, user);
         
         if (user == null) {
-            LogTracer.traceException("UserServiceImpl.getCurrentUser", userId, new RuntimeException("用户不存在"));
+            LogTracer.traceBusinessException(new RuntimeException("用户不存在"));
             throw new RuntimeException("用户不存在");
         }
         
         UserResponse response = convertToResponse(user);
-        LogTracer.traceMethod("UserServiceImpl.getCurrentUser", userId, response);
-        LogTracer.tracePerformance("UserServiceImpl.getCurrentUser", startTime, System.currentTimeMillis());
+        LogTracer.traceBusinessMethod(userId, response);
+        LogTracer.traceBusinessPerformance(startTime);
         return response;
     }
 }
