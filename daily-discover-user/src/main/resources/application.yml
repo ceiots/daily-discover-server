@@ -63,9 +63,10 @@ logging:
     # Spring框架日志级别
     org.springframework.web: INFO
     org.springframework.security: debug
-    # 数据库相关日志
-    com.baomidou.mybatisplus: WARN
-    org.apache.ibatis: WARN
+    # 数据库相关日志 - 开启详细SQL日志
+    com.dailydiscover.user.mapper: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+    org.apache.ibatis: DEBUG
     # 其他日志级别
     com.dailydiscover: debug
   
@@ -73,7 +74,7 @@ logging:
   file:
     name: logs/daily-discover-user.log
     
-  # 日志格式
+  # 日志格式 - 添加业务标识前缀
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [业务SQL] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [业务SQL] %-5level %logger{36} - %msg%n"

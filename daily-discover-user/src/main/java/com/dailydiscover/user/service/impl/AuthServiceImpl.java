@@ -37,6 +37,9 @@ public class AuthServiceImpl implements AuthService {
         long startTime = System.currentTimeMillis();
         LogTracer.traceBusinessOperation("开始用户登录流程，手机号: " + request.getPhone());
         
+        // 业务标识：便于在SQL日志中识别
+        LogTracer.traceBusinessOperation("业务标识: 用户登录 - 手机号: " + request.getPhone());
+        
         // 记录登录尝试
         LoginAttempt loginAttempt = new LoginAttempt();
         loginAttempt.setIdentifier(request.getPhone());
@@ -137,6 +140,9 @@ public class AuthServiceImpl implements AuthService {
         long startTime = System.currentTimeMillis();
         LogTracer.traceBusinessOperation("开始用户注册流程，手机号: " + request.getPhone());
         
+        // 业务标识：便于在SQL日志中识别
+        LogTracer.traceBusinessOperation("业务标识: 用户注册 - 手机号: " + request.getPhone());
+        
         // 验证密码一致性
         LogTracer.traceBusinessOperation("验证密码一致性");
         if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -217,6 +223,9 @@ public class AuthServiceImpl implements AuthService {
         long startTime = System.currentTimeMillis();
         LogTracer.traceBusinessOperation("开始刷新令牌流程");
         
+        // 业务标识：便于在SQL日志中识别
+        LogTracer.traceBusinessOperation("业务标识: 刷新令牌 - 令牌: " + request.getRefreshToken().substring(0, Math.min(20, request.getRefreshToken().length())) + "...");
+        
         // 从数据库中查找刷新令牌
         LogTracer.traceBusinessOperation("查找有效的刷新令牌");
         QueryWrapper<RefreshToken> queryWrapper = new QueryWrapper<>();
@@ -270,6 +279,9 @@ public class AuthServiceImpl implements AuthService {
         long startTime = System.currentTimeMillis();
         LogTracer.traceBusinessOperation("开始重置密码流程，手机号: " + request.getPhone());
         
+        // 业务标识：便于在SQL日志中识别
+        LogTracer.traceBusinessOperation("业务标识: 重置密码 - 手机号: " + request.getPhone());
+        
         // 验证密码一致性
         LogTracer.traceBusinessOperation("验证新密码和确认密码一致性");
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
@@ -307,6 +319,9 @@ public class AuthServiceImpl implements AuthService {
         long startTime = System.currentTimeMillis();
         LogTracer.traceBusinessOperation("开始验证令牌");
         
+        // 业务标识：便于在SQL日志中识别
+        LogTracer.traceBusinessOperation("业务标识: 验证令牌 - 令牌: " + token.substring(0, Math.min(20, token.length())) + "...");
+        
         if (!jwtUtil.validateToken(token)) {
             LogTracer.traceBusinessException(new RuntimeException("令牌无效或已过期"));
             throw new RuntimeException("令牌无效或已过期");
@@ -333,6 +348,13 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String token) {
         long startTime = System.currentTimeMillis();
         LogTracer.traceBusinessOperation("开始用户登出流程");
+        
+        // 业务标识：便于在SQL日志中识别
+        if (StringUtils.hasText(token)) {
+            LogTracer.traceBusinessOperation("业务标识: 用户登出 - 令牌: " + token.substring(0, Math.min(20, token.length())) + "...");
+        } else {
+            LogTracer.traceBusinessOperation("业务标识: 用户登出 - 令牌为空");
+        }
         
         if (StringUtils.hasText(token)) {
             try {
