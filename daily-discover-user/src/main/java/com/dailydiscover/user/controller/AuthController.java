@@ -63,9 +63,12 @@ public class AuthController {
      */
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Validated @RequestBody RegisterRequest request) {
+        long startTime = System.currentTimeMillis();
         try {
             AuthResponse response = authService.register(request);
             
+            // 使用LogTracer记录业务API调用
+            LogTracer.traceBusinessApiCall(response);
             // RESTful风格：直接返回数据，HTTP状态码表示结果
             if (response.isSuccess()) {
                 // 注册成功，返回201 Created

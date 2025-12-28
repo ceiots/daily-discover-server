@@ -147,7 +147,13 @@ public class AuthServiceImpl implements AuthService {
         LogTracer.traceBusinessOperation("验证密码一致性");
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             LogTracer.traceBusinessException(new RuntimeException("密码验证失败: 密码和确认密码不一致"));
-            throw new RuntimeException("密码和确认密码不一致");
+            
+            // 返回业务失败的响应而不是抛出异常
+            AuthResponse response = new AuthResponse();
+            response.setSuccess(false);
+            response.setMessage("密码和确认密码不一致");
+            LogTracer.traceBusinessMethod(request, response);
+            return response;
         }
         LogTracer.traceBusinessOperation("密码验证通过");
         
@@ -158,7 +164,13 @@ public class AuthServiceImpl implements AuthService {
         User existingUser = userMapper.selectOne(phoneQuery);
         if (existingUser != null) {
             LogTracer.traceBusinessException(new RuntimeException("手机号已存在，用户ID: " + existingUser.getId()));
-            throw new RuntimeException("手机号已被注册");
+            
+            // 返回业务失败的响应而不是抛出异常
+            AuthResponse response = new AuthResponse();
+            response.setSuccess(false);
+            response.setMessage("手机号已被注册");
+            LogTracer.traceBusinessMethod(request, response);
+            return response;
         }
         LogTracer.traceBusinessOperation("手机号检查通过，可以注册新用户");
         
