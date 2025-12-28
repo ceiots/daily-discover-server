@@ -75,11 +75,11 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
             }
         } catch (Exception e) {
-            // 请求参数错误，返回400 Bad Request
+            // 系统异常，返回500 Internal Server Error
             AuthResponse errorResponse = new AuthResponse();
             errorResponse.setSuccess(false);
-            errorResponse.setMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            errorResponse.setMessage("系统异常，请稍后重试");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
