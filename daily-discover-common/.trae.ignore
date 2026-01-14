@@ -1,0 +1,96 @@
+# Trae IDE 忽略文件配置 - 服务器端项目
+# 此文件用于排除不需要索引和监控的目录，提高IDE性能
+
+# Maven 构建相关
+**/target
+**/.m2
+**/.mvn
+**/mvnw
+**/mvnw.cmd
+**/pom.xml.*
+**/pom.xml.bak
+
+# 依赖目录
+**/.gradle
+**/gradle
+**/build
+**/out
+**/bin
+**/obj
+
+# 日志文件
+**/*.log
+**/logs
+**/.logs
+**/log
+
+# 版本控制目录
+**/.git
+**/.svn
+**/.hg
+**/.bzr
+
+# IDE 和编辑器配置
+**/.idea
+**/.vscode
+**/.history
+**/.vs
+**/*.iml
+**/*.iws
+**/*.ipr
+
+# 操作系统文件
+**/.DS_Store
+**/Thumbs.db
+**/desktop.ini
+
+# 缓存和临时文件
+**/.cache
+**/.tmp
+**/temp
+**/tmp
+**/.classpath
+**/.project
+**/.settings
+
+# 测试相关
+**/test-output
+**/test-results
+**/surefire-reports
+**/failsafe-reports
+**/jacoco
+
+# 数据库文件
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/data
+**/database
+
+# 压缩文件
+**/*.zip
+**/*.tar.gz
+**/*.jar
+**/*.war
+**/*.ear
+
+# 配置文件备份
+**/*.bak
+**/*.backup
+**/*.old
+**/*.orig
+
+# Spring Boot 相关
+**/BOOT-INF
+**/META-INF
+**/lib
+**/spring-boot-devtools.properties
+
+# 应用打包相关
+**/dist
+**/release
+**/deploy
+**/package
+
+# 自定义排除规则
+# 根据项目实际情况添加特定需要排除的目录或文件
