@@ -1,5 +1,6 @@
 target/
 logs/
+.trae/
 
 # 忽略所有Markdown文档，除了README.md
 *.md
