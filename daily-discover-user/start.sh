@@ -8,8 +8,37 @@ SERVICE_NAME="daily-discover-user"
 LOG_FILE="logs/application.log"
 PID_FILE="logs/service.pid"
 
+# 代理配置（通过环境变量获取，可选）
+# 设置方式：export PROXY_SERVER="http://your-proxy-server:port"
+
 # 创建日志目录
 mkdir -p logs
+
+# 设置代理环境变量（可选）
+setup_proxy() {
+    # 直接导出系统环境变量中的代理配置
+    if [ -n "$PROXY_SERVER" ]; then
+        echo "🔧 设置代理: $PROXY_SERVER"
+        export http_proxy="$PROXY_SERVER"
+        export https_proxy="$PROXY_SERVER"
+        export HTTP_PROXY="$PROXY_SERVER"
+        export HTTPS_PROXY="$PROXY_SERVER"
+    else
+        echo "ℹ️  未配置代理，使用系统默认网络设置"
+    fi
+}
+
+# 拉取最新代码
+pull_latest_code() {
+    if [ -d ".git" ]; then
+        echo "📥 拉取最新代码..."
+        git fetch origin
+        git pull origin main
+        echo "✅ 代码更新完成"
+    else
+        echo "ℹ️  当前目录不是 Git 仓库，跳过代码拉取"
+    fi
+}
 
 # 检测操作系统类型
 detect_os() {
@@ -22,7 +51,23 @@ detect_os() {
     esac
 }
 
-# 检查服务是否已经在运行
+# 停止正在运行的服务
+stop_running_service() {
+    if [ -f "$PID_FILE" ]; then
+        local pid=$(cat "$PID_FILE")
+        if [ "$pid" = "windows" ] || kill -0 "$pid" 2>/dev/null; then
+            echo "🛑 检测到服务正在运行，停止旧服务..."
+            ./stop.sh
+            # 等待进程完全停止
+            sleep 3
+        else
+            # 清理无效的 PID 文件
+            rm -f "$PID_FILE"
+        fi
+    fi
+}
+
+# 检查服务是否已经在运行（用于前台模式）
 check_running() {
     if [ -f "$PID_FILE" ]; then
         local pid=$(cat "$PID_FILE")
@@ -49,6 +94,18 @@ start_background() {
     
     # 显示操作系统检测结果
     echo "🔍 检测到操作系统类型: $os_type"
+    echo
+    
+    # 1. 设置代理
+    setup_proxy
+    echo
+    
+    # 2. 拉取最新代码
+    pull_latest_code
+    echo
+    
+    # 3. 停止旧服务（如果正在运行）
+    stop_running_service
     echo
     
     # 检查 Java 环境
