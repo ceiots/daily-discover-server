@@ -16,13 +16,15 @@ mkdir -p logs
 
 # 设置代理环境变量（可选）
 setup_proxy() {
-    # 直接导出系统环境变量中的代理配置
-    if [ -n "$PROXY_SERVER" ]; then
-        echo "🔧 设置代理: $PROXY_SERVER"
-        export http_proxy="$PROXY_SERVER"
-        export https_proxy="$PROXY_SERVER"
-        export HTTP_PROXY="$PROXY_SERVER"
-        export HTTPS_PROXY="$PROXY_SERVER"
+    # 从环境变量获取代理配置
+    local proxy_server="${PROXY_SERVER:-}"
+    
+    if [ -n "$proxy_server" ]; then
+        echo "🔧 设置代理: $proxy_server"
+        export http_proxy="$proxy_server"
+        export https_proxy="$proxy_server"
+        export HTTP_PROXY="$proxy_server"
+        export HTTPS_PROXY="$proxy_server"
     else
         echo "ℹ️  未配置代理，使用系统默认网络设置"
     fi
@@ -30,14 +32,14 @@ setup_proxy() {
 
 # 拉取最新代码
 pull_latest_code() {
-    if [ -d ".git" ]; then
+    #if [ -d ".git" ]; then
         echo "📥 拉取最新代码..."
         git fetch origin
         git pull origin main
         echo "✅ 代码更新完成"
-    else
-        echo "ℹ️  当前目录不是 Git 仓库，跳过代码拉取"
-    fi
+    #else
+    #    echo "ℹ️  当前目录不是 Git 仓库，跳过代码拉取"
+    #fi
 }
 
 # 检测操作系统类型
