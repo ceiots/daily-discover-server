@@ -1,11 +1,39 @@
 # 每日发现用户服务
 
-## 服务运行
+### 跨平台启动选项
 
-### 自动启动（推荐）
+#### 后台启动（推荐生产环境）
 ```bash
-./start.bat
+./start.sh -b
+# 或简写
+./start.sh
 ```
+
+#### 前台启动（推荐开发环境）
+```bash
+./start.sh -f
+```
+
+#### 检查服务状态
+```bash
+./start.sh --status
+```
+
+#### 停止服务
+```bash
+./stop.sh
+```
+
+#### 重启服务
+```bash
+./restart.sh
+```
+
+### 脚本特性
+- ✅ **跨平台支持**：自动检测 Windows Git Bash 和 Ubuntu 环境
+- ✅ **后台运行**：支持关闭终端后服务继续运行
+- ✅ **进程管理**：完善的启动、停止、重启功能
+- ✅ **日志管理**：日志输出到 `logs/application.log`
 
 ## 数据库迁移
 
@@ -27,9 +55,3 @@ mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_us
 ```bash
 mysql -u root -p daily_discover < src/main/resources/db/migration/auth/create_auth_tables.sql
 ```
-
-# tailscale 配置
-tailscale funnel --bg --set-path=/common/api http://127.0.0.1:8090/common/api
-tailscale funnel --bg --set-path=/user/api http://127.0.0.1:8091/user/api
-tailscale funnel --bg --set-path=/product/api http://127.0.0.1:8092/product/api
-tailscale funnel --bg --set-path=/api/dailylife http://127.0.0.1:3001/api/dailylife
