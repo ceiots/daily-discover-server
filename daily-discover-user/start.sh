@@ -7,7 +7,6 @@
 SERVICE_NAME="${SERVICE_NAME:-daily-discover-user}"
 JAR_FILE="${JAR_FILE:-target/daily-discover-user-1.0.0.jar}"
 LOG_FILE="logs/application.log"
-PID_FILE="logs/service.pid"
 SERVICE_PORT="${SERVICE_PORT:-8091}"
 MAVEN_ARGS="${MAVEN_ARGS:--DskipTests}"
 
@@ -99,7 +98,7 @@ monitor_logs_continuously() {
 start_background() {
     echo "🚀 启动每日发现用户服务 (后台模式)..."
     echo "📝 日志文件: $LOG_FILE"
-    echo "📄 PID 文件: $PID_FILE"
+    echo "🌐 服务端口: $SERVICE_PORT"
     echo
     
     # 1. 设置代理
@@ -162,7 +161,7 @@ start_service_core() {
     
     echo "🚀 启动每日发现用户服务..."
     echo "📝 日志文件: $LOG_FILE"
-    echo "📄 PID 文件: $PID_FILE"
+    echo "🌐 服务端口: $SERVICE_PORT"
     echo
     
     # 显示操作系统检测结果
@@ -195,15 +194,12 @@ start_service_core() {
             # Linux/Unix 系统 (包括 Ubuntu)
             nohup java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
             local pid=$!
-            echo $pid > "$PID_FILE"
             echo "✅ 服务已启动，PID: $pid"
             ;;
         "windows")
             # Windows Git Bash 环境
             # 在 Git Bash 中使用 start 命令启动新窗口
             start "$SERVICE_NAME" /B java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1
-            # 在 Windows 下难以获取准确的 PID，使用特殊标记
-            echo "windows" > "$PID_FILE"
             echo "✅ 服务已启动 (Windows 后台模式)"
             ;;
         *)
