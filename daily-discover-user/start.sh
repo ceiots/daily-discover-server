@@ -108,8 +108,11 @@ start_background() {
     # 2. 拉取最新代码
     pull_latest_code
     echo
+
+    # 3. 编译项目并打包
+    build_project
     
-    # 3. 调用重启服务
+    # 4. 调用重启服务
     restart_service
 }
 
@@ -136,6 +139,22 @@ show_help() {
 }
 
 
+
+# 编译并打包项目
+build_project() {
+    echo "📦 编译并打包项目..."
+    ./mvnw clean package $MAVEN_ARGS
+    echo
+    
+    # 检查 JAR 文件是否存在
+    if [ ! -f "$JAR_FILE" ]; then
+        echo "❌ JAR 文件不存在: $JAR_FILE"
+        echo "💡 请检查 Maven 构建是否成功"
+        exit 1
+    fi
+    
+    echo "✅ 项目构建完成"
+}
 
 # 重启服务
 restart_service() {
@@ -168,23 +187,6 @@ start_service_core() {
     echo "🔍 检测到操作系统类型: $os_type"
     echo
     
-    # 检查 Java 环境
-    echo "☕ 检查 Java 环境..."
-    java -version
-    echo
-    
-    # 编译项目并打包
-    echo "📦 编译并打包项目..."
-    ./mvnw clean package $MAVEN_ARGS
-    echo
-    
-    # 检查 JAR 文件是否存在
-    if [ ! -f "$JAR_FILE" ]; then
-        echo "❌ JAR 文件不存在: $JAR_FILE"
-        echo "💡 请检查 Maven 构建是否成功"
-        exit 1
-    fi
-    
     echo "🎯 启动服务..."
     echo "📦 使用 JAR 文件: $JAR_FILE"
     
@@ -204,8 +206,7 @@ start_service_core() {
             ;;
         *)
             echo "❌ 不支持的操作系统: $os_type"
-            echo "💡 使用前台模式启动..."
-            java -jar "$JAR_FILE"
+            echo "💡 请使用支持的平台运行此服务"
             exit 1
             ;;
     esac
@@ -227,7 +228,6 @@ main() {
             ;;
         -r|--restart)
             restart_service
-            exit 0
             ;;
         -h|--help)
             show_help
@@ -239,12 +239,6 @@ main() {
             exit 1
             ;;
     esac
-    
-    # 显示服务启动信息
-    echo
-    echo "✅ 服务启动完成"
-    echo "📝 日志文件: $LOG_FILE"
-    echo "🌐 服务端口: $SERVICE_PORT"
 }
 
 # 执行主函数

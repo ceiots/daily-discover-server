@@ -189,7 +189,7 @@ show_help() {
 # 主函数
 main() {
     # 解析命令行参数
-    case "${1:--h}" in
+    case "${1:}" in
         -h|--help)
             show_help
             exit 0
