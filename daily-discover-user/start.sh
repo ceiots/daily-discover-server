@@ -172,6 +172,13 @@ restart_service() {
     # 3. 启动服务核心逻辑
     echo "3. 启动新服务..."
     start_service_core
+
+    # 等待一段时间让进程开始写入日志
+    echo "⏳ 等待进程启动并开始写入日志..."
+    sleep 3
+    
+    # 调用独立的日志监控方法
+    monitor_logs_continuously
 }
  
 # 启动服务核心逻辑
@@ -211,12 +218,7 @@ start_service_core() {
             ;;
     esac
     
-    # 等待一段时间让进程开始写入日志
-    echo "⏳ 等待进程启动并开始写入日志..."
-    sleep 3
     
-    # 调用独立的日志监控方法
-    monitor_logs_continuously
 }
 
 # 主函数
