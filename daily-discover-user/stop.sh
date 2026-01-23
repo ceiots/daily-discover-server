@@ -23,24 +23,52 @@ find_port_process() {
     local port="$1"
     
     # 尝试使用 lsof 查找端口进程
-    local pid=$(lsof -ti:$port 2>/dev/null)
-    if [ -n "$pid" ]; then
-        echo "$pid"
-        return 0
+    if command -v lsof >/dev/null 2>&1; then
+        local pid=$(lsof -ti:$port 2>/dev/null)
+        if [ -n "$pid" ]; then
+            echo "$pid"
+            return 0
+        fi
     fi
     
     # 如果 lsof 不可用，使用 netstat
-    pid=$(netstat -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
-    if [ -n "$pid" ]; then
-        echo "$pid"
-        return 0
+    if command -v netstat >/dev/null 2>&1; then
+        local pid=$(netstat -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
+        if [ -n "$pid" ]; then
+            echo "$pid"
+            return 0
+        fi
     fi
     
     # 如果 netstat 也不可用，使用 ss
-    pid=$(ss -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'=' -f2 | cut -d',' -f1)
-    if [ -n "$pid" ]; then
-        echo "$pid"
-        return 0
+    if command -v ss >/dev/null 2>&1; then
+        local pid=$(ss -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'=' -f2 | cut -d',' -f1)
+        if [ -n "$pid" ]; then
+            echo "$pid"
+            return 0
+        fi
+    fi
+    
+    # 如果以上命令都不可用，使用 /proc 文件系统
+    if [ -d "/proc" ]; then
+        for pid_dir in /proc/[0-9]*; do
+            if [ -r "$pid_dir/net/tcp" ]; then
+                if grep -q ":$(printf '%04X' $port)" "$pid_dir/net/tcp" 2>/dev/null; then
+                    local pid=$(basename "$pid_dir")
+                    echo "$pid"
+                    return 0
+                fi
+            fi
+        done
+    fi
+    
+    # 最后尝试使用 fuser
+    if command -v fuser >/dev/null 2>&1; then
+        local pid=$(fuser $port/tcp 2>/dev/null | awk '{print $1}')
+        if [ -n "$pid" ]; then
+            echo "$pid"
+            return 0
+        fi
     fi
     
     return 1
@@ -52,18 +80,30 @@ stop_service() {
     
     echo "🛑 停止 $SERVICE_NAME 服务..."
     echo "🌐 服务端口: $SERVICE_PORT"
+    echo "💻 操作系统: $os_type"
     echo
     
     # 查找占用端口的进程
+    echo "🔍 正在查找占用端口 $SERVICE_PORT 的进程..."
     local port_pid=$(find_port_process "$SERVICE_PORT")
     
     if [ -n "$port_pid" ]; then
-        echo "🔍 找到占用端口 $SERVICE_PORT 的进程 (PID: $port_pid)..."
+        echo "✅ 找到占用端口 $SERVICE_PORT 的进程 (PID: $port_pid)..."
+        
+        # 显示进程详细信息
+        echo "📋 进程详细信息:"
+        ps -p "$port_pid" -o pid,user,cmd 2>/dev/null || echo "⚠️  无法获取进程详细信息"
+        echo
         
         case "$os_type" in
             "linux"|"mac")
+                echo "🔧 使用 kill 命令停止进程..."
                 # 尝试正常停止
-                kill "$port_pid" 2>/dev/null
+                if kill "$port_pid" 2>/dev/null; then
+                    echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
+                else
+                    echo "❌ 发送停止信号失败"
+                fi
                 
                 # 等待进程停止
                 local count=0
@@ -75,22 +115,31 @@ stop_service() {
                 
                 # 如果进程还在，强制终止
                 if kill -0 "$port_pid" 2>/dev/null; then
-                    echo "⚠️  进程未正常停止，强制终止..."
-                    kill -9 "$port_pid" 2>/dev/null
-                    sleep 1
+                    echo "⚠️  进程未正常停止，尝试强制终止..."
+                    if kill -9 "$port_pid" 2>/dev/null; then
+                        echo "✅ 已发送强制终止信号"
+                        sleep 1
+                    else
+                        echo "❌ 强制终止失败"
+                    fi
                 fi
                 
                 # 最终检查
                 if kill -0 "$port_pid" 2>/dev/null; then
                     echo "❌ 无法停止进程 (PID: $port_pid)"
+                    echo "💡 可能需要手动停止: kill -9 $port_pid"
                 else
-                    echo "✅ 进程已停止 (PID: $port_pid)"
+                    echo "✅ 进程已成功停止 (PID: $port_pid)"
                 fi
                 ;;
             "windows")
+                echo "🔧 使用 taskkill 命令停止进程..."
                 # Windows 下停止进程
-                taskkill //F //PID "$port_pid" 2>/dev/null || echo "⚠️  停止进程失败"
-                echo "✅ Windows 进程停止完成"
+                if taskkill //F //PID "$port_pid" 2>/dev/null; then
+                    echo "✅ Windows 进程停止完成"
+                else
+                    echo "❌ Windows 进程停止失败"
+                fi
                 ;;
             *)
                 echo "❌ 不支持的操作系统: $os_type"
@@ -99,17 +148,22 @@ stop_service() {
         esac
     else
         echo "ℹ️  端口 $SERVICE_PORT 未被占用，服务可能未运行"
+        echo "💡 检查端口状态命令:"
+        echo "   lsof -i:$SERVICE_PORT 2>/dev/null || netstat -tulpn 2>/dev/null | grep :$SERVICE_PORT || ss -tulpn 2>/dev/null | grep :$SERVICE_PORT"
     fi
     
     echo
-    echo "✅ $SERVICE_NAME 服务停止完成"
+    echo "✅ $SERVICE_NAME 服务停止流程完成"
     
     # 最终验证
     echo "🔍 最终检查端口状态..."
     local final_check=$(find_port_process "$SERVICE_PORT")
     if [ -n "$final_check" ]; then
-        echo "❌ 端口 $SERVICE_PORT 仍然被占用"
-        echo "💡 可能需要手动检查: lsof -i:$SERVICE_PORT 或 netstat -tulpn | grep :$SERVICE_PORT"
+        echo "❌ 端口 $SERVICE_PORT 仍然被占用 (PID: $final_check)"
+        echo "💡 可能需要手动检查:"
+        echo "   lsof -i:$SERVICE_PORT"
+        echo "   netstat -tulpn | grep :$SERVICE_PORT"
+        echo "   ps aux | grep $final_check"
         return 1
     else
         echo "✅ 端口 $SERVICE_PORT 已释放，服务停止成功"

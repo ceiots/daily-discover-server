@@ -52,7 +52,7 @@ jwt:
 
 # 日志配置
 logging:
-  time-zone: Asia/Shanghai
+  time-zone: GMT+8
   level:
     # 应用包路径日志级别
     com.dailydiscover.user: INFO
