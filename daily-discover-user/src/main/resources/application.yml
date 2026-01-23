@@ -2,8 +2,6 @@ server:
   port: 8091
 
 # JVM时区配置
-logging:
-  time-zone: Asia/Shanghai
 
 spring:
   application:
@@ -52,10 +50,9 @@ jwt:
   header: Authorization
   prefix: Bearer
 
-
-
 # 日志配置
 logging:
+  time-zone: Asia/Shanghai
   level:
     # 应用包路径日志级别
     com.dailydiscover.user: INFO

@@ -67,7 +67,7 @@ monitor_logs_continuously() {
         # 显示已有的日志
         if [ -s "$LOG_FILE" ]; then
             echo "📋 已有日志内容:"
-            tail -20 "$LOG_FILE"
+            tail -f "$LOG_FILE"
             echo "--- 开始实时监控 ---"
         fi
         
