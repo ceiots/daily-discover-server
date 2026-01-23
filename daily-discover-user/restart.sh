@@ -8,6 +8,7 @@ PID_FILE="logs/service.pid"
 
 # 检查服务是否在运行
 is_service_running() {
+    # 首先检查 PID 文件
     if [ -f "$PID_FILE" ]; then
         local pid=$(cat "$PID_FILE")
         if [ "$pid" = "windows" ]; then
@@ -19,6 +20,12 @@ is_service_running() {
             return 0
         fi
     fi
+    
+    # 如果没有 PID 文件或进程不存在，检查是否有相关 Java 进程
+    if ps aux | grep -v grep | grep -q "daily-discover-user"; then
+        return 0
+    fi
+    
     return 1
 }
 
@@ -32,15 +39,28 @@ if is_service_running; then
     
     # 先停止服务
     echo "1. 停止当前服务..."
-    if ./stop.sh > /dev/null 2>&1; then
+    if ./stop.sh --force > /dev/null 2>&1; then
         echo "   ✅ 服务已停止"
     else
         echo "   ⚠️  停止服务时遇到问题"
+        # 强制停止所有相关进程
+        echo "   💥 执行强制停止..."
+        pkill -f "daily-discover-user" 2>/dev/null && echo "   ✅ 强制停止完成" || echo "   ℹ️  未找到相关进程"
+        pkill -f "mvnw" 2>/dev/null && echo "   ✅ 停止 Maven 进程" || echo "   ℹ️  未找到 Maven 进程"
+        # 清理 PID 文件
+        rm -f "$PID_FILE"
     fi
     
     # 等待一段时间确保进程完全停止
     echo "2. 等待进程清理..."
-    sleep 3
+    sleep 5
+    
+    # 再次检查是否还有进程在运行
+    if is_service_running; then
+        echo "   🔴 仍有进程在运行，强制终止..."
+        pkill -9 -f "daily-discover-user" 2>/dev/null
+        sleep 2
+    fi
 else
     echo "🔍 检测到服务未运行，直接启动服务..."
     echo
