@@ -55,6 +55,30 @@ detect_os() {
 
 # 停止正在运行的服务
 stop_running_service() {
+    local port=8091
+    
+    echo "🔍 检查端口 ${port} 占用情况..."
+    
+    # 检查端口是否被占用
+    if command -v lsof >/dev/null 2>&1; then
+        # 使用 lsof 检查端口占用
+        local port_pid=$(lsof -ti:${port} 2>/dev/null | head -1)
+        if [ -n "$port_pid" ]; then
+            echo "🛑 检测到端口 ${port} 被进程占用 (PID: $port_pid)，停止该进程..."
+            kill -9 "$port_pid" 2>/dev/null
+            sleep 2
+        fi
+    elif command -v netstat >/dev/null 2>&1; then
+        # 使用 netstat 检查端口占用
+        local port_pid=$(netstat -tlnp 2>/dev/null | grep ":${port} " | awk '{print $7}' | cut -d'/' -f1)
+        if [ -n "$port_pid" ] && [ "$port_pid" != "-" ]; then
+            echo "🛑 检测到端口 ${port} 被进程占用 (PID: $port_pid)，停止该进程..."
+            kill -9 "$port_pid" 2>/dev/null
+            sleep 2
+        fi
+    fi
+    
+    # 检查 PID 文件并停止服务
     if [ -f "$PID_FILE" ]; then
         local pid=$(cat "$PID_FILE")
         if [ "$pid" = "windows" ] || kill -0 "$pid" 2>/dev/null; then
@@ -65,6 +89,18 @@ stop_running_service() {
         else
             # 清理无效的 PID 文件
             rm -f "$PID_FILE"
+        fi
+    fi
+    
+    # 再次检查端口是否已释放
+    echo "🔍 确认端口 ${port} 已释放..."
+    if command -v lsof >/dev/null 2>&1; then
+        if lsof -ti:${port} >/dev/null 2>&1; then
+            echo "⚠️  端口 ${port} 仍然被占用，尝试强制释放..."
+            lsof -ti:${port} | xargs kill -9 2>/dev/null
+            sleep 2
+        else
+            echo "✅ 端口 ${port} 已释放"
         fi
     fi
 }
@@ -109,6 +145,42 @@ check_service_status() {
         fi
     else
         echo "🔴 PID 文件不存在，启动失败"
+    fi
+}
+
+# 持续监控日志输出
+monitor_logs_continuously() {
+    echo "📊 开始持续监控日志输出..."
+    echo "💡 按 Ctrl+C 停止监控（服务会继续在后台运行）"
+    echo "--- 开始日志输出 ---"
+    
+    if [ -f "$LOG_FILE" ]; then
+        # 显示已有的日志
+        if [ -s "$LOG_FILE" ]; then
+            echo "📋 已有日志内容:"
+            tail -20 "$LOG_FILE"
+            echo "--- 开始实时监控 ---"
+        fi
+        
+        # 持续监控新日志
+        tail -f "$LOG_FILE"
+    else
+        echo "⚠️  日志文件不存在，等待日志文件创建..."
+        # 等待日志文件创建
+        local wait_count=0
+        while [ $wait_count -lt 12 ] && [ ! -f "$LOG_FILE" ]; do
+            sleep 5
+            wait_count=$((wait_count + 1))
+            echo "⏱️  等待日志文件创建... ($wait_count/12)"
+        done
+        
+        if [ -f "$LOG_FILE" ]; then
+            echo "✅ 日志文件已创建，开始监控..."
+            tail -f "$LOG_FILE"
+        else
+            echo "❌ 日志文件未创建，可能启动失败"
+            check_service_status
+        fi
     fi
 }
 
@@ -199,12 +271,12 @@ start_background() {
             ;;
     esac
     
-    # 等待一段时间让进程稳定
-    echo "⏳ 等待进程启动..."
-    sleep 60
+    # 等待一段时间让进程开始写入日志
+    echo "⏳ 等待进程启动并开始写入日志..."
+    sleep 3
     
-    # 检查服务启动状态
-    check_service_status
+    # 调用独立的日志监控方法
+    monitor_logs_continuously
 }
 
 # 前台启动服务
