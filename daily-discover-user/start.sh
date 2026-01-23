@@ -69,6 +69,49 @@ stop_running_service() {
     fi
 }
 
+# 检查服务启动状态（用于后台模式）
+check_service_status() {
+    if [ -f "$PID_FILE" ]; then
+        local pid=$(cat "$PID_FILE")
+        
+        if [ "$pid" = "windows" ]; then
+            # Windows 后台模式，检查日志判断状态
+            echo "🔵 Windows 后台模式启动中..."
+            echo "📋 查看启动日志..."
+            if [ -f "$LOG_FILE" ]; then
+                tail -30 "$LOG_FILE"
+                echo "💡 使用 'tail -f $LOG_FILE' 查看实时日志"
+            else
+                echo "⚠️  日志文件不存在，可能启动失败"
+            fi
+        elif kill -0 "$pid" 2>/dev/null; then
+            echo "🟢 进程运行正常 (PID: $pid)"
+            echo "📋 查看启动日志..."
+            if [ -f "$LOG_FILE" ]; then
+                # 显示最后30行日志，重点关注启动信息
+                tail -30 "$LOG_FILE" | grep -E "(启动|启动成功|ERROR|Exception|失败)" || tail -10 "$LOG_FILE"
+                echo "💡 使用 'tail -f $LOG_FILE' 查看实时日志"
+            else
+                echo "⚠️  日志文件不存在，可能启动失败"
+            fi
+        else
+            echo "🔴 进程已退出，启动可能失败"
+            echo "💡 查看详细错误信息:"
+            if [ -f "$LOG_FILE" ]; then
+                tail -50 "$LOG_FILE"
+                echo "\n🔍 错误摘要:"
+                tail -50 "$LOG_FILE" | grep -i -E "(error|exception|failed|无法启动|启动失败)" || echo "未找到明显错误信息"
+            else
+                echo "日志文件不存在，请检查构建过程"
+            fi
+            # 清理无效的 PID 文件
+            rm -f "$PID_FILE"
+        fi
+    else
+        echo "🔴 PID 文件不存在，启动失败"
+    fi
+}
+
 # 检查服务是否已经在运行（用于前台模式）
 check_running() {
     if [ -f "$PID_FILE" ]; then
@@ -115,51 +158,35 @@ start_background() {
     java -version
     echo
     
-    # 编译项目
-    echo "📦 编译项目..."
-    ./mvnw clean compile
+    # 编译项目并打包
+    echo "📦 编译并打包项目..."
+    ./mvnw clean package -DskipTests
     echo
+    
+    # 检查 JAR 文件是否存在
+    local jar_file="target/daily-discover-user-1.0.0.jar"
+    if [ ! -f "$jar_file" ]; then
+        echo "❌ JAR 文件不存在: $jar_file"
+        echo "💡 请检查 Maven 构建是否成功"
+        exit 1
+    fi
+    
+    echo "🎯 启动服务 (后台模式)..."
+    echo "📦 使用 JAR 文件: $jar_file"
     
     # 根据操作系统选择启动方式
     case "$os_type" in
         "linux"|"mac")
             # Linux/Unix 系统 (包括 Ubuntu)
-            echo "🎯 启动服务 (后台模式)..."
-            nohup ./mvnw spring-boot:run > "$LOG_FILE" 2>&1 &
+            nohup java -jar "$jar_file" > "$LOG_FILE" 2>&1 &
             local pid=$!
             echo $pid > "$PID_FILE"
             echo "✅ 服务已启动，PID: $pid"
-            
-            # 等待一段时间让进程稳定
-            echo "⏳ 等待进程启动..."
-            sleep 5
-            
-            # 检查进程是否还在运行
-            if kill -0 "$pid" 2>/dev/null; then
-                echo "🟢 进程运行正常"
-                
-                # 显示最近日志
-                echo "📋 查看启动日志..."
-                if [ -f "$LOG_FILE" ]; then
-                    tail -20 "$LOG_FILE"
-                else
-                    echo "⚠️  日志文件不存在，可能启动失败"
-                fi
-            else
-                echo "🔴 进程已退出，启动可能失败"
-                echo "💡 查看详细错误信息:"
-                if [ -f "$LOG_FILE" ]; then
-                    tail -30 "$LOG_FILE"
-                fi
-                # 清理无效的 PID 文件
-                rm -f "$PID_FILE"
-            fi
             ;;
         "windows")
             # Windows Git Bash 环境
-            echo "🎯 启动服务 (后台模式)..."
             # 在 Git Bash 中使用 start 命令启动新窗口
-            start "$SERVICE_NAME" /B ./mvnw spring-boot:run > "$LOG_FILE" 2>&1
+            start "$SERVICE_NAME" /B java -jar "$jar_file" > "$LOG_FILE" 2>&1
             # 在 Windows 下难以获取准确的 PID，使用特殊标记
             echo "windows" > "$PID_FILE"
             echo "✅ 服务已启动 (Windows 后台模式)"
@@ -167,10 +194,17 @@ start_background() {
         *)
             echo "❌ 不支持的操作系统: $os_type"
             echo "💡 使用前台模式启动..."
-            ./mvnw spring-boot:run
+            java -jar "$jar_file"
             exit 1
             ;;
     esac
+    
+    # 等待一段时间让进程稳定
+    echo "⏳ 等待进程启动..."
+    sleep 60
+    
+    # 检查服务启动状态
+    check_service_status
 }
 
 # 前台启动服务
@@ -188,12 +222,22 @@ start_foreground() {
     java -version
     echo
     
-    echo "📦 编译项目..."
-    ./mvnw clean compile
+    # 编译项目并打包
+    echo "📦 编译并打包项目..."
+    ./mvnw clean package -DskipTests
     echo
     
+    # 检查 JAR 文件是否存在
+    local jar_file="target/daily-discover-user-1.0.0.jar"
+    if [ ! -f "$jar_file" ]; then
+        echo "❌ JAR 文件不存在: $jar_file"
+        echo "💡 请检查 Maven 构建是否成功"
+        exit 1
+    fi
+    
     echo "🎯 启动服务..."
-    ./mvnw spring-boot:run
+    echo "📦 使用 JAR 文件: $jar_file"
+    java -jar "$jar_file"
 }
 
 # 显示使用帮助
