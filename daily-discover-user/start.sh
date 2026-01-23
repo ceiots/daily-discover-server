@@ -129,6 +129,31 @@ start_background() {
             local pid=$!
             echo $pid > "$PID_FILE"
             echo "✅ 服务已启动，PID: $pid"
+            
+            # 等待一段时间让进程稳定
+            echo "⏳ 等待进程启动..."
+            sleep 5
+            
+            # 检查进程是否还在运行
+            if kill -0 "$pid" 2>/dev/null; then
+                echo "🟢 进程运行正常"
+                
+                # 显示最近日志
+                echo "📋 查看启动日志..."
+                if [ -f "$LOG_FILE" ]; then
+                    tail -20 "$LOG_FILE"
+                else
+                    echo "⚠️  日志文件不存在，可能启动失败"
+                fi
+            else
+                echo "🔴 进程已退出，启动可能失败"
+                echo "💡 查看详细错误信息:"
+                if [ -f "$LOG_FILE" ]; then
+                    tail -30 "$LOG_FILE"
+                fi
+                # 清理无效的 PID 文件
+                rm -f "$PID_FILE"
+            fi
             ;;
         "windows")
             # Windows Git Bash 环境
