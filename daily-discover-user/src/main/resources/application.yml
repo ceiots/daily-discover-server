@@ -1,6 +1,10 @@
 server:
   port: 8091
 
+# JVM时区配置
+logging:
+  time-zone: Asia/Shanghai
+
 spring:
   application:
     name: daily-discover-user

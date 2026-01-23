@@ -399,16 +399,10 @@ main() {
             ;;
     esac
     
-    # 显示有用的命令提示
+    # 显示服务启动信息
     echo
-    echo "📋 有用的命令:"
-    echo "   查看日志: tail -f $LOG_FILE"
-    echo "   检查状态: $0 --status"
-    echo "   停止服务: ./stop.sh"
-    echo "   重启服务: ./restart.sh"
-    echo
-    echo "🌐 服务地址: http://localhost:8091"
-    echo "📚 API文档: http://localhost:8091/user/api"
+    echo "✅ 服务启动完成"
+    echo "📝 日志文件: $LOG_FILE"
 }
 
 # 执行主函数
