@@ -199,17 +199,11 @@ start_service_core() {
     
     # 根据操作系统选择启动方式
     case "$os_type" in
-        "linux"|"mac")
-            # Linux/Unix 系统 (包括 Ubuntu)
+        "linux"|"mac"|"windows")
+            # Linux/Unix 系统 (包括 Ubuntu) 和 Windows Git Bash
             nohup java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
             local pid=$!
             echo "✅ 服务已启动，PID: $pid"
-            ;;
-        "windows")
-            # Windows Git Bash 环境
-            # 在 Git Bash 中使用 start 命令启动新窗口
-            start "$SERVICE_NAME" /B java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1
-            echo "✅ 服务已启动 (Windows 后台模式)"
             ;;
         *)
             echo "❌ 不支持的操作系统: $os_type"
