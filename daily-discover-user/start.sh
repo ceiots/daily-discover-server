@@ -200,7 +200,8 @@ start_service_core() {
     echo "📦 使用 JAR 文件: $JAR_FILE"
     
     # 统一启动方式 (支持 Linux/Unix 和 Windows Git Bash)
-    nohup java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
+    # 强制设置JVM时区为Asia/Shanghai，确保日志时间正确
+    nohup java -Duser.timezone=Asia/Shanghai -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
     local pid=$!
     echo "✅ 服务已启动，PID: $pid"
     
