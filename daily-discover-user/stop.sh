@@ -7,16 +7,7 @@
 SERVICE_NAME="${SERVICE_NAME:-daily-discover-user}"
 SERVICE_PORT="${SERVICE_PORT:-8091}"
 
-# 检测操作系统类型
-detect_os() {
-    case "$(uname -s)" in
-        Linux*)     echo "linux";;
-        Darwin*)    echo "mac";;
-        CYGWIN*)    echo "windows";;
-        MINGW*)     echo "windows";;
-        *)          echo "unknown";;
-    esac
-}
+
 
 # 查找占用指定端口的进程
 find_port_process() {
@@ -76,11 +67,8 @@ find_port_process() {
 
 # 停止服务
 stop_service() {
-    local os_type=$(detect_os)
-    
     echo "🛑 停止 $SERVICE_NAME 服务..."
     echo "🌐 服务端口: $SERVICE_PORT"
-    echo "💻 操作系统: $os_type"
     echo
     
     # 查找占用端口的进程
@@ -95,57 +83,41 @@ stop_service() {
         ps -p "$port_pid" -o pid,user,cmd 2>/dev/null || echo "⚠️  无法获取进程详细信息"
         echo
         
-        case "$os_type" in
-            "linux"|"mac")
-                echo "🔧 使用 kill 命令停止进程..."
-                # 尝试正常停止
-                if kill "$port_pid" 2>/dev/null; then
-                    echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
-                else
-                    echo "❌ 发送停止信号失败"
-                fi
-                
-                # 等待进程停止
-                local count=0
-                while kill -0 "$port_pid" 2>/dev/null && [ $count -lt 5 ]; do
-                    echo "⏳ 等待进程停止... ($count/5)"
-                    sleep 1
-                    count=$((count + 1))
-                done
-                
-                # 如果进程还在，强制终止
-                if kill -0 "$port_pid" 2>/dev/null; then
-                    echo "⚠️  进程未正常停止，尝试强制终止..."
-                    if kill -9 "$port_pid" 2>/dev/null; then
-                        echo "✅ 已发送强制终止信号"
-                        sleep 1
-                    else
-                        echo "❌ 强制终止失败"
-                    fi
-                fi
-                
-                # 最终检查
-                if kill -0 "$port_pid" 2>/dev/null; then
-                    echo "❌ 无法停止进程 (PID: $port_pid)"
-                    echo "💡 可能需要手动停止: kill -9 $port_pid"
-                else
-                    echo "✅ 进程已成功停止 (PID: $port_pid)"
-                fi
-                ;;
-            "windows")
-                echo "🔧 使用 taskkill 命令停止进程..."
-                # Windows 下停止进程
-                if taskkill //F //PID "$port_pid" 2>/dev/null; then
-                    echo "✅ Windows 进程停止完成"
-                else
-                    echo "❌ Windows 进程停止失败"
-                fi
-                ;;
-            *)
-                echo "❌ 不支持的操作系统: $os_type"
-                exit 1
-                ;;
-        esac
+        # 统一停止方式 (支持 Linux/Unix 和 Windows Git Bash)
+        echo "🔧 使用 kill 命令停止进程..."
+        # 尝试正常停止
+        if kill "$port_pid" 2>/dev/null; then
+            echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
+        else
+            echo "❌ 发送停止信号失败"
+        fi
+        
+        # 等待进程停止
+        local count=0
+        while kill -0 "$port_pid" 2>/dev/null && [ $count -lt 5 ]; do
+            echo "⏳ 等待进程停止... ($count/5)"
+            sleep 1
+            count=$((count + 1))
+        done
+        
+        # 如果进程还在，强制终止
+        if kill -0 "$port_pid" 2>/dev/null; then
+            echo "⚠️  进程未正常停止，尝试强制终止..."
+            if kill -9 "$port_pid" 2>/dev/null; then
+                echo "✅ 已发送强制终止信号"
+                sleep 1
+            else
+                echo "❌ 强制终止失败"
+            fi
+        fi
+        
+        # 最终检查
+        if kill -0 "$port_pid" 2>/dev/null; then
+            echo "❌ 无法停止进程 (PID: $port_pid)"
+            echo "💡 可能需要手动停止: kill -9 $port_pid"
+        else
+            echo "✅ 进程已成功停止 (PID: $port_pid)"
+        fi
     else
         echo "ℹ️  端口 $SERVICE_PORT 未被占用，服务可能未运行"
         echo "💡 检查端口状态命令:"

@@ -44,16 +44,7 @@ pull_latest_code() {
     #fi
 }
 
-# 检测操作系统类型
-detect_os() {
-    case "$(uname -s)" in
-        Linux*)     echo "linux";;
-        Darwin*)    echo "mac";;
-        CYGWIN*)    echo "windows";;
-        MINGW*)     echo "windows";;
-        *)          echo "unknown";;
-    esac
-}
+
 
 
 # 持续监控日志输出
@@ -94,6 +85,20 @@ monitor_logs_continuously() {
 
 
 
+# 本地启动服务（仅编译和重启）
+start_local() {
+    echo "🚀 启动每日发现用户服务 (本地模式)..."
+    echo "📝 日志文件: $LOG_FILE"
+    echo "🌐 服务端口: $SERVICE_PORT"
+    echo
+
+    # 1. 编译项目并打包
+    build_project
+    
+    # 2. 调用重启服务
+    restart_service
+}
+
 # 后台启动服务
 start_background() {
     echo "🚀 启动每日发现用户服务 (后台模式)..."
@@ -122,7 +127,8 @@ start_background() {
 show_help() {
     echo "用法: $0 [选项]"
     echo "选项:"
-    echo "  -b, --background   启动服务 (默认)"
+    echo "  -l, --local        本地模式启动 (仅编译和重启)"
+    echo "  -b, --background   后台模式启动 (默认，包含代理和代码拉取)"
     echo "  -r, --restart      重启服务"
     echo "  -h, --help         显示帮助信息"
     echo
@@ -133,9 +139,10 @@ show_help() {
     echo "  MAVEN_ARGS: Maven构建参数 (默认: $MAVEN_ARGS)"
     echo
     echo "示例:"
-    echo "  $0 -b              # 启动服务 (推荐生产环境)"
+    echo "  $0 -l              # 本地模式启动 (推荐开发环境)"
+    echo "  $0 -b              # 后台模式启动 (推荐生产环境)"
     echo "  $0 --restart       # 重启服务"
-    echo "  SERVICE_PORT=8080 $0 -b  # 使用自定义端口启动服务"
+    echo "  SERVICE_PORT=8080 $0 -l  # 使用自定义端口本地启动服务"
 }
 
 
@@ -183,34 +190,19 @@ restart_service() {
  
 # 启动服务核心逻辑
 start_service_core() {
-    local os_type=$(detect_os)
-    
     echo "🚀 启动每日发现用户服务..."
     echo "📝 日志文件: $LOG_FILE"
     echo "🌐 服务端口: $SERVICE_PORT"
     echo
     
-    # 显示操作系统检测结果
-    echo "🔍 检测到操作系统类型: $os_type"
-    echo
     
     echo "🎯 启动服务..."
     echo "📦 使用 JAR 文件: $JAR_FILE"
     
-    # 根据操作系统选择启动方式
-    case "$os_type" in
-        "linux"|"mac"|"windows")
-            # Linux/Unix 系统 (包括 Ubuntu) 和 Windows Git Bash
-            nohup java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
-            local pid=$!
-            echo "✅ 服务已启动，PID: $pid"
-            ;;
-        *)
-            echo "❌ 不支持的操作系统: $os_type"
-            echo "💡 请使用支持的平台运行此服务"
-            exit 1
-            ;;
-    esac
+    # 统一启动方式 (支持 Linux/Unix 和 Windows Git Bash)
+    nohup java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
+    local pid=$!
+    echo "✅ 服务已启动，PID: $pid"
     
     
 }
@@ -218,7 +210,10 @@ start_service_core() {
 # 主函数
 main() {
     # 解析命令行参数
-    case "${1:--b}" in
+    case "${1:--l}" in
+        -l|--local)
+            start_local
+            ;;
         -b|--background)
             start_background
             ;;
