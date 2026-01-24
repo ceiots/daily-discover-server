@@ -70,28 +70,20 @@ curl -v http://localhost:8091/actuator/health
 
 #### API接口测试
 ```bash
-# 测试认证接口（需要替换为实际参数）
+# 本地测试认证接口（需要替换为实际参数）
 curl -X POST http://localhost:8091/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"test"}'
+  -d '{"phone":"13800138000","password":"test123"}'
+
+# 通过域名测试认证接口（nginx代理）
+curl -X POST https://api.dailydiscover.top/v1/users/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"13800138000","password":"test123"}'
 
 # 测试用户信息接口
-curl -s http://localhost:8091/user/info
+curl -X GET https://api.dailydiscover.top/v1/users/user/info \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
-# 测试简单的GET请求
-curl -s http://localhost:8091
-```
-
-#### 详细服务状态
-```bash
-# 查看所有健康检查端点
-curl -s http://localhost:8091/actuator
-
-# 检查数据库连接状态
-curl -s http://localhost:8091/actuator/health/db
-
-# 检查服务指标
-curl -s http://localhost:8091/actuator/metrics
 ```
 
 #### 错误诊断
