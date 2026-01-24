@@ -71,17 +71,17 @@ curl -v http://localhost:8091/actuator/health
 #### API接口测试
 ```bash
 # 本地测试认证接口（需要替换为实际参数）
-curl -X POST http://localhost:8091/auth/login \
+curl -i -X POST http://localhost:8091/auth/login \
   -H "Content-Type: application/json" \
   -d '{"phone":"13800138000","password":"test123"}'
 
 # 通过域名测试认证接口（nginx代理）
-curl -X POST https://api.dailydiscover.top/v1/users/auth/login \
+curl -i -X POST https://api.dailydiscover.top/v1/users/auth/login \
   -H "Content-Type: application/json" \
   -d '{"phone":"13800138000","password":"test123"}'
 
 # 测试用户信息接口
-curl -X GET https://api.dailydiscover.top/v1/users/user/info \
+curl -i -X GET https://api.dailydiscover.top/v1/users/user/info \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 ```
