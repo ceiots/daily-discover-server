@@ -17,16 +17,16 @@
 #### 检查服务状态
 ```bash
 ./start.sh --status
-```
+`
 
 #### 停止服务
-```bash
+```bashi
 ./stop.sh
 ```
 
 #### 重启服务
 ```bash
-./restart.sh
+./restart.sh  
 ```
 
 ### 脚本特性
@@ -76,13 +76,9 @@ curl -i -X POST http://localhost:8091/auth/login \
   -d '{"phone":"13800138000","password":"test123"}'
 
 # 通过域名测试认证接口（nginx代理）
-curl -i -X POST https://api.dailydiscover.top/v1/users/auth/login \
+curl -i -X POST https://sshuser.tailb3fdd6.ts.net/v1/users/auth/login \
   -H "Content-Type: application/json" \
   -d '{"phone":"13800138000","password":"test123"}'
-
-# 测试用户信息接口
-curl -i -X GET https://api.dailydiscover.top/v1/users/user/info \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 ```
 
@@ -92,7 +88,7 @@ curl -i -X GET https://api.dailydiscover.top/v1/users/user/info \
 ./start.sh --status
 
 # 检查端口占用情况
-netstat -an | grep 8091
+netstat -an | grep 443
 
 # 查看服务日志
 tail -f logs/application.log
