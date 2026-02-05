@@ -76,7 +76,7 @@ curl -i -X POST http://localhost:8091/auth/login \
   -d '{"phone":"13800138000","password":"test123"}'
 
 # 通过域名测试认证接口（nginx代理）
-curl -i -X POST https://sshuser.tailb3fdd6.ts.net/v1/users/auth/login \
+curl -i -X POST https://myapp.dailydiscover.top/v1/users/auth/login \
   -H "Content-Type: application/json" \
   -d '{"phone":"13800138000","password":"test123"}'
 

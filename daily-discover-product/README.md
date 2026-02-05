@@ -118,24 +118,54 @@ GET /api/products/latest
 
 ### 数据库初始化
 项目启动时会自动执行以下操作：
-1. 创建商品表（如果不存在）
-2. 插入示例数据
+1. 创建完整的商品相关表结构
+2. 插入丰富的示例数据
+3. 建立表之间的业务关联关系
 
-### 数据表结构
-```sql
-CREATE TABLE products (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    description TEXT,
-    image_url VARCHAR(500),
-    time_slot VARCHAR(50),
-    category VARCHAR(100),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+### 数据表结构模块
+数据库采用模块化设计，分为4个核心模块：
+
+#### 1. 商品核心信息模块
+- `products` - 商品基础信息
+- `product_details` - 商品详情
+- `product_images` - 商品图片
+- `product_specs` - 商品规格
+- `product_categories` - 商品分类
+
+#### 2. 商家与库存模块
+- `sellers` - 商家信息
+- `product_skus` - 商品SKU管理
+- `product_inventory` - 库存管理
+- `inventory_transactions` - 库存操作记录
+
+#### 3. 评价与互动模块
+- `user_reviews` - 用户评价
+- `review_replies` - 评价回复
+- `review_likes` - 评价点赞
+- `review_stats` - 评价统计
+- `product_actions` - 用户行为记录
+- `user_favorites` - 用户收藏
+
+#### 4. 商品关系与推荐模块
+- `related_products` - 相关商品
+- `time_based_products` - 时间维度数据
+- `product_recommendations` - 商品推荐
+- `product_search_keywords` - 搜索关键词
+- `product_tags` - 商品标签
+- `product_tag_relations` - 标签关联
+
+### 数据库迁移脚本
+迁移脚本位于 `src/main/resources/db/migration/` 目录：
+
 ```
+migration/
+├── 001_create_product_core_tables.sql      # 商品核心信息模块
+├── 002_create_seller_inventory_tables.sql  # 商家与库存模块
+├── 003_create_review_interaction_tables.sql # 评价与互动模块
+└── 004_create_relationship_recommendation_tables.sql # 商品关系与推荐模块
+```
+
+每个文件包含完整的表结构和初始数据，按编号顺序执行。
 
 ## 前端集成
 前端应用通过调用 `src/services/api/dailyApi.ts` 中的接口与本服务进行交互。
@@ -287,24 +317,18 @@ daily-discover-product/
 - 应用自定义配置
 
 **db/migration/** - 数据库迁移脚本
-- **V1__Create_initial_tables.sql**: 创建初始数据表
-  - 创建文章、商品、话题基础表
-  - 定义表结构和索引
-- **V2__Add_product_images.sql**: 添加商品图片表
-  - 支持商品多图片功能
-  - 定义图片与商品的关联关系
-- **V3__Add_article_content.sql**: 添加文章内容表
-  - 支持富文本内容存储
-  - 实现文章版本管理
-- **V4__Add_topic_related.sql**: 添加话题相关表
-  - 实现话题与文章、商品的关联
-  - 支持话题标签系统
-- **V5__Add_user_system.sql**: 添加用户系统表
-  - 实现用户注册和登录
-  - 支持用户权限管理
-- **V6__Add_recommendation_system.sql**: 添加推荐系统表
-  - 实现个性化推荐算法
-  - 支持用户行为追踪
+- **001_create_product_core_tables.sql**: 商品核心信息模块
+  - 创建商品分类、商品基础信息、商品详情、商品图片、商品规格表
+  - 包含完整的初始测试数据
+- **002_create_seller_inventory_tables.sql**: 商家与库存模块
+  - 创建商家信息、商品SKU、库存管理、库存操作记录表
+  - 包含商家数据和库存管理数据
+- **003_create_review_interaction_tables.sql**: 评价与互动模块
+  - 创建用户评价、评价回复、评价点赞、评价统计、用户行为记录、用户收藏表
+  - 包含真实的用户评价和互动数据
+- **004_create_relationship_recommendation_tables.sql**: 商品关系与推荐模块
+  - 创建相关商品、时间维度数据、商品推荐、搜索关键词、商品标签、标签关联表
+  - 包含推荐算法和标签系统数据
 
 **mapper/** - MyBatis 映射文件
 - **ArticleMapper.xml**: 文章映射配置

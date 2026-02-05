@@ -1,74 +1,38 @@
 package com.dailydiscover.common;
 
-/**
- * 统一API响应包装器
- * @param <T> 数据类型
- */
+import lombok.Data;
+
+@Data
 public class ApiResponse<T> {
-    private int code;
+    private boolean success;
     private String message;
     private T data;
-    private long timestamp;
-
-    public ApiResponse() {
-        this.timestamp = System.currentTimeMillis();
-    }
-
-    public ApiResponse(int code, String message, T data) {
-        this.code = code;
+    private int code;
+    
+    public ApiResponse(boolean success, String message, T data, int code) {
+        this.success = success;
         this.message = message;
         this.data = data;
-        this.timestamp = System.currentTimeMillis();
+        this.code = code;
     }
-
-    // 成功响应
+    
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(200, "success", data);
+        return new ApiResponse<>(true, "操作成功", data, 200);
     }
-
+    
     public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(200, message, data);
+        return new ApiResponse<>(true, message, data, 200);
     }
-
-    // 错误响应
-    public static <T> ApiResponse<T> error(int code, String message) {
-        return new ApiResponse<>(code, message, null);
+    
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null, 500);
     }
-
-    public static <T> ApiResponse<T> error(int code, String message, T data) {
-        return new ApiResponse<>(code, message, data);
+    
+    public static <T> ApiResponse<T> error(String message, int code) {
+        return new ApiResponse<>(false, message, null, code);
     }
-
-    // Getters and Setters
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    
+    public static <T> ApiResponse<T> error(String message, T data, int code) {
+        return new ApiResponse<>(false, message, data, code);
     }
 }

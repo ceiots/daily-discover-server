@@ -1,12 +1,10 @@
-package com.dailydiscover.service;
+package com.dailydiscover.service.impl;
 
 import com.dailydiscover.mapper.ProductMapper;
-import com.dailydiscover.model.ProductEntity;
+import com.dailydiscover.model.Product;
+import com.dailydiscover.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -16,14 +14,52 @@ public class ProductServiceImpl implements ProductService {
     private ProductMapper productMapper;
     
     @Override
-    public List<ProductEntity> getTodayProducts() {
-        String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-        return productMapper.findTodayProducts(today);
+    public Product findById(Long id) {
+        return productMapper.findById(id);
     }
     
     @Override
-    public List<ProductEntity> getYesterdayProducts() {
-        String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_DATE);
-        return productMapper.findYesterdayProducts(yesterday);
+    public List<Product> findAll() {
+        return productMapper.findAll();
+    }
+    
+    @Override
+    public List<Product> findBySellerId(Long sellerId) {
+        return productMapper.findBySellerId(sellerId);
+    }
+    
+    @Override
+    public List<Product> findByCategoryId(Long categoryId) {
+        return productMapper.findByCategoryId(categoryId);
+    }
+    
+    @Override
+    public List<Product> findHotProducts() {
+        return productMapper.findHotProducts();
+    }
+    
+    @Override
+    public List<Product> findNewProducts() {
+        return productMapper.findNewProducts();
+    }
+    
+    @Override
+    public List<Product> findRecommendedProducts() {
+        return productMapper.findRecommendedProducts();
+    }
+    
+    @Override
+    public void save(Product product) {
+        productMapper.insert(product);
+    }
+    
+    @Override
+    public void update(Product product) {
+        productMapper.update(product);
+    }
+    
+    @Override
+    public void delete(Long id) {
+        productMapper.softDelete(id);
     }
 }

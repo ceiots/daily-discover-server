@@ -1,12 +1,11 @@
 package com.dailydiscover.controller;
 
-import com.dailydiscover.model.ProductEntity;
+import com.dailydiscover.model.Product;
 import com.dailydiscover.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -14,15 +13,54 @@ public class ProductController {
     @Autowired
     private ProductService productService;
     
-    // 获取今日商品
-    @GetMapping("/today")
-    public List<ProductEntity> getTodayProducts() {
-        return productService.getTodayProducts();
+    @GetMapping("/{id}")
+    public Product getProductById(@PathVariable Long id) {
+        return productService.findById(id);
     }
     
-    // 获取昨日商品
-    @GetMapping("/yesterday")
-    public List<ProductEntity> getYesterdayProducts() {
-        return productService.getYesterdayProducts();
+    @GetMapping
+    public List<Product> getAllProducts() {
+        return productService.findAll();
+    }
+    
+    @GetMapping("/seller/{sellerId}")
+    public List<Product> getProductsBySeller(@PathVariable Long sellerId) {
+        return productService.findBySellerId(sellerId);
+    }
+    
+    @GetMapping("/category/{categoryId}")
+    public List<Product> getProductsByCategory(@PathVariable Long categoryId) {
+        return productService.findByCategoryId(categoryId);
+    }
+    
+    @GetMapping("/hot")
+    public List<Product> getHotProducts() {
+        return productService.findHotProducts();
+    }
+    
+    @GetMapping("/new")
+    public List<Product> getNewProducts() {
+        return productService.findNewProducts();
+    }
+    
+    @GetMapping("/recommended")
+    public List<Product> getRecommendedProducts() {
+        return productService.findRecommendedProducts();
+    }
+    
+    @PostMapping
+    public void createProduct(@RequestBody Product product) {
+        productService.save(product);
+    }
+    
+    @PutMapping("/{id}")
+    public void updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        product.setId(id);
+        productService.update(product);
+    }
+    
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable Long id) {
+        productService.delete(id);
     }
 }
