@@ -39,33 +39,22 @@ spring.datasource.username=你的用户名
 spring.datasource.password=你的密码
 ```
 
-### 3. 构建和运行
-
-#### 使用 Maven 命令行：
-```bash
-# 进入项目目录
-cd daily-discover-product
-
-# 编译项目
-mvn clean compile
-
-# 运行项目
-mvn spring-boot:run
-```
-
-#### 或者直接运行 JAR 文件：
-```bash
-# 打包
-mvn clean package
-
-# 运行
-java -jar target/daily-discover-product-1.0.0.jar
-```
-
 ### 4. 验证服务
-服务启动后，访问以下地址验证：
-- 健康检查：http://localhost:8081/actuator/health
-- API 文档：http://localhost:8081/products
+服务启动后，使用以下命令验证服务是否正常：
+
+#### 本地访问（推荐开发环境）
+```bash
+# 测试服务健康状态和商品接口
+curl -X GET http://localhost:8092/actuator/health && echo "" && curl -X GET http://localhost:8092/products
+```
+
+#### 域名访问（通过 Tailscale Funnel）
+```bash
+# 通过域名访问商品服务
+curl -X GET https://ceiots.tailb3fdd6.ts.net/v1/products/actuator/health && echo "" && curl -X GET https://ceiots.tailb3fdd6.ts.net/v1/products/products
+```
+
+如果服务正常，您将看到健康检查结果和商品列表数据。
 
 ## API 接口文档
 
@@ -78,40 +67,96 @@ java -jar target/daily-discover-product-1.0.0.jar
 ```
 GET /products
 ```
+**curl 命令：**
+```bash
+curl -X GET http://localhost:8092/products
+```
 
 #### 2. 根据ID获取商品
 ```
 GET /products/{id}
+```
+**curl 命令：**
+```bash
+# 示例：获取ID为1的商品
+curl -X GET http://localhost:8092/products/1
 ```
 
 #### 3. 获取当前时间段推荐商品
 ```
 GET /products/recommendations
 ```
+**curl 命令：**
+```bash
+curl -X GET http://localhost:8092/products/recommendations
+```
 
 #### 4. 根据时间段获取推荐商品
 ```
 GET /products/recommendations/{timeSlot}
 ```
-时间段参数：
+**时间段参数：**
 - `morning`: 晨间 (6:00-12:00)
 - `noon`: 午间 (12:00-14:00)
 - `afternoon`: 午后 (14:00-18:00)
 - `evening`: 夜晚 (18:00-6:00)
 
+**curl 命令：**
+```bash
+# 获取晨间推荐
+curl -X GET http://localhost:8092/products/recommendations/morning
+
+# 获取夜晚推荐
+curl -X GET http://localhost:8092/products/recommendations/evening
+```
+
 #### 5. 根据分类获取商品
 ```
 GET /products/category/{category}
+```
+**curl 命令：**
+```bash
+# 示例：获取电子产品分类的商品
+curl -X GET http://localhost:8092/products/category/electronics
 ```
 
 #### 6. 搜索商品
 ```
 GET /products/search?keyword={keyword}
 ```
+**curl 命令：**
+```bash
+# 搜索包含"手机"的商品
+curl -X GET "http://localhost:8092/products/search?keyword=手机"
+
+# 搜索包含"电脑"的商品
+curl -X GET "http://localhost:8092/products/search?keyword=电脑"
+```
 
 #### 7. 获取最新商品
 ```
 GET /products/latest
+```
+**curl 命令：**
+```bash
+curl -X GET http://localhost:8092/products/latest
+```
+
+#### 8. 创建新商品（POST请求示例）
+```
+POST /products
+Content-Type: application/json
+```
+**curl 命令：**
+```bash
+curl -X POST http://localhost:8092/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "新商品",
+    "price": 99.99,
+    "category": "electronics",
+    "description": "这是一个新商品"
+  }'
 ```
 
 ## 数据库管理
@@ -348,45 +393,3 @@ daily-discover-product/
 3. 在 `service` 包中实现业务逻辑
 4. 在 `controller` 包中添加 REST 接口
 5. 创建相应的数据库迁移脚本
-
-## 故障排除
-
-### 常见问题
-
-#### 1. 数据库连接失败
-- 检查 MySQL 服务是否启动
-- 验证数据库连接配置是否正确
-- 确认数据库用户权限
-
-#### 2. 端口被占用
-- 修改 `application.properties` 中的 `server.port` 配置
-- 或者停止占用 8081 端口的进程
-
-#### 3. 数据库初始化失败
-- 检查 MySQL 数据库是否已创建
-- 确认数据库用户有创建表和插入数据的权限
-- 查看 `application.properties` 中的数据库配置
-
-### 日志查看
-应用日志会输出到控制台，包含以下信息：
-- SQL 查询语句
-- HTTP 请求日志
-- 错误信息
-
-## 部署说明
-
-### 生产环境配置
-1. 修改 `application.properties` 中的数据库连接信息
-2. 设置合适的服务器端口
-3. 配置日志级别为生产环境级别
-
-### Docker 部署（可选）
-```dockerfile
-FROM openjdk:17-jre-slim
-COPY target/daily-discover-product-1.0.0.jar app.jar
-EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
-
-## 许可证
-本项目采用 MIT 许可证。

@@ -3,13 +3,9 @@ package com.dailydiscover.user.controller;
 import com.dailydiscover.user.dto.UserResponse;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.UserService;
-import com.dailydiscover.user.util.JwtUtil;
 import com.dailydiscover.common.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,81 +23,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
-    /**
-     * 用户注册
-     */
-    @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@RequestBody User user) {
-        long startTime = System.currentTimeMillis();
-        try {
-            LogTracer.traceBusinessMethod(user, null);
-            UserResponse userResponse = userService.register(user);
-            LogTracer.traceBusinessMethod(user, userResponse);
-            LogTracer.traceBusinessPerformance(startTime);
-            return ResponseEntity.ok(userResponse);
-        } catch (Exception e) {
-            LogTracer.traceBusinessException(e);
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        }
-    }
 
-    /**
-     * 用户登录
-     */
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
-        long startTime = System.currentTimeMillis();
-        try {
-            String phone = loginRequest.get("phone");
-            String password = loginRequest.get("password");
-            
-            LogTracer.traceBusinessMethod(phone, null);
-            UserResponse userResponse = userService.login(phone, password);
-            
-            // 生成JWT Token
-            String token = jwtUtil.generateToken(userResponse.getId(), userResponse.getPhone());
-            
-            Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
-            data.put("user", userResponse);
-            
-            LogTracer.traceBusinessMethod(phone, data);
-            LogTracer.traceBusinessPerformance(startTime);
-            return ResponseEntity.ok(data);
-        } catch (Exception e) {
-            LogTracer.traceBusinessException(e);
-            
-            // 根据错误类型返回不同的HTTP状态码
-            if (e.getMessage().contains("用户不存在")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            } else if (e.getMessage().contains("密码错误")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            } else {
-                return ResponseEntity.badRequest().build();
-            }
-        }
-    }
-    
-    /**
-     * 根据错误消息获取错误码
-     */
-    private String getErrorCode(String message) {
-        if (message == null) {
-            return "GENERAL_ERROR";
-        }
-        
-        if (message.contains("用户不存在")) {
-            return "USER_NOT_FOUND";
-        } else if (message.contains("密码")) {
-            return "INVALID_PASSWORD";
-        } else if (message.contains("锁定")) {
-            return "ACCOUNT_LOCKED";
-        }
-        
-        return "GENERAL_ERROR";
-    }
 
     /**
      * 获取用户信息
