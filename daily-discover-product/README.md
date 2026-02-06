@@ -65,33 +65,33 @@ java -jar target/daily-discover-product-1.0.0.jar
 ### 4. 验证服务
 服务启动后，访问以下地址验证：
 - 健康检查：http://localhost:8081/actuator/health
-- API 文档：http://localhost:8081/api/products
+- API 文档：http://localhost:8081/products
 
 ## API 接口文档
 
 ### 基础路径
-所有 API 接口的基路径为：`/api/products`
+所有 API 接口的基路径为：`/products`
 
 ### 主要接口
 
 #### 1. 获取所有商品
 ```
-GET /api/products
+GET /products
 ```
 
 #### 2. 根据ID获取商品
 ```
-GET /api/products/{id}
+GET /products/{id}
 ```
 
 #### 3. 获取当前时间段推荐商品
 ```
-GET /api/products/recommendations
+GET /products/recommendations
 ```
 
 #### 4. 根据时间段获取推荐商品
 ```
-GET /api/products/recommendations/{timeSlot}
+GET /products/recommendations/{timeSlot}
 ```
 时间段参数：
 - `morning`: 晨间 (6:00-12:00)
@@ -101,17 +101,17 @@ GET /api/products/recommendations/{timeSlot}
 
 #### 5. 根据分类获取商品
 ```
-GET /api/products/category/{category}
+GET /products/category/{category}
 ```
 
 #### 6. 搜索商品
 ```
-GET /api/products/search?keyword={keyword}
+GET /products/search?keyword={keyword}
 ```
 
 #### 7. 获取最新商品
 ```
-GET /api/products/latest
+GET /products/latest
 ```
 
 ## 数据库管理
@@ -165,25 +165,6 @@ migration/
 └── 004_create_relationship_recommendation_tables.sql # 商品关系与推荐模块
 ```
 
-每个文件包含完整的表结构和初始数据，按编号顺序执行。
-
-## 前端集成
-前端应用通过调用 `src/services/api/dailyApi.ts` 中的接口与本服务进行交互。
-
-### 基础配置
-前端 API 调用配置：
-```typescript
-const DAILY_API_BASE_URL = 'http://localhost:8081/api';
-```
-
-### 主要接口调用
-```typescript
-// 获取推荐商品
-const recommendations = await getRecommendations();
-
-// 根据时间段获取推荐商品
-const morningProducts = await getRecommendationsByTimeSlot('morning');
-```
 
 ## 开发指南
 
