@@ -2,50 +2,94 @@ package com.dailydiscover.controller;
 
 import com.dailydiscover.model.Seller;
 import com.dailydiscover.service.SellerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+/**
+ * 商家控制器 - RESTful风格
+ */
 @RestController
 @RequestMapping("/sellers")
+@RequiredArgsConstructor
 public class SellerController {
     
-    @Autowired
-    private SellerService sellerService;
+    private final SellerService sellerService;
     
     @GetMapping("/{id}")
-    public Seller getSellerById(@PathVariable Long id) {
-        return sellerService.findById(id);
+    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) {
+        try {
+            Seller seller = sellerService.findById(id);
+            if (seller != null) {
+                return ResponseEntity.ok(seller);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping
-    public List<Seller> getAllSellers() {
-        return sellerService.findAll();
+    public ResponseEntity<List<Seller>> getAllSellers() {
+        try {
+            List<Seller> sellers = sellerService.findAll();
+            return ResponseEntity.ok(sellers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping("/verified")
-    public List<Seller> getVerifiedSellers() {
-        return sellerService.findVerifiedSellers();
+    public ResponseEntity<List<Seller>> getVerifiedSellers() {
+        try {
+            List<Seller> sellers = sellerService.findVerifiedSellers();
+            return ResponseEntity.ok(sellers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping("/premium")
-    public List<Seller> getPremiumSellers() {
-        return sellerService.findPremiumSellers();
+    public ResponseEntity<List<Seller>> getPremiumSellers() {
+        try {
+            List<Seller> sellers = sellerService.findPremiumSellers();
+            return ResponseEntity.ok(sellers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @PostMapping
-    public void createSeller(@RequestBody Seller seller) {
-        sellerService.save(seller);
+    public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) {
+        try {
+            sellerService.save(seller);
+            return ResponseEntity.status(HttpStatus.CREATED).body(seller);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @PutMapping("/{id}")
-    public void updateSeller(@PathVariable Long id, @RequestBody Seller seller) {
-        seller.setId(id);
-        sellerService.update(seller);
+    public ResponseEntity<Seller> updateSeller(@PathVariable Long id, @RequestBody Seller seller) {
+        try {
+            seller.setId(id);
+            sellerService.update(seller);
+            return ResponseEntity.ok(seller);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @DeleteMapping("/{id}")
-    public void deactivateSeller(@PathVariable Long id) {
-        sellerService.deactivate(id);
+    public ResponseEntity<Void> deactivateSeller(@PathVariable Long id) {
+        try {
+            sellerService.deactivate(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

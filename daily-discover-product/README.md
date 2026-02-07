@@ -45,14 +45,9 @@ spring.datasource.password=你的密码
 #### 本地访问（推荐开发环境）
 ```bash
 # 测试服务健康状态和商品接口
-curl -X GET http://localhost:8092/actuator/health && echo "" && curl -X GET http://localhost:8092/products
+curl -X GET http://localhost:8092/actuator/health && echo "" && curl -X GET http://localhost:8092
 ```
 
-#### 域名访问（通过 Tailscale Funnel）
-```bash
-# 通过域名访问商品服务
-curl -X GET https://ceiots.tailb3fdd6.ts.net/v1/products/actuator/health && echo "" && curl -X GET https://ceiots.tailb3fdd6.ts.net/v1/products/products
-```
 
 如果服务正常，您将看到健康检查结果和商品列表数据。
 
