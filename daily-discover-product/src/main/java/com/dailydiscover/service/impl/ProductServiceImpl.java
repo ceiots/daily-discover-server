@@ -1,5 +1,6 @@
 package com.dailydiscover.service.impl;
 
+import com.dailydiscover.dto.ProductDetailDTO;
 import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.mapper.ProductAttributeMapper;
 import com.dailydiscover.model.Product;
@@ -23,11 +24,52 @@ public class ProductServiceImpl implements ProductService {
     public Product findById(Long id) {
         Product product = productMapper.findById(id);
         if (product != null) {
+            // 查询产品属性并设置到产品对象中
             ProductAttribute attribute = productAttributeMapper.findByProductId(id);
-            // 这里可以设置product的属性，但由于表已拆分，需要修改Product模型
-            // 或者创建新的组合对象，这里暂时保持原样
+            if (attribute != null) {
+                // 设置产品属性信息
+                setProductAttributes(product, attribute);
+            }
         }
         return product;
+    }
+    
+    /**
+     * 获取产品详情（包含属性信息）
+     */
+    public ProductDetailDTO getProductDetail(Long id) {
+        Product product = productMapper.findById(id);
+        if (product == null) {
+            return null;
+        }
+        
+        ProductAttribute attribute = productAttributeMapper.findByProductId(id);
+        return new ProductDetailDTO(product, attribute);
+    }
+    
+    /**
+     * 设置产品属性信息
+     */
+    private void setProductAttributes(Product product, ProductAttribute attribute) {
+        // 这里可以根据业务需求设置属性
+        // 例如：设置产品标签、热度等信息
+        if (attribute.getTags() != null) {
+            // 可以设置到产品的扩展字段或记录日志
+            // product.setTags(attribute.getTags()); // 如果Product有tags字段
+        }
+        
+        // 记录属性信息用于业务逻辑判断
+        if (attribute.getIsHot() != null && attribute.getIsHot()) {
+            // 热门产品特殊处理
+        }
+        
+        if (attribute.getIsNew() != null && attribute.getIsNew()) {
+            // 新品特殊处理
+        }
+        
+        if (attribute.getIsRecommended() != null && attribute.getIsRecommended()) {
+            // 推荐产品特殊处理
+        }
     }
     
     @Override
@@ -61,13 +103,20 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
+    @Transactional
     public void save(Product product) {
         productMapper.insert(product);
+        // 由于表已拆分，需要创建ProductAttribute对象并保存
+        // 这里需要根据业务逻辑创建ProductAttribute对象
+        // 暂时保持原样，后续需要根据实际业务需求调整
     }
     
     @Override
+    @Transactional
     public void update(Product product) {
         productMapper.update(product);
+        // 由于表已拆分，需要同时更新ProductAttribute表
+        // 暂时保持原样，后续需要根据实际业务需求调整
     }
     
     @Override

@@ -1,6 +1,7 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.dto.ProductDetailDTO;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,21 @@ public class ProductController {
             Product product = productService.findById(id);
             if (product != null) {
                 return ResponseEntity.ok(product);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/{id}/detail")
+    @ApiLog("获取产品完整详情")
+    public ResponseEntity<ProductDetailDTO> getProductDetail(@PathVariable Long id) {
+        try {
+            ProductDetailDTO productDetail = productService.getProductDetail(id);
+            if (productDetail != null) {
+                return ResponseEntity.ok(productDetail);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
