@@ -1,5 +1,6 @@
 package com.dailydiscover.controller;
 
+import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class ProductController {
     private final ProductService productService;
     
     @GetMapping("/{id}")
+    @ApiLog("获取产品详情")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         try {
             Product product = productService.findById(id);
@@ -33,6 +35,7 @@ public class ProductController {
     }
     
     @GetMapping
+    @ApiLog("获取所有产品")
     public ResponseEntity<List<Product>> getAllProducts() {
         try {
             List<Product> products = productService.findAll();
@@ -43,6 +46,7 @@ public class ProductController {
     }
     
     @GetMapping("/seller/{sellerId}")
+    @ApiLog("根据商家获取产品")
     public ResponseEntity<List<Product>> getProductsBySeller(@PathVariable Long sellerId) {
         try {
             List<Product> products = productService.findBySellerId(sellerId);
@@ -53,6 +57,7 @@ public class ProductController {
     }
     
     @GetMapping("/category/{categoryId}")
+    @ApiLog("根据分类获取产品")
     public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable Long categoryId) {
         try {
             List<Product> products = productService.findByCategoryId(categoryId);
@@ -63,6 +68,7 @@ public class ProductController {
     }
     
     @GetMapping("/hot")
+    @ApiLog("获取热门产品")
     public ResponseEntity<List<Product>> getHotProducts() {
         try {
             List<Product> products = productService.findHotProducts();
@@ -73,6 +79,7 @@ public class ProductController {
     }
     
     @GetMapping("/new")
+    @ApiLog("获取新品产品")
     public ResponseEntity<List<Product>> getNewProducts() {
         try {
             List<Product> products = productService.findNewProducts();
@@ -83,6 +90,7 @@ public class ProductController {
     }
     
     @GetMapping("/recommended")
+    @ApiLog("获取推荐产品")
     public ResponseEntity<List<Product>> getRecommendedProducts() {
         try {
             List<Product> products = productService.findRecommendedProducts();
@@ -93,6 +101,7 @@ public class ProductController {
     }
     
     @PostMapping
+    @ApiLog("创建产品")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         try {
             productService.save(product);
@@ -103,6 +112,7 @@ public class ProductController {
     }
     
     @PutMapping("/{id}")
+    @ApiLog("更新产品")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         try {
             product.setId(id);
@@ -114,6 +124,7 @@ public class ProductController {
     }
     
     @DeleteMapping("/{id}")
+    @ApiLog("删除产品")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         try {
             productService.delete(id);

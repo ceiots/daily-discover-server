@@ -53,6 +53,12 @@ CREATE TABLE IF NOT EXISTS time_based_products (
     favorite_count INT DEFAULT 0 COMMENT '收藏量',
     cart_count INT DEFAULT 0 COMMENT '加购量',
     conversion_rate DECIMAL(5,2) COMMENT '转化率',
+    is_today_new BOOLEAN DEFAULT false COMMENT '是否今日新品',
+    is_today_hot BOOLEAN DEFAULT false COMMENT '是否今日热销',
+    real_time_rank INT COMMENT '实时排名',
+    real_time_sales INT COMMENT '实时销量',
+    preview_content TEXT COMMENT '明日预告内容',
+    coupon_info JSON COMMENT '优惠券信息',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     

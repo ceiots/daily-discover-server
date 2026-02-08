@@ -1,5 +1,6 @@
 package com.dailydiscover.controller;
 
+import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.model.Seller;
 import com.dailydiscover.service.SellerService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class SellerController {
     private final SellerService sellerService;
     
     @GetMapping("/{id}")
+    @ApiLog("获取商家详情")
     public ResponseEntity<Seller> getSellerById(@PathVariable Long id) {
         try {
             Seller seller = sellerService.findById(id);
@@ -33,6 +35,7 @@ public class SellerController {
     }
     
     @GetMapping
+    @ApiLog("获取所有商家")
     public ResponseEntity<List<Seller>> getAllSellers() {
         try {
             List<Seller> sellers = sellerService.findAll();
@@ -43,6 +46,7 @@ public class SellerController {
     }
     
     @GetMapping("/verified")
+    @ApiLog("获取认证商家")
     public ResponseEntity<List<Seller>> getVerifiedSellers() {
         try {
             List<Seller> sellers = sellerService.findVerifiedSellers();
@@ -53,6 +57,7 @@ public class SellerController {
     }
     
     @GetMapping("/premium")
+    @ApiLog("获取高级商家")
     public ResponseEntity<List<Seller>> getPremiumSellers() {
         try {
             List<Seller> sellers = sellerService.findPremiumSellers();
@@ -63,6 +68,7 @@ public class SellerController {
     }
     
     @PostMapping
+    @ApiLog("创建商家")
     public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) {
         try {
             sellerService.save(seller);
@@ -73,6 +79,7 @@ public class SellerController {
     }
     
     @PutMapping("/{id}")
+    @ApiLog("更新商家")
     public ResponseEntity<Seller> updateSeller(@PathVariable Long id, @RequestBody Seller seller) {
         try {
             seller.setId(id);
@@ -84,6 +91,7 @@ public class SellerController {
     }
     
     @DeleteMapping("/{id}")
+    @ApiLog("禁用商家")
     public ResponseEntity<Void> deactivateSeller(@PathVariable Long id) {
         try {
             sellerService.deactivate(id);

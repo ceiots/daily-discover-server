@@ -6,6 +6,10 @@ import java.time.LocalDateTime;
 @Data
 public class ProductCategory {
     private Long id;
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
     private Long parentId;
     private String name;
     private String description;

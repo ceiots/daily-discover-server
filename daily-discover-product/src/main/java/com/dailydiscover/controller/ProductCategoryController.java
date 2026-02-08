@@ -1,5 +1,6 @@
 package com.dailydiscover.controller;
 
+import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.model.ProductCategory;
 import com.dailydiscover.service.ProductCategoryService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class ProductCategoryController {
     private final ProductCategoryService productCategoryService;
     
     @GetMapping("/{id}")
+    @ApiLog("获取分类详情")
     public ResponseEntity<ProductCategory> getCategoryById(@PathVariable Long id) {
         try {
             ProductCategory category = productCategoryService.findById(id);
@@ -33,6 +35,7 @@ public class ProductCategoryController {
     }
     
     @GetMapping
+    @ApiLog("获取所有分类")
     public ResponseEntity<List<ProductCategory>> getAllCategories() {
         try {
             List<ProductCategory> categories = productCategoryService.findAll();
@@ -43,6 +46,7 @@ public class ProductCategoryController {
     }
     
     @GetMapping("/parent/{parentId}")
+    @ApiLog("根据父级获取分类")
     public ResponseEntity<List<ProductCategory>> getCategoriesByParent(@PathVariable Long parentId) {
         try {
             List<ProductCategory> categories = productCategoryService.findByParentId(parentId);
@@ -53,6 +57,7 @@ public class ProductCategoryController {
     }
     
     @GetMapping("/level/{level}")
+    @ApiLog("根据层级获取分类")
     public ResponseEntity<List<ProductCategory>> getCategoriesByLevel(@PathVariable Integer level) {
         try {
             List<ProductCategory> categories = productCategoryService.findByLevel(level);
@@ -63,6 +68,7 @@ public class ProductCategoryController {
     }
     
     @PostMapping
+    @ApiLog("创建分类")
     public ResponseEntity<ProductCategory> createCategory(@RequestBody ProductCategory category) {
         try {
             productCategoryService.save(category);
@@ -73,6 +79,7 @@ public class ProductCategoryController {
     }
     
     @PutMapping("/{id}")
+    @ApiLog("更新分类")
     public ResponseEntity<ProductCategory> updateCategory(@PathVariable Long id, @RequestBody ProductCategory category) {
         try {
             category.setId(id);
@@ -84,6 +91,7 @@ public class ProductCategoryController {
     }
     
     @DeleteMapping("/{id}")
+    @ApiLog("禁用分类")
     public ResponseEntity<Void> deactivateCategory(@PathVariable Long id) {
         try {
             productCategoryService.deactivate(id);

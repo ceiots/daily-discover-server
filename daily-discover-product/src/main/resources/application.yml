@@ -26,6 +26,23 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
       - org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
 
+# API日志配置
+api-log:
+  enabled: true
+  log-level: INFO
+  log-response: true
+  max-response-size: 1024
+  exclude-patterns:
+    - "/actuator/**"
+    - "/health"
+    - "/metrics"
+
+# AOP配置
+spring:
+  aop:
+    auto: true
+    proxy-target-class: true
+
 # 日志配置
 logging:
   level:
@@ -33,6 +50,8 @@ logging:
     org.springframework.web: INFO
     # MyBatis SQL日志配置
     com.dailydiscover.mapper: DEBUG
+    # AOP日志级别
+    com.dailydiscover.common.aspect: INFO
 
 # Actuator配置
 management:

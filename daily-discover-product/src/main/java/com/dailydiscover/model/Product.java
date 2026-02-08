@@ -7,6 +7,10 @@ import java.time.LocalDateTime;
 @Data
 public class Product {
     private Long id;
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
     private Long sellerId;
     private String title;
     private String description;

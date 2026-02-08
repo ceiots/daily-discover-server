@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS products (
     is_hot BOOLEAN DEFAULT false COMMENT '是否热销',
     is_recommended BOOLEAN DEFAULT false COMMENT '是否推荐',
     status ENUM('active', 'inactive', 'deleted') DEFAULT 'active' COMMENT '商品状态',
+    urgency_level ENUM('high', 'medium', 'normal') DEFAULT 'normal' COMMENT '热点紧急程度',
+    hotspot_type VARCHAR(50) COMMENT '热点类型',
     tags JSON COMMENT '商品标签',
     main_image_url VARCHAR(500) COMMENT '商品主图URL',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

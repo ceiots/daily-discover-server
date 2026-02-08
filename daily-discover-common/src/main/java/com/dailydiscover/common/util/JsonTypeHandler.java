@@ -93,7 +93,7 @@ public class JsonTypeHandler extends BaseTypeHandler<Object> {
                 return new HashMap<>();
             }
             try {
-                return type.newInstance();
+                return type.getDeclaredConstructor().newInstance();
             } catch (Exception ex) {
                 logger.error("Error creating instance of " + type.getName(), ex);
                 return null;
