@@ -23,11 +23,7 @@ public class Product {
     private Integer reviewCount;
     private Integer totalSales;
     private Integer monthlySales;
-    private Boolean isNew;
-    private Boolean isHot;
-    private Boolean isRecommended;
     private String status;
-    private String tags;
     private String mainImageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

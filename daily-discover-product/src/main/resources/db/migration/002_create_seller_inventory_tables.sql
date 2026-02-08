@@ -10,9 +10,10 @@ USE daily_discover;
 DROP TABLE IF EXISTS inventory_transactions;
 DROP TABLE IF EXISTS product_inventory;
 DROP TABLE IF EXISTS product_skus;
+DROP TABLE IF EXISTS seller_profiles;
 DROP TABLE IF EXISTS sellers;
 
--- 商家信息表
+-- 商家基础信息表
 CREATE TABLE IF NOT EXISTS sellers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '商家ID',
     name VARCHAR(200) NOT NULL COMMENT '商家名称',
@@ -23,13 +24,8 @@ CREATE TABLE IF NOT EXISTS sellers (
     response_time VARCHAR(50) COMMENT '响应时间',
     delivery_time VARCHAR(50) COMMENT '配送时间',
     followers_count INT DEFAULT 0 COMMENT '粉丝数量',
-    positive_feedback DECIMAL(5,2) DEFAULT 0.0 COMMENT '好评率',
     total_products INT DEFAULT 0 COMMENT '商品总数',
     monthly_sales INT DEFAULT 0 COMMENT '月销量',
-    contact_info JSON COMMENT '联系信息',
-    services JSON COMMENT '服务项目',
-    certifications JSON COMMENT '认证信息',
-    business_hours JSON COMMENT '营业时间',
     is_verified BOOLEAN DEFAULT false COMMENT '是否认证',
     is_premium BOOLEAN DEFAULT false COMMENT '是否优选商家',
     status ENUM('active', 'inactive', 'suspended') DEFAULT 'active' COMMENT '商家状态',
@@ -43,7 +39,23 @@ CREATE TABLE IF NOT EXISTS sellers (
     INDEX idx_is_verified (is_verified),
     INDEX idx_is_premium (is_premium),
     INDEX idx_status (status)
-) COMMENT '商家信息表';
+) COMMENT '商家基础信息表';
+
+-- 商家资料表
+CREATE TABLE IF NOT EXISTS seller_profiles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '资料ID',
+    seller_id BIGINT NOT NULL COMMENT '商家ID',
+    positive_feedback DECIMAL(5,2) DEFAULT 0.0 COMMENT '好评率',
+    contact_info JSON COMMENT '联系信息',
+    services JSON COMMENT '服务项目',
+    certifications JSON COMMENT '认证信息',
+    business_hours JSON COMMENT '营业时间',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    UNIQUE KEY uk_seller_id (seller_id),
+    INDEX idx_seller_id (seller_id)
+) COMMENT '商家资料表';
 
 -- 商品SKU表
 CREATE TABLE IF NOT EXISTS product_skus (

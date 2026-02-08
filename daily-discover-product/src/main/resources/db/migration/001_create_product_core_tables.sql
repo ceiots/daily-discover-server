@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS product_categories;
 DROP TABLE IF EXISTS product_specs;
 DROP TABLE IF EXISTS product_images;
 DROP TABLE IF EXISTS product_details;
+DROP TABLE IF EXISTS product_attributes;
 DROP TABLE IF EXISTS products;
 
 -- 商品基础信息表
@@ -28,13 +29,7 @@ CREATE TABLE IF NOT EXISTS products (
     review_count INT DEFAULT 0 COMMENT '评价数量',
     total_sales INT DEFAULT 0 COMMENT '总销量',
     monthly_sales INT DEFAULT 0 COMMENT '月销量',
-    is_new BOOLEAN DEFAULT false COMMENT '是否新品',
-    is_hot BOOLEAN DEFAULT false COMMENT '是否热销',
-    is_recommended BOOLEAN DEFAULT false COMMENT '是否推荐',
     status ENUM('active', 'inactive', 'deleted') DEFAULT 'active' COMMENT '商品状态',
-    urgency_level ENUM('high', 'medium', 'normal') DEFAULT 'normal' COMMENT '热点紧急程度',
-    hotspot_type VARCHAR(50) COMMENT '热点类型',
-    tags JSON COMMENT '商品标签',
     main_image_url VARCHAR(500) COMMENT '商品主图URL',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -46,11 +41,30 @@ CREATE TABLE IF NOT EXISTS products (
     INDEX idx_rating (rating),
     INDEX idx_total_sales (total_sales),
     INDEX idx_status (status),
-    INDEX idx_created_at (created_at),
+    INDEX idx_created_at (created_at)
+) COMMENT '商品基础信息表';
+
+-- 商品属性表
+CREATE TABLE IF NOT EXISTS product_attributes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '属性ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    is_new BOOLEAN DEFAULT false COMMENT '是否新品',
+    is_hot BOOLEAN DEFAULT false COMMENT '是否热销',
+    is_recommended BOOLEAN DEFAULT false COMMENT '是否推荐',
+    urgency_level ENUM('high', 'medium', 'normal') DEFAULT 'normal' COMMENT '热点紧急程度',
+    hotspot_type VARCHAR(50) COMMENT '热点类型',
+    tags JSON COMMENT '商品标签',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    UNIQUE KEY uk_product_id (product_id),
+    INDEX idx_product_id (product_id),
     INDEX idx_is_new (is_new),
     INDEX idx_is_hot (is_hot),
-    INDEX idx_is_recommended (is_recommended)
-) COMMENT '商品基础信息表';
+    INDEX idx_is_recommended (is_recommended),
+    INDEX idx_urgency_level (urgency_level),
+    INDEX idx_hotspot_type (hotspot_type)
+) COMMENT '商品属性表';
 
 -- 商品详情表
 CREATE TABLE IF NOT EXISTS product_details (
@@ -142,12 +156,12 @@ INSERT INTO product_categories (id, parent_id, name, description, image_url, sor
 (7, 5, '女装', '女士服装', 'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=300&h=200&fit=crop', 2, 2, true);
 
 -- 插入商品基础信息数据
-INSERT INTO products (id, seller_id, title, description, category_id, brand, base_price, original_price, discount, rating, review_count, total_sales, monthly_sales, is_new, is_hot, is_recommended, status, tags, main_image_url) VALUES
-(1, 1, '智能手表 Pro', '多功能智能手表，支持心率监测、运动追踪、消息提醒等功能', 4, 'TechBrand', 299.00, 399.00, 25.00, 4.5, 128, 500, 50, true, true, true, 'active', '["智能", "运动", "健康"]', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
-(2, 1, '无线降噪耳机', '主动降噪无线耳机，音质清晰，续航持久', 4, 'SoundTech', 199.00, 299.00, 33.33, 4.3, 89, 300, 30, false, true, true, 'active', '["无线", "降噪", "音乐"]', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
-(3, 2, '轻薄笔记本电脑', '高性能轻薄本，适合办公和娱乐', 3, 'LaptopPro', 5999.00, 6999.00, 14.29, 4.7, 256, 150, 15, true, false, true, 'active', '["轻薄", "高性能", "办公"]', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
-(4, 2, '智能手机旗舰版', '最新旗舰智能手机，拍照功能强大', 2, 'PhoneMax', 4999.00, 5999.00, 16.67, 4.6, 189, 800, 80, true, true, true, 'active', '["旗舰", "拍照", "5G"]', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
-(5, 3, '男士休闲衬衫', '纯棉男士衬衫，舒适透气', 6, 'FashionStyle', 199.00, 299.00, 33.33, 4.2, 45, 200, 20, false, false, false, 'active', '["纯棉", "休闲", "商务"]', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop');
+INSERT INTO products (id, seller_id, title, description, category_id, brand, base_price, original_price, discount, rating, review_count, total_sales, monthly_sales, is_new, is_hot, is_recommended, status, urgency_level, hotspot_type, tags, main_image_url) VALUES
+(1, 1, '智能手表 Pro', '多功能智能手表，支持心率监测、运动追踪、消息提醒等功能', 4, 'TechBrand', 299.00, 399.00, 25.00, 4.5, 128, 500, 50, true, true, true, 'active', 'high', 'electronics', '["智能", "运动", "健康"]', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
+(2, 1, '无线降噪耳机', '主动降噪无线耳机，音质清晰，续航持久', 4, 'SoundTech', 199.00, 299.00, 33.33, 4.3, 89, 300, 30, false, true, true, 'active', 'medium', 'audio', '["无线", "降噪", "音乐"]', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
+(3, 2, '轻薄笔记本电脑', '高性能轻薄本，适合办公和娱乐', 3, 'LaptopPro', 5999.00, 6999.00, 14.29, 4.7, 256, 150, 15, true, false, true, 'active', 'normal', 'computers', '["轻薄", "高性能", "办公"]', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
+(4, 2, '智能手机旗舰版', '最新旗舰智能手机，拍照功能强大', 2, 'PhoneMax', 4999.00, 5999.00, 16.67, 4.6, 189, 800, 80, true, true, true, 'active', 'high', 'mobile', '["旗舰", "拍照", "5G"]', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
+(5, 3, '男士休闲衬衫', '纯棉男士衬衫，舒适透气', 6, 'FashionStyle', 199.00, 299.00, 33.33, 4.2, 45, 200, 20, false, false, false, 'active', 'normal', 'clothing', '["纯棉", "休闲", "商务"]', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop');
 
 -- 插入商品详情数据
 INSERT INTO product_details (product_id, specifications, features, usage_instructions, precautions, package_contents, warranty_info, shipping_info) VALUES

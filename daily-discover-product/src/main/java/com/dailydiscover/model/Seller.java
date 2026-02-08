@@ -19,13 +19,8 @@ public class Seller {
     private String responseTime;
     private String deliveryTime;
     private Integer followersCount;
-    private BigDecimal positiveFeedback;
     private Integer totalProducts;
     private Integer monthlySales;
-    private String contactInfo;
-    private String services;
-    private String certifications;
-    private String businessHours;
     private Boolean isVerified;
     private Boolean isPremium;
     private String status;

@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS product_tag_relations;
 DROP TABLE IF EXISTS product_tags;
 DROP TABLE IF EXISTS product_search_keywords;
 DROP TABLE IF EXISTS product_recommendations;
+DROP TABLE IF EXISTS time_based_product_details;
 DROP TABLE IF EXISTS time_based_products;
 DROP TABLE IF EXISTS related_products;
 
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS related_products (
     INDEX idx_is_auto_generated (is_auto_generated)
 ) COMMENT '相关商品表';
 
--- 时间维度商品表
+-- 时间维度商品基础数据表
 CREATE TABLE IF NOT EXISTS time_based_products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '时间维度ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
@@ -57,8 +58,6 @@ CREATE TABLE IF NOT EXISTS time_based_products (
     is_today_hot BOOLEAN DEFAULT false COMMENT '是否今日热销',
     real_time_rank INT COMMENT '实时排名',
     real_time_sales INT COMMENT '实时销量',
-    preview_content TEXT COMMENT '明日预告内容',
-    coupon_info JSON COMMENT '优惠券信息',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
@@ -68,7 +67,20 @@ CREATE TABLE IF NOT EXISTS time_based_products (
     INDEX idx_rank (`rank`),
     INDEX idx_sales_growth_rate (sales_growth_rate),
     UNIQUE KEY uk_product_date_dimension (product_id, date, time_dimension)
-) COMMENT '时间维度商品表';
+) COMMENT '时间维度商品基础数据表';
+
+-- 时间维度商品详情表
+CREATE TABLE IF NOT EXISTS time_based_product_details (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '详情ID',
+    time_based_product_id BIGINT NOT NULL COMMENT '时间维度商品ID',
+    preview_content TEXT COMMENT '明日预告内容',
+    coupon_info JSON COMMENT '优惠券信息',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    UNIQUE KEY uk_time_based_product_id (time_based_product_id),
+    INDEX idx_time_based_product_id (time_based_product_id)
+) COMMENT '时间维度商品详情表';
 
 -- 商品推荐表
 CREATE TABLE IF NOT EXISTS product_recommendations (
@@ -162,12 +174,12 @@ INSERT INTO related_products (product_id, related_product_id, relation_type, rel
 (3, 4, 'complementary', 0.9, 2, true, '笔记本电脑与智能手机搭配使用');
 
 -- 插入时间维度商品数据
-INSERT INTO time_based_products (product_id, date, time_dimension, `rank`, yesterday_rank, yesterday_sales, week_sales, month_sales, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate) VALUES
-(1, '2026-02-01', 'yesterday', 1, 2, 15, 80, 200, 25.5, 500, 45, 30, 3.0),
-(1, '2026-02-01', 'week', 2, NULL, NULL, 80, 200, 15.2, 2500, 120, 80, 3.2),
-(1, '2026-02-01', 'month', 3, NULL, NULL, NULL, 200, 8.7, 8000, 300, 150, 2.5),
-(2, '2026-02-01', 'yesterday', 2, 3, 12, 65, 180, 18.3, 450, 35, 25, 2.8),
-(3, '2026-02-01', 'yesterday', 3, 1, 18, 95, 250, 30.1, 600, 50, 35, 3.5);
+INSERT INTO time_based_products (product_id, date, time_dimension, `rank`, yesterday_rank, yesterday_sales, week_sales, month_sales, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_today_new, is_today_hot, real_time_rank, real_time_sales, preview_content, coupon_info) VALUES
+(1, '2026-02-01', 'yesterday', 1, 2, 15, 80, 200, 25.5, 500, 45, 30, 3.0, true, true, 1, 25, '智能手表明日推出新配色，功能全面升级', '{"title": "新品预售券", "discount": "¥80", "condition": "满¥400可用", "expire": "明日有效"}'),
+(1, '2026-02-01', 'week', 2, NULL, NULL, 80, 200, 15.2, 2500, 120, 80, 3.2, false, true, 2, 18, '本周智能手表持续热销，功能升级版即将上市', '{"title": "周度特惠券", "discount": "¥50", "condition": "满¥300可用", "expire": "本周有效"}'),
+(1, '2026-02-01', 'month', 3, NULL, NULL, NULL, 200, 8.7, 8000, 300, 150, 2.5, false, false, 3, 12, '本月智能手表销量稳步增长，新品即将发布', '{"title": "月度专享券", "discount": "¥100", "condition": "满¥500可用", "expire": "本月有效"}'),
+(2, '2026-02-01', 'yesterday', 2, 3, 12, 65, 180, 18.3, 450, 35, 25, 2.8, false, true, 2, 18, '耳机专场明日开启，多款新品限时特惠', '{"title": "音频专享券", "discount": "¥40", "condition": "满¥250可用", "expire": "明日过期"}'),
+(3, '2026-02-01', 'yesterday', 3, 1, 18, 95, 250, 30.1, 600, 50, 35, 3.5, true, false, 3, 12, '轻薄笔记本明日发布新配置，性能提升30%', '{"title": "配置升级券", "discount": "¥200", "condition": "满¥1000可用", "expire": "3天后过期"}');
 
 -- 插入商品推荐数据
 INSERT INTO product_recommendations (product_id, recommended_product_id, recommendation_type, recommendation_score, position, algorithm_version, is_active, expire_at) VALUES
