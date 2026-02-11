@@ -9,7 +9,7 @@ import com.dailydiscover.user.mapper.LoginAttemptMapper;
 import com.dailydiscover.user.mapper.RefreshTokenMapper;
 import com.dailydiscover.user.mapper.UserMapper;
 import com.dailydiscover.user.service.AuthService;
-import com.dailydiscover.user.util.JwtUtil;
+import com.dailydiscover.common.security.JwtUtil;
 import com.dailydiscover.common.util.LogTracer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -107,8 +107,8 @@ public class AuthServiceImpl implements AuthService {
         
         // 生成Token
         LogTracer.traceBusinessOperation("生成JWT Token和刷新令牌");
-        String token = jwtUtil.generateToken(user);
-        String refreshTokenValue = jwtUtil.generateRefreshToken(user);
+        String token = jwtUtil.generateToken(user.getId(), user.getPhone());
+        String refreshTokenValue = jwtUtil.generateRefreshToken(user.getId(), user.getPhone());
         
         // 创建并保存刷新令牌到数据库
         LogTracer.traceBusinessOperation("创建并保存刷新令牌");
@@ -199,8 +199,8 @@ public class AuthServiceImpl implements AuthService {
         
         // 生成Token
         LogTracer.traceBusinessOperation("开始生成JWT Token");
-        String token = jwtUtil.generateToken(user);
-        String refreshTokenValue = jwtUtil.generateRefreshToken(user);
+        String token = jwtUtil.generateToken(user.getId(), user.getPhone());
+        String refreshTokenValue = jwtUtil.generateRefreshToken(user.getId(), user.getPhone());
         LogTracer.traceBusinessOperation("Token生成完成");
         
         // 创建并保存刷新令牌到数据库
@@ -264,8 +264,8 @@ public class AuthServiceImpl implements AuthService {
         
         // 生成新的Token和新的刷新令牌
         LogTracer.traceBusinessOperation("生成新的JWT Token和刷新令牌");
-        String token = jwtUtil.generateToken(user);
-        String newRefreshTokenValue = jwtUtil.generateRefreshToken(user);
+        String token = jwtUtil.generateToken(user.getId(), user.getPhone());
+        String newRefreshTokenValue = jwtUtil.generateRefreshToken(user.getId(), user.getPhone());
         
         // 更新数据库中的刷新令牌
         LogTracer.traceBusinessOperation("更新刷新令牌");
