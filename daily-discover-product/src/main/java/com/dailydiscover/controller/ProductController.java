@@ -7,6 +7,7 @@ import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -85,6 +86,7 @@ public class ProductController {
     
     @GetMapping("/hot")
     @ApiLog("获取热门产品")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getHotProducts() {
         try {
             List<Product> products = productService.findHotProducts();
@@ -96,6 +98,7 @@ public class ProductController {
     
     @GetMapping("/new")
     @ApiLog("获取新品产品")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getNewProducts() {
         try {
             List<Product> products = productService.findNewProducts();
@@ -107,9 +110,58 @@ public class ProductController {
     
     @GetMapping("/recommended")
     @ApiLog("获取推荐产品")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getRecommendedProducts() {
         try {
             List<Product> products = productService.findRecommendedProducts();
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/daily-new")
+    @ApiLog("获取每日上新商品")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<Product>> getDailyNewProducts() {
+        try {
+            List<Product> products = productService.findNewProducts(); // 暂时使用新品接口
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/hotspots")
+    @ApiLog("获取实时热点")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<Product>> getHotspots() {
+        try {
+            List<Product> products = productService.findHotProducts(); // 暂时使用热门接口
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/tomorrow-contents")
+    @ApiLog("获取明日内容")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<Product>> getTomorrowContents() {
+        try {
+            List<Product> products = productService.findRecommendedProducts(); // 暂时使用推荐接口
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/coupons")
+    @ApiLog("获取优惠券")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<Product>> getCoupons() {
+        try {
+            List<Product> products = productService.findHotProducts(); // 暂时使用热门接口
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

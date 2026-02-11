@@ -26,6 +26,11 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
       - org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
 
+  # AOP配置
+  aop:
+    auto: true
+    proxy-target-class: true
+
 # API日志配置
 api-log:
   enabled: true
@@ -36,12 +41,6 @@ api-log:
     - "/actuator/**"
     - "/health"
     - "/metrics"
-
-# AOP配置
-spring:
-  aop:
-    auto: true
-    proxy-target-class: true
 
 # 日志配置
 logging:
