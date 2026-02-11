@@ -14,16 +14,26 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SimpleSecurityConfig {
 
     /**
-     * 统一安全配置 - 允许首页接口匿名访问
-     * 所有业务服务都会自动应用此配置
+     * 配置基础安全设置 - 供子类复用
      */
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    protected HttpSecurity configureBaseSecurity(HttpSecurity http) throws Exception {
         return http
             // 基础安全配置
             .csrf(csrf -> csrf.disable())
             
-            // 统一权限配置：首页接口允许匿名访问
+            // 禁用默认认证方式
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable());
+    }
+
+    /**
+     * 统一安全配置 - 包含所有服务的权限配置
+     * 所有业务服务都会自动应用此配置
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return configureBaseSecurity(http)
+            // 统一权限配置：包含所有服务的权限规则
             .authorizeHttpRequests(authz -> authz
                 // 系统级公开接口
                 .requestMatchers(
@@ -51,13 +61,25 @@ public class SimpleSecurityConfig {
                     "/seller/{sellerId}"     // 商家商品
                 ).permitAll()
                 
+                // 用户服务公开接口
+                .requestMatchers(
+                    "/user/api/auth/*",      // 认证接口
+                    "/user/api/public/*",    // 公开信息接口
+                    "/user/api/debug/health" // 调试健康检查
+                ).permitAll()
+                
+                // 用户服务管理接口 - 需要管理员权限
+                .requestMatchers("/user/api/admin/*").hasRole("ADMIN")
+                
+                // 用户服务用户接口 - 需要认证
+                .requestMatchers("/user/api/users/*").authenticated()
+                
+                // 用户服务默认规则：其他API接口需要认证
+                .requestMatchers("/user/api/*").authenticated()
+                
                 // 默认规则：其他接口需要认证
                 .anyRequest().authenticated()
             )
-            
-            // 禁用默认认证方式
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
             .build();
     }
 }

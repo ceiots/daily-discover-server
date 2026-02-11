@@ -1,6 +1,5 @@
-package com.dailydiscover.user.config;
+package com.dailydiscover.common.security;
 
-import com.dailydiscover.common.security.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,8 +15,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * JWT认证过滤器 - 电商系统认证实现
- * 使用通用JWT工具进行Token验证和解析
+ * 通用JWT认证过滤器 - 供所有微服务使用
+ * 负责Token验证和用户身份解析
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

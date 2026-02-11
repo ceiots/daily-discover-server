@@ -1,6 +1,5 @@
-package com.dailydiscover.user.util;
+package com.dailydiscover.common.security;
 
-import com.dailydiscover.user.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +10,11 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
- * JWT工具类
+ * 通用JWT工具类 - 供所有微服务使用
+ * 负责Token的验证、解析等通用功能
  */
 @Slf4j
 @Component
@@ -28,7 +29,7 @@ public class JwtUtil {
     private static final Long REFRESH_EXPIRATION = 7 * 24 * 60 * 60 * 1000L; // 7天
 
     /**
-     * 生成JWT Token
+     * 生成JWT Token（通用方法）
      */
     public String generateToken(Long userId, String phone) {
         Map<String, Object> claims = new HashMap<>();
@@ -38,21 +39,14 @@ public class JwtUtil {
     }
 
     /**
-     * 生成JWT Token（基于User对象）
-     */
-    public String generateToken(User user) {
-        return generateToken(user.getId(), user.getPhone());
-    }
-
-    /**
      * 生成刷新Token
      */
-    public String generateRefreshToken(User user) {
+    public String generateRefreshToken(Long userId, String phone) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getId());
-        claims.put("phone", user.getPhone());
+        claims.put("userId", userId);
+        claims.put("phone", phone);
         claims.put("type", "refresh");
-        return createToken(claims, user.getPhone(), REFRESH_EXPIRATION);
+        return createToken(claims, phone, REFRESH_EXPIRATION);
     }
 
     /**
@@ -89,14 +83,6 @@ public class JwtUtil {
     }
 
     /**
-     * 从刷新Token中获取用户ID
-     */
-    public Long getUserIdFromRefreshToken(String refreshToken) {
-        Claims claims = getAllClaimsFromToken(refreshToken);
-        return Long.valueOf(claims.get("userId").toString());
-    }
-
-    /**
      * 从Token中获取过期时间
      */
     public Date getExpirationDateFromToken(String token) {
@@ -106,7 +92,7 @@ public class JwtUtil {
     /**
      * 从Token中获取指定声明
      */
-    public <T> T getClaimFromToken(String token, java.util.function.Function<Claims, T> claimsResolver) {
+    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
@@ -140,7 +126,7 @@ public class JwtUtil {
     }
 
     /**
-     * 验证Token
+     * 验证Token有效性
      */
     public Boolean validateToken(String token) {
         try {
