@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: daily-discover-product
+  main:
+    allow-bean-definition-overriding: true
 
   # MySQL数据库配置
   datasource:
@@ -61,3 +63,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+# JWT配置（与用户服务保持一致）
+jwt:
+  secret: daily-discover-jwt-secret-key-2024-secure-enough-for-hs512-algorithm-must-be-at-least-512-bits-long
+  expiration: 86400000  # 24小时，单位毫秒
+  header: Authorization
+  prefix: Bearer

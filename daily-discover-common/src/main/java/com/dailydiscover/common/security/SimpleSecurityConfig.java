@@ -44,39 +44,6 @@ public class SimpleSecurityConfig {
                     "/favicon.ico"
                 ).permitAll()
                 
-                // 业务公开接口（首页相关）
-                .requestMatchers(
-                    "/hot",           // 热门商品
-                    "/new",           // 新品商品
-                    "/recommended",   // 推荐商品
-                    "/daily-new",     // 每日上新
-                    "/hotspots",      // 实时热点
-                    "/tomorrow-contents", // 明日内容
-                    "/coupons",       // 优惠券
-                    
-                    // 商品浏览接口
-                    "/{id}",          // 商品详情
-                    "/{id}/detail",   // 完整详情
-                    "/category/{categoryId}", // 分类商品
-                    "/seller/{sellerId}"     // 商家商品
-                ).permitAll()
-                
-                // 用户服务公开接口
-                .requestMatchers(
-                    "/user/api/auth/*",      // 认证接口
-                    "/user/api/public/*",    // 公开信息接口
-                    "/user/api/debug/health" // 调试健康检查
-                ).permitAll()
-                
-                // 用户服务管理接口 - 需要管理员权限
-                .requestMatchers("/user/api/admin/*").hasRole("ADMIN")
-                
-                // 用户服务用户接口 - 需要认证
-                .requestMatchers("/user/api/users/*").authenticated()
-                
-                // 用户服务默认规则：其他API接口需要认证
-                .requestMatchers("/user/api/*").authenticated()
-                
                 // 默认规则：其他接口需要认证
                 .anyRequest().authenticated()
             )

@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: daily-discover-user
+  main:
+    allow-bean-definition-overriding: true
   
   # 数据库配置 - 使用 MySQL 数据库
   datasource:
