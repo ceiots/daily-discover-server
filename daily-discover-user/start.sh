@@ -51,18 +51,19 @@ pull_latest_code() {
 monitor_logs_continuously() {
     echo "📊 开始持续监控日志输出..."
     echo "💡 按 Ctrl+C 停止监控（服务会继续在后台运行）"
-    echo "--- 开始日志输出 ---"
+    echo "--- 日志监控启动中 ---"
+    
+    # 使用stty设置，确保Ctrl+C能正确中断
+    stty intr ^c 2>/dev/null
     
     if [ -f "$LOG_FILE" ]; then
-        # 显示已有的日志
-        if [ -s "$LOG_FILE" ]; then
-            echo "📋 已有日志内容:"
-            tail -f "$LOG_FILE"
-            echo "--- 开始实时监控 ---"
-        fi
+        # 显示最后20行日志
+        echo "📋 已有日志内容（最后20行）:"
+        tail -20 "$LOG_FILE"
+        echo "--- 开始实时监控 (按Ctrl+C退出) ---"
         
-        # 持续监控新日志
-        tail -f "$LOG_FILE"
+        # 使用exec将tail -f作为主进程，Ctrl+C直接退出
+        exec tail -f "$LOG_FILE"
     else
         echo "⚠️  日志文件不存在，等待日志文件创建..."
         # 等待日志文件创建
@@ -75,7 +76,11 @@ monitor_logs_continuously() {
         
         if [ -f "$LOG_FILE" ]; then
             echo "✅ 日志文件已创建，开始监控..."
-            tail -f "$LOG_FILE"
+            tail -20 "$LOG_FILE"
+            echo "--- 开始实时监控 (按Ctrl+C退出) ---"
+            
+            # 使用exec将tail -f作为主进程，Ctrl+C直接退出
+            exec tail -f "$LOG_FILE"
         else
             echo "❌ 日志文件未创建，可能启动失败"
             echo "💡 检查服务状态: ./start.sh --status"
