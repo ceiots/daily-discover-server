@@ -23,21 +23,22 @@ public class SecurityConfig extends SimpleSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return configureBaseSecurity(http)
             .authorizeHttpRequests(authz -> authz
-                // 商品公开接口（首页相关）
+                // 商品公开接口（所有 /v1/products/** 路径）
                 .requestMatchers(
-                    "/hot",           // 热门商品
-                    "/new",           // 新品商品
-                    "/recommended",   // 推荐商品
-                    "/daily-new",     // 每日上新
-                    "/hotspots",      // 实时热点
-                    "/tomorrow-contents", // 明日内容
-                    "/coupons",       // 优惠券
+                    "/v1/products/**",     // 所有商品接口
+                    "/hot",                // 热门商品
+                    "/new",                // 新品商品
+                    "/recommended",        // 推荐商品
+                    "/daily-new",          // 每日上新
+                    "/hotspots",           // 实时热点
+                    "/tomorrow-contents",  // 明日内容
+                    "/coupons",            // 优惠券
                     
-                    // 商品浏览接口
-                    "/{id}",          // 商品详情
-                    "/{id}/detail",   // 完整详情
-                    "/category/{categoryId}", // 分类商品
-                    "/seller/{sellerId}"     // 商家商品
+                    // 商品浏览接口（兼容旧路径）
+                    "/{id}",               // 商品详情
+                    "/{id}/detail",        // 完整详情
+                    "/category/{categoryId}",   // 分类商品
+                    "/seller/{sellerId}"   // 商家商品
                 ).permitAll()
                 
                 // 商品管理接口 - 需要管理员权限
