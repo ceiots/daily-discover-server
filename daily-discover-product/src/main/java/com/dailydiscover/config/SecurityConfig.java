@@ -16,6 +16,7 @@ public class SecurityConfig extends SimpleSecurityConfig {
 
     /**
      * 重写安全配置链，添加商品服务特定的权限配置
+     * 使用 @Primary 确保此配置优先于父类配置
      */
     @Bean
     @Primary
@@ -23,9 +24,9 @@ public class SecurityConfig extends SimpleSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return configureBaseSecurity(http)
             .authorizeHttpRequests(authz -> authz
-                // 商品公开接口（所有 /v1/products/** 路径）
+                // 商品公开接口（所有商品相关接口）
                 .requestMatchers(
-                    "/v1/products/**",     // 所有商品接口
+                    "/",                    // 根路径
                     "/hot",                // 热门商品
                     "/new",                // 新品商品
                     "/recommended",        // 推荐商品
@@ -34,18 +35,11 @@ public class SecurityConfig extends SimpleSecurityConfig {
                     "/tomorrow-contents",  // 明日内容
                     "/coupons",            // 优惠券
                     
-                    // 商品浏览接口（兼容旧路径和Tailscale转发）
-                    "/{id}",               // 商品详情
-                    "/{id}/detail",       // 完整详情
-                    "/{id}/images",        // 商品图片
-                    "/{id}/specifications", // 商品规格
-                    "/{id}/skus",          // 商品SKU
-                    "/{id}/details",       // 商品详情信息
-                    "/{id}/reviews",       // 商品评价
-                    "/{id}/features",      // 商品特性
-                    "/{id}/related",       // 相关商品
-                    "/category/{categoryId}",   // 分类商品
-                    "/seller/{sellerId}"   // 商家商品
+                    // 评论相关接口
+                    "/reviews/**",         // 所有评论接口
+                    
+                    // 商品浏览接口（使用通配符匹配）
+                    "/**"                   // 允许所有路径
                 ).permitAll()
                 
                 // 商品管理接口 - 需要管理员权限
