@@ -106,7 +106,8 @@ public class ProductDetailServiceImpl implements ProductDetailService {
             log.info("获取商品描述信息: productId={}", productId);
             ProductDetail detail = productDetailMapper.findByProductId(productId);
             if (detail != null) {
-                return detail.getDescription();
+                // 使用usageInstructions作为描述信息
+                return detail.getUsageInstructions();
             }
             return "";
         } catch (Exception e) {
@@ -121,7 +122,8 @@ public class ProductDetailServiceImpl implements ProductDetailService {
             log.info("获取商品包装信息: productId={}", productId);
             ProductDetail detail = productDetailMapper.findByProductId(productId);
             if (detail != null) {
-                return detail.getPackagingInfo();
+                // 使用packageContents作为包装信息
+                return detail.getPackageContents();
             }
             return "";
         } catch (Exception e) {
