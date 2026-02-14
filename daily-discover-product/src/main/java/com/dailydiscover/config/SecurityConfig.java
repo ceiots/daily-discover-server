@@ -34,9 +34,16 @@ public class SecurityConfig extends SimpleSecurityConfig {
                     "/tomorrow-contents",  // 明日内容
                     "/coupons",            // 优惠券
                     
-                    // 商品浏览接口（兼容旧路径）
+                    // 商品浏览接口（兼容旧路径和Tailscale转发）
                     "/{id}",               // 商品详情
-                    "/{id}/detail",        // 完整详情
+                    "/{id}/detail",       // 完整详情
+                    "/{id}/images",        // 商品图片
+                    "/{id}/specifications", // 商品规格
+                    "/{id}/skus",          // 商品SKU
+                    "/{id}/details",       // 商品详情信息
+                    "/{id}/reviews",       // 商品评价
+                    "/{id}/features",      // 商品特性
+                    "/{id}/related",       // 相关商品
                     "/category/{categoryId}",   // 分类商品
                     "/seller/{sellerId}"   // 商家商品
                 ).permitAll()
