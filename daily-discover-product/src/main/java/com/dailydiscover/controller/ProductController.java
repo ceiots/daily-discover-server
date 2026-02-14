@@ -12,34 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
 
-/**
- * 商品控制器 - RESTful风格
- */
 @RestController
 @RequestMapping("/")
 @RequiredArgsConstructor
 public class ProductController {
     
     private final ProductService productService;
-    
-    @Autowired
-    private ProductImageMapper productImageMapper;
-    
-    @Autowired
-    private ProductSpecMapper productSpecMapper;
-    
-    @Autowired
-    private ProductSkuMapper productSkuMapper;
-    
-    @Autowired
-    private ProductDetailMapper productDetailMapper;
-    
-    @Autowired
-    private UserReviewMapper userReviewMapper;
     
     @GetMapping("/{id}")
     @ApiLog("获取产品详情")
@@ -145,7 +124,7 @@ public class ProductController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getDailyNewProducts() {
         try {
-            List<Product> products = productService.findNewProducts(); // 暂时使用新品接口
+            List<Product> products = productService.findNewProducts();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -157,7 +136,7 @@ public class ProductController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getHotspots() {
         try {
-            List<Product> products = productService.findHotProducts(); // 暂时使用热门接口
+            List<Product> products = productService.findHotProducts();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -169,7 +148,7 @@ public class ProductController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getTomorrowContents() {
         try {
-            List<Product> products = productService.findRecommendedProducts(); // 暂时使用推荐接口
+            List<Product> products = productService.findRecommendedProducts();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -181,7 +160,7 @@ public class ProductController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getCoupons() {
         try {
-            List<Product> products = productService.findHotProducts(); // 暂时使用热门接口
+            List<Product> products = productService.findHotProducts();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -217,107 +196,6 @@ public class ProductController {
         try {
             productService.delete(id);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/images")
-    @ApiLog("获取商品图片列表")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ProductImage>> getProductImages(@PathVariable Long id) {
-        try {
-            List<ProductImage> images = productImageMapper.findByProductId(id);
-            return ResponseEntity.ok(images);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/specifications")
-    @ApiLog("获取商品规格参数")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ProductSpec>> getProductSpecifications(@PathVariable Long id) {
-        try {
-            List<ProductSpec> specs = productSpecMapper.findByProductId(id);
-            return ResponseEntity.ok(specs);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/skus")
-    @ApiLog("获取商品SKU列表")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ProductSku>> getProductSKUs(@PathVariable Long id) {
-        try {
-            List<ProductSku> skus = productSkuMapper.findByProductId(id);
-            return ResponseEntity.ok(skus);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/details")
-    @ApiLog("获取商品详情信息")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<ProductDetail> getProductDetailInfo(@PathVariable Long id) {
-        try {
-            ProductDetail detail = productDetailMapper.findByProductId(id);
-            if (detail != null) {
-                return ResponseEntity.ok(detail);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/reviews")
-    @ApiLog("获取商品评价列表")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<UserReview>> getProductReviews(@PathVariable Long id) {
-        try {
-            List<UserReview> reviews = userReviewMapper.findByProductId(id);
-            return ResponseEntity.ok(reviews);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/features")
-    @ApiLog("获取商品特性")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<String>> getProductFeatures(@PathVariable Long id) {
-        try {
-            ProductDetail detail = productDetailMapper.findByProductId(id);
-            if (detail != null) {
-                return ResponseEntity.ok(detail.getFeaturesList());
-            }
-            return ResponseEntity.ok(List.of());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/{id}/related")
-    @ApiLog("获取相关商品推荐")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<Product>> getRelatedProducts(@PathVariable Long id) {
-        try {
-            // 暂时返回同分类的其他商品作为相关商品
-            Product product = productService.findById(id);
-            if (product != null) {
-                List<Product> products = productService.findByCategoryId(product.getCategoryId());
-                // 过滤掉当前商品
-                products = products.stream()
-                    .filter(p -> !p.getId().equals(id))
-                    .limit(10)
-                    .collect(Collectors.toList());
-                return ResponseEntity.ok(products);
-            }
-            return ResponseEntity.ok(List.of());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

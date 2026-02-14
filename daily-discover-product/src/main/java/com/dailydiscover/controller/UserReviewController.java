@@ -1,6 +1,7 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.mapper.UserReviewMapper;
 import com.dailydiscover.model.ReviewLike;
 import com.dailydiscover.model.ReviewReply;
 import com.dailydiscover.model.ReviewStats;
@@ -23,18 +24,7 @@ import java.util.List;
 public class UserReviewController {
     
     private final UserReviewService userReviewService;
-
-    @GetMapping("/product/{productId}")
-    @ApiLog("获取商品评价列表")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<UserReview>> getProductReviews(@PathVariable Long productId) {
-        try {
-            List<UserReview> reviews = userReviewService.findByProductId(productId);
-            return ResponseEntity.ok(reviews);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+    private final UserReviewMapper userReviewMapper;
 
     @GetMapping("/user/{userId}")
     @ApiLog("获取用户评价列表")
@@ -48,7 +38,56 @@ public class UserReviewController {
         }
     }
 
-    @GetMapping("/{reviewId}")
+    @GetMapping("/product/{productId}")
+    @ApiLog("获取商品评价列表")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<UserReview>> getProductReviews(@PathVariable Long productId) {
+        try {
+            List<UserReview> reviews = userReviewMapper.findByProductId(productId);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/product/{productId}/stats")
+    @ApiLog("获取商品评价统计")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ReviewStats> getProductReviewStats(@PathVariable Long productId) {
+        try {
+            ReviewStats stats = userReviewMapper.getProductReviewStats(productId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/product/{productId}/recent")
+    @ApiLog("获取商品最新评价")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<UserReview>> getRecentReviews(@PathVariable Long productId, 
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            List<UserReview> reviews = userReviewMapper.findRecentReviewsByProductId(productId, limit);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/product/{productId}/with-images")
+    @ApiLog("获取商品带图评价")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<UserReview>> getReviewsWithImages(@PathVariable Long productId) {
+        try {
+            List<UserReview> reviews = userReviewMapper.findReviewsWithImagesByProductId(productId);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/detail/{reviewId}")
     @ApiLog("获取评价详情")
     @PreAuthorize("permitAll()")
     public ResponseEntity<UserReview> getReviewById(@PathVariable Long reviewId) {
@@ -59,18 +98,6 @@ public class UserReviewController {
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/product/{productId}/stats")
-    @ApiLog("获取商品评价统计")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<ReviewStats> getProductReviewStats(@PathVariable Long productId) {
-        try {
-            ReviewStats stats = userReviewService.getProductReviewStats(productId);
-            return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -88,7 +115,7 @@ public class UserReviewController {
         }
     }
 
-    @PutMapping("/{reviewId}")
+    @PutMapping("/detail/{reviewId}")
     @ApiLog("更新评价")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserReview> updateReview(@PathVariable Long reviewId, @RequestBody UserReview review) {
@@ -101,7 +128,7 @@ public class UserReviewController {
         }
     }
 
-    @DeleteMapping("/{reviewId}")
+    @DeleteMapping("/detail/{reviewId}")
     @ApiLog("删除评价")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
@@ -158,44 +185,6 @@ public class UserReviewController {
         try {
             List<ReviewReply> replies = userReviewService.findRepliesByReviewId(reviewId);
             return ResponseEntity.ok(replies);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/product/{productId}/top")
-    @ApiLog("获取商品热门评价")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<UserReview>> getTopReviews(@PathVariable Long productId, 
-                                                          @RequestParam(defaultValue = "5") int limit) {
-        try {
-            List<UserReview> reviews = userReviewService.findTopReviewsByProductId(productId, limit);
-            return ResponseEntity.ok(reviews);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/product/{productId}/recent")
-    @ApiLog("获取商品最新评价")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<UserReview>> getRecentReviews(@PathVariable Long productId, 
-                                                             @RequestParam(defaultValue = "10") int limit) {
-        try {
-            List<UserReview> reviews = userReviewService.findRecentReviewsByProductId(productId, limit);
-            return ResponseEntity.ok(reviews);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/product/{productId}/with-images")
-    @ApiLog("获取带图片的评价")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<UserReview>> getReviewsWithImages(@PathVariable Long productId) {
-        try {
-            List<UserReview> reviews = userReviewService.findReviewsWithImagesByProductId(productId);
-            return ResponseEntity.ok(reviews);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
