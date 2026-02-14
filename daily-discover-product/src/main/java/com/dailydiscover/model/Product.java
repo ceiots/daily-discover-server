@@ -25,6 +25,10 @@ public class Product {
     private Integer monthlySales;
     private String status;
     private String mainImageUrl;
+    private Boolean isNew;
+    private Boolean isHot;
+    private Boolean isRecommended;
+    private String tags;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

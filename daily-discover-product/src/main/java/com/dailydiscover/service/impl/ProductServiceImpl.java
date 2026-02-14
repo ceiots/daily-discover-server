@@ -22,16 +22,22 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public Product findById(Long id) {
-        Product product = productMapper.findById(id);
-        if (product != null) {
-            // 查询产品属性并设置到产品对象中
-            ProductAttribute attribute = productAttributeMapper.findByProductId(id);
-            if (attribute != null) {
-                // 设置产品属性信息
-                setProductAttributes(product, attribute);
+        try {
+            Product product = productMapper.findById(id);
+            if (product != null) {
+                try {
+                    ProductAttribute attribute = productAttributeMapper.findByProductId(id);
+                    if (attribute != null) {
+                        setProductAttributes(product, attribute);
+                    }
+                } catch (Exception e) {
+                    // 忽略属性查询错误，不影响主查询
+                }
             }
+            return product;
+        } catch (Exception e) {
+            return null;
         }
-        return product;
     }
     
     /**
@@ -43,8 +49,7 @@ public class ProductServiceImpl implements ProductService {
             return null;
         }
         
-        ProductAttribute attribute = productAttributeMapper.findByProductId(id);
-        return new ProductDetailDTO(product, attribute);
+        return new ProductDetailDTO(product, null);
     }
     
     /**
