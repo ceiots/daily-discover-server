@@ -2,7 +2,6 @@ package com.dailydiscover.service.impl;
 
 import com.dailydiscover.dto.ProductDetailDTO;
 import com.dailydiscover.mapper.ProductMapper;
-import com.dailydiscover.mapper.ProductAttributeMapper;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.model.ProductAttribute;
 import com.dailydiscover.service.ProductService;
@@ -17,23 +16,10 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductMapper productMapper;
     
-    @Autowired
-    private ProductAttributeMapper productAttributeMapper;
-    
     @Override
     public Product findById(Long id) {
         try {
             Product product = productMapper.findById(id);
-            if (product != null) {
-                try {
-                    ProductAttribute attribute = productAttributeMapper.findByProductId(id);
-                    if (attribute != null) {
-                        setProductAttributes(product, attribute);
-                    }
-                } catch (Exception e) {
-                    // 忽略属性查询错误，不影响主查询
-                }
-            }
             return product;
         } catch (Exception e) {
             return null;

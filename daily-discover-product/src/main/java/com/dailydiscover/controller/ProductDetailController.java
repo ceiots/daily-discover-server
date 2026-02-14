@@ -1,11 +1,10 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
-import com.dailydiscover.mapper.*;
 import com.dailydiscover.model.*;
+import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,27 +17,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductDetailController {
     
-    @Autowired
-    private ProductImageMapper productImageMapper;
-    
-    @Autowired
-    private ProductSpecMapper productSpecMapper;
-    
-    @Autowired
-    private ProductSkuMapper productSkuMapper;
-    
-    @Autowired
-    private ProductDetailMapper productDetailMapper;
-    
-    @Autowired
-    private ProductService productService;
+    private final ProductDetailService productDetailService;
+    private final ProductService productService;
 
     @GetMapping("/images")
     @ApiLog("获取商品图片列表")
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<ProductImage>> getProductImages(@PathVariable Long productId) {
         try {
-            List<ProductImage> images = productImageMapper.findByProductId(productId);
+            List<ProductImage> images = productDetailService.getProductImages(productId);
             return ResponseEntity.ok(images);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -50,7 +37,7 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<ProductSpec>> getProductSpecifications(@PathVariable Long productId) {
         try {
-            List<ProductSpec> specs = productSpecMapper.findByProductId(productId);
+            List<ProductSpec> specs = productDetailService.getProductSpecifications(productId);
             return ResponseEntity.ok(specs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -62,7 +49,7 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<ProductSku>> getProductSKUs(@PathVariable Long productId) {
         try {
-            List<ProductSku> skus = productSkuMapper.findByProductId(productId);
+            List<ProductSku> skus = productDetailService.getProductSKUs(productId);
             return ResponseEntity.ok(skus);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -74,7 +61,7 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<ProductDetail> getProductDetailInfo(@PathVariable Long productId) {
         try {
-            ProductDetail detail = productDetailMapper.findByProductId(productId);
+            ProductDetail detail = productDetailService.getProductDetailInfo(productId);
             if (detail != null) {
                 return ResponseEntity.ok(detail);
             } else {
@@ -90,11 +77,8 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<String>> getProductFeatures(@PathVariable Long productId) {
         try {
-            ProductDetail detail = productDetailMapper.findByProductId(productId);
-            if (detail != null) {
-                return ResponseEntity.ok(detail.getFeaturesList());
-            }
-            return ResponseEntity.ok(List.of());
+            List<String> features = productDetailService.getProductFeatures(productId);
+            return ResponseEntity.ok(features);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

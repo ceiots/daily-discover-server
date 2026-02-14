@@ -1,7 +1,11 @@
 package com.dailydiscover.mapper;
 
 import com.dailydiscover.model.ProductDetail;
+import com.dailydiscover.model.ProductImage;
+import com.dailydiscover.model.ProductSpec;
+import com.dailydiscover.model.ProductSku;
 import org.apache.ibatis.annotations.*;
+import java.util.List;
 
 @Mapper
 public interface ProductDetailMapper {
@@ -18,4 +22,13 @@ public interface ProductDetailMapper {
     
     @Delete("DELETE FROM product_details WHERE product_id = #{productId}")
     void deleteByProductId(Long productId);
+    
+    @Select("SELECT * FROM product_images WHERE product_id = #{productId} ORDER BY sort_order ASC")
+    List<ProductImage> findImagesByProductId(Long productId);
+    
+    @Select("SELECT * FROM product_specifications WHERE product_id = #{productId} ORDER BY spec_order ASC")
+    List<ProductSpec> findSpecsByProductId(Long productId);
+    
+    @Select("SELECT * FROM product_skus WHERE product_id = #{productId} ORDER BY sku_code ASC")
+    List<ProductSku> findSkusByProductId(Long productId);
 }

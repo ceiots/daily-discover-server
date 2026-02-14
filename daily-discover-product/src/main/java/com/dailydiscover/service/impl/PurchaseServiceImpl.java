@@ -1,6 +1,8 @@
 package com.dailydiscover.service.impl;
 
+import com.dailydiscover.mapper.PurchaseMapper;
 import com.dailydiscover.service.PurchaseService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -10,16 +12,18 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PurchaseServiceImpl implements PurchaseService {
+    
+    private final PurchaseMapper purchaseMapper;
     
     @Override
     public List<Map<String, Object>> getPurchaseHistory() {
         try {
             log.info("获取购买历史");
             
-            List<Map<String, Object>> history = new ArrayList<>();
+            List<Map<String, Object>> history = purchaseMapper.getPurchaseHistory();
             
-            // 暂时返回空列表，后续集成数据库
             return history;
         } catch (Exception e) {
             log.error("获取购买历史失败", e);
@@ -32,9 +36,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         try {
             log.info("获取商品购买历史: productId={}", productId);
             
-            List<Map<String, Object>> history = new ArrayList<>();
+            List<Map<String, Object>> history = purchaseMapper.getPurchaseHistoryByProduct(productId);
             
-            // 暂时返回空列表，后续集成数据库
             return history;
         } catch (Exception e) {
             log.error("获取商品购买历史失败: productId={}", productId, e);
@@ -47,9 +50,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         try {
             log.info("获取用户购买历史: userId={}", userId);
             
-            List<Map<String, Object>> history = new ArrayList<>();
+            List<Map<String, Object>> history = purchaseMapper.getUserPurchaseHistory(userId);
             
-            // 暂时返回空列表，后续集成数据库
             return history;
         } catch (Exception e) {
             log.error("获取用户购买历史失败: userId={}", userId, e);
@@ -62,11 +64,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         try {
             log.info("获取购买统计信息");
             
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalPurchases", 0);
-            stats.put("todayPurchases", 0);
-            stats.put("monthlyPurchases", 0);
-            stats.put("totalRevenue", 0.0);
+            Map<String, Object> stats = purchaseMapper.getPurchaseStats();
             
             return stats;
         } catch (Exception e) {
@@ -80,12 +78,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         try {
             log.info("获取商品购买统计: productId={}", productId);
             
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("productId", productId);
-            stats.put("totalPurchases", 0);
-            stats.put("todayPurchases", 0);
-            stats.put("monthlyPurchases", 0);
-            stats.put("totalQuantity", 0);
+            Map<String, Object> stats = purchaseMapper.getProductPurchaseStats(productId);
             
             return stats;
         } catch (Exception e) {
@@ -98,6 +91,14 @@ public class PurchaseServiceImpl implements PurchaseService {
     public Map<String, Object> recordPurchase(String productId, String userId, int quantity) {
         try {
             log.info("记录购买记录: productId={}, userId={}, quantity={}", productId, userId, quantity);
+            
+            Map<String, Object> purchase = new HashMap<>();
+            purchase.put("productId", productId);
+            purchase.put("userId", userId);
+            purchase.put("quantity", quantity);
+            purchase.put("timestamp", System.currentTimeMillis());
+            
+            purchaseMapper.recordPurchase(purchase);
             
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);

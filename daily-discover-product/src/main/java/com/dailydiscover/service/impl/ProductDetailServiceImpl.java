@@ -1,6 +1,6 @@
 package com.dailydiscover.service.impl;
 
-import com.dailydiscover.mapper.*;
+import com.dailydiscover.mapper.ProductDetailMapper;
 import com.dailydiscover.model.*;
 import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
@@ -15,9 +15,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductDetailServiceImpl implements ProductDetailService {
     
-    private final ProductImageMapper productImageMapper;
-    private final ProductSpecMapper productSpecMapper;
-    private final ProductSkuMapper productSkuMapper;
     private final ProductDetailMapper productDetailMapper;
     private final ProductService productService;
     
@@ -25,7 +22,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     public List<ProductImage> getProductImages(Long productId) {
         try {
             log.info("获取商品图片列表: productId={}", productId);
-            return productImageMapper.findByProductId(productId);
+            return productDetailMapper.findImagesByProductId(productId);
         } catch (Exception e) {
             log.error("获取商品图片列表失败: productId={}", productId, e);
             throw new RuntimeException("获取商品图片列表失败", e);
@@ -36,7 +33,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     public List<ProductSpec> getProductSpecifications(Long productId) {
         try {
             log.info("获取商品规格参数: productId={}", productId);
-            return productSpecMapper.findByProductId(productId);
+            return productDetailMapper.findSpecsByProductId(productId);
         } catch (Exception e) {
             log.error("获取商品规格参数失败: productId={}", productId, e);
             throw new RuntimeException("获取商品规格参数失败", e);
@@ -47,7 +44,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     public List<ProductSku> getProductSKUs(Long productId) {
         try {
             log.info("获取商品SKU列表: productId={}", productId);
-            return productSkuMapper.findByProductId(productId);
+            return productDetailMapper.findSkusByProductId(productId);
         } catch (Exception e) {
             log.error("获取商品SKU列表失败: productId={}", productId, e);
             throw new RuntimeException("获取商品SKU列表失败", e);

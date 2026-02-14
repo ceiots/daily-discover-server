@@ -1,5 +1,6 @@
 package com.dailydiscover.service.impl;
 
+import com.dailydiscover.mapper.ProductActionMapper;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.service.ProductActionService;
 import com.dailydiscover.service.ProductService;
@@ -14,6 +15,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProductActionServiceImpl implements ProductActionService {
     
+    private final ProductActionMapper productActionMapper;
     private final ProductService productService;
     
     @Override
@@ -21,13 +23,33 @@ public class ProductActionServiceImpl implements ProductActionService {
         try {
             log.info("收藏/取消收藏商品: productId={}", productId);
             
-            Map<String, Object> result = new HashMap<>();
-            result.put("productId", productId);
-            result.put("favorited", true);
-            result.put("success", true);
-            result.put("message", "收藏成功");
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
             
-            return result;
+            // 检查是否已经收藏
+            boolean isFavorited = productActionMapper.isProductFavorited(userId, productId);
+            
+            if (isFavorited) {
+                // 取消收藏
+                productActionMapper.removeFromFavorites(userId, productId);
+                
+                Map<String, Object> result = new HashMap<>();
+                result.put("productId", productId);
+                result.put("favorited", false);
+                result.put("success", true);
+                result.put("message", "取消收藏成功");
+                return result;
+            } else {
+                // 添加收藏
+                productActionMapper.addToFavorites(userId, productId);
+                
+                Map<String, Object> result = new HashMap<>();
+                result.put("productId", productId);
+                result.put("favorited", true);
+                result.put("success", true);
+                result.put("message", "收藏成功");
+                return result;
+            }
         } catch (Exception e) {
             log.error("收藏商品失败: productId={}", productId, e);
             Map<String, Object> errorResult = new HashMap<>();
@@ -42,9 +64,14 @@ public class ProductActionServiceImpl implements ProductActionService {
         try {
             log.info("获取商品收藏状态: productId={}", productId);
             
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            boolean isFavorited = productActionMapper.isProductFavorited(userId, productId);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
-            result.put("favorited", false); // 暂时返回false，后续集成数据库
+            result.put("favorited", isFavorited);
             
             return result;
         } catch (Exception e) {
@@ -59,6 +86,12 @@ public class ProductActionServiceImpl implements ProductActionService {
             log.info("分享商品: productId={}", productId);
             
             Product product = productService.findById(productId);
+            
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            // 记录分享
+            productActionMapper.recordProductShare(userId, productId);
             
             Map<String, Object> result = new HashMap<>();
             if (product != null) {
@@ -87,11 +120,7 @@ public class ProductActionServiceImpl implements ProductActionService {
         try {
             log.info("获取商品分享统计: productId={}", productId);
             
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("productId", productId);
-            stats.put("shareCount", 0);
-            stats.put("todayShares", 0);
-            stats.put("totalShares", 0);
+            Map<String, Object> stats = productActionMapper.getProductShareStats(productId);
             
             return stats;
         } catch (Exception e) {
@@ -104,6 +133,11 @@ public class ProductActionServiceImpl implements ProductActionService {
     public Map<String, Object> addToViewHistory(Long productId) {
         try {
             log.info("添加商品到浏览历史: productId={}", productId);
+            
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            productActionMapper.addToViewHistory(userId, productId);
             
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
@@ -125,10 +159,12 @@ public class ProductActionServiceImpl implements ProductActionService {
         try {
             log.info("获取用户浏览历史: userId={}", userId);
             
+            Map<String, Object> history = productActionMapper.getUserViewHistory(userId);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("userId", userId);
-            result.put("history", new HashMap<>()); // 暂时返回空列表
-            result.put("totalCount", 0);
+            result.put("history", history);
+            result.put("totalCount", history.size());
             
             return result;
         } catch (Exception e) {

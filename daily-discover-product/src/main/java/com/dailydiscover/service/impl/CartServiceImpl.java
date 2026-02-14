@@ -1,6 +1,8 @@
 package com.dailydiscover.service.impl;
 
+import com.dailydiscover.mapper.CartMapper;
 import com.dailydiscover.service.CartService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
@@ -8,12 +10,25 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
+    
+    private final CartMapper cartMapper;
     
     @Override
     public Map<String, Object> addToCart(String productId, int quantity) {
         try {
             log.info("添加商品到购物车: productId={}, quantity={}", productId, quantity);
+            
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            Map<String, Object> cartItem = new HashMap<>();
+            cartItem.put("userId", userId);
+            cartItem.put("productId", productId);
+            cartItem.put("quantity", quantity);
+            
+            cartMapper.addToCart(cartItem);
             
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
@@ -36,9 +51,14 @@ public class CartServiceImpl implements CartService {
         try {
             log.info("获取购物车商品数量: productId={}", productId);
             
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            Integer quantity = cartMapper.getCartItemQuantity(userId, productId);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
-            result.put("quantity", 0); // 暂时返回0，后续集成数据库
+            result.put("quantity", quantity != null ? quantity : 0);
             
             return result;
         } catch (Exception e) {
@@ -52,8 +72,13 @@ public class CartServiceImpl implements CartService {
         try {
             log.info("获取购物车总数量");
             
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            Integer totalCount = cartMapper.getCartTotalCount(userId);
+            
             Map<String, Object> result = new HashMap<>();
-            result.put("totalCount", 0); // 暂时返回0，后续集成数据库
+            result.put("totalCount", totalCount != null ? totalCount : 0);
             
             return result;
         } catch (Exception e) {
@@ -66,6 +91,16 @@ public class CartServiceImpl implements CartService {
     public Map<String, Object> updateCartItem(String productId, int quantity) {
         try {
             log.info("更新购物车商品数量: productId={}, quantity={}", productId, quantity);
+            
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            Map<String, Object> cartItem = new HashMap<>();
+            cartItem.put("userId", userId);
+            cartItem.put("productId", productId);
+            cartItem.put("quantity", quantity);
+            
+            cartMapper.updateCartItemQuantity(cartItem);
             
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
@@ -88,6 +123,11 @@ public class CartServiceImpl implements CartService {
         try {
             log.info("从购物车移除商品: productId={}", productId);
             
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            cartMapper.removeFromCart(userId, productId);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
             result.put("success", true);
@@ -107,6 +147,11 @@ public class CartServiceImpl implements CartService {
     public Map<String, Object> clearCart() {
         try {
             log.info("清空购物车");
+            
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            cartMapper.clearCart(userId);
             
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);

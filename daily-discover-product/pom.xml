@@ -43,15 +43,6 @@
             </exclusions>
         </dependency>
         
-        <!-- MyBatis Spring Boot Starter -->
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>3.0.3</version>
-        </dependency>
-        
-
-        
         <!-- Spring Boot Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -65,24 +56,12 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 公共模块依赖（排除数据库相关依赖） -->
+        <!-- 公共模块依赖 -->
         <dependency>
             <groupId>com.dailydiscover</groupId>
             <artifactId>daily-discover-common</artifactId>
             <version>1.0.0</version>
             <exclusions>
-                <exclusion>
-                    <groupId>com.baomidou</groupId>
-                    <artifactId>mybatis-plus-boot-starter</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.mybatis</groupId>
-                    <artifactId>mybatis</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.mybatis</groupId>
-                    <artifactId>mybatis-spring</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>io.springfox</groupId>
                     <artifactId>springfox-swagger2</artifactId>

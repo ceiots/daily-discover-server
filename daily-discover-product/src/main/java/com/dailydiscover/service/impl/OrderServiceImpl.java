@@ -1,6 +1,8 @@
 package com.dailydiscover.service.impl;
 
+import com.dailydiscover.mapper.OrderMapper;
 import com.dailydiscover.service.OrderService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -10,17 +12,30 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    
+    private final OrderMapper orderMapper;
     
     @Override
     public Map<String, Object> createOrder(String productId, int quantity) {
         try {
             log.info("创建订单: productId={}, quantity={}", productId, quantity);
             
-            String orderId = "ORDER" + System.currentTimeMillis();
+            // 模拟用户ID，实际应该从认证信息中获取
+            String userId = "user123";
+            
+            Map<String, Object> order = new HashMap<>();
+            order.put("userId", userId);
+            order.put("productId", productId);
+            order.put("quantity", quantity);
+            order.put("status", "pending");
+            order.put("createdAt", System.currentTimeMillis());
+            
+            orderMapper.createOrder(order);
             
             Map<String, Object> result = new HashMap<>();
-            result.put("orderId", orderId);
+            result.put("orderId", order.get("id"));
             result.put("productId", productId);
             result.put("quantity", quantity);
             result.put("status", "pending");
@@ -43,12 +58,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             log.info("获取订单详情: orderId={}", orderId);
             
-            Map<String, Object> order = new HashMap<>();
-            order.put("orderId", orderId);
-            order.put("productId", "PRODUCT001");
-            order.put("quantity", 1);
-            order.put("status", "pending");
-            order.put("createdAt", System.currentTimeMillis());
+            Map<String, Object> order = orderMapper.getOrderById(orderId);
             
             return order;
         } catch (Exception e) {
@@ -62,9 +72,8 @@ public class OrderServiceImpl implements OrderService {
         try {
             log.info("获取用户订单列表: userId={}", userId);
             
-            List<Map<String, Object>> orders = new ArrayList<>();
+            List<Map<String, Object>> orders = orderMapper.getUserOrders(userId);
             
-            // 暂时返回空列表，后续集成数据库
             return orders;
         } catch (Exception e) {
             log.error("获取用户订单列表失败: userId={}", userId, e);
@@ -76,6 +85,8 @@ public class OrderServiceImpl implements OrderService {
     public Map<String, Object> cancelOrder(String orderId) {
         try {
             log.info("取消订单: orderId={}", orderId);
+            
+            orderMapper.updateOrderStatus(orderId, "cancelled");
             
             Map<String, Object> result = new HashMap<>();
             result.put("orderId", orderId);
@@ -96,6 +107,8 @@ public class OrderServiceImpl implements OrderService {
     public Map<String, Object> updateOrderStatus(String orderId, String status) {
         try {
             log.info("更新订单状态: orderId={}, status={}", orderId, status);
+            
+            orderMapper.updateOrderStatus(orderId, status);
             
             Map<String, Object> result = new HashMap<>();
             result.put("orderId", orderId);
@@ -118,11 +131,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             log.info("获取订单统计信息");
             
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalOrders", 0);
-            stats.put("pendingOrders", 0);
-            stats.put("completedOrders", 0);
-            stats.put("cancelledOrders", 0);
+            Map<String, Object> stats = orderMapper.getOrderStats();
             
             return stats;
         } catch (Exception e) {
