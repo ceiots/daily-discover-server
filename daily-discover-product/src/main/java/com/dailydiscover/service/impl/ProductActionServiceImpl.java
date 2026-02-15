@@ -19,7 +19,7 @@ public class ProductActionServiceImpl implements ProductActionService {
     private final ProductService productService;
     
     @Override
-    public Map<String, Object> toggleFavorite(Long productId) {
+    public Map<String, Object> toggleCollection(Long productId) {
         try {
             log.info("收藏/取消收藏商品: productId={}", productId);
             
@@ -27,25 +27,25 @@ public class ProductActionServiceImpl implements ProductActionService {
             String userId = "user123";
             
             // 检查是否已经收藏
-            boolean isFavorited = productActionMapper.isProductFavorited(userId, productId);
+            boolean isCollected = productActionMapper.isProductCollected(userId, productId);
             
-            if (isFavorited) {
+            if (isCollected) {
                 // 取消收藏
-                productActionMapper.removeFromFavorites(userId, productId);
+                productActionMapper.removeFromCollection(userId, productId);
                 
                 Map<String, Object> result = new HashMap<>();
                 result.put("productId", productId);
-                result.put("favorited", false);
+                result.put("collected", false);
                 result.put("success", true);
                 result.put("message", "取消收藏成功");
                 return result;
             } else {
                 // 添加收藏
-                productActionMapper.addToFavorites(userId, productId);
+                productActionMapper.addToCollection(userId, productId);
                 
                 Map<String, Object> result = new HashMap<>();
                 result.put("productId", productId);
-                result.put("favorited", true);
+                result.put("collected", true);
                 result.put("success", true);
                 result.put("message", "收藏成功");
                 return result;
@@ -60,18 +60,18 @@ public class ProductActionServiceImpl implements ProductActionService {
     }
     
     @Override
-    public Map<String, Object> getFavoriteStatus(Long productId) {
+    public Map<String, Object> getCollectionStatus(Long productId) {
         try {
             log.info("获取商品收藏状态: productId={}", productId);
             
             // 模拟用户ID，实际应该从认证信息中获取
             String userId = "user123";
             
-            boolean isFavorited = productActionMapper.isProductFavorited(userId, productId);
+            boolean isCollected = productActionMapper.isProductCollected(userId, productId);
             
             Map<String, Object> result = new HashMap<>();
             result.put("productId", productId);
-            result.put("favorited", isFavorited);
+            result.put("collected", isCollected);
             
             return result;
         } catch (Exception e) {

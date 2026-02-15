@@ -32,16 +32,16 @@ public interface ProductActionMapper {
             "WHERE user_id = #{userId} GROUP BY product_id ORDER BY last_viewed DESC LIMIT 50")
     Map<String, Object> getUserViewHistory(String userId);
     
-    // 新增方法 - 用于ProductActionServiceImpl
+    // 收藏相关方法 - 统一命名
     @Select("SELECT COUNT(*) > 0 FROM user_favorites WHERE user_id = #{userId} AND product_id = #{productId}")
-    boolean isProductFavorited(@Param("userId") String userId, @Param("productId") Long productId);
+    boolean isProductCollected(@Param("userId") String userId, @Param("productId") Long productId);
     
     @Delete("DELETE FROM user_favorites WHERE user_id = #{userId} AND product_id = #{productId}")
-    void removeFromFavorites(@Param("userId") String userId, @Param("productId") Long productId);
+    void removeFromCollection(@Param("userId") String userId, @Param("productId") Long productId);
     
     @Insert("INSERT INTO user_favorites (user_id, product_id, created_at) " +
             "VALUES (#{userId}, #{productId}, CURRENT_TIMESTAMP)")
-    void addToFavorites(@Param("userId") String userId, @Param("productId") Long productId);
+    void addToCollection(@Param("userId") String userId, @Param("productId") Long productId);
     
     @Insert("INSERT INTO product_share_logs (user_id, product_id, shared_at) " +
             "VALUES (#{userId}, #{productId}, CURRENT_TIMESTAMP)")

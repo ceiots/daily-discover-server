@@ -9,14 +9,14 @@ public interface ProductActionService {
      * @param productId 商品ID
      * @return 操作结果
      */
-    Map<String, Object> toggleFavorite(Long productId);
+    Map<String, Object> toggleCollection(Long productId);
     
     /**
      * 获取商品收藏状态
      * @param productId 商品ID
      * @return 收藏状态
      */
-    Map<String, Object> getFavoriteStatus(Long productId);
+    Map<String, Object> getCollectionStatus(Long productId);
     
     /**
      * 分享商品

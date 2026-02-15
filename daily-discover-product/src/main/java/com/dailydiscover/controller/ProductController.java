@@ -1,12 +1,9 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
-import com.dailydiscover.dto.ProductDetailDTO;
-import com.dailydiscover.mapper.*;
 import com.dailydiscover.model.*;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
