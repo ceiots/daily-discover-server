@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS user_reviews (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '评价ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
+    user_avatar VARCHAR(500) COMMENT '用户头像',
     order_id BIGINT COMMENT '订单ID',
     rating INT NOT NULL COMMENT '评分(1-5)',
     title VARCHAR(200) COMMENT '评价标题',
@@ -145,17 +146,17 @@ COMMIT;
 -- ============================================
 
 -- 插入用户评价数据
-INSERT INTO user_reviews (id, product_id, user_id, order_id, rating, title, comment, image_urls, is_anonymous, is_verified_purchase, helpful_count, reply_count, like_count, review_date, status) VALUES
-(1, 1, 1001, 2001, 5, '非常满意！功能强大', '这款智能手表真的很不错，心率监测准确，运动追踪功能也很实用。续航能力超出预期！', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', false, true, 15, 3, 20, '2026-01-15', 'approved'),
-(2, 1, 1002, 2002, 4, '性价比高', '功能齐全，价格合理。就是表带有点硬，希望能改进。', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', false, true, 8, 1, 12, '2026-01-20', 'approved'),
-(3, 2, 1003, 2003, 5, '音质超棒！', '降噪效果很好，音质清晰，佩戴舒适。续航能力也很强，值得购买！', '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"]', false, true, 20, 5, 25, '2026-01-18', 'approved'),
-(4, 2, 1004, 2004, 4, '不错的耳机', '降噪效果满意，音质清晰。就是充电盒有点大，携带不太方便。', '[]', true, true, 5, 0, 8, '2026-01-22', 'approved'),
-(5, 3, 1005, 2005, 5, '性能强劲', '运行速度快，屏幕显示效果很好。轻薄便携，适合商务人士。', '[]', false, true, 12, 2, 15, '2026-01-25', 'approved'),
-(6, 4, 1006, 2006, 5, '拍照效果惊艳！', '这款手机的拍照功能真的没话说，夜景模式特别强大，色彩还原很真实。性能也很流畅，玩游戏完全不卡顿。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', false, true, 25, 4, 30, '2026-01-28', 'approved'),
-(7, 4, 1007, 2007, 4, '性价比不错的旗舰机', '整体使用体验很好，屏幕显示效果细腻，系统流畅。就是续航稍微有点短，重度使用需要一天两充。', '[]', false, true, 12, 1, 18, '2026-02-01', 'approved'),
-(8, 4, 1008, 2008, 5, '5G速度超快', '下载速度真的很快，视频加载几乎无延迟。外观设计也很漂亮，手感舒适。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', true, true, 8, 0, 12, '2026-02-05', 'approved'),
-(9, 4, 1009, 2009, 4, '系统优化不错', '系统运行很流畅，很少出现卡顿。充电速度也很快，30分钟就能充到80%。就是价格稍微有点高。', '[]', false, true, 6, 0, 9, '2026-02-10', 'approved'),
-(10, 4, 1010, 2010, 5, '完美的商务手机', '非常适合商务人士使用，多任务处理很流畅，电池续航也能满足一天需求。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', false, true, 15, 2, 22, '2026-02-12', 'approved');
+INSERT INTO user_reviews (id, product_id, user_id, user_avatar, order_id, rating, title, comment, image_urls, is_anonymous, is_verified_purchase, helpful_count, reply_count, like_count, review_date, status) VALUES
+(1, 1, 1001, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face', 2001, 5, '非常满意！功能强大', '这款智能手表真的很不错，心率监测准确，运动追踪功能也很实用。续航能力超出预期！', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', false, true, 15, 3, 20, '2026-01-15', 'approved'),
+(2, 1, 1002, 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face', 2002, 4, '性价比高', '功能齐全，价格合理。就是表带有点硬，希望能改进。', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', false, true, 8, 1, 12, '2026-01-20', 'approved'),
+(3, 2, 1003, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face', 2003, 5, '音质超棒！', '降噪效果很好，音质清晰，佩戴舒适。续航能力也很强，值得购买！', '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"]', false, true, 20, 5, 25, '2026-01-18', 'approved'),
+(4, 2, 1004, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face', 2004, 4, '不错的耳机', '降噪效果满意，音质清晰。就是充电盒有点大，携带不太方便。', '[]', true, true, 5, 0, 8, '2026-01-22', 'approved'),
+(5, 3, 1005, 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face', 2005, 5, '性能强劲', '运行速度快，屏幕显示效果很好。轻薄便携，适合商务人士。', '[]', false, true, 12, 2, 15, '2026-01-25', 'approved'),
+(6, 4, 1006, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face', 2006, 5, '拍照效果惊艳！', '这款手机的拍照功能真的没话说，夜景模式特别强大，色彩还原很真实。性能也很流畅，玩游戏完全不卡顿。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', false, true, 25, 4, 30, '2026-01-28', 'approved'),
+(7, 4, 1007, 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face', 2007, 4, '性价比不错的旗舰机', '整体使用体验很好，屏幕显示效果细腻，系统流畅。就是续航稍微有点短，重度使用需要一天两充。', '[]', false, true, 12, 1, 18, '2026-02-01', 'approved'),
+(8, 4, 1008, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face', 2008, 5, '5G速度超快', '下载速度真的很快，视频加载几乎无延迟。外观设计也很漂亮，手感舒适。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', true, true, 8, 0, 12, '2026-02-05', 'approved'),
+(9, 4, 1009, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face', 2009, 4, '系统优化不错', '系统运行很流畅，很少出现卡顿。充电速度也很快，30分钟就能充到80%。就是价格稍微有点高。', '[]', false, true, 6, 0, 9, '2026-02-10', 'approved'),
+(10, 4, 1010, 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face', 2010, 5, '完美的商务手机', '非常适合商务人士使用，多任务处理很流畅，电池续航也能满足一天需求。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', false, true, 15, 2, 22, '2026-02-12', 'approved');
 
 -- 插入评价回复数据
 INSERT INTO review_replies (review_id, user_id, content, is_seller_reply, like_count, status) VALUES

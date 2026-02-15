@@ -16,24 +16,24 @@ public class ProductActionController {
     
     private final ProductActionService productActionService;
 
-    @PostMapping("/favorite")
+    @PostMapping("/collection")
     @ApiLog("收藏/取消收藏商品")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> toggleFavorite(@PathVariable Long productId) {
+    public ResponseEntity<Map<String, Object>> toggleCollection(@PathVariable Long productId) {
         try {
-            Map<String, Object> result = productActionService.toggleFavorite(productId);
+            Map<String, Object> result = productActionService.toggleCollection(productId);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
-    @GetMapping("/favorite")
+    @GetMapping("/collection")
     @ApiLog("获取商品收藏状态")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> getFavoriteStatus(@PathVariable Long productId) {
+    public ResponseEntity<Map<String, Object>> getCollectionStatus(@PathVariable Long productId) {
         try {
-            Map<String, Object> result = productActionService.getFavoriteStatus(productId);
+            Map<String, Object> result = productActionService.getCollectionStatus(productId);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
