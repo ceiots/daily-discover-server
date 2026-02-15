@@ -20,7 +20,7 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <mybatis-plus.version>3.5.4.1</mybatis-plus.version>
         <jwt.version>0.11.5</jwt.version>
         <fastjson.version>2.0.40</fastjson.version>
         <spring-boot.version>3.2.0</spring-boot.version>
