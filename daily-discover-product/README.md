@@ -205,6 +205,12 @@ migration/
 └── 004_create_relationship_recommendation_tables.sql # 商品关系与推荐模块
 ```
 
+### 手动执行数据库迁移
+
+```bash
+# 执行评价与互动模块迁移脚本
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\003_create_review_interaction_tables.sql"
+```
 
 ## 开发指南
 

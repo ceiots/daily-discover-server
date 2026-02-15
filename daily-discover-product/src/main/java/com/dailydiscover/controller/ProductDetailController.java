@@ -44,33 +44,7 @@ public class ProductDetailController {
         }
     }
     
-    @GetMapping("/skus")
-    @ApiLog("获取商品SKU列表")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ProductSku>> getProductSKUs(@PathVariable Long productId) {
-        try {
-            List<ProductSku> skus = productDetailService.getProductSKUs(productId);
-            return ResponseEntity.ok(skus);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/details")
-    @ApiLog("获取商品详情信息")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<ProductDetail> getProductDetailInfo(@PathVariable Long productId) {
-        try {
-            ProductDetail detail = productDetailService.getProductDetailInfo(productId);
-            if (detail != null) {
-                return ResponseEntity.ok(detail);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+
     
     @GetMapping("/features")
     @ApiLog("获取商品特性")
