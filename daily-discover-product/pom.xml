@@ -80,6 +80,27 @@
             </exclusions>
         </dependency>
 
+        <!-- 公共模块依赖 -->
+        <dependency>
+            <groupId>com.dailydiscover</groupId>
+            <artifactId>daily-discover-common</artifactId>
+            <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger-ui</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-boot-starter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- MyBatis Plus for Spring Boot 3.x -->
         <dependency>
             <groupId>com.baomidou</groupId>

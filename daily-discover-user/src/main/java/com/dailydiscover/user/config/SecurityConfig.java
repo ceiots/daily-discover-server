@@ -1,49 +1,65 @@
 package com.dailydiscover.user.config;
 
-import com.dailydiscover.common.security.SimpleSecurityConfig;
+import com.dailydiscover.common.security.JwtAuthenticationFilter;
+import com.dailydiscover.common.security.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * 用户服务安全配置
- * 认证中心双重角色：
- * 1. 认证提供者：公开认证接口（登录、注册、刷新Token）
- * 2. 业务服务：保护用户相关接口（个人中心、用户信息等）
+ * 使用 common 模块的 JwtAuthenticationFilter 进行认证
  */
 @Configuration
-public class SecurityConfig extends SimpleSecurityConfig {
+public class SecurityConfig {
 
-    /**
-     * 重写安全配置链，支持用户服务的双重角色
-     */
+    private final JwtUtil jwtUtil;
+
+    public SecurityConfig(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
     @Bean
-    @Primary
-    @Override
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return configureBaseSecurity(http)
+        return http
+            // 基础安全配置
+            .csrf(csrf -> csrf.disable())
+            
+            // 禁用默认认证方式
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            
+            // 添加 JWT 认证过滤器
+            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+            
+            // 权限配置
             .authorizeHttpRequests(authz -> authz
-                // 认证接口公开（认证提供者角色）
+                // 系统级公开接口
+                .requestMatchers(
+                    "/actuator/health",
+                    "/swagger-ui/**", 
+                    "/v3/api-docs/**",
+                    "/webjars/**",
+                    "/favicon.ico"
+                ).permitAll()
+                
+                // 认证接口公开（登录、注册等）
                 .requestMatchers("/user/api/auth/**").permitAll()
                 
-                // 用户接口需要认证（业务服务角色）
+                // 用户相关接口需要认证
                 .requestMatchers("/user/api/users/**").authenticated()
                 
-                // 其他接口默认规则
+                // 其他接口需要认证
                 .anyRequest().authenticated()
             )
             .build();
     }
 
-    /**
-     * 密码编码器配置 - 用户服务特有的业务配置
-     */
     @Bean
-    @Primary
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
