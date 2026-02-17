@@ -74,17 +74,23 @@ CREATE TABLE IF NOT EXISTS user_addresses (
     INDEX idx_city_id (city_id),
     INDEX idx_district_id (district_id),
     INDEX idx_is_default (is_default),
-    UNIQUE KEY uk_user_default (user_id, is_default) COMMENT '每个用户只能有一个默认地址'
+    UNIQUE KEY uk_user_default (user_id, is_default) COMMENT '每个用户只能有一个默认地址',
+    
+    -- 外键约束（确保地区编码的有效性）
+    FOREIGN KEY (province_id) REFERENCES regions(region_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (city_id) REFERENCES regions(region_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (district_id) REFERENCES regions(region_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户地址表';
 
 -- 3. 用户地址表（支持多地址和默认地址）
 
 -- 初始化数据
 -- 2. 初始化默认用户
-INSERT INTO users (nickname, phone, email, password, membership, phone_verified, status) VALUES
-('设计生活家', '13800000000', 'user@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '普通会员', TRUE, 'ACTIVE'),
-('商家用户', '13800000001', 'seller@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '金牌会员', TRUE, 'ACTIVE'),
-('管理员', '13800000002', 'admin@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '钻石会员', TRUE, 'ACTIVE');
+INSERT INTO users (nickname, phone, email, password, membership, status) VALUES
+('设计生活家', '13800000000', 'user@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '普通会员', 'ACTIVE'),
+('商家用户', '13800000001', 'seller@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '金牌会员', 'ACTIVE'),
+('管理员', '13800000002', 'admin@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '钻石会员', 'ACTIVE');
 
 -- 初始化数据
 -- 1. 用户等级配置（已移到代码中配置）

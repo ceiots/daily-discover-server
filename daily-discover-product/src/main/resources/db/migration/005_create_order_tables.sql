@@ -6,6 +6,8 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
+DROP TABLE IF EXISTS after_sales_applications;
+DROP TABLE IF EXISTS order_invoices;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders_extend;
 DROP TABLE IF EXISTS orders_core;

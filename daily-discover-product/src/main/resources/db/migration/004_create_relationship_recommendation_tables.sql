@@ -236,4 +236,19 @@ INSERT INTO product_tag_relations (product_id, tag_id) VALUES
 (4, 7),  -- 智能手机 - 旗舰
 (5, 8);  -- 男士衬衫 - 纯棉
 
+-- 插入用户行为日志数据
+INSERT INTO user_behavior_logs (user_id, product_id, behavior_type, behavior_weight, session_id, referrer_url, behavior_context) VALUES
+(1001, 1, 'view', 1.0, 'session001', 'https://example.com/products', '{"device": "mobile", "location": "北京"}'),
+(1001, 1, 'favorite', 1.5, 'session001', 'https://example.com/products/1', '{"device": "mobile", "location": "北京"}'),
+(1002, 2, 'view', 1.0, 'session002', 'https://example.com/products', '{"device": "desktop", "location": "上海"}'),
+(1002, 2, 'cart', 2.0, 'session002', 'https://example.com/products/2', '{"device": "desktop", "location": "上海"}'),
+(1003, 3, 'view', 1.0, 'session003', 'https://example.com/products', '{"device": "tablet", "location": "广州"}'),
+(1003, 3, 'purchase', 3.0, 'session003', 'https://example.com/products/3', '{"device": "tablet", "location": "广州"}');
+
+-- 插入推荐效果追踪数据
+INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count, click_count, conversion_count, last_impressed_at, last_clicked_at) VALUES
+(1, 1001, 5, 2, 1, '2026-02-01 10:30:00', '2026-02-01 10:35:00'),
+(2, 1002, 3, 1, 0, '2026-02-01 14:20:00', '2026-02-01 14:25:00'),
+(3, 1003, 8, 3, 2, '2026-02-01 16:45:00', '2026-02-01 16:50:00');
+
 COMMIT;

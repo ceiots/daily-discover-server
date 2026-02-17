@@ -303,7 +303,10 @@ INSERT INTO product_skus (product_id, seller_id, price, original_price) VALUES
 (3, 2, 6999.00, 7999.00),
 (3, 2, 5999.00, 6999.00);
 
-
-
+-- 插入购物车数据
+INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
+(1001, 1, 1, 1, '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 1),
+(1001, 2, 3, 2, '{"颜色": "黑色"}', '黑色', 1),
+(1002, 4, 7, 1, '{"颜色": "蓝色", "存储": "256GB", "网络版本": "5G版"}', '蓝色 256GB 5G版', 1);
 
 COMMIT;

@@ -7,11 +7,10 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS user_favorites;
-DROP TABLE IF EXISTS product_actions;
 DROP TABLE IF EXISTS review_stats;
-DROP TABLE IF EXISTS review_likes;
 DROP TABLE IF EXISTS review_replies;
+DROP TABLE IF EXISTS user_review_stats;
+DROP TABLE IF EXISTS user_review_details;
 DROP TABLE IF EXISTS user_reviews;
 
 -- 用户评价表（垂直分表设计）
@@ -172,19 +171,6 @@ INSERT INTO review_stats (product_id, total_reviews, average_rating, rating_dist
 (3, 256, 4.7, '{"5": 180, "4": 60, "3": 12, "2": 3, "1": 1}', 240, 80, 40, 150),
 (4, 194, 4.8, '{"5": 150, "4": 40, "3": 3, "2": 1, "1": 0}', 180, 60, 35, 120);
 
--- 插入商品操作记录数据
-INSERT INTO product_actions (product_id, user_id, action_type, quantity, session_id, ip_address, user_agent, referrer, action_date, status) VALUES
-(1, 1001, 'view', 1, 'session001', '192.168.1.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'https://example.com/products', '2026-01-15 10:30:00', 'completed'),
-(1, 1001, 'cart', 1, 'session001', '192.168.1.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'https://example.com/products/1', '2026-01-15 10:35:00', 'completed'),
-(1, 1001, 'purchase', 1, 'session001', '192.168.1.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'https://example.com/cart', '2026-01-15 10:40:00', 'completed'),
-(2, 1002, 'view', 1, 'session002', '192.168.1.2', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', 'https://example.com/products', '2026-01-16 14:20:00', 'completed'),
-(2, 1002, 'favorite', 1, 'session002', '192.168.1.2', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', 'https://example.com/products/2', '2026-01-16 14:25:00', 'completed');
 
--- 插入用户收藏数据
-INSERT INTO user_favorites (user_id, product_id, folder_name, notes, sort_order) VALUES
-(1001, 2, '默认收藏夹', '考虑购买', 1),
-(1001, 3, '默认收藏夹', '办公使用', 2),
-(1002, 1, '默认收藏夹', '运动装备', 1),
-(1003, 4, '电子产品', '手机升级', 1);
 
 COMMIT;

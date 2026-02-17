@@ -4,6 +4,17 @@
 -- 使用数据库
 USE daily_discover;
 
+-- 删除表（便于可重复执行）
+DROP TABLE IF EXISTS help_faq_categories;
+DROP TABLE IF EXISTS help_faqs;
+DROP TABLE IF EXISTS feedback_types;
+DROP TABLE IF EXISTS account_settings;
+DROP TABLE IF EXISTS privacy_policy_sections;
+DROP TABLE IF EXISTS user_agreement_sections;
+DROP TABLE IF EXISTS help_quick_actions;
+DROP TABLE IF EXISTS help_contact_methods;
+DROP TABLE IF EXISTS user_permission_configs;
+
 -- 1. 帮助中心FAQ分类表
 CREATE TABLE IF NOT EXISTS help_faq_categories (
     category_id VARCHAR(50) PRIMARY KEY COMMENT '分类ID',

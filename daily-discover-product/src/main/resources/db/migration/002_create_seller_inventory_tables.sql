@@ -152,6 +152,10 @@ INSERT INTO inventory_transactions (product_id, sku_id, transaction_type, quanti
 (2, 3, 'in', 200, 0, 200, 'adjustment', 3, '初始入库', 1),
 (3, 4, 'in', 50, 0, 50, 'adjustment', 4, '初始入库', 1);
 
-
+-- 插入商家资料数据
+INSERT INTO seller_profiles (seller_id, positive_feedback, contact_info, services, certifications, business_hours) VALUES
+(1, 98.5, '{"phone": "400-123-4567", "email": "service@techbrand.com", "address": "北京市朝阳区科技园区"}', '["7天无理由退货", "全国联保", "快速发货"]', '["品牌授权", "正品保证"]', '{"weekdays": "9:00-18:00", "weekends": "10:00-17:00"}'),
+(2, 97.8, '{"phone": "400-123-4568", "email": "service@soundtech.com", "address": "上海市浦东新区音频产业园"}', '["15天无理由退货", "专业售后", "免费试听"]', '["品牌授权", "音质认证"]', '{"weekdays": "8:30-17:30", "weekends": "9:00-16:00"}'),
+(3, 95.2, '{"phone": "400-123-4569", "email": "service@fashionstyle.com", "address": "广州市天河区服装城"}', '["30天退换货", "尺码不合适可换", "免费修改"]', '["品质认证", "面料检测"]', '{"weekdays": "9:00-21:00", "weekends": "10:00-20:00"}');
 
 COMMIT;

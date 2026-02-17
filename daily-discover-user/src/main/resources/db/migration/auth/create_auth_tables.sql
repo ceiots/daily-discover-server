@@ -8,14 +8,6 @@ USE daily_discover;
 -- 删除表（便于可重复执行）
 DROP TABLE IF EXISTS user_login_records;
 DROP TABLE IF EXISTS user_tokens;
-DROP TABLE IF EXISTS user_roles;
-DROP TABLE IF EXISTS user_permissions;
-DROP TABLE IF EXISTS login_attempts;
-DROP TABLE IF EXISTS refresh_tokens;
-DROP TABLE IF EXISTS user_verification_codes;
-DROP TABLE IF EXISTS user_reset_tokens;
-DROP TABLE IF EXISTS user_login_stats;
-DROP TABLE IF EXISTS user_devices;
 
 -- 1. 用户令牌表（统一管理所有令牌）
 CREATE TABLE IF NOT EXISTS user_tokens (
