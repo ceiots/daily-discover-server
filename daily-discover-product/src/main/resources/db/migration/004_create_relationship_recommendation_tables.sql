@@ -34,8 +34,7 @@ CREATE TABLE IF NOT EXISTS product_recommendations (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
     INDEX idx_user_product (user_id, product_id),
-    INDEX idx_recommendation_type (recommendation_type),
-    INDEX idx_recommendation_score (recommendation_score),
+    INDEX idx_type_score (recommendation_type, recommendation_score) COMMENT '类型分数查询',
     INDEX idx_is_active_expire (is_active, expire_at)
 ) COMMENT '商品推荐表';
 

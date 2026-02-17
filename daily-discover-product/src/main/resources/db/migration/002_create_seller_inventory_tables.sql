@@ -37,7 +37,11 @@ CREATE TABLE IF NOT EXISTS sellers (
     INDEX idx_monthly_sales (monthly_sales),
     INDEX idx_is_verified (is_verified),
     INDEX idx_is_premium (is_premium),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    
+    -- 性能优化索引（精简版）
+    INDEX idx_rating_status (rating, status) COMMENT '评分状态查询',
+    INDEX idx_premium_status (is_premium, status) COMMENT '优选商家状态查询'
 ) COMMENT '商家基础信息表';
 
 -- 商家资料表
@@ -83,7 +87,17 @@ CREATE TABLE IF NOT EXISTS product_inventory (
     INDEX idx_location_code (location_code),
     INDEX idx_quantity (quantity),
     INDEX idx_available_quantity (available_quantity),
-    INDEX idx_inventory_status (inventory_status)
+    INDEX idx_inventory_status (inventory_status),
+    
+    -- 性能优化索引（新增）
+    INDEX idx_product_sku (product_id, sku_id) COMMENT '商品SKU复合查询',
+    INDEX idx_status_quantity (inventory_status, available_quantity) COMMENT '状态和可用数量查询',
+    INDEX idx_warehouse_status (warehouse_id, inventory_status) COMMENT '仓库状态查询',
+    INDEX idx_restock_dates (last_restock_date, next_restock_date) COMMENT '补货时间查询',
+    INDEX idx_updated_at (updated_at) COMMENT '更新时间排序',
+    
+    -- 唯一约束（避免重复库存记录）
+    UNIQUE KEY uk_product_sku_warehouse (product_id, sku_id, warehouse_id)
 ) COMMENT '库存管理表';
 
 -- 库存操作记录表（引用001文件中的SKU表）

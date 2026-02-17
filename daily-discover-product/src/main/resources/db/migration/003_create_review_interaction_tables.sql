@@ -44,7 +44,11 @@ CREATE TABLE IF NOT EXISTS user_reviews (
     INDEX idx_review_date (review_date),
     INDEX idx_helpful_count (helpful_count),
     INDEX idx_status (status),
-    INDEX idx_is_verified_purchase (is_verified_purchase)
+    INDEX idx_is_verified_purchase (is_verified_purchase),
+    
+    -- 性能优化索引（精简版）
+    INDEX idx_product_status_rating (product_id, status, rating) COMMENT '商品状态评分查询',
+    INDEX idx_user_status (user_id, status) COMMENT '用户状态查询'
 ) COMMENT '用户评价表';
 
 -- 评价回复表

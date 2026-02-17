@@ -7,7 +7,6 @@ USE daily_discover;
 
 -- 删除表（便于可重复执行）
 DROP TABLE IF EXISTS shopping_cart;
-DROP TABLE IF EXISTS user_product_spec_selections;
 DROP TABLE IF EXISTS product_sku_spec_options;
 DROP TABLE IF EXISTS product_sku_specs;
 DROP TABLE IF EXISTS product_skus;
@@ -45,9 +44,11 @@ CREATE TABLE IF NOT EXISTS products (
     INDEX idx_seller_id (seller_id),
     INDEX idx_category_status_price (category_id, status, min_price) COMMENT '分类状态价格查询',
     INDEX idx_created_at (created_at) COMMENT '新品推荐',
-    INDEX idx_brand (brand),
-    INDEX idx_model (model),
-    INDEX idx_product_code (product_code)
+    INDEX idx_brand_model (brand, model) COMMENT '品牌型号查询',
+    INDEX idx_product_code (product_code),
+    
+    -- 软删除索引
+    INDEX idx_is_deleted (is_deleted) COMMENT '软删除状态查询'
 ) COMMENT '商品基础信息表（SPU - 标准化产品单元）';
 
 -- 商品分类表（优化树形结构）
@@ -77,8 +78,10 @@ CREATE TABLE IF NOT EXISTS product_categories (
     INDEX idx_path (path) COMMENT '路径查询',
     INDEX idx_level (level),
     INDEX idx_sort_order (sort_order),
-    INDEX idx_status (status),
-    INDEX idx_parent_status (parent_id, status) COMMENT '父分类状态查询'
+    INDEX idx_parent_status (parent_id, status) COMMENT '父分类状态查询',
+    
+    -- 软删除索引
+    INDEX idx_is_deleted (is_deleted) COMMENT '软删除状态查询'
 ) COMMENT '商品分类表（优化树形结构）';
 
 -- ============================================
@@ -136,25 +139,7 @@ CREATE TABLE IF NOT EXISTS product_skus (
     INDEX idx_seller_id (seller_id)
 ) COMMENT 'SKU表（电商核心 - 可销售最小单位）';
 
--- 用户商品规格选择记录表（用于规格选择弹窗）
-CREATE TABLE IF NOT EXISTS user_product_spec_selections (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '选择记录ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    
-    -- 用户选择的规格组合（JSON格式）
-    selected_spec_combination JSON COMMENT '用户选择的规格组合：{"color": 1, "storage": 4}',
-    
-    -- 选择时间（用于清理过期记录）
-    selected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '选择时间',
-    
-    -- 索引优化
-    INDEX idx_user_product (user_id, product_id),
-    INDEX idx_selected_at (selected_at),
-    
-    -- 唯一约束：一个用户对一个商品只能有一条最新选择记录
-    UNIQUE KEY uk_user_product (user_id, product_id)
-) COMMENT '用户商品规格选择记录表（用于规格选择弹窗）';
+
 
 -- 购物车表（支持多规格购买）
 CREATE TABLE IF NOT EXISTS shopping_cart (
@@ -165,6 +150,10 @@ CREATE TABLE IF NOT EXISTS shopping_cart (
     
     -- 购买数量
     quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
+    
+    -- 规格信息（记录用户选择的规格组合）
+    specs_json JSON COMMENT '规格组合JSON：{"颜色": "黑色", "存储": "128GB"}',
+    specs_text VARCHAR(500) COMMENT '规格文本：黑色 128GB',
     
     -- 购物车项状态
     is_selected TINYINT DEFAULT 1 COMMENT '是否选中：0-未选中 1-选中',
