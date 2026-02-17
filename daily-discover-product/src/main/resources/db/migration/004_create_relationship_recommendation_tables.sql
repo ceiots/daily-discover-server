@@ -311,16 +311,16 @@ INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count
 (3, 1003, 8, 3, 2, '2026-02-01 16:45:00', '2026-02-01 16:50:00');
 
 -- 插入场景推荐数据（包含通用模板和个性化推荐）
-INSERT INTO scenario_recommendations (user_id, scenario_type, time_slot, location_context, user_state, weather_conditions, recommended_products, scenario_story, personalization_level, success_rate, avg_engagement) VALUES
+INSERT INTO scenario_recommendations (user_id, scenario_type, time_slot, location_context, user_state, weather_conditions, recommended_products, scenario_story, success_rate, avg_engagement) VALUES
 -- 通用模板（user_id为NULL）
-(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐', 'low', 0.75, 4.2),
-(NULL, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航', 'low', 0.68, 3.8),
+(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐', 0.75, 4.2),
+(NULL, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航', 0.68, 3.8),
 
 -- 个性化推荐（关联具体用户）
-(1001, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天', 'high', 0.85, 4.8),
-(1002, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性', 'high', 0.78, 4.5),
-(1003, 'work', '09:00-12:00', '{"location": "office"}', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康', 'high', 0.72, 4.0),
-(1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境', 'high', 0.65, 3.5);
+(1001, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天', 0.85, 4.8),
+(1002, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性', 0.78, 4.5),
+(1003, 'work', '09:00-12:00', '{"location": "office"}', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康', 0.72, 4.0),
+(1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境', 0.65, 3.5);
 
 -- 插入用户兴趣画像数据
 INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests) VALUES
