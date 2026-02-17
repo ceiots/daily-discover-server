@@ -93,10 +93,10 @@ CREATE TABLE IF NOT EXISTS coupons (
 -- 优惠券使用记录表
 CREATE TABLE IF NOT EXISTS coupon_usage_records (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '使用记录ID',
-    user_coupon_id BIGINT NOT NULL COMMENT '用户优惠券ID',
-    order_id BIGINT NOT NULL COMMENT '订单ID',
-    coupon_id BIGINT NOT NULL COMMENT '优惠券ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
+    user_coupon_id BIGINT NOT NULL COMMENT '用户优惠券ID（关联user_coupons.id）',
+    order_id BIGINT NOT NULL COMMENT '订单ID（关联orders_core.id）',
+    coupon_id BIGINT NOT NULL COMMENT '优惠券ID（关联coupons.id）',
+    user_id BIGINT NOT NULL COMMENT '用户ID（关联users.id）',
     
     -- 优惠信息
     discount_amount DECIMAL(10,2) NOT NULL COMMENT '优惠金额',
@@ -110,7 +110,12 @@ CREATE TABLE IF NOT EXISTS coupon_usage_records (
     INDEX idx_order_id (order_id),
     INDEX idx_coupon_id (coupon_id),
     INDEX idx_user_id (user_id),
-    INDEX idx_used_at (used_at)
+    INDEX idx_used_at (used_at),
+    
+    -- 复合索引优化
+    INDEX idx_user_order (user_id, order_id) COMMENT '用户订单关联查询',
+    INDEX idx_coupon_order (coupon_id, order_id) COMMENT '优惠券订单关联查询',
+    INDEX idx_user_coupon_order (user_id, coupon_id, order_id) COMMENT '用户优惠券订单关联查询'
 ) COMMENT '优惠券使用记录表';
 
 

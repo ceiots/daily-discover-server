@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS payment_methods (
 -- 支付记录表
 CREATE TABLE IF NOT EXISTS payment_transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '支付记录ID',
-    order_id BIGINT NOT NULL COMMENT '订单ID',
-    payment_method_id BIGINT NOT NULL COMMENT '支付方式ID',
+    order_id BIGINT NOT NULL COMMENT '订单ID（关联orders_core.id）',
+    payment_method_id BIGINT NOT NULL COMMENT '支付方式ID（关联payment_methods.id）',
     transaction_no VARCHAR(100) NOT NULL UNIQUE COMMENT '支付交易号',
     
     -- 支付金额信息
@@ -72,7 +72,13 @@ CREATE TABLE IF NOT EXISTS payment_transactions (
     INDEX idx_status (status),
     INDEX idx_third_party_transaction_no (third_party_transaction_no),
     INDEX idx_payment_request_at (payment_request_at),
-    INDEX idx_payment_completed_at (payment_completed_at)
+    INDEX idx_payment_completed_at (payment_completed_at),
+    
+    -- 复合索引优化（提高支付状态同步查询性能）
+    INDEX idx_order_status (order_id, status) COMMENT '订单支付状态查询',
+    INDEX idx_method_status (payment_method_id, status) COMMENT '支付方式状态查询',
+    INDEX idx_time_status (created_at, status) COMMENT '时间状态查询',
+    INDEX idx_order_method (order_id, payment_method_id) COMMENT '订单支付方式关联查询'
 ) COMMENT '支付记录表';
 
 -- 退款记录表

@@ -103,16 +103,16 @@ CREATE TABLE IF NOT EXISTS product_inventory (
 -- 库存操作记录表（引用001文件中的SKU表）
 CREATE TABLE IF NOT EXISTS inventory_transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '操作ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID（关联products.id）',
     sku_id BIGINT NOT NULL COMMENT 'SKU ID（引用product_skus.id）',
     transaction_type ENUM('in', 'out', 'adjust', 'transfer') NOT NULL COMMENT '操作类型',
     quantity_change INT NOT NULL COMMENT '数量变化',
     previous_quantity INT NOT NULL COMMENT '变更前数量',
     new_quantity INT NOT NULL COMMENT '变更后数量',
-    reference_type ENUM('order', 'return', 'adjustment', 'transfer') COMMENT '关联类型',
-    reference_id BIGINT COMMENT '关联ID',
+    reference_type ENUM('order', 'return', 'adjustment', 'transfer') COMMENT '关联类型（order关联orders_core.id）',
+    reference_id BIGINT COMMENT '关联ID（如订单ID、退货单ID等）',
     notes VARCHAR(500) COMMENT '备注',
-    operator_id BIGINT COMMENT '操作人ID',
+    operator_id BIGINT COMMENT '操作人ID（关联users.id）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     
     INDEX idx_product_id (product_id),
@@ -121,7 +121,12 @@ CREATE TABLE IF NOT EXISTS inventory_transactions (
     INDEX idx_reference_type (reference_type),
     INDEX idx_reference_id (reference_id),
     INDEX idx_operator_id (operator_id),
-    INDEX idx_created_at (created_at)
+    INDEX idx_created_at (created_at),
+    
+    -- 复合索引优化
+    INDEX idx_product_sku (product_id, sku_id) COMMENT '商品SKU关联查询',
+    INDEX idx_reference_order (reference_type, reference_id) COMMENT '订单关联查询',
+    INDEX idx_transaction_time (transaction_type, created_at) COMMENT '操作时间查询'
 ) COMMENT '库存操作记录表';
 
 COMMIT;

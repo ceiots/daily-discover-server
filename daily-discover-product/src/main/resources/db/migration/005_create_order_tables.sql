@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS orders_extend (
     order_id BIGINT PRIMARY KEY COMMENT '订单ID（关联orders_core.id）',
     
     -- 地址信息
-    address_id BIGINT NOT NULL COMMENT '收货地址ID',
+    address_id BIGINT NOT NULL COMMENT '收货地址ID（关联user_addresses.id）',
     province_id VARCHAR(10) COMMENT '省份编码（关联regions表）',
     city_id VARCHAR(10) COMMENT '城市编码（关联regions表）',
     district_id VARCHAR(10) COMMENT '区县编码（关联regions表）',
@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS orders_extend (
     INDEX idx_invoice_id (invoice_id),
     INDEX idx_paid_at (paid_at),
     
-    -- 外键约束
-    FOREIGN KEY (order_id) REFERENCES orders_core(id) ON DELETE CASCADE
+    -- 关联索引优化
+    INDEX idx_address_order (address_id, order_id) COMMENT '地址订单关联查询'
 ) COMMENT '订单扩展表（低频查询字段）';
 
 -- 订单项表（包含规格信息快照）

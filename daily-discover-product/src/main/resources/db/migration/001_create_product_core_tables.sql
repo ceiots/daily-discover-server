@@ -80,6 +80,11 @@ CREATE TABLE IF NOT EXISTS product_categories (
     INDEX idx_sort_order (sort_order),
     INDEX idx_parent_status (parent_id, status) COMMENT '父分类状态查询',
     
+    -- 路径查询优化索引（前缀索引，提高查询性能）
+    INDEX idx_path_prefix (path(20)) COMMENT '路径前缀查询',
+    INDEX idx_level_status (level, status) COMMENT '层级状态查询',
+    INDEX idx_path_status (path(20), status) COMMENT '路径状态查询',
+    
     -- 软删除索引
     INDEX idx_is_deleted (is_deleted) COMMENT '软删除状态查询'
 ) COMMENT '商品分类表（优化树形结构）';
@@ -191,7 +196,7 @@ CREATE TABLE IF NOT EXISTS product_sku_specs (
     INDEX idx_spec_name (spec_name)
 ) COMMENT '商品规格定义表（购买选择型规格）';
 
--- 商品规格选项表（规格具体值）- 明确是SKU规格选项
+-- 商品规格选项表（规格具体值）
 CREATE TABLE IF NOT EXISTS product_sku_spec_options (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '规格选项ID',
     spec_id BIGINT NOT NULL COMMENT '规格定义ID（引用product_sku_specs.id）',
@@ -204,7 +209,10 @@ CREATE TABLE IF NOT EXISTS product_sku_spec_options (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
     INDEX idx_spec_id (spec_id),
-    INDEX idx_option_value (option_value)
+    INDEX idx_option_value (option_value),
+    
+    -- 唯一性约束（防止同一规格下出现重复选项）
+    UNIQUE KEY uk_spec_option (spec_id, option_value) COMMENT '规格选项唯一性约束'
 ) COMMENT '商品规格选项表（规格具体值）';
 
 

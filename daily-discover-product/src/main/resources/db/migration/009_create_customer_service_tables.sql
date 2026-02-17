@@ -75,9 +75,9 @@ CREATE TABLE IF NOT EXISTS customer_service_categories (
 -- 客服会话表（简化设计）
 CREATE TABLE IF NOT EXISTS customer_service_conversations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '会话ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    agent_id BIGINT COMMENT '客服坐席ID',
-    category_id BIGINT COMMENT '问题分类ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID（关联users.id）',
+    agent_id BIGINT COMMENT '客服坐席ID（关联customer_service_agents.id）',
+    category_id BIGINT COMMENT '问题分类ID（关联customer_service_categories.id）',
     
     -- 会话信息
     session_id VARCHAR(100) UNIQUE COMMENT '会话标识',
@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS customer_service_conversations (
     priority ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium' COMMENT '优先级',
     
     -- 关联信息
-    related_order_id BIGINT COMMENT '关联订单ID',
-    related_product_id BIGINT COMMENT '关联商品ID',
+    related_order_id BIGINT COMMENT '关联订单ID（关联orders_core.id）',
+    related_product_id BIGINT COMMENT '关联商品ID（关联products.id）',
     
     -- 时间信息
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -110,7 +110,12 @@ CREATE TABLE IF NOT EXISTS customer_service_conversations (
     INDEX idx_priority (priority),
     INDEX idx_created_at (created_at),
     INDEX idx_related_order_id (related_order_id),
-    INDEX idx_related_product_id (related_product_id)
+    INDEX idx_related_product_id (related_product_id),
+    
+    -- 复合索引优化
+    INDEX idx_user_status (user_id, status) COMMENT '用户状态查询',
+    INDEX idx_agent_status (agent_id, status) COMMENT '坐席状态查询',
+    INDEX idx_category_status (category_id, status) COMMENT '分类状态查询'
 ) COMMENT '客服会话表';
 
 -- 客服消息表
