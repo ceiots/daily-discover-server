@@ -105,8 +105,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     -- 索引优化
     INDEX idx_order_id (order_id),
     INDEX idx_product_id (product_id),
-    INDEX idx_sku_id (sku_id),
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    INDEX idx_sku_id (sku_id)
 ) COMMENT '订单项表（包含规格信息快照）';
 
 COMMIT;
