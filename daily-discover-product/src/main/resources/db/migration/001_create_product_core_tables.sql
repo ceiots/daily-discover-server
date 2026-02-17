@@ -1,148 +1,229 @@
 -- ============================================
--- 商品核心信息表结构
--- 创建时间: 2026-02-04
+-- 商品核心信息表结构（简化版）
 -- 业务模块: 商品核心信息
 -- ============================================
 
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS product_categories;
-DROP TABLE IF EXISTS product_specs;
-DROP TABLE IF EXISTS product_images;
+DROP TABLE IF EXISTS shopping_cart;
+DROP TABLE IF EXISTS user_product_spec_selections;
+DROP TABLE IF EXISTS product_sku_spec_options;
+DROP TABLE IF EXISTS product_sku_specs;
+DROP TABLE IF EXISTS product_skus;
 DROP TABLE IF EXISTS product_details;
-DROP TABLE IF EXISTS product_attributes;
+DROP TABLE IF EXISTS product_categories;
 DROP TABLE IF EXISTS products;
 
--- 商品基础信息表
+-- 商品基础信息表（SPU - 标准化产品单元）
 CREATE TABLE IF NOT EXISTS products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '商品ID',
     seller_id BIGINT NOT NULL COMMENT '商家ID',
     title VARCHAR(200) NOT NULL COMMENT '商品标题',
-    description TEXT COMMENT '商品描述',
     category_id BIGINT NOT NULL COMMENT '分类ID',
-    brand VARCHAR(100) COMMENT '品牌',
-    base_price DECIMAL(10,2) NOT NULL COMMENT '基础价格',
-    original_price DECIMAL(10,2) COMMENT '原价',
-    discount DECIMAL(5,2) COMMENT '折扣百分比',
-    rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '评分',
-    review_count INT DEFAULT 0 COMMENT '评价数量',
-    total_sales INT DEFAULT 0 COMMENT '总销量',
-    monthly_sales INT DEFAULT 0 COMMENT '月销量',
-    status ENUM('active', 'inactive', 'deleted') DEFAULT 'active' COMMENT '商品状态',
+    
+    -- 品牌和型号信息（便于查询和展示）
+    brand VARCHAR(100) COMMENT '品牌名称',
+    model VARCHAR(100) COMMENT '型号信息',
+    
+    -- 价格范围（冗余字段，由SKU价格同步更新）
+    min_price DECIMAL(10,2) COMMENT '最低价格（SKU价格最小值）',
+    max_price DECIMAL(10,2) COMMENT '最高价格（SKU价格最大值）',
+    
+    -- 商品状态（SPU层面状态）
+    status TINYINT DEFAULT 1 COMMENT '状态：0-已下架 1-销售中',
+    is_deleted TINYINT DEFAULT 0 COMMENT '是否删除：0-正常 1-删除',
+    
+    -- 主图（冗余存储，用于快速展示）
     main_image_url VARCHAR(500) COMMENT '商品主图URL',
+    
+    -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
+    -- 核心索引（优化复合索引）
     INDEX idx_seller_id (seller_id),
-    INDEX idx_category_id (category_id),
+    INDEX idx_category_status_price (category_id, status, min_price) COMMENT '分类状态价格查询',
+    INDEX idx_created_at (created_at) COMMENT '新品推荐',
     INDEX idx_brand (brand),
-    INDEX idx_base_price (base_price),
-    INDEX idx_rating (rating),
-    INDEX idx_total_sales (total_sales),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at)
-) COMMENT '商品基础信息表';
+    INDEX idx_model (model),
+    INDEX idx_product_code (product_code)
+) COMMENT '商品基础信息表（SPU - 标准化产品单元）';
 
--- 商品属性表
-CREATE TABLE IF NOT EXISTS product_attributes (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '属性ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    is_new BOOLEAN DEFAULT false COMMENT '是否新品',
-    is_hot BOOLEAN DEFAULT false COMMENT '是否热销',
-    is_recommended BOOLEAN DEFAULT false COMMENT '是否推荐',
-    urgency_level ENUM('high', 'medium', 'normal') DEFAULT 'normal' COMMENT '热点紧急程度',
-    hotspot_type VARCHAR(50) COMMENT '热点类型',
-    tags JSON COMMENT '商品标签',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    UNIQUE KEY uk_product_id (product_id),
-    INDEX idx_product_id (product_id),
-    INDEX idx_is_new (is_new),
-    INDEX idx_is_hot (is_hot),
-    INDEX idx_is_recommended (is_recommended),
-    INDEX idx_urgency_level (urgency_level),
-    INDEX idx_hotspot_type (hotspot_type)
-) COMMENT '商品属性表';
-
--- 商品详情表
-CREATE TABLE IF NOT EXISTS product_details (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '详情ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    specifications JSON COMMENT '规格参数',
-    features JSON COMMENT '商品特性',
-    usage_instructions JSON COMMENT '使用说明',
-    precautions JSON COMMENT '注意事项',
-    package_contents JSON COMMENT '包装清单',
-    warranty_info JSON COMMENT '保修信息',
-    shipping_info JSON COMMENT '配送信息',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    UNIQUE KEY uk_product_id (product_id),
-    INDEX idx_product_id (product_id)
-) COMMENT '商品详情表';
-
--- 商品图片表
-CREATE TABLE IF NOT EXISTS product_images (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '图片ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    image_type ENUM('main', 'multi_angle', 'details', 'scenes', 'certificate') NOT NULL COMMENT '图片类型',
-    image_url VARCHAR(500) NOT NULL COMMENT '图片URL',
-    alt_text VARCHAR(200) COMMENT '图片描述',
-    sort_order INT DEFAULT 0 COMMENT '排序顺序',
-    is_primary BOOLEAN DEFAULT false COMMENT '是否主图',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    
-    INDEX idx_product_id (product_id),
-    INDEX idx_image_type (image_type),
-    INDEX idx_sort_order (sort_order),
-    INDEX idx_is_primary (is_primary)
-) COMMENT '商品图片表';
-
--- 商品规格表
-CREATE TABLE IF NOT EXISTS product_specs (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '规格ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    spec_name VARCHAR(100) NOT NULL COMMENT '规格名称',
-    spec_label VARCHAR(100) COMMENT '规格标签',
-    spec_value VARCHAR(200) COMMENT '规格值',
-    spec_unit VARCHAR(50) COMMENT '规格单位',
-    spec_group VARCHAR(100) COMMENT '规格分组',
-    sort_order INT DEFAULT 0 COMMENT '排序顺序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    
-    INDEX idx_product_id (product_id),
-    INDEX idx_spec_name (spec_name),
-    INDEX idx_spec_group (spec_group),
-    INDEX idx_sort_order (sort_order)
-) COMMENT '商品规格表';
-
--- 商品分类表
+-- 商品分类表（优化树形结构）
 CREATE TABLE IF NOT EXISTS product_categories (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '分类ID',
     parent_id BIGINT DEFAULT NULL COMMENT '父分类ID',
+    
+    -- 路径优化（支持快速查询子分类）
+    path VARCHAR(255) COMMENT '分类路径（如：1/5/23）',
+    
     name VARCHAR(100) NOT NULL COMMENT '分类名称',
-    description VARCHAR(500) COMMENT '分类描述',
     image_url VARCHAR(500) COMMENT '分类图片',
     sort_order INT DEFAULT 0 COMMENT '排序顺序',
     level INT DEFAULT 1 COMMENT '分类层级',
-    is_active BOOLEAN DEFAULT true COMMENT '是否启用',
+    
+    -- 状态管理
+    status TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-启用',
+    is_deleted TINYINT DEFAULT 0 COMMENT '是否删除：0-正常 1-删除',
+    
+    -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
+    -- 优化索引
     INDEX idx_parent_id (parent_id),
     INDEX idx_name (name),
+    INDEX idx_path (path) COMMENT '路径查询',
     INDEX idx_level (level),
     INDEX idx_sort_order (sort_order),
-    INDEX idx_is_active (is_active)
-) COMMENT '商品分类表';
+    INDEX idx_status (status),
+    INDEX idx_parent_status (parent_id, status) COMMENT '父分类状态查询'
+) COMMENT '商品分类表（优化树形结构）';
+
+-- ============================================
+-- 2. 商品媒体资源模块（图片/视频统一管理）
+-- ============================================
+
+-- 商品详情表（电商简化版）
+CREATE TABLE IF NOT EXISTS product_details (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '详情ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    
+    -- 媒体类型（电商标准：1-轮播图 2-详情图）
+    media_type TINYINT NOT NULL COMMENT '媒体类型：1-轮播图（商品展示图片） 2-详情图（详情页内容图片）',
+    
+    -- 媒体内容
+    media_url VARCHAR(500) NOT NULL COMMENT '媒体URL',
+    is_video TINYINT DEFAULT 0 COMMENT '是否为视频：0-图片 1-视频',
+    
+    -- 缩略图（用于列表页、规格选择弹窗等性能优化场景）
+    thumbnail_url VARCHAR(500) COMMENT '缩略图URL',
+    
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 索引优化
+    INDEX idx_product_id (product_id),
+    INDEX idx_media_type (media_type),
+    INDEX idx_sort_order (sort_order),
+    INDEX idx_media_type_sort (media_type, sort_order) COMMENT '支持按类型和顺序查询'
+) COMMENT '商品详情表（电商简化版）';
+
+-- ============================================
+-- 3. SKU核心模块（电商核心）
+-- ============================================
+
+-- SKU表（电商核心 - 可销售最小单位）
+CREATE TABLE IF NOT EXISTS product_skus (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'SKU ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    seller_id BIGINT NOT NULL COMMENT '商家ID（冗余字段，便于查询）',
+    
+    -- 价格信息（SKU级别的价格）
+    price DECIMAL(10,2) NOT NULL COMMENT '销售价格',
+    original_price DECIMAL(10,2) COMMENT '原价',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 核心索引
+    INDEX idx_product_id (product_id),
+    INDEX idx_seller_id (seller_id)
+) COMMENT 'SKU表（电商核心 - 可销售最小单位）';
+
+-- 用户商品规格选择记录表（用于规格选择弹窗）
+CREATE TABLE IF NOT EXISTS user_product_spec_selections (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '选择记录ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    
+    -- 用户选择的规格组合（JSON格式）
+    selected_spec_combination JSON COMMENT '用户选择的规格组合：{"color": 1, "storage": 4}',
+    
+    -- 选择时间（用于清理过期记录）
+    selected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '选择时间',
+    
+    -- 索引优化
+    INDEX idx_user_product (user_id, product_id),
+    INDEX idx_selected_at (selected_at),
+    
+    -- 唯一约束：一个用户对一个商品只能有一条最新选择记录
+    UNIQUE KEY uk_user_product (user_id, product_id)
+) COMMENT '用户商品规格选择记录表（用于规格选择弹窗）';
+
+-- 购物车表（支持多规格购买）
+CREATE TABLE IF NOT EXISTS shopping_cart (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '购物车ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    sku_id BIGINT NOT NULL COMMENT 'SKU ID（对应具体规格）',
+    
+    -- 购买数量
+    quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
+    
+    -- 购物车项状态
+    is_selected TINYINT DEFAULT 1 COMMENT '是否选中：0-未选中 1-选中',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 索引优化
+    INDEX idx_user_id (user_id),
+    INDEX idx_product_id (product_id),
+    INDEX idx_sku_id (sku_id),
+    INDEX idx_user_product (user_id, product_id),
+    INDEX idx_is_selected (is_selected),
+    
+    -- 唯一约束：一个用户对同一个SKU只能有一条记录
+    UNIQUE KEY uk_user_sku (user_id, sku_id)
+) COMMENT '购物车表（支持多规格购买）';
+
+-- 商品规格定义表（购买选择型）- 明确是SKU规格
+CREATE TABLE IF NOT EXISTS product_sku_specs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '规格定义ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    spec_name VARCHAR(100) NOT NULL COMMENT '规格名称',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    
+    -- 是否必选
+    is_required TINYINT DEFAULT 1 COMMENT '是否必选：0-可选 1-必选',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    INDEX idx_product_id (product_id),
+    INDEX idx_spec_name (spec_name)
+) COMMENT '商品规格定义表（购买选择型规格）';
+
+-- 商品规格选项表（规格具体值）- 明确是SKU规格选项
+CREATE TABLE IF NOT EXISTS product_sku_spec_options (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '规格选项ID',
+    spec_id BIGINT NOT NULL COMMENT '规格定义ID（引用product_sku_specs.id）',
+    option_value VARCHAR(100) NOT NULL COMMENT '选项值',
+    option_image VARCHAR(500) COMMENT '选项图片',
+    sort_order INT DEFAULT 0 COMMENT '排序顺序',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    INDEX idx_spec_id (spec_id),
+    INDEX idx_option_value (option_value)
+) COMMENT '商品规格选项表（规格具体值）';
+
+
 
 COMMIT;
 
 -- ============================================
--- 商品核心信息表初始数据
+-- 初始数据
 -- ============================================
 
 -- 插入商品分类数据
@@ -156,43 +237,84 @@ INSERT INTO product_categories (id, parent_id, name, description, image_url, sor
 (7, 5, '女装', '女士服装', 'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=300&h=200&fit=crop', 2, 2, true);
 
 -- 插入商品基础信息数据
-INSERT INTO products (id, seller_id, title, description, category_id, brand, base_price, original_price, discount, rating, review_count, total_sales, monthly_sales, is_new, is_hot, is_recommended, status, urgency_level, hotspot_type, tags, main_image_url) VALUES
-(1, 1, '智能手表 Pro', '多功能智能手表，支持心率监测、运动追踪、消息提醒等功能', 4, 'TechBrand', 299.00, 399.00, 25.00, 4.5, 128, 500, 50, true, true, true, 'active', 'high', 'electronics', '["智能", "运动", "健康"]', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
-(2, 1, '无线降噪耳机', '主动降噪无线耳机，音质清晰，续航持久', 4, 'SoundTech', 199.00, 299.00, 33.33, 4.3, 89, 300, 30, false, true, true, 'active', 'medium', 'audio', '["无线", "降噪", "音乐"]', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
-(3, 2, '轻薄笔记本电脑', '高性能轻薄本，适合办公和娱乐', 3, 'LaptopPro', 5999.00, 6999.00, 14.29, 4.7, 256, 150, 15, true, false, true, 'active', 'normal', 'computers', '["轻薄", "高性能", "办公"]', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
-(4, 2, '智能手机旗舰版', '最新旗舰智能手机，拍照功能强大', 2, 'PhoneMax', 4999.00, 5999.00, 16.67, 4.6, 189, 800, 80, true, true, true, 'active', 'high', 'mobile', '["旗舰", "拍照", "5G"]', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
-(5, 3, '男士休闲衬衫', '纯棉男士衬衫，舒适透气', 6, 'FashionStyle', 199.00, 299.00, 33.33, 4.2, 45, 200, 20, false, false, false, 'active', 'normal', 'clothing', '["纯棉", "休闲", "商务"]', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop');
+INSERT INTO products (seller_id, title, brand, model, product_code, category_id, min_price, max_price, status, main_image_url) VALUES
+(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 'APPL-WATCHS8', 4, 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
+(1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 'SONY-WH1000XM5', 4, 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
+(2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 'APPL-MBAIR', 3, 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
+(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 'APPL-IPHONE15', 2, 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop');
 
--- 插入商品详情数据
-INSERT INTO product_details (product_id, specifications, features, usage_instructions, precautions, package_contents, warranty_info, shipping_info) VALUES
-(1, '[
-  {"name": "屏幕尺寸", "value": "1.3英寸", "unit": "英寸"},
-  {"name": "电池容量", "value": "200", "unit": "mAh"},
-  {"name": "防水等级", "value": "IP68", "unit": "级"}
-]', '["心率监测", "运动追踪", "睡眠监测", "消息提醒"]', '["首次使用请充满电", "下载配套APP使用"]', '["避免剧烈碰撞", "请勿在高温环境下使用"]', '["智能手表主机", "充电线", "说明书"]', '{"period": "12个月", "scope": "非人为损坏"}', '{"deliveryTime": "24小时内", "freeShipping": true}'),
-(2, '[
-  {"name": "蓝牙版本", "value": "5.2", "unit": ""},
-  {"name": "续航时间", "value": "24", "unit": "小时"},
-  {"name": "充电时间", "value": "1.5", "unit": "小时"}
-]', '["主动降噪", "环境音模式", "快速充电", "触控操作"]', '["首次使用请配对设备", "充电时请使用原装充电器"]', '["避免接触液体", "请勿在潮湿环境下使用"]', '["耳机主体", "充电盒", "充电线", "说明书"]', '{"period": "12个月", "scope": "非人为损坏"}', '{"deliveryTime": "48小时内", "freeShipping": true}');
+-- 插入商品详情数据（简化版）
+INSERT INTO product_details (product_id, media_type, media_url, is_video, thumbnail_url, sort_order) VALUES
+-- 智能手机旗舰版（产品ID=4）
+-- 主图和轮播图
+(4, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=600&fit=crop', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop', 1),
+(4, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=800&fit=crop&crop=center', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', 2),
+(4, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop&crop=top', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200&h=200&fit=crop', 3),
 
--- 插入商品图片数据
-INSERT INTO product_images (product_id, image_type, image_url, alt_text, sort_order, is_primary) VALUES
-(1, 'main', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop', '智能手表主图', 0, true),
-(1, 'multi_angle', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&crop=left', '智能手表左侧视图', 1, false),
-(1, 'multi_angle', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&crop=right', '智能手表右侧视图', 2, false),
-(1, 'details', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop&crop=center', '智能手表细节图', 3, false),
-(2, 'main', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop', '无线耳机主图', 0, true),
-(2, 'multi_angle', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=top', '无线耳机顶部视图', 1, false);
+-- 卖点展示
+(4, 2, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=1200&fit=crop', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=600&fit=crop', 4),
+(4, 2, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=1200&fit=crop', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=600&fit=crop', 5),
 
--- 插入商品规格数据
-INSERT INTO product_specs (product_id, spec_name, spec_label, spec_value, spec_unit, spec_group, sort_order) VALUES
-(1, '屏幕尺寸', '屏幕尺寸', '1.3', '英寸', '显示', 1),
-(1, '分辨率', '分辨率', '360x360', '像素', '显示', 2),
-(1, '电池容量', '电池容量', '200', 'mAh', '电池', 3),
-(1, '防水等级', '防水等级', 'IP68', '级', '防护', 4),
-(2, '蓝牙版本', '蓝牙版本', '5.2', '', '连接', 1),
-(2, '续航时间', '续航时间', '24', '小时', '电池', 2),
-(2, '充电时间', '充电时间', '1.5', '小时', '电池', 3);
+-- 参数规格
+(4, 2, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=1200&fit=crop', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=600&fit=crop', 6),
+
+-- 售后服务
+(4, 2, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=1200&fit=crop', false, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=600&fit=crop', 7),
+
+-- 智能手表 Pro（产品ID=1）
+(1, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', false, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop', 1),
+(1, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop', false, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop', 2),
+
+-- 无线降噪耳机（产品ID=2）
+(2, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', false, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop', 1),
+(2, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop', false, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop', 2),
+
+-- 轻薄笔记本电脑（产品ID=3）
+(3, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop', false, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop', 1),
+(3, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=600&fit=crop', false, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&h=300&fit=crop', 2);
+
+-- 插入SKU规格数据（购买选择型）- 以智能手机为例
+INSERT INTO product_sku_specs (product_id, spec_name, sort_order, is_required) VALUES
+(4, '颜色', 1, true),
+(4, '存储容量', 2, true),
+(4, '网络版本', 3, false);
+
+-- 插入SKU规格选项
+INSERT INTO product_sku_spec_options (spec_id, option_value, option_image, sort_order) VALUES
+(1, '黑色', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=100&h=100&fit=crop&crop=center', 1),
+(1, '白色', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=100&h=100&fit=crop&crop=center&brightness=1.2', 2),
+(1, '蓝色', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=100&h=100&fit=crop&crop=center&hue=240', 3),
+(2, '128GB', NULL, 1),
+(2, '256GB', NULL, 2),
+(2, '512GB', NULL, 3),
+(3, '4G版', NULL, 1),
+(3, '5G版', NULL, 2);
+
+-- 插入SKU数据（符合编码规则）
+INSERT INTO product_skus (product_id, seller_id, price, original_price) VALUES
+-- 智能手机旗舰版（产品ID=4）的SKU
+(4, 2, 4999.00, 5999.00),
+(4, 2, 4999.00, 5999.00),
+(4, 2, 4999.00, 5999.00),
+(4, 2, 5499.00, 6499.00),
+(4, 2, 5499.00, 6499.00),
+(4, 2, 5299.00, 6299.00),
+(4, 2, 5799.00, 6799.00),
+
+-- 智能手表 Pro（产品ID=1）的SKU
+(1, 1, 299.00, 399.00),
+(1, 1, 299.00, 399.00),
+
+-- 无线降噪耳机（产品ID=2）的SKU
+(2, 1, 199.00, 299.00),
+(2, 1, 199.00, 299.00),
+
+-- 轻薄笔记本电脑（产品ID=3）的SKU
+(3, 2, 5999.00, 6999.00),
+(3, 2, 6999.00, 7999.00),
+(3, 2, 5999.00, 6999.00);
+
+
+
 
 COMMIT;

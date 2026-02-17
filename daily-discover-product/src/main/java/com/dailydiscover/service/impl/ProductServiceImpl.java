@@ -3,7 +3,6 @@ package com.dailydiscover.service.impl;
 import com.dailydiscover.dto.ProductDetailDTO;
 import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.model.Product;
-import com.dailydiscover.model.ProductAttribute;
 import com.dailydiscover.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,31 +35,6 @@ public class ProductServiceImpl implements ProductService {
         }
         
         return new ProductDetailDTO(product, null);
-    }
-    
-    /**
-     * 设置产品属性信息
-     */
-    private void setProductAttributes(Product product, ProductAttribute attribute) {
-        // 这里可以根据业务需求设置属性
-        // 例如：设置产品标签、热度等信息
-        if (attribute.getTags() != null) {
-            // 可以设置到产品的扩展字段或记录日志
-            // product.setTags(attribute.getTags()); // 如果Product有tags字段
-        }
-        
-        // 记录属性信息用于业务逻辑判断
-        if (attribute.getIsHot() != null && attribute.getIsHot()) {
-            // 热门产品特殊处理
-        }
-        
-        if (attribute.getIsNew() != null && attribute.getIsNew()) {
-            // 新品特殊处理
-        }
-        
-        if (attribute.getIsRecommended() != null && attribute.getIsRecommended()) {
-            // 推荐产品特殊处理
-        }
     }
     
     @Override

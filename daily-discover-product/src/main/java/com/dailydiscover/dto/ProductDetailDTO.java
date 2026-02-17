@@ -3,6 +3,8 @@ package com.dailydiscover.dto;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.model.ProductAttribute;
 import lombok.Data;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 产品详情数据传输对象
@@ -16,6 +18,9 @@ public class ProductDetailDTO {
     
     /** 产品属性信息 */
     private ProductAttribute attribute;
+    
+    /** 分类后的商品图片 */
+    private Map<String, List<ProductImageDTO>> categorizedImages;
     
     /** 是否热门产品 */
     public Boolean getIsHot() {
