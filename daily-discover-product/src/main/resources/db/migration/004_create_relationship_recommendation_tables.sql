@@ -11,9 +11,7 @@ DROP TABLE IF EXISTS product_tag_relations;
 DROP TABLE IF EXISTS product_tags;
 DROP TABLE IF EXISTS product_search_keywords;
 DROP TABLE IF EXISTS product_recommendations;
-DROP TABLE IF EXISTS product_yearly_sales;
-DROP TABLE IF EXISTS product_monthly_sales;
-DROP TABLE IF EXISTS product_daily_sales;
+DROP TABLE IF EXISTS product_sales_stats;
 DROP TABLE IF EXISTS recommendation_effects;
 DROP TABLE IF EXISTS user_behavior_logs;
 
@@ -39,34 +37,32 @@ CREATE TABLE IF NOT EXISTS product_recommendations (
 ) COMMENT '商品推荐表';
 
 -- ============================================
--- 时间维度销量统计表（按维度拆分，推荐方案）
+-- 销量统计表（单一表设计，主流电商最佳实践）
 -- ============================================
 
--- 日维度销量统计表
-CREATE TABLE IF NOT EXISTS product_daily_sales (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '日维度ID',
+-- 销量统计表（支持多种时间粒度）
+CREATE TABLE IF NOT EXISTS product_sales_stats (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '统计ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
-    sale_date DATE NOT NULL COMMENT '销售日期',
+    
+    -- 时间粒度
+    time_granularity ENUM('daily', 'monthly', 'yearly') NOT NULL COMMENT '时间粒度',
+    stat_date DATE NOT NULL COMMENT '统计日期（如：日粒度-2026-02-01，月粒度-2026-02-01，年粒度-2026-01-01）',
     
     -- 核心业务数据
-    `rank` INT NOT NULL COMMENT '日排名',
-    sales_count INT DEFAULT 0 COMMENT '日销量',
-    sales_amount DECIMAL(12,2) DEFAULT 0.0 COMMENT '日销售额',
-    sales_growth_rate DECIMAL(5,2) COMMENT '日销量增长率',
+    `rank` INT NOT NULL COMMENT '排名',
+    sales_count INT DEFAULT 0 COMMENT '销量',
+    sales_amount DECIMAL(12,2) DEFAULT 0.0 COMMENT '销售额',
+    sales_growth_rate DECIMAL(5,2) COMMENT '销量增长率',
     
     -- 用户行为数据
-    view_count INT DEFAULT 0 COMMENT '日浏览量',
-    favorite_count INT DEFAULT 0 COMMENT '日收藏量',
-    cart_count INT DEFAULT 0 COMMENT '日加购量',
-    conversion_rate DECIMAL(5,2) COMMENT '日转化率',
+    view_count INT DEFAULT 0 COMMENT '浏览量',
+    favorite_count INT DEFAULT 0 COMMENT '收藏量',
+    cart_count INT DEFAULT 0 COMMENT '加购量',
+    conversion_rate DECIMAL(5,2) COMMENT '转化率',
     
     -- 业务标识
-    is_trending BOOLEAN DEFAULT false COMMENT '是否日趋势商品',
-    
-    -- 每日发现特色字段
-    discovery_highlight VARCHAR(200) COMMENT '发现亮点（如：今日爆款、新品首发等）',
-    discovery_reason TEXT COMMENT '发现理由（为什么推荐这个商品）',
-    special_offer JSON COMMENT '特别优惠信息',
+    is_trending BOOLEAN DEFAULT false COMMENT '是否趋势商品',
     
     -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -74,96 +70,16 @@ CREATE TABLE IF NOT EXISTS product_daily_sales (
     
     -- 索引优化
     INDEX idx_product_id (product_id),
-    INDEX idx_sale_date (sale_date),
+    INDEX idx_time_granularity (time_granularity),
+    INDEX idx_stat_date (stat_date),
     INDEX idx_rank (`rank`),
     INDEX idx_sales_count (sales_count),
     INDEX idx_is_trending (is_trending),
+    INDEX idx_product_granularity_date (product_id, time_granularity, stat_date),
     
     -- 唯一约束（避免重复统计）
-    UNIQUE KEY uk_product_date (product_id, sale_date)
-) COMMENT '日维度销量统计表';
-
--- 月维度销量统计表
-CREATE TABLE IF NOT EXISTS product_monthly_sales (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '月维度ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    sale_month DATE NOT NULL COMMENT '销售月份（存储月份第一天，如2026-02-01）',
-    
-    -- 核心业务数据
-    `rank` INT NOT NULL COMMENT '月排名',
-    sales_count INT DEFAULT 0 COMMENT '月销量',
-    sales_amount DECIMAL(12,2) DEFAULT 0.0 COMMENT '月销售额',
-    sales_growth_rate DECIMAL(5,2) COMMENT '月销量增长率',
-    
-    -- 用户行为数据
-    view_count INT DEFAULT 0 COMMENT '月浏览量',
-    favorite_count INT DEFAULT 0 COMMENT '月收藏量',
-    cart_count INT DEFAULT 0 COMMENT '月加购量',
-    conversion_rate DECIMAL(5,2) COMMENT '月转化率',
-    
-    -- 业务标识
-    is_trending BOOLEAN DEFAULT false COMMENT '是否月趋势商品',
-    
-    -- 月度特色字段
-    monthly_highlight VARCHAR(200) COMMENT '月度亮点（如：月度爆款、新品热销等）',
-    monthly_reason TEXT COMMENT '月度推荐理由',
-    monthly_offer JSON COMMENT '月度优惠信息',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_product_id (product_id),
-    INDEX idx_sale_month (sale_month),
-    INDEX idx_rank (`rank`),
-    INDEX idx_sales_count (sales_count),
-    INDEX idx_is_trending (is_trending),
-    
-    -- 唯一约束（避免重复统计）
-    UNIQUE KEY uk_product_month (product_id, sale_month)
-) COMMENT '月维度销量统计表';
-
--- 年维度销量统计表
-CREATE TABLE IF NOT EXISTS product_yearly_sales (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '年维度ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    sale_year DATE NOT NULL COMMENT '销售年份（存储年份第一天，如2026-01-01）',
-    
-    -- 核心业务数据
-    `rank` INT NOT NULL COMMENT '年排名',
-    sales_count INT DEFAULT 0 COMMENT '年销量',
-    sales_amount DECIMAL(12,2) DEFAULT 0.0 COMMENT '年销售额',
-    sales_growth_rate DECIMAL(5,2) COMMENT '年销量增长率',
-    
-    -- 用户行为数据
-    view_count INT DEFAULT 0 COMMENT '年浏览量',
-    favorite_count INT DEFAULT 0 COMMENT '年收藏量',
-    cart_count INT DEFAULT 0 COMMENT '年加购量',
-    conversion_rate DECIMAL(5,2) COMMENT '年转化率',
-    
-    -- 业务标识
-    is_trending BOOLEAN DEFAULT false COMMENT '是否年趋势商品',
-    
-    -- 年度特色字段
-    yearly_highlight VARCHAR(200) COMMENT '年度亮点（如：年度爆款、热销商品等）',
-    yearly_reason TEXT COMMENT '年度推荐理由',
-    yearly_offer JSON COMMENT '年度优惠信息',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_product_id (product_id),
-    INDEX idx_sale_year (sale_year),
-    INDEX idx_rank (`rank`),
-    INDEX idx_sales_count (sales_count),
-    INDEX idx_is_trending (is_trending),
-    
-    -- 唯一约束（避免重复统计）
-    UNIQUE KEY uk_product_year (product_id, sale_year)
-) COMMENT '年维度销量统计表';
+    UNIQUE KEY uk_product_granularity_date (product_id, time_granularity, stat_date)
+) COMMENT '销量统计表（支持多种时间粒度）';
 
 
 
@@ -268,26 +184,25 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 3, 4, 'new_arrival', 0.88, 1, 'v1.1', '{"reason": "性能升级搭配旗舰机型", "highlight": "科技新品组合"}', true, '2026-02-05 00:00:00'),
 (NULL, 4, 3, 'limited_time', 0.85, 1, 'v1.1', '{"reason": "限时优惠搭配性能升级", "highlight": "限时特惠组合"}', true, '2026-02-03 00:00:00');
 
--- 插入日维度销量数据
-INSERT INTO product_daily_sales (product_id, sale_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_trending, discovery_highlight, discovery_reason, special_offer) VALUES
-(1, '2026-02-01', 1, 25, 7475.00, 25.5, 500, 45, 30, 3.0, true, '今日爆款', '销量增长25%，用户评价4.8分', '{"title": "限时特惠", "discount": "¥80", "condition": "今日有效"}'),
-(2, '2026-02-01', 2, 18, 3582.00, 18.3, 450, 35, 25, 2.8, true, '新品首发', '主动降噪技术，音质升级', '{"title": "新品预售", "discount": "¥50", "condition": "预售期有效"}'),
-(3, '2026-02-01', 3, 12, 71988.00, 30.1, 600, 50, 35, 3.5, false, '性能升级', '轻薄便携，续航提升30%', '{"title": "配置升级", "discount": "¥200", "condition": "限时优惠"}'),
-(4, '2026-02-01', 4, 8, 39992.00, 15.7, 400, 30, 20, 2.5, false, '旗舰机型', '专业相机系统，5G网络', '{"title": "旗舰专享", "discount": "¥100", "condition": "旗舰机型专享"}');
+-- 插入销量统计数据（单一表设计）
+INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_trending) VALUES
+-- 日粒度数据
+(1, 'daily', '2026-02-01', 1, 25, 7475.00, 25.5, 500, 45, 30, 3.0, true),
+(2, 'daily', '2026-02-01', 2, 18, 3582.00, 18.3, 450, 35, 25, 2.8, true),
+(3, 'daily', '2026-02-01', 3, 12, 71988.00, 30.1, 600, 50, 35, 3.5, false),
+(4, 'daily', '2026-02-01', 4, 8, 39992.00, 15.7, 400, 30, 20, 2.5, false),
 
--- 插入月维度销量数据
-INSERT INTO product_monthly_sales (product_id, sale_month, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_trending, monthly_highlight, monthly_reason, monthly_offer) VALUES
-(1, '2026-02-01', 1, 80, 23920.00, 15.2, 2500, 120, 80, 3.2, true, '月度热销', '本月销量冠军，用户满意度高', '{"title": "月度特惠", "discount": "¥50", "condition": "本月有效"}'),
-(2, '2026-02-01', 2, 60, 11940.00, 12.8, 2000, 100, 70, 2.9, true, '月度新品', '本月新品销量领先', '{"title": "新品特惠", "discount": "¥30", "condition": "新品期有效"}'),
-(3, '2026-02-01', 3, 40, 239952.00, 18.5, 8000, 400, 300, 3.8, false, '月度性能', '本月性能升级商品热销', '{"title": "性能特惠", "discount": "¥150", "condition": "本月有效"}'),
-(4, '2026-02-01', 4, 30, 149976.00, 14.3, 6000, 300, 200, 3.1, false, '月度旗舰', '本月旗舰机型表现稳定', '{"title": "旗舰特惠", "discount": "¥80", "condition": "本月有效"}');
+-- 月粒度数据
+(1, 'monthly', '2026-02-01', 1, 80, 23920.00, 15.2, 2500, 120, 80, 3.2, true),
+(2, 'monthly', '2026-02-01', 2, 60, 11940.00, 12.8, 2000, 100, 70, 2.9, true),
+(3, 'monthly', '2026-02-01', 3, 40, 239952.00, 18.5, 8000, 400, 300, 3.8, false),
+(4, 'monthly', '2026-02-01', 4, 30, 149976.00, 14.3, 6000, 300, 200, 3.1, false),
 
--- 插入年维度销量数据
-INSERT INTO product_yearly_sales (product_id, sale_year, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_trending, yearly_highlight, yearly_reason, yearly_offer) VALUES
-(1, '2026-01-01', 1, 500, 149500.00, 20.5, 15000, 800, 500, 3.5, true, '年度爆款', '年度销量冠军，用户评价4.9分', '{"title": "年度特惠", "discount": "¥100", "condition": "年度有效"}'),
-(2, '2026-01-01', 2, 350, 69650.00, 18.2, 12000, 600, 400, 3.2, true, '年度热销', '年度热销商品，用户满意度高', '{"title": "年度优惠", "discount": "¥80", "condition": "年度有效"}'),
-(3, '2026-01-01', 3, 250, 1499760.00, 15.8, 50000, 2500, 1800, 3.6, false, '年度性能', '年度性能商品表现优异', '{"title": "年度性能特惠", "discount": "¥200", "condition": "年度有效"}'),
-(4, '2026-01-01', 4, 200, 999840.00, 13.5, 40000, 2000, 1500, 3.3, false, '年度旗舰', '年度旗舰机型稳定热销', '{"title": "年度旗舰特惠", "discount": "¥150", "condition": "年度有效"}');
+-- 年粒度数据
+(1, 'yearly', '2026-01-01', 1, 500, 149500.00, 20.5, 15000, 800, 500, 3.5, true),
+(2, 'yearly', '2026-01-01', 2, 350, 69650.00, 18.2, 12000, 600, 400, 3.2, true),
+(3, 'yearly', '2026-01-01', 3, 250, 1499760.00, 15.8, 50000, 2500, 1800, 3.6, false),
+(4, 'yearly', '2026-01-01', 4, 200, 999840.00, 13.5, 40000, 2000, 1500, 3.3, false);
 
 
 

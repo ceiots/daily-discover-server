@@ -14,26 +14,18 @@ DROP TABLE IF EXISTS review_likes;
 DROP TABLE IF EXISTS review_replies;
 DROP TABLE IF EXISTS user_reviews;
 
--- 用户评价表
+-- 用户评价表（垂直分表设计）
 CREATE TABLE IF NOT EXISTS user_reviews (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '评价ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
-    user_avatar VARCHAR(500) COMMENT '用户头像',
     order_id BIGINT COMMENT '订单ID',
     rating INT NOT NULL COMMENT '评分(1-5)',
     title VARCHAR(200) COMMENT '评价标题',
-    comment TEXT COMMENT '评价内容',
-    image_urls JSON COMMENT '评价图片',
-    video_url VARCHAR(500) COMMENT '评价视频',
     is_anonymous BOOLEAN DEFAULT false COMMENT '是否匿名',
     is_verified_purchase BOOLEAN DEFAULT false COMMENT '是否验证购买',
-    helpful_count INT DEFAULT 0 COMMENT '有用数量',
-    reply_count INT DEFAULT 0 COMMENT '回复数量',
-    like_count INT DEFAULT 0 COMMENT '点赞数量',
     review_date DATE NOT NULL COMMENT '评价日期',
     status ENUM('pending', 'approved', 'rejected', 'hidden') DEFAULT 'pending' COMMENT '评价状态',
-    moderation_notes VARCHAR(500) COMMENT '审核备注',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
@@ -42,14 +34,38 @@ CREATE TABLE IF NOT EXISTS user_reviews (
     INDEX idx_order_id (order_id),
     INDEX idx_rating (rating),
     INDEX idx_review_date (review_date),
-    INDEX idx_helpful_count (helpful_count),
     INDEX idx_status (status),
     INDEX idx_is_verified_purchase (is_verified_purchase),
     
-    -- 性能优化索引（精简版）
+    -- 性能优化索引（高频查询）
     INDEX idx_product_status_rating (product_id, status, rating) COMMENT '商品状态评分查询',
     INDEX idx_user_status (user_id, status) COMMENT '用户状态查询'
-) COMMENT '用户评价表';
+) COMMENT '用户评价表（核心信息）';
+
+-- 用户评价详情表（大字段单独存储）
+CREATE TABLE IF NOT EXISTS user_review_details (
+    review_id BIGINT PRIMARY KEY COMMENT '评价ID',
+    user_avatar VARCHAR(500) COMMENT '用户头像（缓存字段）',
+    comment TEXT COMMENT '评价内容',
+    image_urls JSON COMMENT '评价图片',
+    video_url VARCHAR(500) COMMENT '评价视频',
+    moderation_notes VARCHAR(500) COMMENT '审核备注',
+    
+    INDEX idx_review_id (review_id)
+) COMMENT '用户评价详情表';
+
+-- 用户评价统计表（实时统计字段）
+CREATE TABLE IF NOT EXISTS user_review_stats (
+    review_id BIGINT PRIMARY KEY COMMENT '评价ID',
+    helpful_count INT DEFAULT 0 COMMENT '有用数量',
+    reply_count INT DEFAULT 0 COMMENT '回复数量',
+    like_count INT DEFAULT 0 COMMENT '点赞数量',
+    last_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+    
+    INDEX idx_review_id (review_id),
+    INDEX idx_helpful_count (helpful_count),
+    INDEX idx_like_count (like_count)
+) COMMENT '用户评价统计表';
 
 -- 评价回复表
 CREATE TABLE IF NOT EXISTS review_replies (
@@ -71,77 +87,28 @@ CREATE TABLE IF NOT EXISTS review_replies (
     INDEX idx_status (status)
 ) COMMENT '评价回复表';
 
--- 评价点赞表
-CREATE TABLE IF NOT EXISTS review_likes (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '点赞ID',
-    review_id BIGINT NOT NULL COMMENT '评价ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    
-    UNIQUE KEY uk_review_user (review_id, user_id),
-    INDEX idx_review_id (review_id),
-    INDEX idx_user_id (user_id)
-) COMMENT '评价点赞表';
 
--- 评价统计表
+
+-- 商品评价统计表（聚合统计）
 CREATE TABLE IF NOT EXISTS review_stats (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '统计ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
     total_reviews INT DEFAULT 0 COMMENT '总评价数',
     average_rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '平均评分',
     rating_distribution JSON COMMENT '评分分布',
-    verified_reviews_count INT DEFAULT 0 COMMENT '验证购买评价数',
-    image_reviews_count INT DEFAULT 0 COMMENT '带图评价数',
-    video_reviews_count INT DEFAULT 0 COMMENT '带视频评价数',
+    purchased_reviews_count INT DEFAULT 0 COMMENT '已购评价数（真实购买用户的评价）',
     last_30_days_reviews INT DEFAULT 0 COMMENT '近30天评价数',
-    helpful_reviews_count INT DEFAULT 0 COMMENT '有用评价数',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
     UNIQUE KEY uk_product_id (product_id),
     INDEX idx_average_rating (average_rating),
     INDEX idx_total_reviews (total_reviews)
-) COMMENT '评价统计表';
+) COMMENT '商品评价统计表';
 
--- 商品操作记录表
-CREATE TABLE IF NOT EXISTS product_actions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '操作记录ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    action_type ENUM('view', 'cart', 'purchase', 'favorite', 'share', 'comment') NOT NULL COMMENT '操作类型',
-    quantity INT DEFAULT 1 COMMENT '数量',
-    session_id VARCHAR(100) COMMENT '会话ID',
-    ip_address VARCHAR(45) COMMENT 'IP地址',
-    user_agent TEXT COMMENT '用户代理',
-    referrer VARCHAR(500) COMMENT '来源页面',
-    action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
-    status VARCHAR(50) COMMENT '状态',
-    metadata JSON COMMENT '附加数据',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    
-    INDEX idx_product_id (product_id),
-    INDEX idx_user_id (user_id),
-    INDEX idx_action_type (action_type),
-    INDEX idx_action_date (action_date),
-    INDEX idx_session_id (session_id)
-) COMMENT '商品操作记录表';
 
--- 用户收藏表
-CREATE TABLE IF NOT EXISTS user_favorites (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '收藏ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    folder_name VARCHAR(100) DEFAULT '默认收藏夹' COMMENT '收藏夹名称',
-    notes VARCHAR(500) COMMENT '收藏备注',
-    sort_order INT DEFAULT 0 COMMENT '排序顺序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    UNIQUE KEY uk_user_product (user_id, product_id),
-    INDEX idx_user_id (user_id),
-    INDEX idx_product_id (product_id),
-    INDEX idx_folder_name (folder_name)
-) COMMENT '用户收藏表';
+
+
 
 COMMIT;
 

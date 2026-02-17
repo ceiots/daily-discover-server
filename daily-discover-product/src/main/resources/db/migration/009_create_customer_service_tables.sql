@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS customer_service_categories (
     INDEX idx_is_enabled (is_enabled)
 ) COMMENT '客服分类表';
 
--- 客服会话表
+-- 客服会话表（简化设计）
 CREATE TABLE IF NOT EXISTS customer_service_conversations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '会话ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
@@ -91,11 +91,6 @@ CREATE TABLE IF NOT EXISTS customer_service_conversations (
     related_order_id BIGINT COMMENT '关联订单ID',
     related_product_id BIGINT COMMENT '关联商品ID',
     
-    -- 统计信息
-    message_count INT DEFAULT 0 COMMENT '消息数量',
-    user_message_count INT DEFAULT 0 COMMENT '用户消息数量',
-    agent_message_count INT DEFAULT 0 COMMENT '客服消息数量',
-    
     -- 时间信息
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -103,7 +98,7 @@ CREATE TABLE IF NOT EXISTS customer_service_conversations (
     resolved_at TIMESTAMP NULL COMMENT '解决时间',
     closed_at TIMESTAMP NULL COMMENT '关闭时间',
     
-    -- 满意度评价
+    -- 满意度评价（重要字段，用于客服质量评估）
     satisfaction_rating INT COMMENT '满意度评分（1-5）',
     satisfaction_comment TEXT COMMENT '满意度评价内容',
     

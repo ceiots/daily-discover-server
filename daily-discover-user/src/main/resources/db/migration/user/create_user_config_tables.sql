@@ -6,44 +6,37 @@ USE daily_discover;
 
 -- 1. 帮助中心FAQ分类表
 CREATE TABLE IF NOT EXISTS help_faq_categories (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    category_id VARCHAR(50) NOT NULL COMMENT '分类ID',
+    category_id VARCHAR(50) PRIMARY KEY COMMENT '分类ID',
     category_name VARCHAR(100) NOT NULL COMMENT '分类名称',
     sort_order INT DEFAULT 0 COMMENT '排序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_category_id (category_id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帮助中心FAQ分类表';
 
 -- 2. 帮助中心FAQ表
 CREATE TABLE IF NOT EXISTS help_faqs (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    faq_id VARCHAR(50) PRIMARY KEY COMMENT 'FAQ ID',
     category_id VARCHAR(50) NOT NULL COMMENT '分类ID',
-    faq_id VARCHAR(50) NOT NULL COMMENT 'FAQ ID',
     question TEXT NOT NULL COMMENT '问题',
     answer TEXT NOT NULL COMMENT '答案',
     sort_order INT DEFAULT 0 COMMENT '排序',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_category_id (category_id),
-    UNIQUE KEY uk_faq_id (faq_id)
+    INDEX idx_category_id (category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帮助中心FAQ表';
 
 -- 3. 反馈类型表
 CREATE TABLE IF NOT EXISTS feedback_types (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type_id VARCHAR(50) NOT NULL COMMENT '类型ID',
+    type_id VARCHAR(50) PRIMARY KEY COMMENT '类型ID',
     type_name VARCHAR(100) NOT NULL COMMENT '类型名称',
     description TEXT COMMENT '描述',
     icon VARCHAR(20) COMMENT '图标',
     sort_order INT DEFAULT 0 COMMENT '排序',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_type_id (type_id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='反馈类型表';
 
 -- 4. 账户设置配置表
 CREATE TABLE IF NOT EXISTS account_settings (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    setting_id VARCHAR(50) NOT NULL COMMENT '设置项ID',
+    setting_id VARCHAR(50) PRIMARY KEY COMMENT '设置项ID',
     setting_name VARCHAR(100) NOT NULL COMMENT '设置项名称',
     setting_type ENUM('basic', 'security', 'notification', 'privacy') NOT NULL COMMENT '设置类型',
     description TEXT COMMENT '设置项描述',
@@ -53,43 +46,37 @@ CREATE TABLE IF NOT EXISTS account_settings (
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_setting_id (setting_id),
     INDEX idx_setting_type (setting_type),
     INDEX idx_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='账户设置配置表';
 
 -- 5. 隐私政策内容表
 CREATE TABLE IF NOT EXISTS privacy_policy_sections (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    section_id VARCHAR(50) NOT NULL COMMENT '章节ID',
+    section_id VARCHAR(50) PRIMARY KEY COMMENT '章节ID',
     section_title VARCHAR(200) NOT NULL COMMENT '章节标题',
     section_content TEXT NOT NULL COMMENT '章节内容',
     sort_order INT DEFAULT 0 COMMENT '排序',
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_section_id (section_id),
     INDEX idx_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='隐私政策内容表';
 
 -- 6. 用户协议内容表
 CREATE TABLE IF NOT EXISTS user_agreement_sections (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    section_id VARCHAR(50) NOT NULL COMMENT '章节ID',
+    section_id VARCHAR(50) PRIMARY KEY COMMENT '章节ID',
     section_title VARCHAR(200) NOT NULL COMMENT '章节标题',
     section_content TEXT NOT NULL COMMENT '章节内容',
     sort_order INT DEFAULT 0 COMMENT '排序',
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_section_id (section_id),
     INDEX idx_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户协议内容表';
 
 -- 7. 帮助中心快速操作表
 CREATE TABLE IF NOT EXISTS help_quick_actions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    action_id VARCHAR(50) NOT NULL COMMENT '操作ID',
+    action_id VARCHAR(50) PRIMARY KEY COMMENT '操作ID',
     action_name VARCHAR(100) NOT NULL COMMENT '操作名称',
     action_description TEXT COMMENT '操作描述',
     icon VARCHAR(50) COMMENT '图标名称',
@@ -98,14 +85,12 @@ CREATE TABLE IF NOT EXISTS help_quick_actions (
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_action_id (action_id),
     INDEX idx_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帮助中心快速操作表';
 
 -- 8. 帮助中心联系方式表
 CREATE TABLE IF NOT EXISTS help_contact_methods (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    method_id VARCHAR(50) NOT NULL COMMENT '联系方式ID',
+    method_id VARCHAR(50) PRIMARY KEY COMMENT '联系方式ID',
     method_name VARCHAR(100) NOT NULL COMMENT '联系方式名称',
     method_description TEXT COMMENT '联系方式描述',
     contact_info VARCHAR(200) COMMENT '联系信息',
@@ -114,14 +99,12 @@ CREATE TABLE IF NOT EXISTS help_contact_methods (
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_method_id (method_id),
     INDEX idx_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帮助中心联系方式表';
 
 -- 9. 用户权限配置表
 CREATE TABLE IF NOT EXISTS user_permission_configs (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    level_name VARCHAR(50) NOT NULL COMMENT '等级名称',
+    level_name VARCHAR(50) PRIMARY KEY COMMENT '等级名称',
     can_upload_avatar BOOLEAN DEFAULT TRUE COMMENT '可上传头像',
     can_edit_profile BOOLEAN DEFAULT TRUE COMMENT '可编辑资料',
     can_create_post BOOLEAN DEFAULT TRUE COMMENT '可发布内容',
@@ -133,8 +116,7 @@ CREATE TABLE IF NOT EXISTS user_permission_configs (
     can_access_premium BOOLEAN DEFAULT FALSE COMMENT '可访问高级功能',
     can_invite_friends BOOLEAN DEFAULT TRUE COMMENT '可邀请好友',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_level_name (level_name)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户权限配置表';
 
 -- 初始化数据
