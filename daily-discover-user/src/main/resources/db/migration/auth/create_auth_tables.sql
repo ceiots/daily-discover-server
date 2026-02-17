@@ -15,23 +15,21 @@ DROP TABLE IF EXISTS refresh_tokens;
 DROP TABLE IF EXISTS user_verification_codes;
 DROP TABLE IF EXISTS user_reset_tokens;
 DROP TABLE IF EXISTS user_login_stats;
+DROP TABLE IF EXISTS user_devices;
 
 -- 1. 用户令牌表（统一管理所有令牌）
 CREATE TABLE IF NOT EXISTS user_tokens (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL COMMENT '用户ID',
-    token_type ENUM('refresh', 'verification', 'reset') NOT NULL COMMENT '令牌类型',
+    token_type VARCHAR(20) NOT NULL COMMENT '令牌类型（refresh/verification/reset）',
     token_value VARCHAR(255) NOT NULL COMMENT '令牌值',
     
     -- 验证码特定字段
-    code_type ENUM('register', 'login', 'reset_password', 'change_phone') COMMENT '验证码类型（仅verification类型使用）',
+    code_type VARCHAR(20) COMMENT '验证码类型（register/login/reset_password/change_phone）',
     
     -- 通用字段
-    device_info VARCHAR(200) COMMENT '设备信息',
-    ip_address VARCHAR(45) COMMENT 'IP地址',
     expires_at TIMESTAMP NOT NULL COMMENT '过期时间',
     is_used BOOLEAN DEFAULT FALSE COMMENT '是否已使用',
-    used_at TIMESTAMP NULL COMMENT '使用时间',
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_user_id (user_id),
@@ -59,16 +57,5 @@ CREATE TABLE IF NOT EXISTS user_login_records (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户登录记录表';
 
--- 4. 用户验证码表（已移除，统一到user_tokens表）
--- 5. 用户重置令牌表（已移除，统一到user_tokens表）
-
--- 6. 用户登录统计表（已移除，通过user_login_records表统计）
-
--- 6. 用户角色表（已移除，改为代码配置）
--- 角色配置移到应用代码中管理，减少数据库复杂度
-
--- 初始化权限数据（已移除，改为代码配置）
-
--- 初始化角色数据（已移除，改为代码配置）
 
 COMMIT;
