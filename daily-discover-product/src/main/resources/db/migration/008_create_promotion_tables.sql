@@ -6,10 +6,7 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS user_points_transactions;
-DROP TABLE IF EXISTS user_points;
 DROP TABLE IF EXISTS coupon_usage_records;
-DROP TABLE IF EXISTS user_coupons;
 DROP TABLE IF EXISTS coupons;
 DROP TABLE IF EXISTS promotion_activities;
 
@@ -91,34 +88,7 @@ CREATE TABLE IF NOT EXISTS coupons (
     INDEX idx_status (status)
 ) COMMENT '优惠券表';
 
--- 用户优惠券表
-CREATE TABLE IF NOT EXISTS user_coupons (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '用户优惠券ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    coupon_id BIGINT NOT NULL COMMENT '优惠券ID',
-    
-    -- 使用状态
-    status ENUM('unused', 'used', 'expired') DEFAULT 'unused' COMMENT '使用状态',
-    
-    -- 使用信息
-    used_order_id BIGINT COMMENT '使用的订单ID',
-    used_at TIMESTAMP NULL COMMENT '使用时间',
-    
-    -- 有效期（用户领取时的有效期）
-    valid_from TIMESTAMP NOT NULL COMMENT '有效期开始',
-    valid_to TIMESTAMP NOT NULL COMMENT '有效期结束',
-    
-    -- 时间戳
-    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '领取时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_user_id (user_id),
-    INDEX idx_coupon_id (coupon_id),
-    INDEX idx_status (status),
-    INDEX idx_valid_to (valid_to),
-    UNIQUE KEY uk_user_coupon (user_id, coupon_id)
-) COMMENT '用户优惠券表';
+
 
 -- 优惠券使用记录表
 CREATE TABLE IF NOT EXISTS coupon_usage_records (
@@ -143,56 +113,6 @@ CREATE TABLE IF NOT EXISTS coupon_usage_records (
     INDEX idx_used_at (used_at)
 ) COMMENT '优惠券使用记录表';
 
--- 用户积分表
-CREATE TABLE IF NOT EXISTS user_points (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '积分ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    
-    -- 积分信息
-    total_points INT DEFAULT 0 COMMENT '总积分',
-    available_points INT DEFAULT 0 COMMENT '可用积分',
-    used_points INT DEFAULT 0 COMMENT '已用积分',
-    expired_points INT DEFAULT 0 COMMENT '过期积分',
-    
-    -- 积分有效期
-    points_expiry_date DATE COMMENT '积分过期日期',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_user_id (user_id),
-    INDEX idx_points_expiry_date (points_expiry_date),
-    UNIQUE KEY uk_user_id (user_id)
-) COMMENT '用户积分表';
 
--- 用户积分交易记录表
-CREATE TABLE IF NOT EXISTS user_points_transactions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '交易记录ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    
-    -- 交易信息
-    transaction_type ENUM('earn', 'use', 'expire', 'adjust') NOT NULL COMMENT '交易类型',
-    points_change INT NOT NULL COMMENT '积分变化',
-    points_balance INT NOT NULL COMMENT '积分余额',
-    
-    -- 关联信息
-    reference_type ENUM('order', 'review', 'signin', 'promotion') COMMENT '关联类型',
-    reference_id BIGINT COMMENT '关联ID',
-    
-    -- 交易描述
-    description VARCHAR(500) COMMENT '交易描述',
-    
-    -- 时间戳
-    transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '交易时间',
-    
-    -- 索引优化
-    INDEX idx_user_id (user_id),
-    INDEX idx_transaction_type (transaction_type),
-    INDEX idx_reference_type (reference_type),
-    INDEX idx_reference_id (reference_id),
-    INDEX idx_transaction_time (transaction_time)
-) COMMENT '用户积分交易记录表';
 
 COMMIT;
