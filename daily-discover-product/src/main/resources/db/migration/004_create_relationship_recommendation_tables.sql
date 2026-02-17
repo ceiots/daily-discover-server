@@ -14,6 +14,8 @@ DROP TABLE IF EXISTS product_recommendations;
 DROP TABLE IF EXISTS product_sales_stats;
 DROP TABLE IF EXISTS recommendation_effects;
 DROP TABLE IF EXISTS user_behavior_logs;
+DROP TABLE IF EXISTS scenario_recommendations;
+DROP TABLE IF EXISTS user_interest_profiles;
 
 -- 统一推荐表（合并相关商品和推荐功能）
 CREATE TABLE IF NOT EXISTS product_recommendations (
@@ -99,6 +101,63 @@ CREATE TABLE IF NOT EXISTS user_behavior_logs (
     INDEX idx_product_behavior (product_id, behavior_type, created_at),
     INDEX idx_session (session_id)
 ) COMMENT '用户行为日志表';
+
+-- 场景推荐表（基于用户场景的个性化推荐）
+CREATE TABLE IF NOT EXISTS scenario_recommendations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- 用户关联（关键改进：支持个性化）
+    user_id BIGINT COMMENT '用户ID（NULL表示通用模板）',
+    
+    -- 场景定义
+    scenario_type ENUM('morning', 'commute', 'work', 'lunch', 'evening', 'weekend', 'travel', 'gift') COMMENT '场景类型',
+    time_slot VARCHAR(20) COMMENT '时间段: "07:00-09:00"',
+    location_context JSON COMMENT '位置上下文: {"home", "office", "commute"}',
+    
+    -- 场景特征
+    user_state ENUM('relaxed', 'focused', 'social', 'shopping') COMMENT '用户状态',
+    weather_conditions JSON COMMENT '天气条件: {"sunny", "rainy"}',
+    
+    -- 推荐内容（动态计算，非固定列表）
+    recommended_products JSON COMMENT '推荐商品ID列表',
+    scenario_story VARCHAR(500) COMMENT '场景故事文案',
+    
+    -- 效果指标
+    success_rate DECIMAL(5,4) COMMENT '场景成功率',
+    avg_engagement DECIMAL(5,2) COMMENT '平均参与度',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    INDEX idx_user_scenario (user_id, scenario_type) COMMENT '用户场景关联查询',
+    INDEX idx_scenario_type (scenario_type),
+    INDEX idx_time_slot (time_slot),
+    INDEX idx_user_state (user_state)
+) COMMENT '场景推荐表';
+
+-- 用户兴趣画像表（个性化推荐基础）
+CREATE TABLE IF NOT EXISTS user_interest_profiles (
+    user_id BIGINT PRIMARY KEY COMMENT '用户ID',
+    
+    -- 基础兴趣标签（带权重）
+    interest_tags JSON COMMENT '兴趣标签及权重: {"科技": 0.8, "运动": 0.6, "时尚": 0.4}',
+    
+    -- 行为偏好分析
+    behavior_patterns JSON COMMENT '行为模式: {"浏览时段": "19:00-22:00", "点击偏好": "图片>文字"}',
+    
+    -- 发现偏好设置
+    discovery_preferences JSON COMMENT '发现偏好: {"新品偏好": "高", "价格敏感度": "中等"}',
+    
+    -- 实时兴趣热度
+    trending_interests JSON COMMENT '实时兴趣热度: {"热点事件": 0.9, "季节性": 0.7}',
+    
+    -- 时间戳
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+    profile_version INT DEFAULT 1 COMMENT '画像版本',
+    
+    INDEX idx_last_updated (last_updated)
+) COMMENT '用户兴趣画像表';
 
 -- 商品搜索关键词表
 CREATE TABLE IF NOT EXISTS product_search_keywords (
@@ -250,5 +309,23 @@ INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count
 (1, 1001, 5, 2, 1, '2026-02-01 10:30:00', '2026-02-01 10:35:00'),
 (2, 1002, 3, 1, 0, '2026-02-01 14:20:00', '2026-02-01 14:25:00'),
 (3, 1003, 8, 3, 2, '2026-02-01 16:45:00', '2026-02-01 16:50:00');
+
+-- 插入场景推荐数据（包含通用模板和个性化推荐）
+INSERT INTO scenario_recommendations (user_id, scenario_type, time_slot, location_context, user_state, weather_conditions, recommended_products, scenario_story, personalization_level, success_rate, avg_engagement) VALUES
+-- 通用模板（user_id为NULL）
+(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐', 'low', 0.75, 4.2),
+(NULL, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航', 'low', 0.68, 3.8),
+
+-- 个性化推荐（关联具体用户）
+(1001, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天', 'high', 0.85, 4.8),
+(1002, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性', 'high', 0.78, 4.5),
+(1003, 'work', '09:00-12:00', '{"location": "office"}', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康', 'high', 0.72, 4.0),
+(1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境', 'high', 0.65, 3.5);
+
+-- 插入用户兴趣画像数据
+INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests) VALUES
+(1001, '{"科技": 0.8, "运动": 0.6, "健康": 0.7}', '{"浏览时段": "19:00-22:00", "设备偏好": "手机"}', '{"新品偏好": "高", "价格敏感度": "低"}', '{"热点事件": 0.9}'),
+(1002, '{"音频": 0.9, "时尚": 0.5, "旅行": 0.6}', '{"浏览时段": "12:00-14:00", "点击偏好": "视频>图片"}', '{"新品偏好": "中等", "品牌忠诚度": "高"}', '{"季节性": 0.7}'),
+(1003, '{"办公": 0.8, "游戏": 0.7, "摄影": 0.6}', '{"浏览时段": "20:00-23:00", "购买决策": "详细比较"}', '{"新品偏好": "低", "性价比优先": "是"}', '{"技术更新": 0.8}');
 
 COMMIT;
