@@ -12,7 +12,7 @@ import java.util.List;
  * 购物车表 Mapper
  */
 @Mapper
-public interface CartMapper extends BaseMapper<ShoppingCart> {
+public interface ShoppingCartMapper extends BaseMapper<ShoppingCart> {
     
     /**
      * 根据用户ID查询购物车列表
