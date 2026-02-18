@@ -1,6 +1,9 @@
 package com.dailydiscover.service;
 
-import com.dailydiscover.model.*;
+import com.dailydiscover.model.OrdersCore;
+import com.dailydiscover.model.OrdersExtend;
+import com.dailydiscover.model.OrderItem;
+import com.dailydiscover.model.PaymentTransaction;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +12,7 @@ public interface OrderService {
     // 基础订单操作
     /**
      * 创建订单
+     * @param userId 用户ID
      * @param productId 商品ID
      * @param quantity 数量
      * @return 订单创建结果
@@ -50,44 +54,21 @@ public interface OrderService {
      */
     Map<String, Object> getOrderStats();
     
-    // 订单核心表和扩展表操作
+    // 订单核心表操作
     OrdersCore getOrderCoreById(Long orderId);
-    OrdersExtend getOrderExtendById(Long orderId);
-    List<OrderItem> getOrderItems(Long orderId);
     void saveOrderCore(OrdersCore orderCore);
+    
+    // 订单扩展表操作
+    OrdersExtend getOrderExtendById(Long orderId);
     void saveOrderExtend(OrdersExtend orderExtend);
+    
+    // 订单项操作
+    List<OrderItem> getOrderItems(Long orderId);
     void saveOrderItem(OrderItem orderItem);
     
-    // 物流跟踪功能
-    OrderShipping getOrderShipping(Long orderId);
-    List<OrderShippingTrack> getShippingTracks(Long shippingId);
-    void updateShippingStatus(Long orderId, Integer shippingStatus);
-    void addShippingTrack(Long shippingId, OrderShippingTrack track);
-    
-    // 支付记录管理
+    // 支付记录操作
     PaymentTransaction getPaymentTransaction(Long orderId);
     List<PaymentTransaction> getPaymentTransactionsByOrder(Long orderId);
     void savePaymentTransaction(PaymentTransaction transaction);
     void updatePaymentStatus(Long transactionId, String status);
-    
-    // 售后申请管理
-    AfterSalesApplication getAfterSalesApplication(Long applicationId);
-    List<AfterSalesApplication> getAfterSalesByOrder(Long orderId);
-    void saveAfterSalesApplication(AfterSalesApplication application);
-    void updateAfterSalesStatus(Long applicationId, String status);
-    
-    // 发票管理功能
-    OrderInvoice getOrderInvoice(Long orderId);
-    void saveOrderInvoice(OrderInvoice invoice);
-    void updateInvoiceStatus(Long invoiceId, String status);
-    
-    // 高级查询功能
-    List<OrdersCore> getOrdersByStatus(Integer status);
-    List<OrdersCore> getOrdersByPaymentStatus(String paymentStatus);
-    List<OrdersCore> getOrdersByDateRange(String startDate, String endDate);
-    
-    // 统计和分析功能
-    Map<String, Object> getSalesAnalysis(String startDate, String endDate);
-    Map<String, Object> getCustomerOrderStats(Long userId);
-    List<Map<String, Object>> getTopProductsBySales(int limit);
 }
