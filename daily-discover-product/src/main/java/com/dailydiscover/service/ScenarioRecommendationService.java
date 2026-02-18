@@ -40,4 +40,19 @@ public interface ScenarioRecommendationService extends IService<ScenarioRecommen
     ScenarioRecommendation createScenarioRecommendation(String scenarioType, String timeSlot, 
                                                         java.util.List<Long> recommendedProducts, 
                                                         String scenarioStory);
+    
+    /**
+     * 根据场景类型获取推荐（Controller中调用的方法）
+     */
+    java.util.List<ScenarioRecommendation> getByScenarioType(String scenarioType);
+    
+    /**
+     * 根据用户ID获取推荐（Controller中调用的方法）
+     */
+    java.util.List<ScenarioRecommendation> getByUserId(Long userId);
+    
+    /**
+     * 获取活跃推荐（Controller中调用的方法）
+     */
+    java.util.List<ScenarioRecommendation> getActiveRecommendations();
 }

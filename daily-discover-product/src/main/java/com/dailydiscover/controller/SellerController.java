@@ -71,8 +71,8 @@ public class SellerController {
     @ApiLog("创建商家")
     public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) {
         try {
-            sellerService.save(seller);
-            return ResponseEntity.status(HttpStatus.CREATED).body(seller);
+            boolean success = sellerService.save(seller);
+            return success ? ResponseEntity.status(HttpStatus.CREATED).body(seller) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -83,8 +83,8 @@ public class SellerController {
     public ResponseEntity<Seller> updateSeller(@PathVariable Long id, @RequestBody Seller seller) {
         try {
             seller.setId(id);
-            sellerService.update(seller);
-            return ResponseEntity.ok(seller);
+            boolean success = sellerService.update(seller);
+            return success ? ResponseEntity.ok(seller) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

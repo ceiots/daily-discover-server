@@ -19,60 +19,26 @@ public class ProductSalesStatsServiceImpl extends ServiceImpl<ProductSalesStatsM
     private ProductSalesStatsMapper productSalesStatsMapper;
     
     @Override
-    public ProductSalesStats getByProductId(Long productId) {
-        return lambdaQuery().eq(ProductSalesStats::getProductId, productId).one();
+    public ProductSalesStats getSalesStatsByProductAndGranularity(Long productId, String timeGranularity) {
+        return lambdaQuery()
+                .eq(ProductSalesStats::getProductId, productId)
+                .eq(ProductSalesStats::getTimeGranularity, timeGranularity)
+                .one();
     }
     
     @Override
-    public boolean updateSalesStats(Long productId, Integer quantitySold, BigDecimal totalRevenue) {
-        ProductSalesStats stats = getByProductId(productId);
+    public java.util.List<ProductSalesStats> getTopProducts(int limit) {
+        return lambdaQuery().orderByDesc(ProductSalesStats::getSalesCount).last("LIMIT " + limit).list();
+    }
+    
+    @Override
+    public boolean updateSalesStats(Long productId, int salesCount, java.math.BigDecimal salesAmount) {
+        ProductSalesStats stats = lambdaQuery().eq(ProductSalesStats::getProductId, productId).one();
         if (stats != null) {
-            stats.setQuantitySold(stats.getQuantitySold() + quantitySold);
-            stats.setTotalRevenue(stats.getTotalRevenue().add(totalRevenue));
+            stats.setSalesCount(stats.getSalesCount() + salesCount);
+            stats.setSalesAmount(stats.getSalesAmount().add(salesAmount));
             return updateById(stats);
         }
         return false;
-    }
-    
-    @Override
-    public boolean incrementSalesCount(Long productId) {
-        ProductSalesStats stats = getByProductId(productId);
-        if (stats != null) {
-            stats.setSalesCount(stats.getSalesCount() + 1);
-            return updateById(stats);
-        }
-        return false;
-    }
-    
-    @Override
-    public boolean updateAverageRating(Long productId, Double averageRating) {
-        ProductSalesStats stats = getByProductId(productId);
-        if (stats != null) {
-            stats.setAverageRating(averageRating);
-            return updateById(stats);
-        }
-        return false;
-    }
-    
-    @Override
-    public List<ProductSalesStats> getTopSellingProducts(Integer limit) {
-        return lambdaQuery().orderByDesc(ProductSalesStats::getQuantitySold).last("LIMIT " + limit).list();
-    }
-    
-    @Override
-    public List<ProductSalesStats> getRevenueRanking(Integer limit) {
-        return lambdaQuery().orderByDesc(ProductSalesStats::getTotalRevenue).last("LIMIT " + limit).list();
-    }
-    
-    @Override
-    public BigDecimal getTotalRevenueByProductId(Long productId) {
-        ProductSalesStats stats = getByProductId(productId);
-        return stats != null ? stats.getTotalRevenue() : BigDecimal.ZERO;
-    }
-    
-    @Override
-    public Integer getTotalQuantitySoldByProductId(Long productId) {
-        ProductSalesStats stats = getByProductId(productId);
-        return stats != null ? stats.getQuantitySold() : 0;
     }
 }

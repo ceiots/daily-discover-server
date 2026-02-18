@@ -21,20 +21,18 @@ public class ProductController {
     @ApiLog("根据ID获取商品")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         try {
-            Product product = productService.getById(id);
+            Product product = productService.findById(id);
             return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
-
-    
     @GetMapping
     @ApiLog("获取所有商品")
     public ResponseEntity<List<Product>> getAllProducts() {
         try {
-            List<Product> products = productService.list();
+            List<Product> products = productService.findAll();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -174,7 +172,7 @@ public class ProductController {
     @ApiLog("删除商品")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         try {
-            boolean success = productService.removeById(id);
+            boolean success = productService.delete(id);
             return success ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

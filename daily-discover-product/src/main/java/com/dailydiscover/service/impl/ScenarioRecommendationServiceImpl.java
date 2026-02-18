@@ -18,26 +18,47 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     private ScenarioRecommendationMapper scenarioRecommendationMapper;
     
     @Override
-    public List<ScenarioRecommendation> getRecommendationsByScenario(String scenarioType) {
+    public List<ScenarioRecommendation> getRecommendationsByScenarioType(String scenarioType) {
         return lambdaQuery().eq(ScenarioRecommendation::getScenarioType, scenarioType).orderByDesc(ScenarioRecommendation::getPriority).list();
+    }
+    
+    @Override
+    public List<ScenarioRecommendation> getPersonalizedScenarioRecommendations(Long userId) {
+        return lambdaQuery().eq(ScenarioRecommendation::getUserId, userId).orderByDesc(ScenarioRecommendation::getPriority).list();
+    }
+    
+    @Override
+    public List<ScenarioRecommendation> getRecommendationsByProductId(Long productId) {
+        return lambdaQuery().eq(ScenarioRecommendation::getProductId, productId).orderByDesc(ScenarioRecommendation::getPriority).list();
+    }
+    
+    @Override
+    public ScenarioRecommendation createScenarioRecommendation(String scenarioType, String timeSlot, 
+                                                               java.util.List<Long> recommendedProducts, 
+                                                               String scenarioStory) {
+        ScenarioRecommendation recommendation = new ScenarioRecommendation();
+        recommendation.setScenarioType(scenarioType);
+        recommendation.setTimeSlot(timeSlot);
+        recommendation.setScenarioStory(scenarioStory);
+        recommendation.setStatus("active");
+        
+        save(recommendation);
+        return recommendation;
+    }
+    
+    @Override
+    public List<ScenarioRecommendation> getByScenarioType(String scenarioType) {
+        return getRecommendationsByScenarioType(scenarioType);
+    }
+    
+    @Override
+    public List<ScenarioRecommendation> getByUserId(Long userId) {
+        return getPersonalizedScenarioRecommendations(userId);
     }
     
     @Override
     public List<ScenarioRecommendation> getActiveRecommendations() {
         return lambdaQuery().eq(ScenarioRecommendation::getStatus, "active").orderByDesc(ScenarioRecommendation::getPriority).list();
-    }
-    
-    @Override
-    public ScenarioRecommendation createRecommendation(String scenarioType, Long productId, Integer priority, String recommendationReason) {
-        ScenarioRecommendation recommendation = new ScenarioRecommendation();
-        recommendation.setScenarioType(scenarioType);
-        recommendation.setProductId(productId);
-        recommendation.setPriority(priority);
-        recommendation.setRecommendationReason(recommendationReason);
-        recommendation.setStatus("active");
-        
-        save(recommendation);
-        return recommendation;
     }
     
     @Override
@@ -62,7 +83,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     
     @Override
     public List<Long> getRecommendedProductIdsByScenario(String scenarioType, Integer limit) {
-        List<ScenarioRecommendation> recommendations = getRecommendationsByScenario(scenarioType);
+        List<ScenarioRecommendation> recommendations = getRecommendationsByScenarioType(scenarioType);
         return recommendations.stream()
                 .limit(limit)
                 .map(ScenarioRecommendation::getProductId)

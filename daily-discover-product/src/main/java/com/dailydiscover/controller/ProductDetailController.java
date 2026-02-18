@@ -2,6 +2,7 @@ package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.model.Product;
+import com.dailydiscover.model.ProductDetail;
 import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -37,14 +38,12 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<String>> getProductSpecifications(@PathVariable Long productId) {
         try {
-            List<String> specs = productDetailService.getProductSpecifications(productId);
-            return ResponseEntity.ok(specs);
+            List<String> specifications = productDetailService.getProductSpecifications(productId);
+            return ResponseEntity.ok(specifications);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
-
     
     @GetMapping("/features")
     @ApiLog("获取商品特性")
@@ -63,9 +62,9 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getRelatedProducts(@PathVariable Long productId) {
         try {
-            Product product = productService.getById(productId);
+            Product product = productService.findById(productId);
             if (product != null) {
-                List<Product> products = productService.list();
+                List<Product> products = productService.findAll();
                 products = products.stream()
                     .filter(p -> !p.getId().equals(productId))
                     .limit(10)

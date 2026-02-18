@@ -18,57 +18,46 @@ public class UserReviewDetailServiceImpl extends ServiceImpl<UserReviewDetailMap
     private UserReviewDetailMapper userReviewDetailMapper;
     
     @Override
-    public List<UserReviewDetail> getByUserId(Long userId) {
-        return lambdaQuery().eq(UserReviewDetail::getUserId, userId).orderByDesc(UserReviewDetail::getCreatedAt).list();
+    public UserReviewDetail getByReviewId(Long reviewId) {
+        return lambdaQuery().eq(UserReviewDetail::getReviewId, reviewId).one();
     }
     
     @Override
-    public List<UserReviewDetail> getByProductId(Long productId) {
-        return lambdaQuery().eq(UserReviewDetail::getProductId, productId).orderByDesc(UserReviewDetail::getCreatedAt).list();
-    }
-    
-    @Override
-    public UserReviewDetail getByUserIdAndProductId(Long userId, Long productId) {
-        return lambdaQuery()
-                .eq(UserReviewDetail::getUserId, userId)
-                .eq(UserReviewDetail::getProductId, productId)
-                .one();
-    }
-    
-    @Override
-    public UserReviewDetail createReviewDetail(Long userId, Long productId, Integer rating, String reviewText, String reviewImages) {
-        UserReviewDetail detail = new UserReviewDetail();
-        detail.setUserId(userId);
-        detail.setProductId(productId);
-        detail.setRating(rating);
-        detail.setReviewText(reviewText);
-        detail.setReviewImages(reviewImages);
-        
-        save(detail);
-        return detail;
-    }
-    
-    @Override
-    public boolean updateReviewDetail(Long reviewId, String reviewText, String reviewImages) {
-        UserReviewDetail detail = getById(reviewId);
+    public boolean updateReviewDetail(Long reviewId, String reviewContent, String reviewImages, 
+                                     String pros, String cons, String usageExperience) {
+        UserReviewDetail detail = getByReviewId(reviewId);
         if (detail != null) {
-            detail.setReviewText(reviewText);
+            detail.setReviewContent(reviewContent);
             detail.setReviewImages(reviewImages);
+            detail.setPros(pros);
+            detail.setCons(cons);
+            detail.setUsageExperience(usageExperience);
             return updateById(detail);
         }
         return false;
     }
     
     @Override
-    public boolean deleteReviewDetail(Long reviewId) {
-        return removeById(reviewId);
+    public boolean addReviewImages(Long reviewId, String imageUrls) {
+        UserReviewDetail detail = getByReviewId(reviewId);
+        if (detail != null) {
+            String currentImages = detail.getReviewImages();
+            if (currentImages == null || currentImages.isEmpty()) {
+                detail.setReviewImages(imageUrls);
+            } else {
+                detail.setReviewImages(currentImages + "," + imageUrls);
+            }
+            return updateById(detail);
+        }
+        return false;
     }
     
     @Override
-    public List<UserReviewDetail> getReviewsWithImages() {
+    public List<UserReviewDetail> getReviewsWithImages(Integer limit) {
         return lambdaQuery()
                 .isNotNull(UserReviewDetail::getReviewImages)
                 .ne(UserReviewDetail::getReviewImages, "")
+                .last(limit != null ? "LIMIT " + limit : "")
                 .list();
     }
 }

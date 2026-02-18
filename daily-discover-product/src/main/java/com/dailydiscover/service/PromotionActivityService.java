@@ -54,4 +54,19 @@ public interface PromotionActivityService extends IService<PromotionActivity> {
      * 获取促销活动统计信息
      */
     java.util.Map<String, Object> getActivityStats();
+    
+    /**
+     * 根据活动类型查询促销活动
+     */
+    java.util.List<PromotionActivity> findByActivityType(String activityType);
+    
+    /**
+     * 根据状态查询促销活动
+     */
+    java.util.List<PromotionActivity> findByStatus(String status);
+    
+    /**
+     * 根据商品ID查询促销活动
+     */
+    java.util.List<PromotionActivity> findByProductId(Long productId);
 }

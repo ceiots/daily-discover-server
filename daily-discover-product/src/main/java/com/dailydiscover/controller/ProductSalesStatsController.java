@@ -43,7 +43,7 @@ public class ProductSalesStatsController {
     @ApiLog("根据商品ID获取销售统计")
     public ResponseEntity<ProductSalesStats> getProductSalesStatsByProductId(@PathVariable Long productId) {
         try {
-            ProductSalesStats stats = productSalesStatsService.getByProductId(productId);
+            ProductSalesStats stats = productSalesStatsService.getSalesStatsByProductAndGranularity(productId, "daily");
             return stats != null ? ResponseEntity.ok(stats) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -54,7 +54,7 @@ public class ProductSalesStatsController {
     @ApiLog("根据SKU ID获取销售统计")
     public ResponseEntity<ProductSalesStats> getProductSalesStatsBySkuId(@PathVariable Long skuId) {
         try {
-            ProductSalesStats stats = productSalesStatsService.getBySkuId(skuId);
+            ProductSalesStats stats = productSalesStatsService.getById(skuId);
             return stats != null ? ResponseEntity.ok(stats) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -65,7 +65,7 @@ public class ProductSalesStatsController {
     @ApiLog("获取热销商品统计")
     public ResponseEntity<List<ProductSalesStats>> getTopSellingProducts(@RequestParam(defaultValue = "10") int limit) {
         try {
-            List<ProductSalesStats> stats = productSalesStatsService.getTopSellingProducts(limit);
+            List<ProductSalesStats> stats = productSalesStatsService.getTopProducts(limit);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

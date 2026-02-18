@@ -19,26 +19,25 @@ public class ProductSkuSpecOptionServiceImpl extends ServiceImpl<ProductSkuSpecO
     
     @Override
     public List<ProductSkuSpecOption> getOptionsBySpecId(Long specId) {
-        return lambdaQuery().eq(ProductSkuSpecOption::getSpecId, specId).orderByAsc(ProductSkuSpecOption::getOptionOrder).list();
+        return lambdaQuery().eq(ProductSkuSpecOption::getSpecId, specId).orderByAsc(ProductSkuSpecOption::getSortOrder).list();
     }
     
     @Override
-    public ProductSkuSpecOption createOption(Long specId, String optionValue, String optionImage, Integer optionOrder) {
+    public ProductSkuSpecOption createOption(Long specId, String optionValue, String optionImage) {
         ProductSkuSpecOption option = new ProductSkuSpecOption();
         option.setSpecId(specId);
         option.setOptionValue(optionValue);
         option.setOptionImage(optionImage);
-        option.setOptionOrder(optionOrder);
         
         save(option);
         return option;
     }
     
     @Override
-    public boolean updateOptionOrder(Long optionId, Integer optionOrder) {
+    public boolean updateOptionSortOrder(Long optionId, Integer sortOrder) {
         ProductSkuSpecOption option = getById(optionId);
         if (option != null) {
-            option.setOptionOrder(optionOrder);
+            option.setSortOrder(sortOrder);
             return updateById(option);
         }
         return false;

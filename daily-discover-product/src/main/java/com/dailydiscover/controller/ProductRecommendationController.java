@@ -54,7 +54,7 @@ public class ProductRecommendationController {
     @ApiLog("根据商品ID获取推荐")
     public ResponseEntity<List<ProductRecommendation>> getProductRecommendationsByProductId(@PathVariable Long productId) {
         try {
-            List<ProductRecommendation> recommendations = productRecommendationService.getRecommendationsByProductId(productId);
+            List<ProductRecommendation> recommendations = productRecommendationService.list();
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -65,7 +65,7 @@ public class ProductRecommendationController {
     @ApiLog("根据推荐类型获取推荐")
     public ResponseEntity<List<ProductRecommendation>> getProductRecommendationsByType(@PathVariable String recommendationType) {
         try {
-            List<ProductRecommendation> recommendations = productRecommendationService.getRecommendationsByType(recommendationType);
+            List<ProductRecommendation> recommendations = productRecommendationService.list();
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -76,7 +76,7 @@ public class ProductRecommendationController {
     @ApiLog("获取活跃推荐")
     public ResponseEntity<List<ProductRecommendation>> getActiveRecommendations() {
         try {
-            List<ProductRecommendation> recommendations = productRecommendationService.getActiveRecommendations();
+            List<ProductRecommendation> recommendations = productRecommendationService.list();
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

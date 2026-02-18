@@ -71,8 +71,8 @@ public class ProductCategoryController {
     @ApiLog("创建分类")
     public ResponseEntity<ProductCategory> createCategory(@RequestBody ProductCategory category) {
         try {
-            productCategoryService.save(category);
-            return ResponseEntity.status(HttpStatus.CREATED).body(category);
+            boolean success = productCategoryService.save(category);
+            return success ? ResponseEntity.status(HttpStatus.CREATED).body(category) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -83,8 +83,8 @@ public class ProductCategoryController {
     public ResponseEntity<ProductCategory> updateCategory(@PathVariable Long id, @RequestBody ProductCategory category) {
         try {
             category.setId(id);
-            productCategoryService.update(category);
-            return ResponseEntity.ok(category);
+            boolean success = productCategoryService.updateById(category);
+            return success ? ResponseEntity.ok(category) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

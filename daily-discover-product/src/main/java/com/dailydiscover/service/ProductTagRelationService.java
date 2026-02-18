@@ -45,4 +45,12 @@ public interface ProductTagRelationService extends IService<ProductTagRelation> 
      * @return 是否成功
      */
     boolean batchAddTagsToProduct(Long productId, java.util.List<Long> tagIds);
+    
+    /**
+     * 根据商品ID和标签ID删除标签关系
+     * @param productId 商品ID
+     * @param tagId 标签ID
+     * @return 是否成功
+     */
+    boolean removeByProductIdAndTagId(Long productId, Long tagId);
 }

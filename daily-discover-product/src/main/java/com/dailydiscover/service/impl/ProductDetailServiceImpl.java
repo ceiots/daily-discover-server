@@ -49,4 +49,32 @@ public class ProductDetailServiceImpl extends ServiceImpl<ProductDetailMapper, P
     public boolean delete(Long id) {
         return removeById(id);
     }
+    
+    @Override
+    public java.util.List<String> getProductImages(Long productId) {
+        ProductDetail detail = findByProductId(productId);
+        if (detail != null && detail.getMediaUrl() != null) {
+            return java.util.List.of(detail.getMediaUrl().split(","));
+        }
+        return java.util.Collections.emptyList();
+    }
+    
+    @Override
+    public java.util.List<String> getProductSpecifications(Long productId) {
+        ProductDetail detail = findByProductId(productId);
+        if (detail != null && detail.getSpecifications() != null) {
+            return java.util.List.of(detail.getSpecifications().split(","));
+        }
+        return java.util.Collections.emptyList();
+    }
+    
+    @Override
+    public java.util.List<String> getProductFeatures(Long productId) {
+        ProductDetail detail = findByProductId(productId);
+        if (detail != null && detail.getFeatures() != null) {
+            return java.util.List.of(detail.getFeatures().split(","));
+        }
+        return java.util.Collections.emptyList();
+    }
+    }
 }

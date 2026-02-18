@@ -34,4 +34,19 @@ public interface ProductDetailService {
      * 删除商品详情
      */
     boolean delete(Long id);
+    
+    /**
+     * 获取商品图片列表
+     */
+    java.util.List<String> getProductImages(Long productId);
+    
+    /**
+     * 获取商品规格参数
+     */
+    java.util.List<String> getProductSpecifications(Long productId);
+    
+    /**
+     * 获取商品特性
+     */
+    java.util.List<String> getProductFeatures(Long productId);
 }

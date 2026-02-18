@@ -29,4 +29,24 @@ public interface ProductSearchKeywordService extends IService<ProductSearchKeywo
      * 根据关键词查询搜索统计
      */
     ProductSearchKeyword findByKeyword(String keyword);
+    
+    /**
+     * 根据关键词获取搜索记录
+     */
+    ProductSearchKeyword getByKeyword(String keyword);
+    
+    /**
+     * 获取热门搜索关键词
+     */
+    List<ProductSearchKeyword> getPopularKeywords(int limit);
+    
+    /**
+     * 获取趋势搜索关键词
+     */
+    List<ProductSearchKeyword> getTrendingKeywords(int limit);
+    
+    /**
+     * 增加搜索次数
+     */
+    boolean incrementSearchCount(Long id);
 }

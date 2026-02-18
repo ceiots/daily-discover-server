@@ -36,4 +36,30 @@ public class ProductSearchKeywordServiceImpl extends ServiceImpl<ProductSearchKe
     public ProductSearchKeyword findByKeyword(String keyword) {
         return productSearchKeywordMapper.findByKeyword(keyword);
     }
+    
+    @Override
+    public ProductSearchKeyword getByKeyword(String keyword) {
+        return lambdaQuery().eq(ProductSearchKeyword::getKeyword, keyword).one();
+    }
+    
+    @Override
+    public List<ProductSearchKeyword> getPopularKeywords(int limit) {
+        return lambdaQuery().orderByDesc(ProductSearchKeyword::getSearchCount).last("LIMIT " + limit).list();
+    }
+    
+    @Override
+    public List<ProductSearchKeyword> getTrendingKeywords(int limit) {
+        return lambdaQuery().orderByDesc(ProductSearchKeyword::getRecentSearchCount).last("LIMIT " + limit).list();
+    }
+    
+    @Override
+    public boolean incrementSearchCount(Long id) {
+        ProductSearchKeyword keyword = getById(id);
+        if (keyword != null) {
+            keyword.setSearchCount(keyword.getSearchCount() + 1);
+            keyword.setRecentSearchCount(keyword.getRecentSearchCount() + 1);
+            return updateById(keyword);
+        }
+        return false;
+    }
 }
