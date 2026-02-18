@@ -67,5 +67,5 @@ public interface OrderShippingMapper extends BaseMapper<OrderShipping> {
      * 获取物流统计信息
      */
     @Select("SELECT status, COUNT(*) as count FROM order_shipping GROUP BY status")
-    List<Map<String, Object>> getShippingStats();
+    Map<String, Object> getShippingStats();
 }

@@ -1,0 +1,71 @@
+package com.dailydiscover.service.impl;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dailydiscover.mapper.ProductTagMapper;
+import com.dailydiscover.model.ProductTag;
+import com.dailydiscover.service.ProductTagService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@Slf4j
+public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, ProductTag> implements ProductTagService {
+    
+    @Autowired
+    private ProductTagMapper productTagMapper;
+    
+    @Override
+    public List<ProductTag> getActiveTags() {
+        return lambdaQuery().eq(ProductTag::getStatus, "active").orderByAsc(ProductTag::getTagOrder).list();
+    }
+    
+    @Override
+    public List<ProductTag> getTagsByType(String tagType) {
+        return lambdaQuery().eq(ProductTag::getTagType, tagType).eq(ProductTag::getStatus, "active").orderByAsc(ProductTag::getTagOrder).list();
+    }
+    
+    @Override
+    public ProductTag createTag(String tagName, String tagType, String tagColor, Integer tagOrder) {
+        ProductTag tag = new ProductTag();
+        tag.setTagName(tagName);
+        tag.setTagType(tagType);
+        tag.setTagColor(tagColor);
+        tag.setTagOrder(tagOrder);
+        tag.setStatus("active");
+        
+        save(tag);
+        return tag;
+    }
+    
+    @Override
+    public boolean updateTagStatus(Long tagId, String status) {
+        ProductTag tag = getById(tagId);
+        if (tag != null) {
+            tag.setStatus(status);
+            return updateById(tag);
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean updateTagOrder(Long tagId, Integer tagOrder) {
+        ProductTag tag = getById(tagId);
+        if (tag != null) {
+            tag.setTagOrder(tagOrder);
+            return updateById(tag);
+        }
+        return false;
+    }
+    
+    @Override
+    public List<ProductTag> getPopularTags(Integer limit) {
+        return lambdaQuery()
+                .eq(ProductTag::getStatus, "active")
+                .orderByDesc(ProductTag::getUsageCount)
+                .last("LIMIT " + limit)
+                .list();
+    }
+}
