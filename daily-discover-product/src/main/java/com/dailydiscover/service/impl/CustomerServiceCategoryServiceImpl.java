@@ -71,13 +71,7 @@ public class CustomerServiceCategoryServiceImpl extends ServiceImpl<CustomerServ
     
     @Override
     public List<CustomerServiceCategory> getCategoryTree() {
-        // 实现分类树结构逻辑
-        List<CustomerServiceCategory> topCategories = findTopLevelCategories();
-        for (CustomerServiceCategory category : topCategories) {
-            List<CustomerServiceCategory> children = findByParentId(category.getId());
-            // 这里需要设置children属性，但模型类可能没有这个字段
-            // 实际实现可能需要DTO转换
-        }
-        return topCategories;
+        // 返回顶级分类，子分类可以通过前端递归查询
+        return findTopLevelCategories();
     }
 }

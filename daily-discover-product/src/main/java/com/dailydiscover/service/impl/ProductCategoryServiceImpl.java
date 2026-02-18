@@ -46,4 +46,19 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     public List<ProductCategory> findAll() {
         return list();
     }
+    
+    @Override
+    public ProductCategory findById(Long id) {
+        return getById(id);
+    }
+    
+    @Override
+    public boolean deactivate(Long id) {
+        ProductCategory category = getById(id);
+        if (category != null) {
+            category.setStatus("inactive");
+            return updateById(category);
+        }
+        return false;
+    }
 }

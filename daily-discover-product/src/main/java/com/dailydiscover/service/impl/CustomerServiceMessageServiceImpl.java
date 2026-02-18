@@ -69,7 +69,10 @@ public class CustomerServiceMessageServiceImpl extends ServiceImpl<CustomerServi
     }
     
     @Override
-    public boolean batchMarkMessagesAsRead(java.util.List<Long> messageIds) {
+    public boolean batchMarkMessagesAsRead(List<Long> messageIds) {
+        if (messageIds == null || messageIds.isEmpty()) {
+            return false;
+        }
         return lambdaUpdate()
                 .in(CustomerServiceMessage::getId, messageIds)
                 .set(CustomerServiceMessage::getIsRead, true)

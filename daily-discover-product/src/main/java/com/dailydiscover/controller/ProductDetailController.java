@@ -63,9 +63,9 @@ public class ProductDetailController {
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<Product>> getRelatedProducts(@PathVariable Long productId) {
         try {
-            Product product = productService.findById(productId);
+            Product product = productService.getById(productId);
             if (product != null) {
-                List<Product> products = productService.findByCategoryId(product.getCategoryId());
+                List<Product> products = productService.list();
                 products = products.stream()
                     .filter(p -> !p.getId().equals(productId))
                     .limit(10)

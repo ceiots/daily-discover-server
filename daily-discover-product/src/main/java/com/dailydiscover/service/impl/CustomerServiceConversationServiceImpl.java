@@ -77,14 +77,10 @@ public class CustomerServiceConversationServiceImpl extends ServiceImpl<Customer
     
     @Override
     public boolean updateLastMessageTime(Long conversationId) {
-        CustomerServiceConversation conversation = getById(conversationId);
-        if (conversation != null) {
-            // 使用MyBatis Plus的update方法更新最后消息时间
-            return lambdaUpdate()
-                    .eq(CustomerServiceConversation::getId, conversationId)
-                    .set(CustomerServiceConversation::getLastMessageTime, new java.util.Date())
-                    .update();
-        }
-        return false;
+        // 直接使用lambdaUpdate更新，避免先查询再更新
+        return lambdaUpdate()
+                .eq(CustomerServiceConversation::getId, conversationId)
+                .set(CustomerServiceConversation::getLastMessageTime, new java.util.Date())
+                .update();
     }
 }

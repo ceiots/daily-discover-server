@@ -1,9 +1,10 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.Product;
+import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
-public interface ProductService {
+public interface ProductService extends IService<Product> {
     
     /**
      * 查询所有启用状态的商品
@@ -48,12 +49,12 @@ public interface ProductService {
     /**
      * 保存商品
      */
-    Product save(Product product);
+    boolean save(Product product);
     
     /**
      * 更新商品
      */
-    Product update(Product product);
+    boolean update(Product product);
     
     /**
      * 删除商品

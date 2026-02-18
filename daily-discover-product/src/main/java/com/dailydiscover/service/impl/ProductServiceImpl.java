@@ -46,4 +46,29 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     public List<Product> findRecommendedProducts() {
         return productMapper.findRecommendedProducts();
     }
+    
+    @Override
+    public Product findById(Long id) {
+        return getById(id);
+    }
+    
+    @Override
+    public List<Product> findAll() {
+        return list();
+    }
+    
+    @Override
+    public boolean save(Product product) {
+        return save(product);
+    }
+    
+    @Override
+    public boolean update(Product product) {
+        return updateById(product);
+    }
+    
+    @Override
+    public boolean delete(Long id) {
+        return removeById(id);
+    }
 }

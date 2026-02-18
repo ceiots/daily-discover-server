@@ -78,4 +78,29 @@ public class ProductInventoryConfigServiceImpl extends ServiceImpl<ProductInvent
                 .setSql(configKey + " = " + configValue)
                 .update();
     }
+    
+    @Override
+    public ProductInventoryConfig findById(Long id) {
+        return getById(id);
+    }
+    
+    @Override
+    public List<ProductInventoryConfig> findAll() {
+        return list();
+    }
+    
+    @Override
+    public boolean save(ProductInventoryConfig config) {
+        return super.save(config);
+    }
+    
+    @Override
+    public boolean update(ProductInventoryConfig config) {
+        return updateById(config);
+    }
+    
+    @Override
+    public boolean delete(Long id) {
+        return removeById(id);
+    }
 }

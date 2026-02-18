@@ -1,9 +1,10 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.ProductCategory;
+import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
-public interface ProductCategoryService {
+public interface ProductCategoryService extends IService<ProductCategory> {
     
     /**
      * 根据父分类ID查询子分类
@@ -34,9 +35,14 @@ public interface ProductCategoryService {
      * 查询所有分类
      */
     List<ProductCategory> findAll();
-}  
+    
     /**
-     * 查询所有分类
+     * 根据ID查询分类
      */
-    List<ProductCategory> findAll();
+    ProductCategory findById(Long id);
+    
+    /**
+     * 停用分类
+     */
+    boolean deactivate(Long id);
 }

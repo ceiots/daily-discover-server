@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @TableName("user_review_stats")
 public class UserReviewStats {
     
-    @TableId(value = "review_id", type = IdType.INPUT)
-    private Long reviewId;
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
     
     @TableField("helpful_count")
     private Integer helpfulCount;

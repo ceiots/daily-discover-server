@@ -18,15 +18,11 @@ public class ProductController {
     private final ProductService productService;
     
     @GetMapping("/{id}")
-    @ApiLog("获取产品详情")
+    @ApiLog("根据ID获取商品")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         try {
-            Product product = productService.findById(id);
-            if (product != null) {
-                return ResponseEntity.ok(product);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+            Product product = productService.getById(id);
+            return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -35,10 +31,10 @@ public class ProductController {
 
     
     @GetMapping
-    @ApiLog("获取所有产品")
+    @ApiLog("获取所有商品")
     public ResponseEntity<List<Product>> getAllProducts() {
         try {
-            List<Product> products = productService.findAll();
+            List<Product> products = productService.list();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -152,34 +148,34 @@ public class ProductController {
     }
     
     @PostMapping
-    @ApiLog("创建产品")
+    @ApiLog("创建商品")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         try {
-            productService.save(product);
-            return ResponseEntity.status(HttpStatus.CREATED).body(product);
+            boolean success = productService.save(product);
+            return success ? ResponseEntity.status(HttpStatus.CREATED).body(product) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
     @PutMapping("/{id}")
-    @ApiLog("更新产品")
+    @ApiLog("更新商品")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         try {
             product.setId(id);
-            productService.update(product);
-            return ResponseEntity.ok(product);
+            boolean success = productService.updateById(product);
+            return success ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
     @DeleteMapping("/{id}")
-    @ApiLog("删除产品")
+    @ApiLog("删除商品")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         try {
-            productService.delete(id);
-            return ResponseEntity.noContent().build();
+            boolean success = productService.removeById(id);
+            return success ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
