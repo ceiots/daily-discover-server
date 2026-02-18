@@ -3,7 +3,6 @@ package com.dailydiscover.service;
 import com.dailydiscover.model.ShippingAddress;
 import com.dailydiscover.model.ShippingCarrier;
 import com.dailydiscover.model.ShippingMethod;
-import com.dailydiscover.model.ShippingOrder;
 import com.dailydiscover.model.ShippingPackage;
 import com.dailydiscover.model.ShippingRate;
 import com.dailydiscover.model.ShippingTracking;
@@ -122,52 +121,7 @@ public interface ShippingService {
      */
     Map<String, Object> getShippingRules(String region);
     
-    // ==================== 物流订单管理 ====================
-    
-    /**
-     * 创建物流订单
-     */
-    ShippingOrder createShippingOrder(ShippingOrder order);
-    
-    /**
-     * 根据ID获取物流订单
-     */
-    ShippingOrder findShippingOrderById(Long id);
-    
-    /**
-     * 根据订单ID获取物流订单
-     */
-    ShippingOrder findShippingOrderByOrderId(Long orderId);
-    
-    /**
-     * 更新物流订单
-     */
-    void updateShippingOrder(ShippingOrder order);
-    
-    /**
-     * 取消物流订单
-     */
-    void cancelShippingOrder(Long id);
-    
-    /**
-     * 获取客户物流订单列表
-     */
-    List<ShippingOrder> findShippingOrdersByCustomerId(Long customerId);
-    
-    /**
-     * 获取待处理物流订单
-     */
-    List<ShippingOrder> findPendingShippingOrders();
-    
-    /**
-     * 获取进行中物流订单
-     */
-    List<ShippingOrder> findInProgressShippingOrders();
-    
-    /**
-     * 获取已完成物流订单
-     */
-    List<ShippingOrder> findCompletedShippingOrders();
+
     
     // ==================== 包裹管理 ====================
     
@@ -181,10 +135,7 @@ public interface ShippingService {
      */
     ShippingPackage findPackageById(Long id);
     
-    /**
-     * 根据物流订单ID获取包裹
-     */
-    List<ShippingPackage> findPackagesByShippingOrderId(Long shippingOrderId);
+
     
     /**
      * 更新包裹信息
@@ -213,10 +164,7 @@ public interface ShippingService {
      */
     void createTracking(ShippingTracking tracking);
     
-    /**
-     * 获取物流跟踪信息
-     */
-    List<ShippingTracking> findTrackingByShippingOrderId(Long shippingOrderId);
+
     
     /**
      * 获取最新跟踪状态
@@ -324,10 +272,7 @@ public interface ShippingService {
      */
     Map<String, Object> optimizeShippingRoute(ShippingAddress from, ShippingAddress to, List<ShippingPackage> packages);
     
-    /**
-     * 批量物流优化
-     */
-    Map<String, Object> optimizeBulkShipping(List<ShippingOrder> orders);
+
     
     /**
      * 获取最佳物流方案
@@ -346,30 +291,7 @@ public interface ShippingService {
     
     // ==================== 物流异常处理 ====================
     
-    /**
-     * 处理物流延迟
-     */
-    void handleShippingDelay(Long shippingOrderId, String reason);
-    
-    /**
-     * 处理包裹丢失
-     */
-    void handlePackageLoss(Long shippingOrderId, String details);
-    
-    /**
-     * 处理包裹损坏
-     */
-    void handlePackageDamage(Long shippingOrderId, String details);
-    
-    /**
-     * 处理地址错误
-     */
-    void handleAddressError(Long shippingOrderId, String correctAddress);
-    
-    /**
-     * 处理海关问题
-     */
-    void handleCustomsIssue(Long shippingOrderId, String issueDetails);
+
     
     /**
      * 获取异常处理记录
@@ -398,40 +320,7 @@ public interface ShippingService {
      */
     Double estimateDuties(ShippingPackage shippingPackage, String destinationCountry);
     
-    /**
-     * 处理国际物流文档
-     */
-    void processInternationalDocuments(Long shippingOrderId);
+
     
-    // ==================== 批量操作 ====================
-    
-    /**
-     * 批量创建物流订单
-     */
-    List<ShippingOrder> batchCreateShippingOrders(List<ShippingOrder> orders);
-    
-    /**
-     * 批量更新物流状态
-     */
-    void batchUpdateShippingStatus(List<Long> shippingOrderIds, String status);
-    
-    /**
-     * 批量同步跟踪信息
-     */
-    void batchSyncTrackingInfo(List<Long> shippingOrderIds);
-    
-    /**
-     * 批量发送物流通知
-     */
-    void batchSendShippingNotifications(List<Long> shippingOrderIds, String notificationType);
-    
-    /**
-     * 批量导入物流数据
-     */
-    void batchImportShippingData(List<ShippingOrder> orders);
-    
-    /**
-     * 批量导出物流报告
-     */
-    List<Map<String, Object>> batchExportShippingReport(List<Long> shippingOrderIds);
+
 }
