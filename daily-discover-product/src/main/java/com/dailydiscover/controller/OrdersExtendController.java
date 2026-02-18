@@ -32,30 +32,8 @@ public class OrdersExtendController {
     @ApiLog("根据订单ID获取订单扩展信息")
     public ResponseEntity<OrdersExtend> getOrderExtendByOrderId(@PathVariable Long orderId) {
         try {
-            OrdersExtend orderExtend = ordersExtendService.getById(orderId);
+            OrdersExtend orderExtend = ordersExtendService.getByOrderId(orderId);
             return orderExtend != null ? ResponseEntity.ok(orderExtend) : ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/address/{addressId}")
-    @ApiLog("根据地址ID获取订单扩展信息")
-    public ResponseEntity<OrdersExtend> getOrderExtendByAddressId(@PathVariable Long addressId) {
-        try {
-            OrdersExtend orderExtend = ordersExtendService.findByAddressId(addressId);
-            return orderExtend != null ? ResponseEntity.ok(orderExtend) : ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/coupon/{couponId}")
-    @ApiLog("根据优惠券ID获取订单扩展信息")
-    public ResponseEntity<List<OrdersExtend>> getOrdersExtendByCouponId(@PathVariable Long couponId) {
-        try {
-            List<OrdersExtend> ordersExtend = ordersExtendService.findByCouponId(couponId);
-            return ResponseEntity.ok(ordersExtend);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

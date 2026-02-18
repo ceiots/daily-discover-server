@@ -24,11 +24,17 @@ public class ProductSkuSpecServiceImpl extends ServiceImpl<ProductSkuSpecMapper,
     
     @Override
     public ProductSkuSpec createSpec(Long productId, String specName, Boolean isRequired) {
-        return productSkuSpecMapper.createSpec(productId, specName, isRequired);
+        int result = productSkuSpecMapper.createSpec(productId, specName, isRequired);
+        if (result > 0) {
+            List<ProductSkuSpec> specs = productSkuSpecMapper.getSpecsByProductId(productId);
+            return specs.isEmpty() ? null : specs.get(specs.size() - 1);
+        }
+        return null;
     }
     
     @Override
     public boolean updateSpecSortOrder(Long specId, Integer sortOrder) {
-        return productSkuSpecMapper.updateSpecSortOrder(specId, sortOrder);
+        int result = productSkuSpecMapper.updateSpecSortOrder(specId, sortOrder);
+        return result > 0;
     }
 }

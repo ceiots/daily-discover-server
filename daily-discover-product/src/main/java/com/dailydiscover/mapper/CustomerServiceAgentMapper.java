@@ -43,4 +43,22 @@ public interface CustomerServiceAgentMapper extends BaseMapper<CustomerServiceAg
      */
     @Select("SELECT * FROM customer_service_agents WHERE rating >= #{minRating} AND status = 'online' ORDER BY rating DESC")
     List<CustomerServiceAgent> findHighRatingAgents(@Param("minRating") Double minRating);
+    
+    /**
+     * 更新客服状态
+     */
+    @Select("UPDATE customer_service_agents SET status = #{status} WHERE id = #{agentId}")
+    boolean updateAgentStatus(@Param("agentId") Long agentId, @Param("status") String status);
+    
+    /**
+     * 更新客服当前会话数
+     */
+    @Select("UPDATE customer_service_agents SET current_sessions = #{currentSessions} WHERE id = #{agentId}")
+    boolean updateCurrentSessions(@Param("agentId") Long agentId, @Param("currentSessions") Integer currentSessions);
+    
+    /**
+     * 更新客服最后活跃时间
+     */
+    @Select("UPDATE customer_service_agents SET last_active_time = NOW() WHERE id = #{agentId}")
+    boolean updateLastActiveTime(@Param("agentId") Long agentId);
 }

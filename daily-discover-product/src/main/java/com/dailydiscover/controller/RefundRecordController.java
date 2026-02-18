@@ -43,41 +43,43 @@ public class RefundRecordController {
     @ApiLog("根据订单ID获取退款记录")
     public ResponseEntity<List<RefundRecord>> getRefundRecordsByOrderId(@PathVariable Long orderId) {
         try {
-            List<RefundRecord> records = refundRecordService.findByOrderId(orderId);
+            List<RefundRecord> records = refundRecordService.getByOrderId(orderId);
             return ResponseEntity.ok(records);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/user/{userId}")
-    @ApiLog("根据用户ID获取退款记录")
-    public ResponseEntity<List<RefundRecord>> getRefundRecordsByUserId(@PathVariable Long userId) {
+    @GetMapping("/transaction/{transactionId}")
+    @ApiLog("根据支付交易ID获取退款记录")
+    public ResponseEntity<List<RefundRecord>> getRefundRecordsByTransactionId(@PathVariable Long transactionId) {
         try {
-            List<RefundRecord> records = refundRecordService.findByUserId(userId);
+            List<RefundRecord> records = refundRecordService.getByPaymentTransactionId(transactionId);
             return ResponseEntity.ok(records);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/status/{status}")
-    @ApiLog("根据退款状态获取退款记录")
-    public ResponseEntity<List<RefundRecord>> getRefundRecordsByStatus(@PathVariable String status) {
+    @GetMapping("/refund-no/{refundNo}")
+    @ApiLog("根据退款单号获取退款记录")
+    public ResponseEntity<RefundRecord> getRefundRecordByRefundNo(@PathVariable String refundNo) {
         try {
-            List<RefundRecord> records = refundRecordService.findByStatus(status);
-            return ResponseEntity.ok(records);
+            RefundRecord record = refundRecordService.getByRefundNo(refundNo);
+            return record != null ? ResponseEntity.ok(record) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/pending")
-    @ApiLog("获取待处理的退款申请")
-    public ResponseEntity<List<RefundRecord>> getPendingRefunds() {
+    @GetMapping("/stats")
+    @ApiLog("获取退款统计信息")
+    public ResponseEntity<Map<String, Object>> getRefundStats(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
         try {
-            List<RefundRecord> records = refundRecordService.findPendingRefunds();
-            return ResponseEntity.ok(records);
+            Map<String, Object> stats = refundRecordService.getRefundStats(startDate, endDate);
+            return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

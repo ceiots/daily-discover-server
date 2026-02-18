@@ -34,12 +34,14 @@ public class PaymentMethodServiceImpl extends ServiceImpl<PaymentMethodMapper, P
     
     @Override
     public boolean toggleMethodEnabled(Long methodId, Boolean enabled) {
-        return paymentMethodMapper.toggleMethodEnabled(methodId, enabled);
+        int result = paymentMethodMapper.toggleMethodEnabled(methodId, enabled);
+        return result > 0;
     }
     
     @Override
     public boolean updateMethodConfig(Long methodId, String configJson) {
-        return paymentMethodMapper.updateMethodConfig(methodId, configJson);
+        int result = paymentMethodMapper.updateMethodConfig(methodId, configJson);
+        return result > 0;
     }
     
     @Override

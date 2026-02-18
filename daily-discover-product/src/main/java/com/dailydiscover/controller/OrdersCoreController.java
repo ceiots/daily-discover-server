@@ -43,7 +43,7 @@ public class OrdersCoreController {
     @ApiLog("根据用户ID获取订单列表")
     public ResponseEntity<List<OrdersCore>> getOrdersByUserId(@PathVariable Long userId) {
         try {
-            List<OrdersCore> orders = ordersCoreService.findByUserId(userId);
+            List<OrdersCore> orders = ordersCoreService.getByUserId(userId);
             return ResponseEntity.ok(orders);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -52,10 +52,21 @@ public class OrdersCoreController {
 
     @GetMapping("/status/{status}")
     @ApiLog("根据订单状态获取订单列表")
-    public ResponseEntity<List<OrdersCore>> getOrdersByStatus(@PathVariable Integer status) {
+    public ResponseEntity<List<OrdersCore>> getOrdersByStatus(@PathVariable String status) {
         try {
-            List<OrdersCore> orders = ordersCoreService.findByStatus(status);
+            List<OrdersCore> orders = ordersCoreService.getByStatus(status);
             return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/number/{orderNumber}")
+    @ApiLog("根据订单号获取订单")
+    public ResponseEntity<OrdersCore> getOrderByNumber(@PathVariable String orderNumber) {
+        try {
+            OrdersCore order = ordersCoreService.getByOrderNumber(orderNumber);
+            return order != null ? ResponseEntity.ok(order) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
