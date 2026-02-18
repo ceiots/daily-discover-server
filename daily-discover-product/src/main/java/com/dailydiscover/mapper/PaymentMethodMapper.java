@@ -1,12 +1,12 @@
 package com.dailydiscover.mapper;
 
-import com.dailydiscover.model.RefundRecord;
+import com.dailydiscover.model.PaymentMethod;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * 退款记录表 Mapper
+ * 支付方式表 Mapper
  */
 @Mapper
-public interface RefundRecordMapper extends BaseMapper<RefundRecord> {
+public interface PaymentMethodMapper extends BaseMapper<PaymentMethod> {
 }
