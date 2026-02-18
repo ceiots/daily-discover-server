@@ -18,12 +18,12 @@ public class OrderShippingTrackServiceImpl extends ServiceImpl<OrderShippingTrac
     private OrderShippingTrackMapper orderShippingTrackMapper;
     
     @Override
-    public List<OrderShippingTrack> getByOrderId(Long orderId) {
+    public List<OrderShippingTrack> findByOrderId(Long orderId) {
         return lambdaQuery().eq(OrderShippingTrack::getOrderId, orderId).orderByAsc(OrderShippingTrack::getTrackTime).list();
     }
     
     @Override
-    public List<OrderShippingTrack> getByTrackingNumber(String trackingNumber) {
+    public List<OrderShippingTrack> findByTrackingNumber(String trackingNumber) {
         return lambdaQuery().eq(OrderShippingTrack::getTrackingNumber, trackingNumber).orderByAsc(OrderShippingTrack::getTrackTime).list();
     }
     
@@ -43,12 +43,17 @@ public class OrderShippingTrackServiceImpl extends ServiceImpl<OrderShippingTrac
     }
     
     @Override
-    public OrderShippingTrack getLatestTrackingStatus(Long orderId) {
+    public OrderShippingTrack findLatestTrackByOrderId(Long orderId) {
         return lambdaQuery()
                 .eq(OrderShippingTrack::getOrderId, orderId)
                 .orderByDesc(OrderShippingTrack::getTrackTime)
                 .last("LIMIT 1")
                 .one();
+    }
+    
+    @Override
+    public List<OrderShippingTrack> findByStatus(String status) {
+        return lambdaQuery().eq(OrderShippingTrack::getStatus, status).orderByAsc(OrderShippingTrack::getTrackTime).list();
     }
     
     @Override

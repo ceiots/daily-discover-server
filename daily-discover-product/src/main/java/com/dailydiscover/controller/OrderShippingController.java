@@ -43,7 +43,7 @@ public class OrderShippingController {
     @ApiLog("根据订单ID获取物流信息")
     public ResponseEntity<OrderShipping> getOrderShippingByOrderId(@PathVariable Long orderId) {
         try {
-            OrderShipping shipping = orderShippingService.findByOrderId(orderId);
+            OrderShipping shipping = orderShippingService.getByOrderId(orderId);
             return shipping != null ? ResponseEntity.ok(shipping) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

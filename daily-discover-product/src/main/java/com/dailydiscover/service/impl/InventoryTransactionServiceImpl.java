@@ -68,4 +68,19 @@ public class InventoryTransactionServiceImpl extends ServiceImpl<InventoryTransa
     public Map<String, Object> getTransactionStats(Long productId, LocalDateTime startTime, LocalDateTime endTime) {
         return inventoryTransactionMapper.getTransactionStats(productId, startTime, endTime);
     }
+    
+    @Override
+    public List<InventoryTransaction> findBySkuId(Long skuId) {
+        return inventoryTransactionMapper.findBySkuId(skuId);
+    }
+    
+    @Override
+    public List<InventoryTransaction> findByTransactionType(String transactionType) {
+        return inventoryTransactionMapper.findByTransactionType(transactionType);
+    }
+    
+    @Override
+    public List<InventoryTransaction> findByOrderId(Long orderId) {
+        return inventoryTransactionMapper.findByReference("ORDER", orderId);
+    }
 }

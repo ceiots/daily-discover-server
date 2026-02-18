@@ -11,12 +11,12 @@ public interface CustomerServiceAgentService extends IService<CustomerServiceAge
     /**
      * 查询所有在线客服
      */
-    java.util.List<CustomerServiceAgent> findOnlineAgents();
+    java.util.List<CustomerServiceAgent> getOnlineAgents();
     
     /**
      * 查询可用的客服（在线且未达到最大会话数）
      */
-    java.util.List<CustomerServiceAgent> findAvailableAgents();
+    java.util.List<CustomerServiceAgent> getAvailableAgents();
     
     /**
      * 根据客服状态查询

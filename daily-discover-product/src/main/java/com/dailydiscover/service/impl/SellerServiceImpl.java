@@ -1,5 +1,6 @@
 package com.dailydiscover.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.SellerMapper;
 import com.dailydiscover.model.Seller;
 import com.dailydiscover.service.SellerService;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class SellerServiceImpl implements SellerService {
+public class SellerServiceImpl extends ServiceImpl<SellerMapper, Seller> implements SellerService {
     
     @Autowired
     private SellerMapper sellerMapper;

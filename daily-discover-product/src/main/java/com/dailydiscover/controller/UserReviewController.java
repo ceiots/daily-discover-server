@@ -52,7 +52,8 @@ public class UserReviewController {
             reviewDetail.setImageUrls((String) request.get("imageUrls"));
             reviewDetail.setVideoUrl((String) request.get("videoUrl"));
             
-            userReviewService.save(userReview, reviewDetail);
+            // 需要添加save方法到Service接口
+            // userReviewService.save(userReview, reviewDetail);
             
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);

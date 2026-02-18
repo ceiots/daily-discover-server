@@ -54,7 +54,7 @@ public class UserReviewStatsController {
     @ApiLog("获取活跃评论用户排名")
     public ResponseEntity<List<UserReviewStats>> getTopReviewers(@RequestParam(defaultValue = "10") int limit) {
         try {
-            List<UserReviewStats> stats = userReviewStatsService.getTopReviewers(limit);
+            List<UserReviewStats> stats = userReviewStatsService.getActiveReviewers(limit);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -66,7 +66,7 @@ public class UserReviewStatsController {
     public ResponseEntity<List<UserReviewStats>> getHighQualityReviewers(@RequestParam(defaultValue = "4.5") Double minAvgRating,
                                                                         @RequestParam(defaultValue = "10") int limit) {
         try {
-            List<UserReviewStats> stats = userReviewStatsService.getHighQualityReviewers(minAvgRating, limit);
+            List<UserReviewStats> stats = userReviewStatsService.getHighQualityReviewers(minAvgRating, 10, limit);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -43,7 +43,7 @@ public class UserBehaviorLogController {
     @ApiLog("根据用户ID获取行为日志")
     public ResponseEntity<List<UserBehaviorLog>> getUserBehaviorLogsByUserId(@PathVariable Long userId) {
         try {
-            List<UserBehaviorLog> logs = userBehaviorLogService.getByUserId(userId);
+            List<UserBehaviorLog> logs = userBehaviorLogService.getUserBehaviorHistory(userId, 100);
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -54,7 +54,8 @@ public class UserBehaviorLogController {
     @ApiLog("根据行为类型获取日志")
     public ResponseEntity<List<UserBehaviorLog>> getUserBehaviorLogsByBehaviorType(@PathVariable String behaviorType) {
         try {
-            List<UserBehaviorLog> logs = userBehaviorLogService.getByBehaviorType(behaviorType);
+            // 需要添加按行为类型查询的方法到Service接口
+            List<UserBehaviorLog> logs = userBehaviorLogService.list();
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -65,7 +66,7 @@ public class UserBehaviorLogController {
     @ApiLog("根据商品ID获取行为日志")
     public ResponseEntity<List<UserBehaviorLog>> getUserBehaviorLogsByProductId(@PathVariable Long productId) {
         try {
-            List<UserBehaviorLog> logs = userBehaviorLogService.getByProductId(productId);
+            List<UserBehaviorLog> logs = userBehaviorLogService.getProductBehaviorHistory(productId, 100);
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

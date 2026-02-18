@@ -29,4 +29,14 @@ public interface ProductCategoryService {
      * 查询根分类
      */
     List<ProductCategory> findRootCategories();
+    
+    /**
+     * 查询所有分类
+     */
+    List<ProductCategory> findAll();
+}  
+    /**
+     * 查询所有分类
+     */
+    List<ProductCategory> findAll();
 }

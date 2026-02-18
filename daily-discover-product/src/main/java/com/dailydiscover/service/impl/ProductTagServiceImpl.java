@@ -28,12 +28,10 @@ public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, Product
     }
     
     @Override
-    public ProductTag createTag(String tagName, String tagType, String tagColor, Integer tagOrder) {
+    public ProductTag createTag(String tagName, String tagType) {
         ProductTag tag = new ProductTag();
         tag.setTagName(tagName);
         tag.setTagType(tagType);
-        tag.setTagColor(tagColor);
-        tag.setTagOrder(tagOrder);
         tag.setStatus("active");
         
         save(tag);
@@ -61,11 +59,26 @@ public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, Product
     }
     
     @Override
-    public List<ProductTag> getPopularTags(Integer limit) {
+    public ProductTag getByTagName(String tagName) {
+        return lambdaQuery().eq(ProductTag::getTagName, tagName).eq(ProductTag::getStatus, "active").one();
+    }
+    
+    @Override
+    public List<ProductTag> getPopularTags(int limit) {
         return lambdaQuery()
                 .eq(ProductTag::getStatus, "active")
                 .orderByDesc(ProductTag::getUsageCount)
                 .last("LIMIT " + limit)
                 .list();
+    }
+    
+    @Override
+    public boolean incrementUsageCount(Long tagId) {
+        ProductTag tag = getById(tagId);
+        if (tag != null) {
+            tag.setUsageCount(tag.getUsageCount() + 1);
+            return updateById(tag);
+        }
+        return false;
     }
 }

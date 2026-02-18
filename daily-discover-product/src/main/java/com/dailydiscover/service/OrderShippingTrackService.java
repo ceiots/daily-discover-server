@@ -11,12 +11,12 @@ public interface OrderShippingTrackService extends IService<OrderShippingTrack> 
     /**
      * 根据订单ID查询物流跟踪记录
      */
-    java.util.List<OrderShippingTrack> getByOrderId(Long orderId);
+    java.util.List<OrderShippingTrack> findByOrderId(Long orderId);
     
     /**
      * 根据物流单号查询跟踪记录
      */
-    java.util.List<OrderShippingTrack> getByTrackingNumber(String trackingNumber);
+    java.util.List<OrderShippingTrack> findByTrackingNumber(String trackingNumber);
     
     /**
      * 添加物流跟踪记录
@@ -25,9 +25,14 @@ public interface OrderShippingTrackService extends IService<OrderShippingTrack> 
                                         String status, String description);
     
     /**
-     * 获取最新物流状态
+     * 查询最新的物流状态
      */
-    OrderShippingTrack getLatestTrackingStatus(Long orderId);
+    OrderShippingTrack findLatestTrackByOrderId(Long orderId);
+    
+    /**
+     * 根据状态查询物流跟踪记录
+     */
+    java.util.List<OrderShippingTrack> findByStatus(String status);
     
     /**
      * 获取物流跟踪历史

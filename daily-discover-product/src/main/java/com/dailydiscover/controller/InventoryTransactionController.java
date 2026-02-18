@@ -43,7 +43,7 @@ public class InventoryTransactionController {
     @ApiLog("根据商品ID获取库存交易记录")
     public ResponseEntity<List<InventoryTransaction>> getInventoryTransactionsByProductId(@PathVariable Long productId) {
         try {
-            List<InventoryTransaction> transactions = inventoryTransactionService.findByProductId(productId);
+            List<InventoryTransaction> transactions = inventoryTransactionService.getByProductId(productId);
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -1,5 +1,6 @@
 package com.dailydiscover.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.ProductCategoryMapper;
 import com.dailydiscover.model.ProductCategory;
 import com.dailydiscover.service.ProductCategoryService;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class ProductCategoryServiceImpl implements ProductCategoryService {
+public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMapper, ProductCategory> implements ProductCategoryService {
     
     @Autowired
     private ProductCategoryMapper productCategoryMapper;
@@ -39,5 +40,10 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Override
     public List<ProductCategory> findRootCategories() {
         return productCategoryMapper.findRootCategories();
+    }
+    
+    @Override
+    public List<ProductCategory> findAll() {
+        return list();
     }
 }

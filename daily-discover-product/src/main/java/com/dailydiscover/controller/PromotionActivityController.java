@@ -43,7 +43,7 @@ public class PromotionActivityController {
     @ApiLog("获取当前有效的促销活动")
     public ResponseEntity<List<PromotionActivity>> getActivePromotionActivities() {
         try {
-            List<PromotionActivity> activities = promotionActivityService.findActiveActivities();
+            List<PromotionActivity> activities = promotionActivityService.getActiveActivities();
             return ResponseEntity.ok(activities);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

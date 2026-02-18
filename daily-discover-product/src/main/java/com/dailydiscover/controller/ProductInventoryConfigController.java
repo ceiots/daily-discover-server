@@ -76,7 +76,7 @@ public class ProductInventoryConfigController {
     @ApiLog("更新商品库存配置")
     public ResponseEntity<ProductInventoryConfig> updateProductInventoryConfig(@PathVariable Long id, @RequestBody ProductInventoryConfig config) {
         try {
-            config.setId(id);
+            config.setInventoryId(id);
             boolean success = productInventoryConfigService.updateById(config);
             return success ? ResponseEntity.ok(config) : ResponseEntity.notFound().build();
         } catch (Exception e) {

@@ -105,11 +105,11 @@ public class RegionController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{regionId}")
     @ApiLog("更新地区")
-    public ResponseEntity<Region> updateRegion(@PathVariable Long id, @RequestBody Region region) {
+    public ResponseEntity<Region> updateRegion(@PathVariable String regionId, @RequestBody Region region) {
         try {
-            region.setId(id);
+            region.setRegionId(regionId);
             boolean success = regionService.updateById(region);
             return success ? ResponseEntity.ok(region) : ResponseEntity.notFound().build();
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 package com.dailydiscover.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.UserReviewMapper;
 import com.dailydiscover.model.UserReview;
 import com.dailydiscover.model.UserReviewDetail;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class UserReviewServiceImpl implements UserReviewService {
+public class UserReviewServiceImpl extends ServiceImpl<UserReviewMapper, UserReview> implements UserReviewService {
     
     @Autowired
     private UserReviewMapper userReviewMapper;

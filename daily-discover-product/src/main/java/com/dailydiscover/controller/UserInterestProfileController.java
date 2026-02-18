@@ -61,11 +61,11 @@ public class UserInterestProfileController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/user/{userId}")
     @ApiLog("更新用户兴趣画像")
-    public ResponseEntity<UserInterestProfile> updateUserInterestProfile(@PathVariable Long id, @RequestBody UserInterestProfile profile) {
+    public ResponseEntity<UserInterestProfile> updateUserInterestProfile(@PathVariable Long userId, @RequestBody UserInterestProfile profile) {
         try {
-            profile.setId(id);
+            profile.setUserId(userId);
             boolean success = userInterestProfileService.updateById(profile);
             return success ? ResponseEntity.ok(profile) : ResponseEntity.notFound().build();
         } catch (Exception e) {

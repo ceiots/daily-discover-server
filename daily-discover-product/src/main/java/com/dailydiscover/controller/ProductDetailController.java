@@ -1,7 +1,7 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
-import com.dailydiscover.model.*;
+import com.dailydiscover.model.Product;
 import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +23,9 @@ public class ProductDetailController {
     @GetMapping("/images")
     @ApiLog("获取商品图片列表")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ProductImage>> getProductImages(@PathVariable Long productId) {
+    public ResponseEntity<List<String>> getProductImages(@PathVariable Long productId) {
         try {
-            List<ProductImage> images = productDetailService.getProductImages(productId);
+            List<String> images = productDetailService.getProductImages(productId);
             return ResponseEntity.ok(images);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -35,9 +35,9 @@ public class ProductDetailController {
     @GetMapping("/specifications")
     @ApiLog("获取商品规格参数")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ProductSpec>> getProductSpecifications(@PathVariable Long productId) {
+    public ResponseEntity<List<String>> getProductSpecifications(@PathVariable Long productId) {
         try {
-            List<ProductSpec> specs = productDetailService.getProductSpecifications(productId);
+            List<String> specs = productDetailService.getProductSpecifications(productId);
             return ResponseEntity.ok(specs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

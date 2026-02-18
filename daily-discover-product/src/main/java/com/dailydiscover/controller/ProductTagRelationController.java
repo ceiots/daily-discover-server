@@ -43,7 +43,7 @@ public class ProductTagRelationController {
     @ApiLog("根据商品ID获取标签关系")
     public ResponseEntity<List<ProductTagRelation>> getProductTagRelationsByProductId(@PathVariable Long productId) {
         try {
-            List<ProductTagRelation> relations = productTagRelationService.getByProductId(productId);
+            List<ProductTagRelation> relations = productTagRelationService.getRelationsByProductId(productId);
             return ResponseEntity.ok(relations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -54,7 +54,7 @@ public class ProductTagRelationController {
     @ApiLog("根据标签ID获取标签关系")
     public ResponseEntity<List<ProductTagRelation>> getProductTagRelationsByTagId(@PathVariable Long tagId) {
         try {
-            List<ProductTagRelation> relations = productTagRelationService.getByTagId(tagId);
+            List<ProductTagRelation> relations = productTagRelationService.getRelationsByTagId(tagId);
             return ResponseEntity.ok(relations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

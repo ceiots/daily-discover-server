@@ -18,12 +18,12 @@ public class CustomerServiceAgentServiceImpl extends ServiceImpl<CustomerService
     private CustomerServiceAgentMapper customerServiceAgentMapper;
     
     @Override
-    public List<CustomerServiceAgent> findOnlineAgents() {
+    public List<CustomerServiceAgent> getOnlineAgents() {
         return customerServiceAgentMapper.findOnlineAgents();
     }
     
     @Override
-    public List<CustomerServiceAgent> findAvailableAgents() {
+    public List<CustomerServiceAgent> getAvailableAgents() {
         return customerServiceAgentMapper.findAvailableAgents();
     }
     

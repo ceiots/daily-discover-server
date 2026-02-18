@@ -57,4 +57,19 @@ public interface InventoryTransactionService extends IService<InventoryTransacti
      * 获取库存交易统计
      */
     java.util.Map<String, Object> getTransactionStats(Long productId, java.time.LocalDateTime startTime, java.time.LocalDateTime endTime);
+    
+    /**
+     * 根据SKU ID查询交易记录
+     */
+    java.util.List<InventoryTransaction> findBySkuId(Long skuId);
+    
+    /**
+     * 根据交易类型查询交易记录
+     */
+    java.util.List<InventoryTransaction> findByTransactionType(String transactionType);
+    
+    /**
+     * 根据订单ID查询交易记录
+     */
+    java.util.List<InventoryTransaction> findByOrderId(Long orderId);
 }
