@@ -21,7 +21,7 @@ public class CartController {
     @ApiLog("加入购物车")
     public ResponseEntity<Map<String, Object>> addToCart(@RequestBody Map<String, Object> request) {
         try {
-            String productId = request.get("productId").toString();
+            Long productId = Long.parseLong(request.get("productId").toString());
             int quantity = Integer.parseInt(request.get("quantity").toString());
             
             Map<String, Object> result = cartService.addToCart(productId, quantity);
@@ -36,7 +36,7 @@ public class CartController {
     
     @GetMapping("/item/{productId}")
     @ApiLog("获取购物车商品数量")
-    public ResponseEntity<Map<String, Object>> getCartItem(@PathVariable String productId) {
+    public ResponseEntity<Map<String, Object>> getCartItem(@PathVariable Long productId) {
         try {
             Map<String, Object> result = cartService.getCartItem(productId);
             return ResponseEntity.ok(result);

@@ -21,10 +21,11 @@ public class OrderController {
     @ApiLog("创建订单")
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Map<String, Object> request) {
         try {
-            String productId = request.get("productId").toString();
+            Long userId = Long.parseLong(request.get("userId").toString());
+            Long productId = Long.parseLong(request.get("productId").toString());
             int quantity = Integer.parseInt(request.get("quantity").toString());
             
-            Map<String, Object> result = orderService.createOrder(productId, quantity);
+            Map<String, Object> result = orderService.createOrder(userId, productId, quantity);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             Map<String, Object> errorResult = new HashMap<>();

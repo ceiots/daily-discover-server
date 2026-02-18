@@ -5,6 +5,7 @@ import com.dailydiscover.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     
     @Override
-    public Map<String, Object> createOrder(String productId, int quantity) {
+    public Map<String, Object> createOrder(Long userId, Long productId, int quantity) {
         try {
-            log.info("创建订单: productId={}, quantity={}", productId, quantity);
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            log.info("创建订单: userId={}, productId={}, quantity={}", userId, productId, quantity);
             
             Map<String, Object> order = new HashMap<>();
             order.put("userId", userId);
@@ -53,7 +51,7 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
-    public Map<String, Object> getOrderById(String orderId) {
+    public Map<String, Object> getOrderById(Long orderId) {
         try {
             log.info("获取订单详情: orderId={}", orderId);
             
@@ -67,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
-    public List<Map<String, Object>> getUserOrders(String userId) {
+    public List<Map<String, Object>> getUserOrders(Long userId) {
         try {
             log.info("获取用户订单列表: userId={}", userId);
             
@@ -81,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
-    public Map<String, Object> cancelOrder(String orderId) {
+    public Map<String, Object> cancelOrder(Long orderId) {
         try {
             log.info("取消订单: orderId={}", orderId);
             
@@ -103,7 +101,7 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
-    public Map<String, Object> updateOrderStatus(String orderId, String status) {
+    public Map<String, Object> updateOrderStatus(Long orderId, String status) {
         try {
             log.info("更新订单状态: orderId={}, status={}", orderId, status);
             

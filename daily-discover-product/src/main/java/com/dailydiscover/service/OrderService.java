@@ -11,28 +11,28 @@ public interface OrderService {
      * @param quantity 数量
      * @return 订单创建结果
      */
-    Map<String, Object> createOrder(String productId, int quantity);
+    Map<String, Object> createOrder(Long userId, Long productId, int quantity);
     
     /**
      * 获取订单详情
      * @param orderId 订单ID
      * @return 订单详情
      */
-    Map<String, Object> getOrderById(String orderId);
+    Map<String, Object> getOrderById(Long orderId);
     
     /**
      * 获取用户订单列表
      * @param userId 用户ID
      * @return 订单列表
      */
-    List<Map<String, Object>> getUserOrders(String userId);
+    List<Map<String, Object>> getUserOrders(Long userId);
     
     /**
      * 取消订单
      * @param orderId 订单ID
      * @return 取消结果
      */
-    Map<String, Object> cancelOrder(String orderId);
+    Map<String, Object> cancelOrder(Long orderId);
     
     /**
      * 更新订单状态
@@ -40,7 +40,7 @@ public interface OrderService {
      * @param status 新状态
      * @return 更新结果
      */
-    Map<String, Object> updateOrderStatus(String orderId, String status);
+    Map<String, Object> updateOrderStatus(Long orderId, String status);
     
     /**
      * 获取订单统计信息

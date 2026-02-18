@@ -13,16 +13,16 @@ public interface OrderMapper {
     void createOrder(Map<String, Object> order);
     
     @Select("SELECT * FROM orders WHERE order_id = #{orderId}")
-    Map<String, Object> getOrderById(String orderId);
+    Map<String, Object> getOrderById(Long orderId);
     
     @Select("SELECT * FROM orders WHERE user_id = #{userId} ORDER BY created_at DESC")
-    List<Map<String, Object>> getUserOrders(String userId);
+    List<Map<String, Object>> getUserOrders(Long userId);
     
     @Update("UPDATE orders SET status = #{status}, updated_at = CURRENT_TIMESTAMP WHERE order_id = #{orderId}")
-    void updateOrderStatus(@Param("orderId") String orderId, @Param("status") String status);
+    void updateOrderStatus(@Param("orderId") Long orderId, @Param("status") String status);
     
     @Update("UPDATE orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE order_id = #{orderId}")
-    void cancelOrder(String orderId);
+    void cancelOrder(Long orderId);
     
     @Select("SELECT COUNT(*) as total_orders, " +
             "SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_orders, " +

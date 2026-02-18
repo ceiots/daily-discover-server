@@ -10,14 +10,14 @@ public interface CartService {
      * @param quantity 数量
      * @return 操作结果
      */
-    Map<String, Object> addToCart(String productId, int quantity);
+    Map<String, Object> addToCart(Long productId, int quantity);
     
     /**
      * 获取购物车商品数量
      * @param productId 商品ID
      * @return 商品数量信息
      */
-    Map<String, Object> getCartItem(String productId);
+    Map<String, Object> getCartItem(Long productId);
     
     /**
      * 获取购物车总数量
@@ -31,14 +31,14 @@ public interface CartService {
      * @param quantity 新数量
      * @return 操作结果
      */
-    Map<String, Object> updateCartItem(String productId, int quantity);
+    Map<String, Object> updateCartItem(Long productId, int quantity);
     
     /**
      * 从购物车移除商品
      * @param productId 商品ID
      * @return 操作结果
      */
-    Map<String, Object> removeFromCart(String productId);
+    Map<String, Object> removeFromCart(Long productId);
     
     /**
      * 清空购物车

@@ -27,22 +27,46 @@ public class UserCollection {
     private Long userId;
 
     /**
-     * 商品ID
+     * 内容类型
      */
-    @TableField("product_id")
-    private Long productId;
+    @TableField("item_type")
+    private String itemType;
 
     /**
-     * 收藏类型：product, shop, article
+     * 内容ID
      */
-    @TableField("collection_type")
-    private String collectionType;
+    @TableField("item_id")
+    private String itemId;
 
     /**
-     * 收藏状态：active, inactive
+     * 标题
      */
-    @TableField("status")
-    private String status;
+    @TableField("title")
+    private String title;
+
+    /**
+     * 图片URL
+     */
+    @TableField("image_url")
+    private String imageUrl;
+
+    /**
+     * 价格
+     */
+    @TableField("price")
+    private java.math.BigDecimal price;
+
+    /**
+     * 原价
+     */
+    @TableField("original_price")
+    private java.math.BigDecimal originalPrice;
+
+    /**
+     * 收藏时间
+     */
+    @TableField("collected_at")
+    private LocalDateTime collectedAt;
 
     /**
      * 创建时间

@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS user_collections;
 DROP TABLE IF EXISTS user_browse_history;
 
 -- 1. 浏览历史表
-CREATE TABLE IF NOT EXISTS browse_history (
+CREATE TABLE IF NOT EXISTS user_browse_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL COMMENT '用户ID',
     item_type VARCHAR(20) NOT NULL COMMENT '内容类型',
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS user_posts (
 
 -- 初始化行为数据
 -- 1. 初始化浏览历史数据
-INSERT INTO browse_history (user_id, item_type, item_id, title, image_url, viewed_at) VALUES
+INSERT INTO user_browse_history (user_id, item_type, item_id, title, image_url, viewed_at) VALUES
 (1, 'product', 'product-001', '现代简约风格客厅设计', 'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg', '2024-01-15 14:30:00'),
 (1, 'knowledge', 'knowledge-001', '北欧风格卧室装修案例', 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg', '2024-01-14 10:15:00'),
 (1, 'product', 'product-002', '小户型厨房收纳技巧', 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg', '2024-01-13 16:45:00'),

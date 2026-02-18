@@ -12,18 +12,18 @@ public interface CartMapper {
     void addToCart(Map<String, Object> cartItem);
     
     @Select("SELECT quantity FROM cart_items WHERE user_id = #{userId} AND product_id = #{productId}")
-    Integer getCartItemQuantity(@Param("userId") String userId, @Param("productId") String productId);
+    Integer getCartItemQuantity(@Param("userId") Long userId, @Param("productId") Long productId);
     
     @Select("SELECT COUNT(*) FROM cart_items WHERE user_id = #{userId}")
-    Integer getCartTotalCount(String userId);
+    Integer getCartTotalCount(Long userId);
     
     @Update("UPDATE cart_items SET quantity = #{quantity}, updated_at = CURRENT_TIMESTAMP " +
             "WHERE user_id = #{userId} AND product_id = #{productId}")
     void updateCartItemQuantity(Map<String, Object> cartItem);
     
     @Delete("DELETE FROM cart_items WHERE user_id = #{userId} AND product_id = #{productId}")
-    void removeFromCart(@Param("userId") String userId, @Param("productId") String productId);
+    void removeFromCart(@Param("userId") Long userId, @Param("productId") Long productId);
     
     @Delete("DELETE FROM cart_items WHERE user_id = #{userId}")
-    void clearCart(String userId);
+    void clearCart(Long userId);
 }

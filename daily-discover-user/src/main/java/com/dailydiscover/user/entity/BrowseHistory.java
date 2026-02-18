@@ -27,22 +27,34 @@ public class BrowseHistory {
     private Long userId;
 
     /**
-     * 商品ID
+     * 内容类型
      */
-    @TableField("product_id")
-    private Long productId;
+    @TableField("item_type")
+    private String itemType;
 
     /**
-     * 浏览时长（秒）
+     * 内容ID
      */
-    @TableField("browse_duration")
-    private Integer browseDuration;
+    @TableField("item_id")
+    private String itemId;
+
+    /**
+     * 标题
+     */
+    @TableField("title")
+    private String title;
+
+    /**
+     * 图片URL
+     */
+    @TableField("image_url")
+    private String imageUrl;
 
     /**
      * 浏览时间
      */
-    @TableField("browsed_at")
-    private LocalDateTime browsedAt;
+    @TableField("viewed_at")
+    private LocalDateTime viewedAt;
 
     /**
      * 创建时间

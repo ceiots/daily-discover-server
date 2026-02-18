@@ -1,10 +1,12 @@
 package com.dailydiscover.service.impl;
 
+import com.dailydiscover.common.auth.UserContext;
 import com.dailydiscover.mapper.CartMapper;
 import com.dailydiscover.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,14 +16,13 @@ import java.util.Map;
 public class CartServiceImpl implements CartService {
     
     private final CartMapper cartMapper;
+    private final UserContext userContext;
     
     @Override
-    public Map<String, Object> addToCart(String productId, int quantity) {
+    public Map<String, Object> addToCart(Long productId, int quantity) {
         try {
-            log.info("添加商品到购物车: productId={}, quantity={}", productId, quantity);
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            Long userId = userContext.getCurrentUserIdOrThrow();
+            log.info("添加商品到购物车: userId={}, productId={}, quantity={}", userId, productId, quantity);
             
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("userId", userId);
@@ -47,12 +48,10 @@ public class CartServiceImpl implements CartService {
     }
     
     @Override
-    public Map<String, Object> getCartItem(String productId) {
+    public Map<String, Object> getCartItem(Long productId) {
         try {
-            log.info("获取购物车商品数量: productId={}", productId);
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            Long userId = userContext.getCurrentUserIdOrThrow();
+            log.info("获取购物车商品数量: userId={}, productId={}", userId, productId);
             
             Integer quantity = cartMapper.getCartItemQuantity(userId, productId);
             
@@ -70,10 +69,8 @@ public class CartServiceImpl implements CartService {
     @Override
     public Map<String, Object> getCartTotal() {
         try {
-            log.info("获取购物车总数量");
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            Long userId = userContext.getCurrentUserIdOrThrow();
+            log.info("获取购物车总数量: userId={}", userId);
             
             Integer totalCount = cartMapper.getCartTotalCount(userId);
             
@@ -88,12 +85,10 @@ public class CartServiceImpl implements CartService {
     }
     
     @Override
-    public Map<String, Object> updateCartItem(String productId, int quantity) {
+    public Map<String, Object> updateCartItem(Long productId, int quantity) {
         try {
-            log.info("更新购物车商品数量: productId={}, quantity={}", productId, quantity);
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            Long userId = userContext.getCurrentUserIdOrThrow();
+            log.info("更新购物车商品数量: userId={}, productId={}, quantity={}", userId, productId, quantity);
             
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("userId", userId);
@@ -119,12 +114,10 @@ public class CartServiceImpl implements CartService {
     }
     
     @Override
-    public Map<String, Object> removeFromCart(String productId) {
+    public Map<String, Object> removeFromCart(Long productId) {
         try {
-            log.info("从购物车移除商品: productId={}", productId);
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            Long userId = userContext.getCurrentUserIdOrThrow();
+            log.info("从购物车移除商品: userId={}, productId={}", userId, productId);
             
             cartMapper.removeFromCart(userId, productId);
             
@@ -146,10 +139,8 @@ public class CartServiceImpl implements CartService {
     @Override
     public Map<String, Object> clearCart() {
         try {
-            log.info("清空购物车");
-            
-            // 模拟用户ID，实际应该从认证信息中获取
-            String userId = "user123";
+            Long userId = userContext.getCurrentUserIdOrThrow();
+            log.info("清空购物车: userId={}", userId);
             
             cartMapper.clearCart(userId);
             
