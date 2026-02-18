@@ -121,3 +121,30 @@ CREATE TABLE IF NOT EXISTS refund_records (
 ) COMMENT '退款记录表';
 
 COMMIT;
+
+-- ============================================
+-- 支付流程模块表初始数据
+-- ============================================
+
+-- 插入支付方式数据
+INSERT INTO payment_methods (id, method_code, method_name, method_type, icon_url, description, is_enabled, sort_order, config_params) VALUES
+(1, 'alipay', '支付宝', 'online', 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=100&h=100&fit=crop', '支付宝在线支付', true, 1, '{"app_id": "2021000123456789", "merchant_id": "2088123456789012"}'),
+(2, 'wechat_pay', '微信支付', 'online', 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=100&h=100&fit=crop&brightness=0.8', '微信在线支付', true, 2, '{"app_id": "wx1234567890abcdef", "mch_id": "1234567890"}'),
+(3, 'union_pay', '银联支付', 'online', 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=100&h=100&fit=crop&brightness=0.6', '银联在线支付', true, 3, '{"merchant_id": "123456789012345"}'),
+(4, 'balance', '余额支付', 'wallet', 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=100&h=100&fit=crop', '使用账户余额支付', true, 4, '{"min_amount": 0.01, "max_amount": 10000.00}'),
+(5, 'cod', '货到付款', 'offline', 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=100&h=100&fit=crop&brightness=0.4', '货到付款，支持现金支付', true, 5, '{"max_amount": 5000.00, "supported_regions": ["11", "31", "44"]}');
+
+-- 插入支付记录数据
+INSERT INTO payment_transactions (id, order_id, payment_method_id, transaction_no, amount, currency, status, third_party_transaction_no, third_party_status, payment_request_at, payment_completed_at, payment_expired_at) VALUES
+(1, 1, 1, 'PAY202602010001', 299.00, 'CNY', 'success', '20260201200040011111111111111111', 'TRADE_SUCCESS', '2026-02-01 10:25:00', '2026-02-01 10:30:00', '2026-02-01 11:25:00'),
+(2, 2, 2, 'PAY202602010002', 199.00, 'CNY', 'success', '4200002026020100000000000001', 'SUCCESS', '2026-02-01 11:10:00', '2026-02-01 11:15:00', '2026-02-01 12:10:00'),
+(3, 3, 1, 'PAY202602010003', 5999.00, 'CNY', 'success', '20260201200040011111111111111112', 'TRADE_SUCCESS', '2026-02-01 14:15:00', '2026-02-01 14:20:00', '2026-02-01 15:15:00'),
+(4, 4, 1, 'PAY202602010004', 4999.00, 'CNY', 'success', '20260201200040011111111111111113', 'TRADE_SUCCESS', '2026-02-01 16:40:00', '2026-02-01 16:45:00', '2026-02-01 17:40:00'),
+(5, 5, 1, 'PAY202602010005', 5499.00, 'CNY', 'pending', NULL, NULL, '2026-02-01 18:30:00', NULL, '2026-02-01 19:30:00');
+
+-- 插入退款记录数据
+INSERT INTO refund_records (payment_transaction_id, order_id, refund_no, refund_amount, refund_reason, status, third_party_refund_no, third_party_status, refund_request_at, refund_completed_at, operator_id, operator_notes) VALUES
+(1, 1, 'REF202602010001', 299.00, '商品质量问题退款', 'success', '20260201200040011111111111111114', 'REFUND_SUCCESS', '2026-02-02 09:30:00', '2026-02-02 09:35:00', 1, '商品质量问题，同意退款'),
+(2, 2, 'REF202602010002', 199.00, '颜色不符换货退款', 'processing', NULL, NULL, '2026-02-02 10:15:00', NULL, 1, '等待商家确认换货');
+
+COMMIT;

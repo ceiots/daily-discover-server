@@ -6,8 +6,8 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS user_addresses;
+DROP TABLE IF EXISTS users;
 
 -- 2. 用户信息表（合并核心信息和扩展信息）
 CREATE TABLE IF NOT EXISTS users (
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
     
     -- 扩展个人信息
     real_name VARCHAR(100) COMMENT '真实姓名',
-    gender ENUM('MALE', 'FEMALE', 'OTHER', 'UNKNOWN') DEFAULT 'UNKNOWN' COMMENT '性别',
+    gender VARCHAR(20) DEFAULT 'UNKNOWN' COMMENT '性别',
     birthday DATE COMMENT '生日',
     avatar_url VARCHAR(500) COMMENT '头像URL',
     bio TEXT COMMENT '个人简介',
@@ -77,42 +77,12 @@ CREATE TABLE IF NOT EXISTS user_addresses (
     UNIQUE KEY uk_user_default (user_id, is_default) COMMENT '每个用户只能有一个默认地址'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户地址表';
 
--- 3. 用户地址表（支持多地址和默认地址）
-
 -- 初始化数据
--- 2. 初始化默认用户
-INSERT INTO users (nickname, phone, email, password, membership, status) VALUES
-('设计生活家', '13800000000', 'user@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '普通会员', 'ACTIVE'),
-('商家用户', '13800000001', 'seller@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '金牌会员', 'ACTIVE'),
-('管理员', '13800000002', 'admin@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '钻石会员', 'ACTIVE');
-
--- 初始化数据
--- 1. 用户等级配置（已移到代码中配置）
-
--- 2. 初始化用户信息（合并后的用户表）
-UPDATE users SET 
-    real_name = '张三', 
-    gender = 'MALE', 
-    birthday = '1990-01-01', 
-    avatar_url = 'https://example.com/avatar1.jpg', 
-    bio = '记录生活，也创造生活' 
-WHERE id = 1;
-
-UPDATE users SET 
-    real_name = '李四', 
-    gender = 'FEMALE', 
-    birthday = '1985-05-15', 
-    avatar_url = 'https://example.com/avatar2.jpg', 
-    bio = '专业家居设计师' 
-WHERE id = 2;
-
-UPDATE users SET 
-    real_name = '王五', 
-    gender = 'MALE', 
-    birthday = '1980-12-25', 
-    avatar_url = 'https://example.com/avatar3.jpg', 
-    bio = '系统管理员' 
-WHERE id = 3;
+-- 2. 初始化默认用户（包含完整信息）
+INSERT INTO users (nickname, phone, email, password, membership, status, real_name, gender, birthday, avatar_url, bio) VALUES
+('设计生活家', '13800000000', 'user@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '普通会员', 'ACTIVE', '张三', 'MALE', '1990-01-01', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', '记录生活，也创造生活'),
+('商家用户', '13800000001', 'seller@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '金牌会员', 'ACTIVE', '李四', 'FEMALE', '1985-05-15', 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', '专业家居设计师'),
+('管理员', '13800000002', 'admin@dailydiscover.com', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '钻石会员', 'ACTIVE', '王五', 'MALE', '1980-12-25', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', '系统管理员');
 
 -- 4. 初始化用户地址（每个用户多个地址，其中一个为默认地址）
 INSERT INTO user_addresses (user_id, recipient_name, recipient_phone, province_id, city_id, district_id, detail_address, address_label, is_default) VALUES

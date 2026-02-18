@@ -27,40 +27,46 @@ public class UserPost {
     private Long userId;
 
     /**
-     * 发布类型
+     * 发布类型：review, question, answer
      */
     @TableField("post_type")
     private String postType;
 
     /**
-     * 标题
-     */
-    @TableField("title")
-    private String title;
-
-    /**
-     * 内容
+     * 发布内容
      */
     @TableField("content")
     private String content;
 
     /**
-     * 图片URL
+     * 关联的商品ID（可为空）
      */
-    @TableField("image_url")
-    private String imageUrl;
+    @TableField("product_id")
+    private Long productId;
+
+    /**
+     * 关联的订单ID（可为空）
+     */
+    @TableField("order_id")
+    private Long orderId;
 
     /**
      * 点赞数
      */
-    @TableField("likes_count")
-    private Integer likesCount;
+    @TableField("like_count")
+    private Integer likeCount;
 
     /**
      * 评论数
      */
-    @TableField("comments_count")
-    private Integer commentsCount;
+    @TableField("comment_count")
+    private Integer commentCount;
+
+    /**
+     * 发布状态：published, draft, deleted
+     */
+    @TableField("status")
+    private String status;
 
     /**
      * 创建时间
@@ -73,4 +79,42 @@ public class UserPost {
      */
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * 发布类型枚举
+     */
+    public enum PostType {
+        REVIEW("review"),
+        QUESTION("question"),
+        ANSWER("answer");
+
+        private final String value;
+
+        PostType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * 发布状态枚举
+     */
+    public enum Status {
+        PUBLISHED("published"),
+        DRAFT("draft"),
+        DELETED("deleted");
+
+        private final String value;
+
+        Status(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
 }

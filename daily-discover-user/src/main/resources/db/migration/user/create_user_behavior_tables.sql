@@ -5,15 +5,15 @@
 USE daily_discover;
 
 -- 删除现有表（如果存在）
--- DROP TABLE IF EXISTS user_posts;
--- DROP TABLE IF EXISTS user_collections;
--- DROP TABLE IF EXISTS browse_history;
+DROP TABLE IF EXISTS user_posts;
+DROP TABLE IF EXISTS user_collections;
+DROP TABLE IF EXISTS user_browse_history;
 
 -- 1. 浏览历史表
 CREATE TABLE IF NOT EXISTS browse_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL COMMENT '用户ID',
-    item_type ENUM('product', 'knowledge') NOT NULL COMMENT '内容类型',
+    item_type VARCHAR(20) NOT NULL COMMENT '内容类型',
     item_id VARCHAR(100) NOT NULL COMMENT '内容ID',
     title VARCHAR(200) NOT NULL COMMENT '标题',
     image_url VARCHAR(500) COMMENT '图片URL',
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS browse_history (
 CREATE TABLE IF NOT EXISTS user_collections (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL COMMENT '用户ID',
-    item_type ENUM('product', 'knowledge') NOT NULL COMMENT '内容类型',
+    item_type VARCHAR(20) NOT NULL COMMENT '内容类型',
     item_id VARCHAR(100) NOT NULL COMMENT '内容ID',
     title VARCHAR(200) NOT NULL COMMENT '标题',
     image_url VARCHAR(500) COMMENT '图片URL',
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS user_collections (
 CREATE TABLE IF NOT EXISTS user_posts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL COMMENT '用户ID',
-    post_type ENUM('product', 'knowledge') NOT NULL COMMENT '发布类型',
+    post_type VARCHAR(20) NOT NULL COMMENT '发布类型',
     title VARCHAR(200) NOT NULL COMMENT '标题',
     content TEXT COMMENT '内容',
     image_url VARCHAR(500) COMMENT '图片URL',

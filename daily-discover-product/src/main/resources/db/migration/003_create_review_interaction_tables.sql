@@ -116,17 +116,17 @@ COMMIT;
 -- ============================================
 
 -- 插入用户评价数据
-INSERT INTO user_reviews (id, product_id, user_id, user_avatar, order_id, rating, title, comment, image_urls, is_anonymous, is_verified_purchase, helpful_count, reply_count, like_count, review_date, status) VALUES
-(1, 1, 1001, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face', 2001, 5, '非常满意！功能强大', '这款智能手表真的很不错，心率监测准确，运动追踪功能也很实用。续航能力超出预期！', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', false, true, 15, 3, 20, '2026-01-15', 'approved'),
-(2, 1, 1002, 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face', 2002, 4, '性价比高', '功能齐全，价格合理。就是表带有点硬，希望能改进。', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', false, true, 8, 1, 12, '2026-01-20', 'approved'),
-(3, 2, 1003, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face', 2003, 5, '音质超棒！', '降噪效果很好，音质清晰，佩戴舒适。续航能力也很强，值得购买！', '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"]', false, true, 20, 5, 25, '2026-01-18', 'approved'),
-(4, 2, 1004, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face', 2004, 4, '不错的耳机', '降噪效果满意，音质清晰。就是充电盒有点大，携带不太方便。', '[]', true, true, 5, 0, 8, '2026-01-22', 'approved'),
-(5, 3, 1005, 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face', 2005, 5, '性能强劲', '运行速度快，屏幕显示效果很好。轻薄便携，适合商务人士。', '[]', false, true, 12, 2, 15, '2026-01-25', 'approved'),
-(6, 4, 1006, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face', 2006, 5, '拍照效果惊艳！', '这款手机的拍照功能真的没话说，夜景模式特别强大，色彩还原很真实。性能也很流畅，玩游戏完全不卡顿。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', false, true, 25, 4, 30, '2026-01-28', 'approved'),
-(7, 4, 1007, 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face', 2007, 4, '性价比不错的旗舰机', '整体使用体验很好，屏幕显示效果细腻，系统流畅。就是续航稍微有点短，重度使用需要一天两充。', '[]', false, true, 12, 1, 18, '2026-02-01', 'approved'),
-(8, 4, 1008, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face', 2008, 5, '5G速度超快', '下载速度真的很快，视频加载几乎无延迟。外观设计也很漂亮，手感舒适。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', true, true, 8, 0, 12, '2026-02-05', 'approved'),
-(9, 4, 1009, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face', 2009, 4, '系统优化不错', '系统运行很流畅，很少出现卡顿。充电速度也很快，30分钟就能充到80%。就是价格稍微有点高。', '[]', false, true, 6, 0, 9, '2026-02-10', 'approved'),
-(10, 4, 1010, 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face', 2010, 5, '完美的商务手机', '非常适合商务人士使用，多任务处理很流畅，电池续航也能满足一天需求。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', false, true, 15, 2, 22, '2026-02-12', 'approved');
+INSERT INTO user_reviews (id, product_id, user_id, order_id, rating, title, is_anonymous, is_verified_purchase, review_date, status) VALUES
+(1, 1, 1001, 2001, 5, '非常满意！功能强大', false, true, '2026-01-15', 'approved'),
+(2, 1, 1002, 2002, 4, '性价比高', false, true, '2026-01-20', 'approved'),
+(3, 2, 1003, 2003, 5, '音质超棒！', false, true, '2026-01-18', 'approved'),
+(4, 2, 1004, 2004, 4, '不错的耳机', true, true, '2026-01-22', 'approved'),
+(5, 3, 1005, 2005, 5, '性能强劲', false, true, '2026-01-25', 'approved'),
+(6, 4, 1006, 2006, 5, '拍照效果惊艳！', false, true, '2026-01-28', 'approved'),
+(7, 4, 1007, 2007, 4, '性价比不错的旗舰机', false, true, '2026-02-01', 'approved'),
+(8, 4, 1008, 2008, 5, '5G速度超快', true, true, '2026-02-05', 'approved'),
+(9, 4, 1009, 2009, 4, '系统优化不错', false, true, '2026-02-10', 'approved'),
+(10, 4, 1010, 2010, 5, '完美的商务手机', false, true, '2026-02-12', 'approved');
 
 -- 插入评价回复数据
 INSERT INTO review_replies (review_id, user_id, content, is_seller_reply, like_count, status) VALUES
@@ -138,39 +138,38 @@ INSERT INTO review_replies (review_id, user_id, content, is_seller_reply, like_c
 (7, 2, '感谢您的反馈！我们会持续优化电池续航表现。', true, 3, 'active'),
 (10, 2, '感谢您的认可！这款手机确实专为商务人士设计，多任务处理能力很强。', true, 4, 'active');
 
--- 插入评价点赞数据
-INSERT INTO review_likes (review_id, user_id) VALUES
-(1, 1002),
-(1, 1003),
-(1, 1004),
-(3, 1001),
-(3, 1005),
-(6, 1001),
-(6, 1003),
-(6, 1005),
-(6, 1007),
-(6, 1008),
-(7, 1002),
-(7, 1004),
-(7, 1006),
-(8, 1001),
-(8, 1003),
-(8, 1009),
-(9, 1002),
-(9, 1005),
-(10, 1001),
-(10, 1003),
-(10, 1004),
-(10, 1006),
-(10, 1007);
-
 -- 插入评价统计数据
-INSERT INTO review_stats (product_id, total_reviews, average_rating, rating_distribution, verified_reviews_count, image_reviews_count, last_30_days_reviews, helpful_reviews_count) VALUES
-(1, 128, 4.5, '{"5": 80, "4": 35, "3": 10, "2": 2, "1": 1}', 120, 45, 25, 85),
-(2, 89, 4.3, '{"5": 50, "4": 25, "3": 10, "2": 3, "1": 1}', 80, 30, 18, 60),
-(3, 256, 4.7, '{"5": 180, "4": 60, "3": 12, "2": 3, "1": 1}', 240, 80, 40, 150),
-(4, 194, 4.8, '{"5": 150, "4": 40, "3": 3, "2": 1, "1": 0}', 180, 60, 35, 120);
+INSERT INTO review_stats (product_id, total_reviews, average_rating, rating_distribution, purchased_reviews_count, last_30_days_reviews) VALUES
+(1, 128, 4.5, '{"5": 80, "4": 35, "3": 10, "2": 2, "1": 1}', 120, 25),
+(2, 89, 4.3, '{"5": 50, "4": 25, "3": 10, "2": 3, "1": 1}', 80, 18),
+(3, 256, 4.7, '{"5": 180, "4": 60, "3": 12, "2": 3, "1": 1}', 240, 40),
+(4, 194, 4.8, '{"5": 150, "4": 40, "3": 3, "2": 1, "1": 0}', 180, 35);
 
+-- 插入用户评价详情数据
+INSERT INTO user_review_details (review_id, user_avatar, comment, image_urls, video_url, moderation_notes) VALUES
+(1, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '这款智能手表功能非常强大，特别是健康监测功能很准确。运动模式也很丰富，续航能力也不错。', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop","https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop"]', NULL, '评价内容符合规范'),
+(2, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '性价比很高的一款智能手表，功能齐全，操作简单。适合日常使用和运动健身。', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
+(3, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '音质超棒！降噪效果很好，在嘈杂环境中也能享受纯净音乐。佩戴舒适，续航能力强。', '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop","https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop"]', NULL, '评价内容符合规范'),
+(4, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '不错的耳机，音质清晰，佩戴舒适。性价比高，适合日常通勤使用。', '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
+(5, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '性能强劲，运行流畅，轻薄便携。电池续航不错，适合商务办公和日常使用。', '["https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
+(6, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '拍照效果惊艳！夜景模式特别强大，系统流畅，电池续航也很给力。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop","https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=600&fit=crop"]', NULL, '评价内容符合规范'),
+(7, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '性价比不错的旗舰机，性能稳定，拍照效果很好。系统优化不错，使用流畅。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
+(8, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '5G速度超快，网络连接稳定。系统流畅，应用加载速度快。整体体验很好。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
+(9, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '系统优化不错，界面简洁美观。电池续航表现良好，日常使用完全够用。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
+(10, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '完美的商务手机，多任务处理能力强。安全性高，适合商务人士使用。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范');
+
+-- 插入用户评价统计数据
+INSERT INTO user_review_stats (review_id, helpful_count, reply_count, like_count) VALUES
+(1, 12, 2, 8),
+(2, 5, 0, 3),
+(3, 18, 1, 15),
+(4, 3, 0, 2),
+(5, 8, 0, 6),
+(6, 25, 2, 20),
+(7, 7, 1, 5),
+(8, 10, 0, 8),
+(9, 4, 0, 3),
+(10, 15, 1, 12);
 
 
 COMMIT;

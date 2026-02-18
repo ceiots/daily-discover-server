@@ -3,8 +3,6 @@ package com.dailydiscover.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dailydiscover.user.dto.UserResponse;
 import com.dailydiscover.user.entity.User;
-import com.dailydiscover.user.entity.UserLevel;
-import com.dailydiscover.user.mapper.UserLevelMapper;
 import com.dailydiscover.user.mapper.UserMapper;
 import com.dailydiscover.user.service.UserService;
 import com.dailydiscover.common.util.LogTracer;
@@ -25,7 +23,6 @@ import java.time.LocalDateTime;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
-    private final UserLevelMapper userLevelMapper;
 
     @Override
     @Transactional
@@ -46,8 +43,8 @@ public class UserServiceImpl implements UserService {
         // 设置用户默认属性
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
-        user.setPoints(0);
-        user.setLevelId(1L); // 默认等级
+        user.setStatus(User.Status.ACTIVE.getValue());
+        user.setMembership("普通会员");
         
         int insertResult = userMapper.insert(user);
         LogTracer.traceDatabaseQuery("INSERT INTO user", new Object[]{user}, insertResult);
@@ -74,16 +71,16 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("用户不存在");
         }
         
-        // 验证密码
+        // 验证密码（这里需要密码加密验证，暂时简化处理）
         if (!user.getPassword().equals(password)) {
             LogTracer.traceBusinessException(new RuntimeException("密码错误"));
             throw new RuntimeException("密码错误");
         }
         
-        // 更新最后登录时间
-        user.setLastLoginAt(LocalDateTime.now());
-        int updateResult = userMapper.updateById(user);
-        LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", new Object[]{user}, updateResult);
+        // 更新最后登录时间（新表结构中没有last_login_at字段，暂时跳过）
+        // user.setLastLoginAt(LocalDateTime.now());
+        // int updateResult = userMapper.updateById(user);
+        // LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", new Object[]{user}, updateResult);
         
         // 创建用户响应
         UserResponse response = new UserResponse();
@@ -126,10 +123,7 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setNickname(user.getNickname());
-        response.setPhone(user.getPhone());
+        UserResponse response = convertToResponse(user);
         
         LogTracer.traceBusinessMethod(phone, response);
         LogTracer.traceBusinessPerformance(startTime);
@@ -177,24 +171,7 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
-    @Override
-    @Transactional
-    public UserResponse updateUserPoints(Long userId, Integer points) {
-        User user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new RuntimeException("用户不存在");
-        }
-
-        int result = userMapper.updateUserPoints(userId, points);
-        if (result > 0) {
-            // 更新用户等级
-            updateUserLevel(userId, points);
-            // 重新获取更新后的用户信息
-            User updatedUser = userMapper.selectById(userId);
-            return convertToResponse(updatedUser);
-        }
-        throw new RuntimeException("积分更新失败");
-    }
+    // 积分功能已移到独立的积分模块，此处暂时移除
 
     @Override
     @Transactional
@@ -220,28 +197,11 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 更新用户等级
-     */
-    private void updateUserLevel(Long userId, Integer points) {
-        UserLevel userLevel = userLevelMapper.selectLevelByPoints(points);
-        if (userLevel != null) {
-            userMapper.updateUserLevel(userId, userLevel.getId());
-        }
-    }
-
-    /**
      * 将User实体转换为UserResponse DTO
      */
     private UserResponse convertToResponse(User user) {
         UserResponse response = new UserResponse();
         BeanUtils.copyProperties(user, response);
-        
-        // 设置等级名称
-        UserLevel userLevel = userLevelMapper.selectById(user.getLevelId());
-        if (userLevel != null) {
-            response.setLevelName(userLevel.getLevelName());
-        }
-        
         return response;
     }
 

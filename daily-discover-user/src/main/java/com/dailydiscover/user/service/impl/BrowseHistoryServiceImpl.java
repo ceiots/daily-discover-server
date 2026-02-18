@@ -33,7 +33,7 @@ public class BrowseHistoryServiceImpl implements BrowseHistoryService {
         LogTracer.traceBusinessMethod(browseHistory, null);
         
         try {
-            browseHistory.setViewedAt(LocalDateTime.now());
+            browseHistory.setBrowsedAt(LocalDateTime.now());
             browseHistory.setCreatedAt(LocalDateTime.now());
             
             int result = browseHistoryMapper.insert(browseHistory);

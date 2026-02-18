@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("browse_history")
+@TableName("user_browse_history")
 public class BrowseHistory {
 
     /**
@@ -27,38 +27,32 @@ public class BrowseHistory {
     private Long userId;
 
     /**
-     * 内容类型
+     * 商品ID
      */
-    @TableField("item_type")
-    private String itemType;
+    @TableField("product_id")
+    private Long productId;
 
     /**
-     * 内容ID
+     * 浏览时长（秒）
      */
-    @TableField("item_id")
-    private String itemId;
-
-    /**
-     * 标题
-     */
-    @TableField("title")
-    private String title;
-
-    /**
-     * 图片URL
-     */
-    @TableField("image_url")
-    private String imageUrl;
+    @TableField("browse_duration")
+    private Integer browseDuration;
 
     /**
      * 浏览时间
      */
-    @TableField("viewed_at")
-    private LocalDateTime viewedAt;
+    @TableField("browsed_at")
+    private LocalDateTime browsedAt;
 
     /**
      * 创建时间
      */
     @TableField("created_at")
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间
+     */
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
 }

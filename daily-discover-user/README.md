@@ -108,6 +108,8 @@ mysql -u root -p < src/main/resources/db/migration/create_database.sql
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_base_tables.sql
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_behavior_tables.sql
 mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_config_tables.sql
+mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_coupon_tables.sql
+mysql -u root -p daily_discover < src/main/resources/db/migration/user/create_user_points_tables.sql
 ```
 
 # 3. 执行认证表迁移（数据库已存在）

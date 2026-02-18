@@ -81,16 +81,61 @@ public class UserController {
         }
     }
 
+    // 积分功能已移到独立的积分模块，此处暂时移除
+
     /**
-     * 更新用户积分
+     * 更新用户邮箱
      */
-    @PutMapping("/{id}/points")
-    public ResponseEntity<UserResponse> updateUserPoints(@PathVariable Long id, @RequestParam Integer points) {
+    @PutMapping("/{id}/email")
+    public ResponseEntity<UserResponse> updateUserEmail(@PathVariable Long id, @RequestParam String email) {
         try {
-            UserResponse userResponse = userService.updateUserPoints(id, points);
+            User user = new User();
+            user.setId(id);
+            user.setEmail(email);
+            user.setUpdatedAt(java.time.LocalDateTime.now());
+            
+            UserResponse userResponse = userService.updateUserProfile(user);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
-            log.error("更新用户积分失败: {}", e.getMessage());
+            log.error("更新用户邮箱失败: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * 更新用户性别
+     */
+    @PutMapping("/{id}/gender")
+    public ResponseEntity<UserResponse> updateUserGender(@PathVariable Long id, @RequestParam String gender) {
+        try {
+            User user = new User();
+            user.setId(id);
+            user.setGender(gender);
+            user.setUpdatedAt(java.time.LocalDateTime.now());
+            
+            UserResponse userResponse = userService.updateUserProfile(user);
+            return ResponseEntity.ok(userResponse);
+        } catch (Exception e) {
+            log.error("更新用户性别失败: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * 更新用户生日
+     */
+    @PutMapping("/{id}/birthday")
+    public ResponseEntity<UserResponse> updateUserBirthday(@PathVariable Long id, @RequestParam String birthday) {
+        try {
+            User user = new User();
+            user.setId(id);
+            user.setBirthday(java.time.LocalDateTime.parse(birthday));
+            user.setUpdatedAt(java.time.LocalDateTime.now());
+            
+            UserResponse userResponse = userService.updateUserProfile(user);
+            return ResponseEntity.ok(userResponse);
+        } catch (Exception e) {
+            log.error("更新用户生日失败: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

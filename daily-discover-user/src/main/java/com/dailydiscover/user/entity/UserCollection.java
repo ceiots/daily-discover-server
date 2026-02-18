@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -28,50 +27,69 @@ public class UserCollection {
     private Long userId;
 
     /**
-     * 内容类型
+     * 商品ID
      */
-    @TableField("item_type")
-    private String itemType;
+    @TableField("product_id")
+    private Long productId;
 
     /**
-     * 内容ID
+     * 收藏类型：product, shop, article
      */
-    @TableField("item_id")
-    private String itemId;
+    @TableField("collection_type")
+    private String collectionType;
 
     /**
-     * 标题
+     * 收藏状态：active, inactive
      */
-    @TableField("title")
-    private String title;
-
-    /**
-     * 图片URL
-     */
-    @TableField("image_url")
-    private String imageUrl;
-
-    /**
-     * 价格
-     */
-    @TableField("price")
-    private BigDecimal price;
-
-    /**
-     * 原价
-     */
-    @TableField("original_price")
-    private BigDecimal originalPrice;
-
-    /**
-     * 收藏时间
-     */
-    @TableField("collected_at")
-    private LocalDateTime collectedAt;
+    @TableField("status")
+    private String status;
 
     /**
      * 创建时间
      */
     @TableField("created_at")
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间
+     */
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    /**
+     * 收藏类型枚举
+     */
+    public enum CollectionType {
+        PRODUCT("product"),
+        SHOP("shop"),
+        ARTICLE("article");
+
+        private final String value;
+
+        CollectionType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * 收藏状态枚举
+     */
+    public enum Status {
+        ACTIVE("active"),
+        INACTIVE("inactive");
+
+        private final String value;
+
+        Status(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
 }

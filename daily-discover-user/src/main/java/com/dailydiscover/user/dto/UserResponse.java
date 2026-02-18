@@ -26,24 +26,24 @@ public class UserResponse {
     private String phone;
 
     /**
-     * 个人简介
+     * 邮箱
      */
-    private String bio;
+    private String email;
 
     /**
-     * 积分
+     * 真实姓名
      */
-    private Integer points;
+    private String realName;
 
     /**
-     * 等级ID
+     * 性别
      */
-    private Long levelId;
+    private String gender;
 
     /**
-     * 等级名称
+     * 生日
      */
-    private String levelName;
+    private LocalDateTime birthday;
 
     /**
      * 会员类型

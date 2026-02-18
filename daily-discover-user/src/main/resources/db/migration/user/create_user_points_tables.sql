@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS user_points_transactions (
     points_balance INT NOT NULL COMMENT '积分余额',
     
     -- 关联信息
-    reference_type ENUM('order', 'review', 'signin', 'promotion', 'invitation', 'other') COMMENT '关联类型',
+    reference_type VARCHAR(20) COMMENT '关联类型',
     reference_id BIGINT COMMENT '关联ID',
     
     -- 交易描述

@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS products (
     INDEX idx_category_status_price (category_id, status, min_price) COMMENT '分类状态价格查询',
     INDEX idx_created_at (created_at) COMMENT '新品推荐',
     INDEX idx_brand_model (brand, model) COMMENT '品牌型号查询',
-    INDEX idx_product_code (product_code),
     
     -- 软删除索引
     INDEX idx_is_deleted (is_deleted) COMMENT '软删除状态查询'
@@ -224,21 +223,21 @@ COMMIT;
 -- ============================================
 
 -- 插入商品分类数据
-INSERT INTO product_categories (id, parent_id, name, description, image_url, sort_order, level, is_active) VALUES
-(1, NULL, '电子产品', '各类电子设备及配件', 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&h=200&fit=crop', 1, 1, true),
-(2, 1, '手机通讯', '智能手机、功能手机等', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=200&fit=crop', 1, 2, true),
-(3, 1, '电脑办公', '笔记本电脑、台式机等', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&h=200&fit=crop', 2, 2, true),
-(4, 1, '智能穿戴', '智能手表、手环等', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop', 3, 2, true),
-(5, NULL, '服饰鞋包', '服装、鞋类、箱包等', 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&h=200&fit=crop', 2, 1, true),
-(6, 5, '男装', '男士服装', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop', 1, 2, true),
-(7, 5, '女装', '女士服装', 'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=300&h=200&fit=crop', 2, 2, true);
+INSERT INTO product_categories (id, parent_id, name, image_url, sort_order, level, status) VALUES
+(1, NULL, '电子产品', 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&h=200&fit=crop', 1, 1, 1),
+(2, 1, '手机通讯', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=200&fit=crop', 1, 2, 1),
+(3, 1, '电脑办公', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&h=200&fit=crop', 2, 2, 1),
+(4, 1, '智能穿戴', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop', 3, 2, 1),
+(5, NULL, '服饰鞋包', 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&h=200&fit=crop', 2, 1, 1),
+(6, 5, '男装', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop', 1, 2, 1),
+(7, 5, '女装', 'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=300&h=200&fit=crop', 2, 2, 1);
 
 -- 插入商品基础信息数据
-INSERT INTO products (seller_id, title, brand, model, product_code, category_id, min_price, max_price, status, main_image_url) VALUES
-(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 'APPL-WATCHS8', 4, 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
-(1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 'SONY-WH1000XM5', 4, 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
-(2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 'APPL-MBAIR', 3, 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
-(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 'APPL-IPHONE15', 2, 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop');
+INSERT INTO products (seller_id, title, brand, model, category_id, min_price, max_price, status, main_image_url) VALUES
+(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 4, 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
+(1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 4, 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
+(2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 3, 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
+(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 2, 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop');
 
 -- 插入商品详情数据（简化版）
 INSERT INTO product_details (product_id, media_type, media_url, is_video, thumbnail_url, sort_order) VALUES
@@ -313,7 +312,7 @@ INSERT INTO product_skus (product_id, seller_id, price, original_price) VALUES
 
 -- 插入购物车数据
 INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
-(1001, 1, 1, 1, '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 1),
+(1001, 4, 1, 1, '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 1),
 (1001, 2, 3, 2, '{"颜色": "黑色"}', '黑色', 1),
 (1002, 4, 7, 1, '{"颜色": "蓝色", "存储": "256GB", "网络版本": "5G版"}', '蓝色 256GB 5G版', 1);
 

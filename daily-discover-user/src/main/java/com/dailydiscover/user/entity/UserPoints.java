@@ -7,12 +7,12 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * 账户设置实体类
+ * 用户积分实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("account_settings")
-public class AccountSetting {
+@TableName("user_points")
+public class UserPoints {
 
     /**
      * 主键ID
@@ -27,28 +27,40 @@ public class AccountSetting {
     private Long userId;
 
     /**
-     * 设置项键名
+     * 积分变动类型：earn, consume, expire
      */
-    @TableField("setting_key")
-    private String settingKey;
+    @TableField("change_type")
+    private String changeType;
 
     /**
-     * 设置项值
+     * 积分变动数量（正数表示获得，负数表示消耗）
      */
-    @TableField("setting_value")
-    private String settingValue;
+    @TableField("change_amount")
+    private Integer changeAmount;
 
     /**
-     * 设置项描述
+     * 变动后积分余额
+     */
+    @TableField("balance_after")
+    private Integer balanceAfter;
+
+    /**
+     * 积分来源/用途描述
      */
     @TableField("description")
     private String description;
 
     /**
-     * 设置项类型：string, number, boolean, json
+     * 关联的订单ID（如果适用）
      */
-    @TableField("value_type")
-    private String valueType;
+    @TableField("related_order_id")
+    private Long relatedOrderId;
+
+    /**
+     * 积分过期时间
+     */
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
 
     /**
      * 创建时间
@@ -63,17 +75,16 @@ public class AccountSetting {
     private LocalDateTime updatedAt;
 
     /**
-     * 设置项类型枚举
+     * 积分变动类型枚举
      */
-    public enum ValueType {
-        STRING("string"),
-        NUMBER("number"),
-        BOOLEAN("boolean"),
-        JSON("json");
+    public enum ChangeType {
+        EARN("earn"),
+        CONSUME("consume"),
+        EXPIRE("expire");
 
         private final String value;
 
-        ValueType(String value) {
+        ChangeType(String value) {
             this.value = value;
         }
 

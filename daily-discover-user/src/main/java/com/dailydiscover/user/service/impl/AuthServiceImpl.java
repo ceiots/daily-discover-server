@@ -2,12 +2,12 @@ package com.dailydiscover.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dailydiscover.user.dto.*;
-import com.dailydiscover.user.entity.LoginAttempt;
-import com.dailydiscover.user.entity.RefreshToken;
 import com.dailydiscover.user.entity.User;
-import com.dailydiscover.user.mapper.LoginAttemptMapper;
-import com.dailydiscover.user.mapper.RefreshTokenMapper;
+import com.dailydiscover.user.entity.UserLoginRecord;
+import com.dailydiscover.user.entity.UserToken;
+import com.dailydiscover.user.mapper.UserLoginRecordMapper;
 import com.dailydiscover.user.mapper.UserMapper;
+import com.dailydiscover.user.mapper.UserTokenMapper;
 import com.dailydiscover.user.service.AuthService;
 import com.dailydiscover.common.security.JwtUtil;
 import com.dailydiscover.common.util.LogTracer;
@@ -27,8 +27,8 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
     
     private final UserMapper userMapper;
-    private final RefreshTokenMapper refreshTokenMapper;
-    private final LoginAttemptMapper loginAttemptMapper;
+    private final UserTokenMapper userTokenMapper;
+    private final UserLoginRecordMapper userLoginRecordMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     
@@ -41,11 +41,11 @@ public class AuthServiceImpl implements AuthService {
         LogTracer.traceBusinessOperation("业务标识: 用户登录 - 手机号: " + request.getPhone());
         
         // 记录登录尝试
-        LoginAttempt loginAttempt = new LoginAttempt();
-        loginAttempt.setIdentifier(request.getPhone());
+        UserLoginRecord loginRecord = new UserLoginRecord();
+        loginRecord.setIdentifier(request.getPhone());
         // IP地址和设备信息在实际应用中应从请求中获取
         // 这里暂时留空，待后续从请求上下文中获取
-        loginAttempt.setCreatedAt(LocalDateTime.now());
+        loginRecord.setCreatedAt(LocalDateTime.now());
         
         // 根据手机号查找用户
         LogTracer.traceBusinessOperation("根据手机号查找用户: " + request.getPhone());
@@ -57,10 +57,10 @@ public class AuthServiceImpl implements AuthService {
         
         if (user == null) {
             // 记录失败的登录尝试
-            loginAttempt.setResult("失败");
-            loginAttempt.setFailureReason("用户不存在");
-            loginAttemptMapper.insert(loginAttempt);
-            LogTracer.traceDatabaseQuery("INSERT INTO login_attempt", loginAttempt, 1);
+            loginRecord.setResult(UserLoginRecord.Result.FAILED.getValue());
+            loginRecord.setFailureReason("用户不存在");
+            userLoginRecordMapper.insert(loginRecord);
+            LogTracer.traceDatabaseQuery("INSERT INTO user_login_records", loginRecord, 1);
             
             LogTracer.traceBusinessException(new RuntimeException("用户不存在，手机号: " + request.getPhone()));
             
@@ -76,11 +76,11 @@ public class AuthServiceImpl implements AuthService {
         LogTracer.traceBusinessOperation("验证用户密码");
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             // 记录失败的登录尝试
-            loginAttempt.setUserId(user.getId());
-            loginAttempt.setResult("失败");
-            loginAttempt.setFailureReason("密码错误");
-            loginAttemptMapper.insert(loginAttempt);
-            LogTracer.traceDatabaseQuery("INSERT INTO login_attempt", loginAttempt, 1);
+            loginRecord.setUserId(user.getId());
+            loginRecord.setResult(UserLoginRecord.Result.FAILED.getValue());
+            loginRecord.setFailureReason("密码错误");
+            userLoginRecordMapper.insert(loginRecord);
+            LogTracer.traceDatabaseQuery("INSERT INTO user_login_records", loginRecord, 1);
             
             LogTracer.traceBusinessException(new RuntimeException("密码错误，用户ID: " + user.getId()));
             
@@ -94,16 +94,14 @@ public class AuthServiceImpl implements AuthService {
         
         // 记录成功的登录尝试
         LogTracer.traceBusinessOperation("密码验证成功，记录登录尝试");
-        loginAttempt.setUserId(user.getId());
-        loginAttempt.setResult("成功");
-        loginAttemptMapper.insert(loginAttempt);
-        LogTracer.traceDatabaseQuery("INSERT INTO login_attempt", loginAttempt, 1);
+        loginRecord.setUserId(user.getId());
+        loginRecord.setResult(UserLoginRecord.Result.SUCCESS.getValue());
+        userLoginRecordMapper.insert(loginRecord);
+        LogTracer.traceDatabaseQuery("INSERT INTO user_login_records", loginRecord, 1);
         
-        // 更新最后登录时间
-        LogTracer.traceBusinessOperation("更新用户最后登录时间");
-        user.setLastLoginAt(LocalDateTime.now());
-        int updateResult = userMapper.updateById(user);
-        LogTracer.traceDatabaseQuery("UPDATE user SET last_login_at", user, updateResult);
+        // 更新最后登录时间（已移除lastLoginAt字段，通过登录记录表记录）
+        LogTracer.traceBusinessOperation("记录用户登录时间");
+        // 登录时间已通过user_login_records表记录，无需更新用户表
         
         // 生成Token
         LogTracer.traceBusinessOperation("生成JWT Token和刷新令牌");
@@ -112,16 +110,16 @@ public class AuthServiceImpl implements AuthService {
         
         // 创建并保存刷新令牌到数据库
         LogTracer.traceBusinessOperation("创建并保存刷新令牌");
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUserId(user.getId());
-        refreshToken.setToken(refreshTokenValue);
-        // 设备信息和IP地址在实际应用中应从请求中获取
-        // 这里暂时留空，待后续从请求上下文中获取
-        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 7天有效期
-        refreshToken.setCreatedAt(LocalDateTime.now());
+        UserToken userToken = new UserToken();
+        userToken.setUserId(user.getId());
+        userToken.setTokenType(UserToken.TokenType.REFRESH.getValue());
+        userToken.setTokenValue(refreshTokenValue);
+        userToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 7天有效期
+        userToken.setIsUsed(false);
+        userToken.setCreatedAt(LocalDateTime.now());
         
-        int refreshTokenResult = refreshTokenMapper.insert(refreshToken);
-        LogTracer.traceDatabaseQuery("INSERT INTO refresh_token", refreshToken, refreshTokenResult);
+        int refreshTokenResult = userTokenMapper.insert(userToken);
+        LogTracer.traceDatabaseQuery("INSERT INTO user_tokens", userToken, refreshTokenResult);
         
         AuthResponse response = new AuthResponse();
         response.setUser(user);
@@ -189,7 +187,6 @@ public class AuthServiceImpl implements AuthService {
             LogTracer.traceBusinessOperation("使用手机号作为默认昵称: " + request.getPhone());
         }
         
-        user.setPoints(0);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         
@@ -205,17 +202,17 @@ public class AuthServiceImpl implements AuthService {
         
         // 创建并保存刷新令牌到数据库
         LogTracer.traceBusinessOperation("创建刷新令牌");
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUserId(user.getId());
-        refreshToken.setToken(refreshTokenValue);
-        // 设备信息和IP地址在实际应用中应从请求中获取
-        // 这里暂时留空，待后续从请求上下文中获取
-        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 7天有效期
-        refreshToken.setCreatedAt(LocalDateTime.now());
+        UserToken userToken = new UserToken();
+        userToken.setUserId(user.getId());
+        userToken.setTokenType(UserToken.TokenType.REFRESH.getValue());
+        userToken.setTokenValue(refreshTokenValue);
+        userToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 7天有效期
+        userToken.setIsUsed(false);
+        userToken.setCreatedAt(LocalDateTime.now());
         
         LogTracer.traceBusinessOperation("准备插入刷新令牌到数据库");
-        int refreshTokenResult = refreshTokenMapper.insert(refreshToken);
-        LogTracer.traceDatabaseQuery("INSERT INTO refresh_token", refreshToken, refreshTokenResult);
+        int refreshTokenResult = userTokenMapper.insert(userToken);
+        LogTracer.traceDatabaseQuery("INSERT INTO user_tokens", userToken, refreshTokenResult);
         
         // 构建响应
         LogTracer.traceBusinessOperation("构建认证响应");
@@ -240,25 +237,27 @@ public class AuthServiceImpl implements AuthService {
         
         // 从数据库中查找刷新令牌
         LogTracer.traceBusinessOperation("查找有效的刷新令牌");
-        QueryWrapper<RefreshToken> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("token", request.getRefreshToken())
-                   .gt("expires_at", LocalDateTime.now());
+        QueryWrapper<UserToken> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("token_value", request.getRefreshToken())
+                   .eq("token_type", UserToken.TokenType.REFRESH.getValue())
+                   .gt("expires_at", LocalDateTime.now())
+                   .eq("is_used", false);
         
-        RefreshToken refreshToken = refreshTokenMapper.selectOne(queryWrapper);
-        LogTracer.traceDatabaseQuery("SELECT * FROM refresh_token WHERE token = ? AND expires_at > NOW()", request.getRefreshToken(), refreshToken);
+        UserToken userToken = userTokenMapper.selectOne(queryWrapper);
+        LogTracer.traceDatabaseQuery("SELECT * FROM user_tokens WHERE token_value = ? AND token_type = 'refresh' AND expires_at > NOW() AND is_used = false", request.getRefreshToken(), userToken);
         
-        if (refreshToken == null) {
+        if (userToken == null) {
             LogTracer.traceBusinessException(new RuntimeException("刷新令牌无效或已过期"));
             throw new RuntimeException("刷新令牌无效或已过期");
         }
         
         // 获取用户信息
-        LogTracer.traceBusinessOperation("获取用户信息，用户ID: " + refreshToken.getUserId());
-        User user = userMapper.selectById(refreshToken.getUserId());
-        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", refreshToken.getUserId(), user);
+        LogTracer.traceBusinessOperation("获取用户信息，用户ID: " + userToken.getUserId());
+        User user = userMapper.selectById(userToken.getUserId());
+        LogTracer.traceDatabaseQuery("SELECT * FROM user WHERE id = ?", userToken.getUserId(), user);
         
         if (user == null) {
-            LogTracer.traceBusinessException(new RuntimeException("用户不存在，用户ID: " + refreshToken.getUserId()));
+            LogTracer.traceBusinessException(new RuntimeException("用户不存在，用户ID: " + userToken.getUserId()));
             throw new RuntimeException("用户不存在");
         }
         
@@ -267,12 +266,22 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtUtil.generateToken(user.getId(), user.getPhone());
         String newRefreshTokenValue = jwtUtil.generateRefreshToken(user.getId(), user.getPhone());
         
-        // 更新数据库中的刷新令牌
+        // 标记旧令牌为已使用，并创建新令牌
         LogTracer.traceBusinessOperation("更新刷新令牌");
-        refreshToken.setToken(newRefreshTokenValue);
-        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 重新设置7天有效期
-        int updateResult = refreshTokenMapper.updateById(refreshToken);
-        LogTracer.traceDatabaseQuery("UPDATE refresh_token SET token = ?, expires_at = ?", refreshToken, updateResult);
+        userToken.setIsUsed(true);
+        userTokenMapper.updateById(userToken);
+        
+        // 创建新的刷新令牌
+        UserToken newUserToken = new UserToken();
+        newUserToken.setUserId(user.getId());
+        newUserToken.setTokenType(UserToken.TokenType.REFRESH.getValue());
+        newUserToken.setTokenValue(newRefreshTokenValue);
+        newUserToken.setExpiresAt(LocalDateTime.now().plusDays(7)); // 重新设置7天有效期
+        newUserToken.setIsUsed(false);
+        newUserToken.setCreatedAt(LocalDateTime.now());
+        
+        int insertResult = userTokenMapper.insert(newUserToken);
+        LogTracer.traceDatabaseQuery("INSERT INTO user_tokens", newUserToken, insertResult);
         
         AuthResponse response = new AuthResponse();
         response.setUser(user);
@@ -374,14 +383,19 @@ public class AuthServiceImpl implements AuthService {
                 Long userId = jwtUtil.getUserIdFromToken(token);
                 LogTracer.traceBusinessOperation("从令牌中提取用户ID: " + userId);
                 
-                // 删除该用户的所有刷新令牌
-                LogTracer.traceBusinessOperation("删除用户所有刷新令牌，用户ID: " + userId);
-                QueryWrapper<RefreshToken> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("user_id", userId);
-                int deleteResult = refreshTokenMapper.delete(queryWrapper);
-                LogTracer.traceDatabaseQuery("DELETE FROM refresh_token WHERE user_id = ?", userId, deleteResult);
+                // 标记该用户的所有刷新令牌为已使用
+                LogTracer.traceBusinessOperation("标记用户所有刷新令牌为已使用，用户ID: " + userId);
+                QueryWrapper<UserToken> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("user_id", userId)
+                           .eq("token_type", UserToken.TokenType.REFRESH.getValue())
+                           .eq("is_used", false);
                 
-                LogTracer.traceBusinessOperation("用户登出完成，删除刷新令牌数量: " + deleteResult);
+                UserToken updateToken = new UserToken();
+                updateToken.setIsUsed(true);
+                int updateResult = userTokenMapper.update(updateToken, queryWrapper);
+                LogTracer.traceDatabaseQuery("UPDATE user_tokens SET is_used = true WHERE user_id = ? AND token_type = 'refresh' AND is_used = false", userId, updateResult);
+                
+                LogTracer.traceBusinessOperation("用户登出完成，标记刷新令牌数量: " + updateResult);
                 
             } catch (Exception e) {
                 // 如果令牌无效，忽略错误，直接完成登出

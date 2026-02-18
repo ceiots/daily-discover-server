@@ -23,11 +23,10 @@ CREATE TABLE IF NOT EXISTS product_recommendations (
     user_id BIGINT COMMENT '用户ID（NULL表示通用推荐）',
     product_id BIGINT NOT NULL COMMENT '商品ID',
     recommended_product_id BIGINT NOT NULL COMMENT '推荐商品ID',
-    recommendation_type ENUM('similar', 'complementary', 'bundle', 'collaborative', 'content_based', 'popular', 'trending', 'personalized', 'daily_discovery', 'new_arrival', 'limited_time') NOT NULL COMMENT '推荐类型',
+    recommendation_type VARCHAR(30) NOT NULL COMMENT '推荐类型：similar-相似商品, complementary-互补商品, bundle-组合套装, collaborative-协同过滤, content_based-内容相似, popular-热门商品, trending-趋势商品, personalized-个性化推荐, daily_discovery-每日发现, new_arrival-新品推荐, limited_time-限时推荐',
     recommendation_score DECIMAL(5,2) DEFAULT 0.0 COMMENT '推荐分数',
     position INT DEFAULT 0 COMMENT '推荐位置',
-    algorithm_version VARCHAR(50) COMMENT '算法版本',
-    recommendation_context JSON COMMENT '推荐上下文（如：基于哪些标签、行为等）',
+    recommendation_context JSON COMMENT '推荐上下文（如：基于哪些标签、行为、算法版本等）',
     is_active BOOLEAN DEFAULT true COMMENT '是否启用',
     expire_at TIMESTAMP NULL COMMENT '过期时间',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -48,7 +47,7 @@ CREATE TABLE IF NOT EXISTS product_sales_stats (
     product_id BIGINT NOT NULL COMMENT '商品ID',
     
     -- 时间粒度
-    time_granularity ENUM('daily', 'monthly', 'yearly') NOT NULL COMMENT '时间粒度',
+    time_granularity VARCHAR(10) NOT NULL COMMENT '时间粒度',
     stat_date DATE NOT NULL COMMENT '统计日期（如：日粒度-2026-02-01，月粒度-2026-02-01，年粒度-2026-01-01）',
     
     -- 核心业务数据
@@ -90,7 +89,7 @@ CREATE TABLE IF NOT EXISTS user_behavior_logs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '行为ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
-    behavior_type ENUM('view', 'click', 'cart', 'purchase', 'favorite') NOT NULL COMMENT '行为类型',
+    behavior_type VARCHAR(20) NOT NULL COMMENT '行为类型',
     behavior_weight DECIMAL(3,2) DEFAULT 1.0 COMMENT '行为权重',
     session_id VARCHAR(100) COMMENT '会话ID',
     referrer_url VARCHAR(500) COMMENT '来源页面',
@@ -110,12 +109,12 @@ CREATE TABLE IF NOT EXISTS scenario_recommendations (
     user_id BIGINT COMMENT '用户ID（NULL表示通用模板）',
     
     -- 场景定义
-    scenario_type ENUM('morning', 'commute', 'work', 'lunch', 'evening', 'weekend', 'travel', 'gift') COMMENT '场景类型',
+    scenario_type VARCHAR(20) COMMENT '场景类型',
     time_slot VARCHAR(20) COMMENT '时间段: "07:00-09:00"',
     location_context JSON COMMENT '位置上下文: {"home", "office", "commute"}',
     
     -- 场景特征
-    user_state ENUM('relaxed', 'focused', 'social', 'shopping') COMMENT '用户状态',
+    user_state VARCHAR(20) COMMENT '用户状态',
     weather_conditions JSON COMMENT '天气条件: {"sunny", "rainy"}',
     
     -- 推荐内容（动态计算，非固定列表）
@@ -182,7 +181,7 @@ CREATE TABLE IF NOT EXISTS product_search_keywords (
 CREATE TABLE IF NOT EXISTS product_tags (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '标签ID',
     tag_name VARCHAR(100) NOT NULL COMMENT '标签名称',
-    tag_type ENUM('category', 'feature', 'style', 'season', 'custom') DEFAULT 'custom' COMMENT '标签类型',
+    tag_type VARCHAR(20) DEFAULT 'custom' COMMENT '标签类型',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
     UNIQUE KEY uk_tag_name (tag_name),
@@ -225,23 +224,24 @@ COMMIT;
 -- ============================================
 
 -- 插入统一推荐数据（合并原相关商品和推荐数据）
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, position, algorithm_version, recommendation_context, is_active, expire_at) VALUES
-(NULL, 1, 2, 'complementary', 0.8, 1, 'v1.0', '{"reason": "智能手表与无线耳机搭配使用"}', true, '2026-03-01 00:00:00'),
-(NULL, 1, 3, 'similar', 0.7, 2, 'v1.0', '{"reason": "同为智能穿戴设备"}', true, '2026-03-01 00:00:00'),
-(NULL, 2, 1, 'complementary', 0.8, 1, 'v1.0', '{"reason": "无线耳机与智能手表搭配使用"}', true, '2026-03-01 00:00:00'),
-(NULL, 2, 4, 'similar', 0.6, 2, 'v1.0', '{"reason": "同为音频设备"}', true, '2026-03-01 00:00:00'),
-(NULL, 3, 1, 'similar', 0.7, 1, 'v1.0', '{"reason": "同为电子产品"}', true, '2026-03-01 00:00:00'),
-(NULL, 3, 4, 'complementary', 0.9, 2, 'v1.0', '{"reason": "笔记本电脑与智能手机搭配使用"}', true, '2026-03-01 00:00:00'),
-(NULL, 1, 2, 'collaborative', 0.85, 1, 'v1.0', '{"reason": "协同过滤推荐"}', true, '2026-03-01 00:00:00'),
-(NULL, 1, 3, 'content_based', 0.78, 2, 'v1.0', '{"reason": "内容相似推荐"}', true, '2026-03-01 00:00:00'),
-(NULL, 2, 1, 'collaborative', 0.82, 1, 'v1.0', '{"reason": "协同过滤推荐"}', true, '2026-03-01 00:00:00'),
-(NULL, 2, 4, 'popular', 0.75, 2, 'v1.0', '{"reason": "热门商品推荐"}', true, '2026-03-01 00:00:00'),
-(NULL, 3, 1, 'trending', 0.80, 1, 'v1.0', '{"reason": "趋势商品推荐"}', true, '2026-03-01 00:00:00'),
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, position, recommendation_context, is_active, expire_at) VALUES
+(NULL, 1, 2, 'complementary', 0.8, 1, '{"reason": "智能手表与无线耳机搭配使用"}', true, '2026-03-01 00:00:00'),
+(NULL, 1, 3, 'similar', 0.7, 2, '{"reason": "同为智能穿戴设备"}', true, '2026-03-01 00:00:00'),
+(NULL, 1, 4, 'bundle', 0.75, 3, '{"reason": "智能手表与智能手机组合套装"}', true, '2026-03-01 00:00:00'),
+(NULL, 2, 1, 'complementary', 0.8, 1, '{"reason": "无线耳机与智能手表搭配使用"}', true, '2026-03-01 00:00:00'),
+(NULL, 2, 4, 'similar', 0.6, 2, '{"reason": "同为音频设备"}', true, '2026-03-01 00:00:00'),
+(NULL, 2, 5, 'content_based', 0.65, 3, '{"reason": "音频设备与服饰搭配"}', true, '2026-03-01 00:00:00'),
+(NULL, 3, 1, 'similar', 0.7, 1, '{"reason": "同为电子产品"}', true, '2026-03-01 00:00:00'),
+(NULL, 3, 4, 'complementary', 0.9, 2, '{"reason": "笔记本电脑与智能手机搭配使用"}', true, '2026-03-01 00:00:00'),
+(NULL, 3, 5, 'collaborative', 0.72, 3, '{"reason": "办公设备与商务服饰搭配"}', true, '2026-03-01 00:00:00'),
+(NULL, 4, 1, 'collaborative', 0.82, 1, '{"reason": "智能手机与智能手表协同推荐"}', true, '2026-03-01 00:00:00'),
+(NULL, 4, 3, 'popular', 0.75, 2, '{"reason": "热门手机与电脑组合"}', true, '2026-03-01 00:00:00'),
+(NULL, 4, 5, 'trending', 0.68, 3, '{"reason": "时尚手机与潮流服饰搭配"}', true, '2026-03-01 00:00:00'),
 -- 每日发现特色推荐
-(NULL, 1, 2, 'daily_discovery', 0.95, 1, 'v1.1', '{"reason": "今日爆款搭配新品首发", "highlight": "今日最佳组合"}', true, '2026-02-02 00:00:00'),
-(NULL, 2, 1, 'daily_discovery', 0.92, 2, 'v1.1', '{"reason": "新品首发搭配经典爆款", "highlight": "热门组合推荐"}', true, '2026-02-02 00:00:00'),
-(NULL, 3, 4, 'new_arrival', 0.88, 1, 'v1.1', '{"reason": "性能升级搭配旗舰机型", "highlight": "科技新品组合"}', true, '2026-02-05 00:00:00'),
-(NULL, 4, 3, 'limited_time', 0.85, 1, 'v1.1', '{"reason": "限时优惠搭配性能升级", "highlight": "限时特惠组合"}', true, '2026-02-03 00:00:00');
+(NULL, 1, 2, 'daily_discovery', 0.95, 1, '{"reason": "今日爆款搭配新品首发", "highlight": "今日最佳组合"}', true, '2026-02-02 00:00:00'),
+(NULL, 2, 1, 'daily_discovery', 0.92, 2, '{"reason": "新品首发搭配经典爆款", "highlight": "热门组合推荐"}', true, '2026-02-02 00:00:00'),
+(NULL, 3, 4, 'new_arrival', 0.88, 1, '{"reason": "性能升级搭配旗舰机型", "highlight": "科技新品组合"}', true, '2026-02-05 00:00:00'),
+(NULL, 4, 3, 'limited_time', 0.85, 1, '{"reason": "限时优惠搭配性能升级", "highlight": "限时特惠组合"}', true, '2026-02-03 00:00:00');
 
 -- 插入销量统计数据（单一表设计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_trending) VALUES

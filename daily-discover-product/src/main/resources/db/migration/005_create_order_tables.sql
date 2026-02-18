@@ -197,3 +197,43 @@ CREATE TABLE IF NOT EXISTS after_sales_applications (
 ) COMMENT '售后申请表';
 
 COMMIT;
+
+-- ============================================
+-- 订单模块表初始数据
+-- ============================================
+
+-- 插入订单核心数据
+INSERT INTO orders_core (id, order_no, user_id, total_amount, actual_amount, payment_status, status) VALUES
+(1, 'DD202602010001', 1001, 299.00, 299.00, 'paid', 4),
+(2, 'DD202602010002', 1002, 199.00, 199.00, 'paid', 4),
+(3, 'DD202602010003', 1003, 5999.00, 5999.00, 'paid', 3),
+(4, 'DD202602010004', 1004, 4999.00, 4999.00, 'paid', 2),
+(5, 'DD202602010005', 1005, 5499.00, 5499.00, 'unpaid', 1);
+
+-- 插入订单扩展数据
+INSERT INTO orders_extend (order_id, address_id, province_id, city_id, district_id, detailed_address, coupon_id, coupon_discount_amount, discount_amount, payment_method_id, paid_at) VALUES
+(1, 1, '11', '1101', '110101', '北京市东城区王府井大街100号', NULL, 0.00, 0.00, 1, '2026-02-01 10:30:00'),
+(2, 2, '31', '3101', '310101', '上海市黄浦区南京东路200号', NULL, 0.00, 0.00, 2, '2026-02-01 11:15:00'),
+(3, 3, '44', '4401', '440103', '广州市天河区体育西路300号', 1, 0.00, 100.00, 1, '2026-02-01 14:20:00'),
+(4, 4, '11', '1101', '110102', '北京市西城区金融街400号', NULL, 0.00, 0.00, 1, '2026-02-01 16:45:00'),
+(5, 5, '31', '3101', '310104', '上海市静安区南京西路500号', 2, 0.00, 0.00, NULL, NULL);
+
+-- 插入订单项数据
+INSERT INTO order_items (order_id, product_id, sku_id, product_title, product_image, specs_json, specs_text, unit_price, quantity, subtotal_amount) VALUES
+(1, 1, 1, '智能手表 Pro', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 299.00, 1, 299.00),
+(2, 2, 3, '无线降噪耳机', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '{"颜色": "黑色"}', '黑色', 199.00, 1, 199.00),
+(3, 3, 4, '轻薄笔记本电脑', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop', '{"配置": "i5 8G 256G"}', 'i5 8G 256G', 5999.00, 1, 5999.00),
+(4, 4, 1, '智能手机旗舰版', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 4999.00, 1, 4999.00),
+(5, 4, 4, '智能手机旗舰版', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', '{"颜色": "黑色", "存储": "256GB"}', '黑色 256GB', 5499.00, 1, 5499.00);
+
+-- 插入发票数据
+INSERT INTO order_invoices (order_id, invoice_type, invoice_title, tax_number, company_address, company_phone, bank_name, bank_account, invoice_content, invoice_amount, invoice_status, issued_at, invoice_no) VALUES
+(3, 'company', '广州科技有限公司', '91440101MA5XXXXXXX', '广州市天河区体育西路300号', '020-12345678', '中国工商银行', '6222021234567890123', '商品明细', 5999.00, 'issued', '2026-02-01 15:00:00', 'FP202602010001'),
+(4, 'personal', '张三', NULL, NULL, NULL, NULL, NULL, '商品明细', 4999.00, 'pending', NULL, NULL);
+
+-- 插入售后申请数据
+INSERT INTO after_sales_applications (application_no, order_id, user_id, product_id, after_sales_type, apply_reason, product_title, purchase_price, status, processor_id, process_notes, refund_amount) VALUES
+('AS202602010001', 1, 1001, 1, 'refund', '商品存在质量问题，无法正常使用', '智能手表 Pro', 299.00, 'approved', 1, '经核实，商品确实存在质量问题，同意退款', 299.00),
+('AS202602010002', 2, 1002, 2, 'exchange', '收到商品颜色与订单不符', '无线降噪耳机', 199.00, 'processing', NULL, NULL, 0.00);
+
+COMMIT;

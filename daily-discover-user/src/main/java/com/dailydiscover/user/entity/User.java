@@ -32,25 +32,17 @@ public class User {
     @TableField("phone")
     private String phone;
 
-
+    /**
+     * 邮箱
+     */
+    @TableField("email")
+    private String email;
 
     /**
-     * 个人简介
+     * 密码（加密存储）
      */
-    @TableField("bio")
-    private String bio;
-
-    /**
-     * 积分
-     */
-    @TableField("points")
-    private Integer points;
-
-    /**
-     * 等级ID
-     */
-    @TableField("level_id")
-    private Long levelId;
+    @TableField("password")
+    private String password;
 
     /**
      * 会员类型
@@ -59,66 +51,40 @@ public class User {
     private String membership;
 
     /**
+     * 用户状态：ACTIVE, INACTIVE, BANNED, DELETED
+     */
+    @TableField("status")
+    private String status;
+
+    /**
+     * 真实姓名
+     */
+    @TableField("real_name")
+    private String realName;
+
+    /**
+     * 性别：MALE, FEMALE, OTHER, UNKNOWN
+     */
+    @TableField("gender")
+    private String gender;
+
+    /**
+     * 生日
+     */
+    @TableField("birthday")
+    private LocalDateTime birthday;
+
+    /**
      * 头像URL
      */
     @TableField("avatar_url")
     private String avatarUrl;
 
     /**
-     * 密码（加密存储）
+     * 个人简介
      */
-    @TableField("password")
-    private String password;
-
-
-
-    /**
-     * 手机号是否已验证
-     */
-    @TableField("phone_verified")
-    private Boolean phoneVerified;
-
-    /**
-     * 最后登录时间
-     */
-    @TableField("last_login_at")
-    private LocalDateTime lastLoginAt;
-
-    /**
-     * 登录次数
-     */
-    @TableField("login_count")
-    private Integer loginCount;
-
-    /**
-     * 用户状态：ACTIVE, INACTIVE, BANNED
-     */
-    @TableField("status")
-    private String status;
-
-    /**
-     * 验证码
-     */
-    @TableField("verification_code")
-    private String verificationCode;
-
-    /**
-     * 验证码过期时间
-     */
-    @TableField("verification_code_expires_at")
-    private LocalDateTime verificationCodeExpiresAt;
-
-    /**
-     * 密码重置令牌
-     */
-    @TableField("reset_token")
-    private String resetToken;
-
-    /**
-     * 重置令牌过期时间
-     */
-    @TableField("reset_token_expires_at")
-    private LocalDateTime resetTokenExpiresAt;
+    @TableField("bio")
+    private String bio;
 
     /**
      * 创建时间
@@ -131,4 +97,44 @@ public class User {
      */
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * 用户状态枚举
+     */
+    public enum Status {
+        ACTIVE("ACTIVE"),
+        INACTIVE("INACTIVE"),
+        BANNED("BANNED"),
+        DELETED("DELETED");
+
+        private final String value;
+
+        Status(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * 性别枚举
+     */
+    public enum Gender {
+        MALE("MALE"),
+        FEMALE("FEMALE"),
+        OTHER("OTHER"),
+        UNKNOWN("UNKNOWN");
+
+        private final String value;
+
+        Gender(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
 }

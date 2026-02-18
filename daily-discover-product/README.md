@@ -3,44 +3,6 @@
 ## 项目简介
 Daily Discover Product Service 是一个基于 Spring Boot 的商品推荐服务，为 Daily Discover 应用提供商品数据 API 接口。
 
-## 功能特性
-- 基于时间段的智能商品推荐
-- 商品分类管理
-- 商品搜索功能
-- RESTful API 接口
-- MySQL 数据库支持
-- 跨域请求支持
-
-## 技术栈
-- Spring Boot 3.2.0
-- Spring Data JPA
-- MySQL 8.0
-- Maven
-- Java 17
-
-## 快速开始
-
-### 1. 环境要求
-- Java 17+
-- Maven 3.6+
-- MySQL 8.0+
-
-### 2. 数据库配置
-1. 创建 MySQL 数据库：
-```sql
-CREATE DATABASE daily_discover CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-2. 修改数据库连接配置（如需要）：
-编辑 `src/main/resources/application.properties` 文件，修改以下配置：
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/daily_discover?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
-spring.datasource.username=你的用户名
-spring.datasource.password=你的密码
-```
-
-### 4. 验证服务
-服务启动后，使用以下命令验证服务是否正常：
 
 #### 本地访问（推荐开发环境）
 ```bash
@@ -48,53 +10,6 @@ spring.datasource.password=你的密码
 curl -X GET http://localhost:8092/actuator/health && echo "" && curl -X GET http://localhost:8092
 ```
 
-
-如果服务正常，您将看到健康检查结果和商品列表数据。
-
-## API 接口文档
-
-### 基础路径
-所有 API 接口的基路径为：`/products`
-
-### 主要接口
-
-#### 1. 获取所有商品
-```
-GET /products
-```
-**curl 命令：**
-```bash
-curl -X GET http://localhost:8092/products
-```
-
-#### 2. 根据ID获取商品
-```
-GET /products/{id}
-```
-**curl 命令：**
-```bash
-# 示例：获取ID为1的商品
-curl -X GET http://localhost:8092/products/1
-```
-
-#### 3. 获取当前时间段推荐商品
-```
-GET /products/recommendations
-```
-**curl 命令：**
-```bash
-curl -X GET http://localhost:8092/products/recommendations
-```
-
-#### 4. 根据时间段获取推荐商品
-```
-GET /products/recommendations/{timeSlot}
-```
-**时间段参数：**
-- `morning`: 晨间 (6:00-12:00)
-- `noon`: 午间 (12:00-14:00)
-- `afternoon`: 午后 (14:00-18:00)
-- `evening`: 夜晚 (18:00-6:00)
 
 **curl 命令：**
 ```bash
@@ -105,94 +20,72 @@ curl -X GET http://localhost:8092/products/recommendations/morning
 curl -X GET http://localhost:8092/products/recommendations/evening
 ```
 
-#### 5. 根据分类获取商品
-```
-GET /products/category/{category}
-```
-**curl 命令：**
-```bash
-# 示例：获取电子产品分类的商品
-curl -X GET http://localhost:8092/products/category/electronics
-```
 
-#### 6. 搜索商品
-```
-GET /products/search?keyword={keyword}
-```
-**curl 命令：**
-```bash
-# 搜索包含"手机"的商品
-curl -X GET "http://localhost:8092/products/search?keyword=手机"
-
-# 搜索包含"电脑"的商品
-curl -X GET "http://localhost:8092/products/search?keyword=电脑"
-```
-
-#### 7. 获取最新商品
-```
-GET /products/latest
-```
-**curl 命令：**
-```bash
-curl -X GET http://localhost:8092/products/latest
-```
-
-#### 8. 创建新商品（POST请求示例）
-```
-POST /products
-Content-Type: application/json
-```
-**curl 命令：**
-```bash
-curl -X POST http://localhost:8092/products \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "新商品",
-    "price": 99.99,
-    "category": "electronics",
-    "description": "这是一个新商品"
-  }'
-```
-
-## 数据库管理
-
-### 数据库初始化
-项目启动时会自动执行以下操作：
-1. 创建完整的商品相关表结构
-2. 插入丰富的示例数据
-3. 建立表之间的业务关联关系
 
 ### 数据表结构模块
-数据库采用模块化设计，分为4个核心模块：
+数据库采用模块化设计，分为9个核心模块：
 
 #### 1. 商品核心信息模块
-- `products` - 商品基础信息
-- `product_details` - 商品详情
-- `product_images` - 商品图片
-- `product_specs` - 商品规格
-- `product_categories` - 商品分类
+- `products` - 商品基础信息表（SPU - 标准化产品单元）
+- `product_categories` - 商品分类表（优化树形结构）
+- `product_details` - 商品详情表（电商简化版，包含图片/视频统一管理）
+- `product_skus` - SKU表（电商核心 - 可销售最小单位）
+- `product_sku_specs` - 商品规格定义表（购买选择型规格）
+- `product_sku_spec_options` - 商品规格选项表（规格具体值）
+- `shopping_cart` - 购物车表（支持多规格购买）
 
 #### 2. 商家与库存模块
-- `sellers` - 商家信息
-- `product_skus` - 商品SKU管理
-- `product_inventory` - 库存管理
-- `inventory_transactions` - 库存操作记录
+- `sellers` - 商家基础信息表
+- `seller_profiles` - 商家资料表
+- `product_inventory_core` - 库存核心表（高频读写，最小化字段）
+- `product_inventory_config` - 库存配置表（低频读写，扩展信息）
+- `inventory_transactions` - 库存操作记录表
 
 #### 3. 评价与互动模块
-- `user_reviews` - 用户评价
-- `review_replies` - 评价回复
-- `review_likes` - 评价点赞
-- `review_stats` - 评价统计
-- `product_actions` - 用户行为记录
-- `user_favorites` - 用户收藏
+- `user_reviews` - 用户评价表（核心信息）
+- `user_review_details` - 用户评价详情表（大字段单独存储）
+- `user_review_stats` - 用户评价统计表（实时统计字段）
+- `review_replies` - 评价回复表
+- `review_stats` - 商品评价统计表（聚合统计）
 
 #### 4. 商品关系与推荐模块
-- `related_products` - 相关商品
-- `time_based_products` - 时间维度数据
-- `product_recommendations` - 商品推荐
-- `product_search_keywords` - 搜索关键词
-- `product_tags` - 商品标签
-- `product_tag_relations` - 标签关联
+- `product_recommendations` - 商品推荐表（统一推荐表，合并相关商品和推荐功能）
+- `product_sales_stats` - 销量统计表（支持多种时间粒度）
+- `user_behavior_logs` - 用户行为表（记录浏览、点击、购买等行为）
+- `user_interest_profiles` - 用户兴趣画像表
+- `scenario_recommendations` - 场景推荐表（基于场景的推荐）
+- `recommendation_effects` - 推荐效果跟踪表
+- `product_search_keywords` - 搜索关键词表
+- `product_tags` - 商品标签表
+- `product_tag_relations` - 商品标签关联表
+
+#### 5. 订单管理模块
+- `orders_core` - 订单核心信息（高频查询字段）
+- `orders_extend` - 订单扩展信息（低频查询字段）
+- `order_items` - 订单商品项
+- `order_invoices` - 订单发票信息
+- `after_sales_applications` - 售后申请
+
+#### 6. 物流和地区管理模块
+- `regions` - 地区表（国家标准行政区划）
+- `order_shipping` - 订单物流信息
+- `order_shipping_tracks` - 物流跟踪记录
+
+#### 7. 支付管理模块
+- `payment_methods` - 支付方式表
+- `payment_transactions` - 支付记录表
+- `refund_records` - 退款记录表
+
+#### 8. 营销促销管理模块
+- `promotion_activities` - 促销活动表
+- `coupons` - 优惠券表
+- `coupon_usage_records` - 优惠券使用记录
+
+#### 9. 客户服务管理模块
+- `customer_service_agents` - 客服坐席表
+- `customer_service_categories` - 客服分类表
+- `customer_service_conversations` - 客服会话表
+- `customer_service_messages` - 客服消息表
 
 ### 数据库迁移脚本
 迁移脚本位于 `src/main/resources/db/migration/` 目录：
@@ -202,191 +95,66 @@ migration/
 ├── 001_create_product_core_tables.sql      # 商品核心信息模块
 ├── 002_create_seller_inventory_tables.sql  # 商家与库存模块
 ├── 003_create_review_interaction_tables.sql # 评价与互动模块
-└── 004_create_relationship_recommendation_tables.sql # 商品关系与推荐模块
+├── 004_create_relationship_recommendation_tables.sql # 商品关系与推荐模块
+├── 005_create_order_tables.sql             # 订单管理模块
+├── 006_create_shipping_region_tables.sql   # 物流和地区管理模块
+├── 007_create_payment_tables.sql           # 支付管理模块
+├── 008_create_promotion_tables.sql         # 营销促销管理模块
+└── 009_create_customer_service_tables.sql  # 客户服务管理模块
 ```
 
 ### 手动执行数据库迁移
 
 ```bash
-# 执行评价与互动模块迁移脚本
+# 执行所有迁移脚本（推荐）
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\001_create_product_core_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\002_create_seller_inventory_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\003_create_review_interaction_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\004_create_relationship_recommendation_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\005_create_order_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\006_create_shipping_region_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\007_create_payment_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\008_create_promotion_tables.sql"
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\009_create_customer_service_tables.sql"
+
 ```
 
 ## 开发指南
 
-## 🏗️ 详细项目结构
+### 核心目录结构
+
+项目采用标准的 Spring Boot 分层架构，主要目录结构如下：
 
 ```
 daily-discover-product/
-├── src/                        # 源代码目录
-│   ├── main/                   # 主要源代码目录
-│   │   ├── java/              # Java 源代码
-│   │   │   └── com/dailydiscover/ # 主包结构
-│   │   │       ├── DailyDiscoverProductApplication.java # 应用程序主类
-│   │   │       ├── config/     # 配置类
-│   │   │       │   └── StringListTypeHandler.java # 字符串列表类型处理器
-│   │   │       ├── controller/ # 控制器层
-│   │   │       │   ├── ArticleController.java # 文章控制器
-│   │   │       │   ├── ProductController.java # 商品控制器
-│   │   │       │   └── TopicController.java # 话题控制器
-│   │   │       ├── mapper/     # 数据访问层
-│   │   │       │   ├── ArticleMapper.java # 文章数据访问接口
-│   │   │       │   ├── ProductMapper.java # 商品数据访问接口
-│   │   │       │   └── TopicMapper.java # 话题数据访问接口
-│   │   │       ├── model/     # 数据模型层
-│   │   │       │   ├── Article.java # 文章实体类
-│   │   │       │   ├── Product.java # 商品实体类
-│   │   │       │   └── Topic.java # 话题实体类
-│   │   │       └── service/   # 服务层
-│   │   │           ├── ArticleService.java # 文章服务接口
-│   │   │           ├── ArticleServiceImpl.java # 文章服务实现
-│   │   │           ├── ProductService.java # 商品服务接口
-│   │   │           ├── ProductServiceImpl.java # 商品服务实现
-│   │   │           ├── TopicService.java # 话题服务接口
-│   │   │           └── TopicServiceImpl.java # 话题服务实现
-│   │   └── resources/         # 资源文件目录
-│   │       ├── application.properties # 应用配置文件
-│   │       ├── db/             # 数据库相关资源
-│   │       │   └── migration/  # 数据库迁移脚本
-│   │       │       ├── V1__Create_initial_tables.sql # 初始表创建脚本
-│   │       │       ├── V2__Add_product_images.sql # 商品图片表添加脚本
-│   │       │       ├── V3__Add_article_content.sql # 文章内容表添加脚本
-│   │       │       ├── V4__Add_topic_related.sql # 话题相关表添加脚本
-│   │       │       ├── V5__Add_user_system.sql # 用户系统表添加脚本
-│   │       │       └── V6__Add_recommendation_system.sql # 推荐系统表添加脚本
-│   │       ├── logback-spring.xml # 日志配置文件
-│   │       └── mapper/         # MyBatis 映射文件
-│   │           ├── ArticleMapper.xml # 文章映射配置
-│   │           ├── ProductMapper.xml # 商品映射配置
-│   │           └── TopicMapper.xml # 话题映射配置
-├── pom.xml                     # Maven 项目配置文件
-└── README.md                   # 项目说明文档
+├── src/main/java/com/dailydiscover/
+│   ├── controller/           # API 接口层 - 商品、订单、购物车等业务接口
+│   ├── service/              # 业务逻辑层 - 核心业务处理逻辑
+│   ├── mapper/               # 数据访问层 - MyBatis 数据操作
+│   ├── model/                # 数据模型层 - 实体类定义
+│   └── config/               # 配置类 - 安全、数据库等配置
+├── src/main/resources/
+│   ├── db/migration/         # 数据库迁移脚本（9个业务模块）
+│   ├── mapper/               # MyBatis XML 映射文件
+│   └── application.properties # 应用配置
+└── pom.xml                   # Maven 依赖管理
 ```
 
-### 目录结构说明
+**核心业务模块**：
+- **商品管理**：SPU/SKU、分类、详情、评价
+- **订单系统**：购物车、订单、购买流程
+- **商家服务**：商家信息、商品管理
 
-#### 核心目录作用
+### 项目架构
 
-**src/main/java/com/dailydiscover/** - Java 源代码主包
+项目采用标准的 Spring Boot 分层架构：
 
-**DailyDiscoverProductApplication.java** - 应用程序主类
-- Spring Boot 应用程序入口点
-- 包含应用程序启动配置
-- 定义应用程序级别的 Bean
+- **控制器层**：提供 RESTful API 接口，处理商品、订单、评价等业务请求
+- **服务层**：实现核心业务逻辑，包括商品推荐、订单管理、用户行为处理
+- **数据访问层**：基于 MyBatis 框架，支持复杂查询和性能优化
+- **数据模型层**：定义商品、订单、用户等核心业务实体
+- **资源配置**：包含数据库配置、迁移脚本和 MyBatis 映射文件
 
-**config/** - 配置类目录
-- **StringListTypeHandler.java**: MyBatis 类型处理器，用于处理数据库中的字符串列表类型
-- 负责字符串与列表类型之间的转换
-- 支持数据库字段与 Java 对象的映射
-
-**controller/** - 控制器层 (MVC 中的 Controller)
-- **ArticleController.java**: 文章相关 API 接口控制器
-  - 处理文章的 CRUD 操作
-  - 提供文章列表、详情、搜索等接口
-  - 实现文章推荐功能
-- **ProductController.java**: 商品相关 API 接口控制器
-  - 处理商品的 CRUD 操作
-  - 提供商品列表、详情、分类等接口
-  - 实现商品推荐和搜索功能
-- **TopicController.java**: 话题相关 API 接口控制器
-  - 处理话题的 CRUD 操作
-  - 提供话题列表、详情、热门话题等接口
-  - 实现话题推荐功能
-
-**mapper/** - 数据访问层 (MyBatis)
-- **ArticleMapper.java**: 文章数据访问接口
-  - 定义文章相关的数据库操作方法
-  - 使用 MyBatis 注解或 XML 映射文件
-  - 支持复杂的查询条件和分页
-- **ProductMapper.java**: 商品数据访问接口
-  - 定义商品相关的数据库操作方法
-  - 支持商品分类、价格区间查询
-  - 实现商品推荐算法的数据访问
-- **TopicMapper.java**: 话题数据访问接口
-  - 定义话题相关的数据库操作方法
-  - 支持话题热度统计
-  - 实现话题关联查询
-
-**model/** - 数据模型层 (Entity)
-- **Article.java**: 文章实体类
-  - 定义文章数据结构
-  - 包含文章标题、内容、作者、发布时间等字段
-  - 实现 JPA 实体注解
-- **Product.java**: 商品实体类
-  - 定义商品数据结构
-  - 包含商品名称、价格、描述、图片等字段
-  - 支持商品分类和标签
-- **Topic.java**: 话题实体类
-  - 定义话题数据结构
-  - 包含话题标题、描述、热度等字段
-  - 支持话题与文章、商品的关联
-
-**service/** - 服务层 (Business Logic)
-- **ArticleService.java/ArticleServiceImpl.java**: 文章服务接口及实现
-  - 实现文章业务逻辑
-  - 提供文章推荐算法
-  - 处理文章缓存和性能优化
-- **ProductService.java/ProductServiceImpl.java**: 商品服务接口及实现
-  - 实现商品业务逻辑
-  - 提供商品搜索和过滤功能
-  - 处理商品库存和价格管理
-- **TopicService.java/TopicServiceImpl.java**: 话题服务接口及实现
-  - 实现话题业务逻辑
-  - 提供话题热度计算
-  - 处理话题关联推荐
-
-**src/main/resources/** - 资源文件目录
-
-**application.properties** - 应用配置文件
-- 数据库连接配置
-- 服务器端口配置
-- 日志级别配置
-- 应用自定义配置
-
-**db/migration/** - 数据库迁移脚本
-- **001_create_product_core_tables.sql**: 商品核心信息模块
-  - 创建商品分类、商品基础信息、商品详情、商品图片、商品规格表
-  - 包含完整的初始测试数据
-- **002_create_seller_inventory_tables.sql**: 商家与库存模块
-  - 创建商家信息、商品SKU、库存管理、库存操作记录表
-  - 包含商家数据和库存管理数据
-- **003_create_review_interaction_tables.sql**: 评价与互动模块
-  - 创建用户评价、评价回复、评价点赞、评价统计、用户行为记录、用户收藏表
-  - 包含真实的用户评价和互动数据
-- **004_create_relationship_recommendation_tables.sql**: 商品关系与推荐模块
-  - 创建相关商品、时间维度数据、商品推荐、搜索关键词、商品标签、标签关联表
-  - 包含推荐算法和标签系统数据
-
-**mapper/** - MyBatis 映射文件
-- **ArticleMapper.xml**: 文章映射配置
-  - 定义文章相关的 SQL 查询
-  - 支持复杂查询和联表操作
-  - 实现文章推荐查询
-- **ProductMapper.xml**: 商品映射配置
-  - 定义商品相关的 SQL 查询
-  - 支持商品分类和筛选
-  - 实现商品搜索功能
-- **TopicMapper.xml**: 话题映射配置
-  - 定义话题相关的 SQL 查询
-  - 支持话题热度统计
-  - 实现话题关联查询
-
-**logback-spring.xml** - 日志配置文件
-- 定义日志输出格式
-- 配置日志文件存储位置
-- 设置不同环境的日志级别
-- 支持日志滚动和归档
-
-#### 架构设计特点
-
-1. **分层架构**: 采用经典的 MVC 分层架构，清晰分离控制器、服务、数据访问层
-2. **RESTful API**: 提供标准的 RESTful API 接口，支持前后端分离
-3. **数据库版本管理**: 使用 Flyway 进行数据库版本控制，支持平滑升级
-4. **缓存策略**: 在服务层实现缓存机制，提高系统性能
-5. **推荐系统**: 内置个性化推荐算法，支持基于用户行为的内容推荐
-6. **日志管理**: 完善的日志系统，支持多级别日志输出和文件管理
-7. **类型安全**: 使用 MyBatis 类型处理器，确保数据类型安全转换
-8. **扩展性**: 模块化设计，易于扩展新功能和业务模块
 
 ### 添加新功能
 1. 在 `model` 包中创建实体类

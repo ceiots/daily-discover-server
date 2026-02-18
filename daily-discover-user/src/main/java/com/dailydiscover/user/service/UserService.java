@@ -50,15 +50,6 @@ public interface UserService {
     UserResponse updateUserProfile(User user);
 
     /**
-     * 更新用户积分
-     * 
-     * @param userId 用户ID
-     * @param points 积分
-     * @return 更新后的用户信息
-     */
-    UserResponse updateUserPoints(Long userId, Integer points);
-
-    /**
      * 删除用户
      * 
      * @param userId 用户ID

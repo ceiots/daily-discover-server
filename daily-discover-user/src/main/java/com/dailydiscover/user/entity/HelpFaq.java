@@ -7,12 +7,12 @@ import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 /**
- * 账户设置实体类
+ * 帮助FAQ实体类
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("account_settings")
-public class AccountSetting {
+@TableName("help_faq")
+public class HelpFaq {
 
     /**
      * 主键ID
@@ -21,34 +21,34 @@ public class AccountSetting {
     private Long id;
 
     /**
-     * 用户ID
+     * 问题标题
      */
-    @TableField("user_id")
-    private Long userId;
+    @TableField("question")
+    private String question;
 
     /**
-     * 设置项键名
+     * 问题答案
      */
-    @TableField("setting_key")
-    private String settingKey;
+    @TableField("answer")
+    private String answer;
 
     /**
-     * 设置项值
+     * FAQ类型：general, account, payment, order, delivery
      */
-    @TableField("setting_value")
-    private String settingValue;
+    @TableField("faq_type")
+    private String faqType;
 
     /**
-     * 设置项描述
+     * 排序权重
      */
-    @TableField("description")
-    private String description;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     /**
-     * 设置项类型：string, number, boolean, json
+     * 是否显示：true, false
      */
-    @TableField("value_type")
-    private String valueType;
+    @TableField("is_visible")
+    private Boolean isVisible;
 
     /**
      * 创建时间
@@ -63,17 +63,18 @@ public class AccountSetting {
     private LocalDateTime updatedAt;
 
     /**
-     * 设置项类型枚举
+     * FAQ类型枚举
      */
-    public enum ValueType {
-        STRING("string"),
-        NUMBER("number"),
-        BOOLEAN("boolean"),
-        JSON("json");
+    public enum FaqType {
+        GENERAL("general"),
+        ACCOUNT("account"),
+        PAYMENT("payment"),
+        ORDER("order"),
+        DELIVERY("delivery");
 
         private final String value;
 
-        ValueType(String value) {
+        FaqType(String value) {
             this.value = value;
         }
 
