@@ -100,7 +100,7 @@ public class UserReviewStatsController {
     @ApiLog("增加用户评论统计")
     public ResponseEntity<Void> incrementUserReviewStats(@PathVariable Long userId, @RequestParam Integer rating) {
         try {
-            boolean success = userReviewStatsService.incrementReviewStats(userId, rating);
+            boolean success = userReviewStatsService.incrementUserReviewStats(userId, rating, true);
             return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -111,7 +111,7 @@ public class UserReviewStatsController {
     @ApiLog("减少用户评论统计")
     public ResponseEntity<Void> decrementUserReviewStats(@PathVariable Long userId, @RequestParam Integer rating) {
         try {
-            boolean success = userReviewStatsService.decrementReviewStats(userId, rating);
+            boolean success = userReviewStatsService.incrementUserReviewStats(userId, rating, false);
             return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

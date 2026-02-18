@@ -65,8 +65,8 @@ public class ProductInventoryConfigController {
     @ApiLog("创建商品库存配置")
     public ResponseEntity<ProductInventoryConfig> createProductInventoryConfig(@RequestBody ProductInventoryConfig config) {
         try {
-            ProductInventoryConfig savedConfig = productInventoryConfigService.save(config);
-            return ResponseEntity.ok(savedConfig);
+            boolean success = productInventoryConfigService.save(config);
+            return success ? ResponseEntity.ok(config) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

@@ -57,4 +57,9 @@ public class ProductTagRelationServiceImpl extends ServiceImpl<ProductTagRelatio
         
         return saveBatch(relations);
     }
+    
+    @Override
+    public boolean removeByProductIdAndTagId(Long productId, Long tagId) {
+        return removeTagFromProduct(productId, tagId);
+    }
 }
