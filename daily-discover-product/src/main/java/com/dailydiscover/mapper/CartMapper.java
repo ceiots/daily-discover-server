@@ -1,29 +1,67 @@
 package com.dailydiscover.mapper;
 
 import org.apache.ibatis.annotations.*;
+import java.util.List;
 import java.util.Map;
 
 @Mapper
 public interface CartMapper {
     
-    @Insert("INSERT INTO cart_items (user_id, product_id, quantity, created_at, updated_at) " +
-            "VALUES (#{userId}, #{productId}, #{quantity}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
+    // 基础购物车操作（支持SKU规格）
+    @Insert("INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected, created_at, updated_at) " +
+            "VALUES (#{userId}, #{productId}, #{skuId}, #{quantity}, #{specsJson}, #{specsText}, #{isSelected}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void addToCart(Map<String, Object> cartItem);
     
-    @Select("SELECT quantity FROM cart_items WHERE user_id = #{userId} AND product_id = #{productId}")
-    Integer getCartItemQuantity(@Param("userId") Long userId, @Param("productId") Long productId);
+    @Select("SELECT * FROM shopping_cart WHERE user_id = #{userId} ORDER BY created_at DESC")
+    List<Map<String, Object>> getCartItems(@Param("userId") Long userId);
     
-    @Select("SELECT COUNT(*) FROM cart_items WHERE user_id = #{userId}")
-    Integer getCartTotalCount(Long userId);
+    @Select("SELECT * FROM shopping_cart WHERE id = #{cartItemId}")
+    Map<String, Object> getCartItemById(@Param("cartItemId") Long cartItemId);
     
-    @Update("UPDATE cart_items SET quantity = #{quantity}, updated_at = CURRENT_TIMESTAMP " +
-            "WHERE user_id = #{userId} AND product_id = #{productId}")
-    void updateCartItemQuantity(Map<String, Object> cartItem);
+    @Select("SELECT COUNT(*) FROM shopping_cart WHERE user_id = #{userId}")
+    Integer getCartTotalCount(@Param("userId") Long userId);
     
-    @Delete("DELETE FROM cart_items WHERE user_id = #{userId} AND product_id = #{productId}")
-    void removeFromCart(@Param("userId") Long userId, @Param("productId") Long productId);
+    @Select("SELECT SUM(quantity) FROM shopping_cart WHERE user_id = #{userId}")
+    Integer getCartTotalQuantity(@Param("userId") Long userId);
     
-    @Delete("DELETE FROM cart_items WHERE user_id = #{userId}")
-    void clearCart(Long userId);
+    @Update("UPDATE shopping_cart SET quantity = #{quantity}, updated_at = CURRENT_TIMESTAMP " +
+            "WHERE id = #{cartItemId}")
+    void updateCartItemQuantity(@Param("cartItemId") Long cartItemId, @Param("quantity") Integer quantity);
+    
+    @Delete("DELETE FROM shopping_cart WHERE id = #{cartItemId}")
+    void removeFromCart(@Param("cartItemId") Long cartItemId);
+    
+    @Delete("DELETE FROM shopping_cart WHERE user_id = #{userId}")
+    void clearCart(@Param("userId") Long userId);
+    
+    @Delete({"<script>",
+            "DELETE FROM shopping_cart WHERE id IN",
+            "<foreach collection='cartItemIds' item='cartItemId' open='(' separator=',' close=')'>",
+            "#{cartItemId}",
+            "</foreach>",
+            "</script>"})
+    void batchRemoveFromCart(@Param("cartItemIds") List<Long> cartItemIds);
+    
+    @Update("UPDATE shopping_cart SET is_selected = #{isSelected}, updated_at = CURRENT_TIMESTAMP " +
+            "WHERE id = #{cartItemId}")
+    void updateCartItemSelection(@Param("cartItemId") Long cartItemId, @Param("isSelected") Integer isSelected);
+    
+    @Update({"<script>",
+            "UPDATE shopping_cart SET is_selected = #{isSelected}, updated_at = CURRENT_TIMESTAMP WHERE id IN",
+            "<foreach collection='cartItemIds' item='cartItemId' open='(' separator=',' close=')'>",
+            "#{cartItemId}",
+            "</foreach>",
+            "</script>"})
+    void batchUpdateCartItemSelection(@Param("cartItemIds") List<Long> cartItemIds, @Param("isSelected") Integer isSelected);
+    
+    @Select("SELECT * FROM shopping_cart WHERE user_id = #{userId} AND is_selected = 1 ORDER BY created_at DESC")
+    List<Map<String, Object>> getSelectedCartItems(@Param("userId") Long userId);
+    
+    @Select("SELECT * FROM shopping_cart WHERE user_id = #{userId} AND sku_id = #{skuId}")
+    Map<String, Object> getCartItemBySku(@Param("userId") Long userId, @Param("skuId") Long skuId);
+    
+    @Update("UPDATE shopping_cart SET quantity = quantity + #{quantity}, updated_at = CURRENT_TIMESTAMP " +
+            "WHERE user_id = #{userId} AND sku_id = #{skuId}")
+    void updateCartItemQuantityBySku(@Param("userId") Long userId, @Param("skuId") Long skuId, @Param("quantity") Integer quantity);
 }
