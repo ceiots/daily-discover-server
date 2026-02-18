@@ -1,7 +1,6 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.dto.ProductImageDTO;
-import com.dailydiscover.model.ProductImage;
 import com.dailydiscover.model.ImageCategory;
 import java.util.List;
 import java.util.Map;

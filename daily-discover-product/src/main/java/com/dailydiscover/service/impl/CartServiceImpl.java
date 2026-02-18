@@ -1,6 +1,6 @@
 package com.dailydiscover.service.impl;
 
-import com.dailydiscover.common.auth.UserContext;
+import com.dailydiscover.common.security.UserContext;
 import com.dailydiscover.mapper.CartMapper;
 import com.dailydiscover.service.CartService;
 import lombok.RequiredArgsConstructor;

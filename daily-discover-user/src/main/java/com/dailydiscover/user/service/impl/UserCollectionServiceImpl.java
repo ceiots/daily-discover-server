@@ -36,12 +36,12 @@ public class UserCollectionServiceImpl implements UserCollectionService {
             // 检查是否已收藏
             QueryWrapper<UserCollection> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("user_id", userCollection.getUserId())
-                       .eq("collection_type", userCollection.getCollectionType())
-                       .eq("product_id", userCollection.getProductId());
+                       .eq("item_type", userCollection.getItemType())
+                       .eq("item_id", userCollection.getItemId());
             
             UserCollection existingCollection = userCollectionMapper.selectOne(queryWrapper);
             LogTracer.traceDatabaseQuery("SELECT * FROM user_collections WHERE user_id = ? AND collection_type = ? AND product_id = ?", 
-                new Object[]{userCollection.getUserId(), userCollection.getCollectionType(), userCollection.getProductId()}, existingCollection);
+                new Object[]{userCollection.getUserId(), userCollection.getItemType(), userCollection.getItemId()}, existingCollection);
             
             if (existingCollection != null) {
                 throw new RuntimeException("该内容已被收藏");
