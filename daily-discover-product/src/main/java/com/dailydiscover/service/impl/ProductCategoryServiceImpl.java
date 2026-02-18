@@ -56,7 +56,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     public boolean deactivate(Long id) {
         ProductCategory category = getById(id);
         if (category != null) {
-            category.setStatus("inactive");
+            category.setStatus(0); // 0表示停用，1表示启用
             return updateById(category);
         }
         return false;

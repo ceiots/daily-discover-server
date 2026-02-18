@@ -60,6 +60,9 @@ public class ProductTagRelationServiceImpl extends ServiceImpl<ProductTagRelatio
     
     @Override
     public boolean removeByProductIdAndTagId(Long productId, Long tagId) {
-        return removeTagFromProduct(productId, tagId);
+        return lambdaUpdate()
+                .eq(ProductTagRelation::getProductId, productId)
+                .eq(ProductTagRelation::getTagId, tagId)
+                .remove();
     }
 }

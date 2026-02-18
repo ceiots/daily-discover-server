@@ -2,7 +2,6 @@ package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.model.Product;
-import com.dailydiscover.model.ProductDetail;
 import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;

@@ -160,7 +160,7 @@ public class CartController {
         } catch (Exception e) {
             Map<String, Object> errorResult = new HashMap<>();
             errorResult.put("success", false);
-            errorResult.put("message", "批量更新购物车项选中状态失败");
+            errorResult.put("message", "Failed to batch update cart item selection");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
         }
     }
@@ -186,7 +186,7 @@ public class CartController {
         } catch (Exception e) {
             Map<String, Object> errorResult = new HashMap<>();
             errorResult.put("success", false);
-            errorResult.put("message", "合并购物车失败");
+            errorResult.put("message", "Failed to merge cart");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
         }
     }

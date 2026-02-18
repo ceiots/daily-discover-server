@@ -76,5 +76,4 @@ public class ProductDetailServiceImpl extends ServiceImpl<ProductDetailMapper, P
         }
         return java.util.Collections.emptyList();
     }
-    }
 }

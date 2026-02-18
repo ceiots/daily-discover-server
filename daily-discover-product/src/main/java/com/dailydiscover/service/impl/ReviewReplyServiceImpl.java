@@ -18,20 +18,21 @@ public class ReviewReplyServiceImpl extends ServiceImpl<ReviewReplyMapper, Revie
     private ReviewReplyMapper reviewReplyMapper;
     
     @Override
-    public List<ReviewReply> getRepliesByReviewId(Long reviewId) {
+    public java.util.List<ReviewReply> getByReviewId(Long reviewId) {
         return lambdaQuery().eq(ReviewReply::getReviewId, reviewId).orderByAsc(ReviewReply::getCreatedAt).list();
     }
     
     @Override
-    public List<ReviewReply> getRepliesBySellerId(Long sellerId) {
-        return lambdaQuery().eq(ReviewReply::getSellerId, sellerId).orderByDesc(ReviewReply::getCreatedAt).list();
+    public java.util.List<ReviewReply> getByReplierId(Long replierId) {
+        return lambdaQuery().eq(ReviewReply::getReplierId, replierId).orderByDesc(ReviewReply::getCreatedAt).list();
     }
     
     @Override
-    public ReviewReply createReply(Long reviewId, Long sellerId, String content) {
+    public ReviewReply addReply(Long reviewId, Long replierId, String replierType, String content) {
         ReviewReply reply = new ReviewReply();
         reply.setReviewId(reviewId);
-        reply.setSellerId(sellerId);
+        reply.setReplierId(replierId);
+        reply.setReplierType(replierType);
         reply.setContent(content);
         
         save(reply);
@@ -39,13 +40,13 @@ public class ReviewReplyServiceImpl extends ServiceImpl<ReviewReplyMapper, Revie
     }
     
     @Override
-    public boolean updateReplyContent(Long replyId, String content) {
-        ReviewReply reply = getById(replyId);
-        if (reply != null) {
-            reply.setContent(content);
-            return updateById(reply);
-        }
-        return false;
+    public boolean deleteReply(Long replyId) {
+        return removeById(replyId);
+    }
+    
+    @Override
+    public Integer getReplyCountByReviewId(Long reviewId) {
+        return lambdaQuery().eq(ReviewReply::getReviewId, reviewId).count();
     }
     
     @Override

@@ -23,31 +23,26 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
     }
     
     @Override
-    public boolean updateReviewStats(Long productId, Integer rating, String reviewType) {
+    public boolean updateReviewStats(Long productId, Integer totalReviews, Integer positiveReviews, 
+                                    Integer neutralReviews, Integer negativeReviews, Double averageRating) {
         ReviewStats stats = getByProductId(productId);
         if (stats == null) {
             stats = new ReviewStats();
             stats.setProductId(productId);
-            stats.setTotalReviews(1);
-            stats.setAverageRating(rating.doubleValue());
-            stats.setFiveStarCount(rating == 5 ? 1 : 0);
-            stats.setFourStarCount(rating == 4 ? 1 : 0);
-            stats.setThreeStarCount(rating == 3 ? 1 : 0);
-            stats.setTwoStarCount(rating == 2 ? 1 : 0);
-            stats.setOneStarCount(rating == 1 ? 1 : 0);
+            stats.setTotalReviews(totalReviews);
+            stats.setPositiveReviews(positiveReviews);
+            stats.setNeutralReviews(neutralReviews);
+            stats.setNegativeReviews(negativeReviews);
+            stats.setAverageRating(averageRating);
             return save(stats);
         } else {
-            stats.setTotalReviews(stats.getTotalReviews() + 1);
-            
-            // 更新平均评分
-            double totalScore = stats.getAverageRating() * (stats.getTotalReviews() - 1) + rating;
-            stats.setAverageRating(totalScore / stats.getTotalReviews());
-            
-            // 更新星级计数
-            switch (rating) {
-                case 5: stats.setFiveStarCount(stats.getFiveStarCount() + 1); break;
-                case 4: stats.setFourStarCount(stats.getFourStarCount() + 1); break;
-                case 3: stats.setThreeStarCount(stats.getThreeStarCount() + 1); break;
+            stats.setTotalReviews(totalReviews);
+            stats.setPositiveReviews(positiveReviews);
+            stats.setNeutralReviews(neutralReviews);
+            stats.setNegativeReviews(negativeReviews);
+            stats.setAverageRating(averageRating);
+            return updateById(stats);
+        }
                 case 2: stats.setTwoStarCount(stats.getTwoStarCount() + 1); break;
                 case 1: stats.setOneStarCount(stats.getOneStarCount() + 1); break;
             }
@@ -65,40 +60,89 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
     }
     
     @Override
-    public List<ReviewStats> getMostReviewedProducts(Integer limit) {
+    public boolean incrementReviewStats(Long productId, Integer rating) {
+        ReviewStats stats = getByProductId(productId);
+        if (stats == null) {
+            stats = new ReviewStats();
+            stats.setProductId(productId);
+            stats.setTotalReviews(1);
+            stats.setAverageRating(rating.doubleValue());
+            
+            // 根据评分设置正面/中性/负面评论计数
+            if (rating >= 4) {
+                stats.setPositiveReviews(1);
+                stats.setNeutralReviews(0);
+                stats.setNegativeReviews(0);
+            } else if (rating == 3) {
+                stats.setPositiveReviews(0);
+                stats.setNeutralReviews(1);
+                stats.setNegativeReviews(0);
+            } else {
+                stats.setPositiveReviews(0);
+                stats.setNeutralReviews(0);
+                stats.setNegativeReviews(1);
+            }
+            return save(stats);
+        } else {
+            stats.setTotalReviews(stats.getTotalReviews() + 1);
+            
+            // 更新平均评分
+            double totalScore = stats.getAverageRating() * (stats.getTotalReviews() - 1) + rating;
+            stats.setAverageRating(totalScore / stats.getTotalReviews());
+            
+            // 更新评论类型计数
+            if (rating >= 4) {
+                stats.setPositiveReviews(stats.getPositiveReviews() + 1);
+            } else if (rating == 3) {
+                stats.setNeutralReviews(stats.getNeutralReviews() + 1);
+            } else {
+                stats.setNegativeReviews(stats.getNegativeReviews() + 1);
+            }
+            return updateById(stats);
+        }
+    }
+    
+    @Override
+    public boolean decrementReviewStats(Long productId, Integer rating) {
+        ReviewStats stats = getByProductId(productId);
+        if (stats != null && stats.getTotalReviews() > 0) {
+            stats.setTotalReviews(stats.getTotalReviews() - 1);
+            
+            // 更新平均评分
+            if (stats.getTotalReviews() > 0) {
+                double totalScore = stats.getAverageRating() * (stats.getTotalReviews() + 1) - rating;
+                stats.setAverageRating(totalScore / stats.getTotalReviews());
+            } else {
+                stats.setAverageRating(0.0);
+            }
+            
+            // 更新评论类型计数
+            if (rating >= 4) {
+                stats.setPositiveReviews(Math.max(0, stats.getPositiveReviews() - 1));
+            } else if (rating == 3) {
+                stats.setNeutralReviews(Math.max(0, stats.getNeutralReviews() - 1));
+            } else {
+                stats.setNegativeReviews(Math.max(0, stats.getNegativeReviews() - 1));
+            }
+            return updateById(stats);
+        }
+        return false;
+    }
+    
+    @Override
+    public java.util.List<ReviewStats> getHighRatedProducts(Double minRating, Integer limit) {
         return lambdaQuery()
-                .orderByDesc(ReviewStats::getTotalReviews)
-                .last("LIMIT " + limit)
+                .ge(ReviewStats::getAverageRating, minRating)
+                .orderByDesc(ReviewStats::getAverageRating)
+                .last(limit != null ? "LIMIT " + limit : "")
                 .list();
     }
     
     @Override
-    public java.util.Map<String, Object> getProductRatingDistribution(Long productId) {
-        ReviewStats stats = getByProductId(productId);
-        if (stats == null) {
-            return java.util.Map.of(
-                "totalReviews", 0,
-                "averageRating", 0.0,
-                "ratingDistribution", java.util.Map.of(
-                    "fiveStar", 0,
-                    "fourStar", 0,
-                    "threeStar", 0,
-                    "twoStar", 0,
-                    "oneStar", 0
-                )
-            );
-        }
-        
-        return java.util.Map.of(
-            "totalReviews", stats.getTotalReviews(),
-            "averageRating", stats.getAverageRating(),
-            "ratingDistribution", java.util.Map.of(
-                "fiveStar", stats.getFiveStarCount(),
-                "fourStar", stats.getFourStarCount(),
-                "threeStar", stats.getThreeStarCount(),
-                "twoStar", stats.getTwoStarCount(),
-                "oneStar", stats.getOneStarCount()
-            )
-        );
+    public java.util.List<ReviewStats> getReviewStatsRanking(Integer limit) {
+        return lambdaQuery()
+                .orderByDesc(ReviewStats::getTotalReviews)
+                .last(limit != null ? "LIMIT " + limit : "")
+                .list();
     }
 }
