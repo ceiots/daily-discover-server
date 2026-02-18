@@ -3,29 +3,27 @@ package com.dailydiscover.service.impl;
 import com.dailydiscover.mapper.SellerMapper;
 import com.dailydiscover.model.Seller;
 import com.dailydiscover.service.SellerService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
+@Slf4j
 public class SellerServiceImpl implements SellerService {
     
     @Autowired
     private SellerMapper sellerMapper;
     
     @Override
-    public Seller findById(Long id) {
-        return sellerMapper.findById(id);
+    public List<Seller> findByNameLike(String name) {
+        return sellerMapper.findByNameLike(name);
     }
     
     @Override
-    public List<Seller> findAll() {
-        return sellerMapper.findAll();
-    }
-    
-    @Override
-    public List<Seller> findVerifiedSellers() {
-        return sellerMapper.findVerifiedSellers();
+    public List<Seller> findHighRatingSellers(Double minRating) {
+        return sellerMapper.findHighRatingSellers(minRating);
     }
     
     @Override
@@ -34,17 +32,17 @@ public class SellerServiceImpl implements SellerService {
     }
     
     @Override
-    public void save(Seller seller) {
-        sellerMapper.insert(seller);
+    public List<Seller> findPopularSellers(int limit) {
+        return sellerMapper.findPopularSellers(limit);
     }
     
     @Override
-    public void update(Seller seller) {
-        sellerMapper.update(seller);
+    public List<Seller> findTopSellingSellers(int limit) {
+        return sellerMapper.findTopSellingSellers(limit);
     }
     
     @Override
-    public void deactivate(Long id) {
-        sellerMapper.deactivate(id);
+    public List<Seller> findByStatus(String status) {
+        return sellerMapper.findByStatus(status);
     }
 }

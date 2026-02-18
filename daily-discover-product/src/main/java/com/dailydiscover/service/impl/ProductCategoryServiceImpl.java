@@ -3,29 +3,27 @@ package com.dailydiscover.service.impl;
 import com.dailydiscover.mapper.ProductCategoryMapper;
 import com.dailydiscover.model.ProductCategory;
 import com.dailydiscover.service.ProductCategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
+@Slf4j
 public class ProductCategoryServiceImpl implements ProductCategoryService {
     
     @Autowired
     private ProductCategoryMapper productCategoryMapper;
     
     @Override
-    public ProductCategory findById(Long id) {
-        return productCategoryMapper.findById(id);
-    }
-    
-    @Override
-    public List<ProductCategory> findAll() {
-        return productCategoryMapper.findAll();
-    }
-    
-    @Override
     public List<ProductCategory> findByParentId(Long parentId) {
         return productCategoryMapper.findByParentId(parentId);
+    }
+    
+    @Override
+    public List<ProductCategory> findAllActiveCategories() {
+        return productCategoryMapper.findAllActiveCategories();
     }
     
     @Override
@@ -34,17 +32,12 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     }
     
     @Override
-    public void save(ProductCategory category) {
-        productCategoryMapper.insert(category);
+    public List<ProductCategory> findByNameLike(String name) {
+        return productCategoryMapper.findByNameLike(name);
     }
     
     @Override
-    public void update(ProductCategory category) {
-        productCategoryMapper.update(category);
-    }
-    
-    @Override
-    public void deactivate(Long id) {
-        productCategoryMapper.deactivate(id);
+    public List<ProductCategory> findRootCategories() {
+        return productCategoryMapper.findRootCategories();
     }
 }
