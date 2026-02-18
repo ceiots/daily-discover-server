@@ -4,30 +4,27 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * 商品规格选项表
+ */
 @Data
-@TableName("product_sku_specs")
-public class ProductSpec {
+@TableName("product_sku_spec_options")
+public class ProductSkuSpecOption {
     
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     
-    @TableField("product_id")
-    private Long productId;
+    @TableField("spec_id")
+    private Long specId;
     
-    @TableField("spec_group")
-    private String specGroup;
+    @TableField("option_value")
+    private String optionValue;
     
-    @TableField("spec_name")
-    private String specName;
-    
-    @TableField("spec_value")
-    private String specValue;
+    @TableField("option_image")
+    private String optionImage;
     
     @TableField("sort_order")
     private Integer sortOrder;
-    
-    @TableField("is_deleted")
-    private Boolean isDeleted;
     
     @TableField("created_at")
     private LocalDateTime createdAt;

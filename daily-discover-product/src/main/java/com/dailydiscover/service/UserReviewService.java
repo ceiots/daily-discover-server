@@ -1,6 +1,6 @@
 package com.dailydiscover.service;
 
-import com.dailydiscover.model.ReviewLike;
+
 import com.dailydiscover.model.ReviewReply;
 import com.dailydiscover.model.ReviewStats;
 import com.dailydiscover.model.UserReview;
@@ -40,11 +40,7 @@ public interface UserReviewService {
     List<UserReview> findPendingReviews();
     List<UserReview> findApprovedReviewsByProductId(Long productId);
     
-    // 点赞相关
-    void likeReview(ReviewLike like);
-    void unlikeReview(Long reviewId, Long userId);
-    boolean hasUserLikedReview(Long reviewId, Long userId);
-    List<ReviewLike> getReviewLikes(Long reviewId);
+
     
     // 回复相关
     void replyReview(ReviewReply reply);

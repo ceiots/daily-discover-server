@@ -1,7 +1,7 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
-import com.dailydiscover.model.ReviewLike;
+
 import com.dailydiscover.model.ReviewReply;
 import com.dailydiscover.model.ReviewStats;
 import com.dailydiscover.model.UserReview;
@@ -372,58 +372,7 @@ public class UserReviewController {
         }
     }
     
-    // ==================== 评价点赞和回复 ====================
-    
-    @PostMapping("/{reviewId}/like")
-    @ApiLog("点赞评价")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> likeReview(@PathVariable Long reviewId, @RequestBody ReviewLike like) {
-        try {
-            like.setReviewId(reviewId);
-            userReviewService.likeReview(like);
-            
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "点赞成功");
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
-        } catch (Exception e) {
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("message", "点赞失败");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
-        }
-    }
-    
-    @DeleteMapping("/{reviewId}/like/{userId}")
-    @ApiLog("取消点赞")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> unlikeReview(@PathVariable Long reviewId, @PathVariable Long userId) {
-        try {
-            userReviewService.unlikeReview(reviewId, userId);
-            
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "取消点赞成功");
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("message", "取消点赞失败");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
-        }
-    }
-    
-    @GetMapping("/{reviewId}/likes")
-    @ApiLog("获取评价点赞列表")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<ReviewLike>> getReviewLikes(@PathVariable Long reviewId) {
-        try {
-            List<ReviewLike> likes = userReviewService.getReviewLikes(reviewId);
-            return ResponseEntity.ok(likes);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+    // ==================== 评价回复 ====================
     
     @PostMapping("/{reviewId}/reply")
     @ApiLog("回复评价")

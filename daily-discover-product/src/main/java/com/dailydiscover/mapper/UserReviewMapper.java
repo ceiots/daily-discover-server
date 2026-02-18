@@ -1,6 +1,6 @@
 package com.dailydiscover.mapper;
 
-import com.dailydiscover.model.ReviewLike;
+
 import com.dailydiscover.model.ReviewReply;
 import com.dailydiscover.model.ReviewStats;
 import com.dailydiscover.model.UserReview;
@@ -89,18 +89,7 @@ public interface UserReviewMapper {
     @Select("SELECT * FROM user_reviews WHERE product_id = #{productId} AND status = 'approved' ORDER BY created_at DESC")
     List<UserReview> findApprovedReviewsByProductId(Long productId);
     
-    // 点赞相关
-    @Insert("INSERT INTO review_likes (review_id, user_id) VALUES (#{reviewId}, #{userId})")
-    void insertReviewLike(ReviewLike like);
-    
-    @Delete("DELETE FROM review_likes WHERE review_id = #{reviewId} AND user_id = #{userId}")
-    void deleteReviewLike(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
-    
-    @Select("SELECT COUNT(*) FROM review_likes WHERE review_id = #{reviewId} AND user_id = #{userId}")
-    int countReviewLike(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
-    
-    @Select("SELECT * FROM review_likes WHERE review_id = #{reviewId} ORDER BY created_at DESC")
-    List<ReviewLike> findReviewLikesByReviewId(Long reviewId);
+
     
     // 回复相关
     @Insert("INSERT INTO review_replies (review_id, user_id, parent_reply_id, content, is_seller_reply) " +

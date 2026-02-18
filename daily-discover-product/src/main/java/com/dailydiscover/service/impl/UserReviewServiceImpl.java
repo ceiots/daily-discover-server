@@ -1,7 +1,7 @@
 package com.dailydiscover.service.impl;
 
 import com.dailydiscover.mapper.UserReviewMapper;
-import com.dailydiscover.model.ReviewLike;
+
 import com.dailydiscover.model.ReviewReply;
 import com.dailydiscover.model.ReviewStats;
 import com.dailydiscover.model.UserReview;
@@ -239,46 +239,7 @@ public class UserReviewServiceImpl implements UserReviewService {
         return userReviewMapper.findApprovedReviewsByProductId(productId);
     }
     
-    @Override
-    @Transactional
-    public void likeReview(ReviewLike like) {
-        try {
-            // 检查是否已经点赞
-            if (userReviewMapper.countReviewLike(like.getReviewId(), like.getUserId()) > 0) {
-                log.warn("用户已点赞该评价: reviewId={}, userId={}", like.getReviewId(), like.getUserId());
-                return;
-            }
-            
-            userReviewMapper.insertReviewLike(like);
-            userReviewMapper.incrementLikeCount(like.getReviewId());
-            log.info("评价点赞成功: reviewId={}, userId={}", like.getReviewId(), like.getUserId());
-        } catch (Exception e) {
-            log.error("点赞评价失败: reviewId={}, userId={}", like.getReviewId(), like.getUserId(), e);
-            throw new RuntimeException("点赞评价失败", e);
-        }
-    }
-    
-    @Override
-    @Transactional
-    public void unlikeReview(Long reviewId, Long userId) {
-        try {
-            userReviewMapper.deleteReviewLike(reviewId, userId);
-            log.info("取消点赞成功: reviewId={}, userId={}", reviewId, userId);
-        } catch (Exception e) {
-            log.error("取消点赞失败: reviewId={}, userId={}", reviewId, userId, e);
-            throw new RuntimeException("取消点赞失败", e);
-        }
-    }
-    
-    @Override
-    public boolean hasUserLikedReview(Long reviewId, Long userId) {
-        return userReviewMapper.countReviewLike(reviewId, userId) > 0;
-    }
-    
-    @Override
-    public List<ReviewLike> getReviewLikes(Long reviewId) {
-        return userReviewMapper.findReviewLikesByReviewId(reviewId);
-    }
+
     
     @Override
     @Transactional

@@ -5,20 +5,26 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 评价点赞表
+ * 商品规格定义表
  */
 @Data
-@TableName("review_likes")
-public class ReviewLike {
+@TableName("product_sku_specs")
+public class ProductSkuSpec {
     
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     
-    @TableField("review_id")
-    private Long reviewId;
+    @TableField("product_id")
+    private Long productId;
     
-    @TableField("user_id")
-    private Long userId;
+    @TableField("spec_name")
+    private String specName;
+    
+    @TableField("sort_order")
+    private Integer sortOrder;
+    
+    @TableField("is_required")
+    private Boolean isRequired;
     
     @TableField("created_at")
     private LocalDateTime createdAt;
