@@ -50,11 +50,6 @@ public class ReviewReplyServiceImpl extends ServiceImpl<ReviewReplyMapper, Revie
     }
     
     @Override
-    public boolean deleteReply(Long replyId) {
-        return removeById(replyId);
-    }
-    
-    @Override
     public ReviewReply getReplyByReviewAndSeller(Long reviewId, Long sellerId) {
         return lambdaQuery()
                 .eq(ReviewReply::getReviewId, reviewId)

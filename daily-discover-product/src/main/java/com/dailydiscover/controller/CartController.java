@@ -106,6 +106,7 @@ public class CartController {
     @ApiLog("批量删除购物车项")
     public ResponseEntity<Map<String, Object>> batchRemoveFromCart(@RequestBody Map<String, Object> request) {
         try {
+            @SuppressWarnings("unchecked")
             List<Long> cartItemIds = (List<Long>) request.get("cartItemIds");
             Map<String, Object> result = cartService.batchRemoveFromCart(cartItemIds);
             return ResponseEntity.ok(result);
@@ -152,6 +153,7 @@ public class CartController {
     @ApiLog("批量更新购物车项选中状态")
     public ResponseEntity<Map<String, Object>> batchUpdateCartItemSelection(@RequestBody Map<String, Object> request) {
         try {
+            @SuppressWarnings("unchecked")
             List<Long> cartItemIds = (List<Long>) request.get("cartItemIds");
             Integer isSelected = Integer.parseInt(request.get("isSelected").toString());
             
@@ -180,6 +182,7 @@ public class CartController {
     @ApiLog("合并购物车")
     public ResponseEntity<Map<String, Object>> mergeCart(@RequestBody Map<String, Object> request) {
         try {
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> tempCartItems = (List<Map<String, Object>>) request.get("tempCartItems");
             Map<String, Object> result = cartService.mergeCart(tempCartItems);
             return ResponseEntity.ok(result);

@@ -43,20 +43,6 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
             stats.setAverageRating(averageRating);
             return updateById(stats);
         }
-                case 2: stats.setTwoStarCount(stats.getTwoStarCount() + 1); break;
-                case 1: stats.setOneStarCount(stats.getOneStarCount() + 1); break;
-            }
-            
-            return updateById(stats);
-        }
-    }
-    
-    @Override
-    public List<ReviewStats> getTopRatedProducts(Integer limit) {
-        return lambdaQuery()
-                .orderByDesc(ReviewStats::getAverageRating)
-                .last("LIMIT " + limit)
-                .list();
     }
     
     @Override

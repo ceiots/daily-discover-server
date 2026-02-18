@@ -76,7 +76,7 @@ public class UserReviewDetailController {
     @ApiLog("更新用户评论详情")
     public ResponseEntity<UserReviewDetail> updateUserReviewDetail(@PathVariable Long id, @RequestBody UserReviewDetail detail) {
         try {
-            detail.setId(id);
+            detail.setReviewId(id);
             boolean success = userReviewDetailService.updateById(detail);
             return success ? ResponseEntity.ok(detail) : ResponseEntity.notFound().build();
         } catch (Exception e) {

@@ -380,6 +380,7 @@ public class UserReviewController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> batchApproveReviews(@RequestBody Map<String, Object> request) {
         try {
+            @SuppressWarnings("unchecked")
             List<Long> reviewIds = (List<Long>) request.get("reviewIds");
             for (Long reviewId : reviewIds) {
                 UserReview review = userReviewService.getById(reviewId);
@@ -406,6 +407,7 @@ public class UserReviewController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> batchRejectReviews(@RequestBody Map<String, Object> request) {
         try {
+            @SuppressWarnings("unchecked")
             List<Long> reviewIds = (List<Long>) request.get("reviewIds");
             for (Long reviewId : reviewIds) {
                 UserReview review = userReviewService.getById(reviewId);
