@@ -3,49 +3,40 @@ package com.dailydiscover.service;
 import com.dailydiscover.model.AfterSalesApplication;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * 售后服务申请服务接口
  */
 public interface AfterSalesApplicationService extends IService<AfterSalesApplication> {
     
     /**
-     * 根据订单ID查询售后服务申请
+     * 根据订单ID查询售后申请
      */
-    java.util.List<AfterSalesApplication> getByOrderId(Long orderId);
+    List<AfterSalesApplication> findByOrderId(Long orderId);
     
     /**
-     * 根据用户ID查询售后服务申请
+     * 根据用户ID查询售后申请
      */
-    java.util.List<AfterSalesApplication> getByUserId(Long userId);
+    List<AfterSalesApplication> findByUserId(Long userId);
     
     /**
-     * 根据申请状态查询售后服务申请
+     * 根据售后状态查询申请
      */
-    java.util.List<AfterSalesApplication> getByStatus(String status);
+    List<AfterSalesApplication> findByStatus(String status);
     
     /**
-     * 创建售后服务申请
+     * 根据售后类型查询申请
      */
-    AfterSalesApplication createApplication(Long orderId, Long userId, String applicationType, 
-                                          String reason, String description);
+    List<AfterSalesApplication> findByType(String afterSalesType);
     
     /**
-     * 更新申请状态
+     * 查询待处理的售后申请
      */
-    boolean updateApplicationStatus(Long applicationId, String status);
+    List<AfterSalesApplication> findPendingApplications();
     
     /**
-     * 处理售后服务申请
+     * 根据申请单号查询申请
      */
-    boolean processApplication(Long applicationId, String processor, String processResult);
-    
-    /**
-     * 获取待处理的售后服务申请
-     */
-    java.util.List<AfterSalesApplication> getPendingApplications();
-    
-    /**
-     * 获取售后服务申请统计
-     */
-    java.util.Map<String, Object> getApplicationStats();
+    AfterSalesApplication findByApplicationNo(String applicationNo);
 }

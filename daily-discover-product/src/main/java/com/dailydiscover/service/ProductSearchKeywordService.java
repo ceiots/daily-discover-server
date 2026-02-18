@@ -3,36 +3,30 @@ package com.dailydiscover.service;
 import com.dailydiscover.model.ProductSearchKeyword;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * 商品搜索关键词服务接口
  */
 public interface ProductSearchKeywordService extends IService<ProductSearchKeyword> {
     
     /**
-     * 根据关键词查询搜索记录
-     * @param keyword 关键词
-     * @return 搜索记录
+     * 记录搜索关键词
      */
-    ProductSearchKeyword getByKeyword(String keyword);
+    void recordSearch(String keyword);
     
     /**
-     * 增加搜索次数
-     * @param keyword 关键词
-     * @return 是否成功
+     * 查询搜索建议
      */
-    boolean incrementSearchCount(String keyword);
+    List<String> findSuggestions(String keyword);
     
     /**
-     * 获取热门搜索关键词
-     * @param limit 限制数量
-     * @return 热门关键词列表
+     * 查询热门搜索关键词
      */
-    java.util.List<ProductSearchKeyword> getHotKeywords(int limit);
+    List<String> findHotKeywords(int limit);
     
     /**
-     * 获取推荐搜索关键词
-     * @param limit 限制数量
-     * @return 推荐关键词列表
+     * 根据关键词查询搜索统计
      */
-    java.util.List<ProductSearchKeyword> getRecommendedKeywords(int limit);
+    ProductSearchKeyword findByKeyword(String keyword);
 }
