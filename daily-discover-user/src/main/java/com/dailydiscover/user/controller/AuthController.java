@@ -69,6 +69,7 @@ public class AuthController {
             
             // 使用LogTracer记录业务API调用
             LogTracer.traceBusinessApiCall(response);
+            LogTracer.traceBusinessPerformance(startTime);
             // RESTful风格：直接返回数据，HTTP状态码表示结果
             if (response.isSuccess()) {
                 // 注册成功，返回201 Created
@@ -78,6 +79,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
             }
         } catch (Exception e) {
+            LogTracer.traceBusinessPerformance(startTime);
             // 系统异常，返回500 Internal Server Error
             AuthResponse errorResponse = new AuthResponse();
             errorResponse.setSuccess(false);

@@ -80,14 +80,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * 获取用户ID从Token
-     */
-    private Long getUserIdFromToken(String token) {
-        try {
-            return jwtUtil.getUserIdFromToken(token);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+
 }
