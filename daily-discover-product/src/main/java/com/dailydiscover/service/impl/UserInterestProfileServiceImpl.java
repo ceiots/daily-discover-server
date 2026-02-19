@@ -8,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @Slf4j
 public class UserInterestProfileServiceImpl extends ServiceImpl<UserInterestProfileMapper, UserInterestProfile> implements UserInterestProfileService {
@@ -23,48 +21,47 @@ public class UserInterestProfileServiceImpl extends ServiceImpl<UserInterestProf
     }
     
     @Override
-    public UserInterestProfile createProfile(Long userId, String interests, String preferences) {
-        UserInterestProfile profile = new UserInterestProfile();
-        profile.setUserId(userId);
-        profile.setInterests(interests);
-        profile.setPreferences(preferences);
+    public boolean createOrUpdateInterestProfile(Long userId, String interestTags, 
+                                                 String behaviorPatterns, String discoveryPreferences) {
+        UserInterestProfile profile = getByUserId(userId);
+        if (profile == null) {
+            profile = new UserInterestProfile();
+            profile.setUserId(userId);
+        }
         
-        save(profile);
-        return profile;
+        profile.setInterestTags(interestTags);
+        profile.setBehaviorPatterns(behaviorPatterns);
+        profile.setDiscoveryPreferences(discoveryPreferences);
+        profile.setLastUpdated(java.time.LocalDateTime.now());
+        
+        return saveOrUpdate(profile);
     }
     
     @Override
-    public boolean updateInterests(Long userId, String interests) {
+    public boolean updateInterestTags(Long userId, String interestTags) {
         UserInterestProfile profile = getByUserId(userId);
         if (profile != null) {
-            profile.setInterests(interests);
+            profile.setInterestTags(interestTags);
+            profile.setLastUpdated(java.time.LocalDateTime.now());
             return updateById(profile);
         }
         return false;
     }
     
     @Override
-    public boolean updatePreferences(Long userId, String preferences) {
+    public boolean updateBehaviorPatterns(Long userId, String behaviorPatterns) {
         UserInterestProfile profile = getByUserId(userId);
         if (profile != null) {
-            profile.setPreferences(preferences);
+            profile.setBehaviorPatterns(behaviorPatterns);
+            profile.setLastUpdated(java.time.LocalDateTime.now());
             return updateById(profile);
         }
         return false;
     }
     
     @Override
-    public List<UserInterestProfile> getSimilarProfiles(Long userId, Integer limit) {
-        UserInterestProfile currentProfile = getByUserId(userId);
-        if (currentProfile == null || currentProfile.getInterests() == null) {
-            return java.util.Collections.emptyList();
-        }
-        
+    public java.util.List<Long> getUsersByInterestTags(String interestTags, int limit) {
         // 这里可以添加更复杂的相似度匹配逻辑
-        return lambdaQuery()
-                .ne(UserInterestProfile::getUserId, userId)
-                .like(UserInterestProfile::getInterests, currentProfile.getInterests().split(",")[0])
-                .last("LIMIT " + limit)
-                .list();
+        return userInterestProfileMapper.findUsersByInterestTags(interestTags, limit);
     }
 }

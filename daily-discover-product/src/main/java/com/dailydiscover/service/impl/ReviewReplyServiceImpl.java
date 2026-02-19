@@ -24,15 +24,15 @@ public class ReviewReplyServiceImpl extends ServiceImpl<ReviewReplyMapper, Revie
     
     @Override
     public java.util.List<ReviewReply> getByReplierId(Long replierId) {
-        return lambdaQuery().eq(ReviewReply::getReplierId, replierId).orderByDesc(ReviewReply::getCreatedAt).list();
+        return lambdaQuery().eq(ReviewReply::getUserId, replierId).orderByDesc(ReviewReply::getCreatedAt).list();
     }
     
     @Override
     public ReviewReply addReply(Long reviewId, Long replierId, String replierType, String content) {
         ReviewReply reply = new ReviewReply();
         reply.setReviewId(reviewId);
-        reply.setReplierId(replierId);
-        reply.setReplierType(replierType);
+        reply.setUserId(replierId); // 使用 userId 字段，对应数据库的 user_id
+        // replierType 参数在当前的数据库设计中未使用，保留参数以保持接口兼容性
         reply.setContent(content);
         
         save(reply);
@@ -53,9 +53,11 @@ public class ReviewReplyServiceImpl extends ServiceImpl<ReviewReplyMapper, Revie
     public ReviewReply getReplyByReviewAndSeller(Long reviewId, Long sellerId) {
         // 根据数据库表结构，商家回复通过 is_seller_reply 字段标识
         // 这里查询指定评论的商家回复（如果有多个商家回复，返回第一个）
+        // 注意：sellerId 参数在当前的数据库设计中未使用，保留参数以保持接口兼容性
         return lambdaQuery()
                 .eq(ReviewReply::getReviewId, reviewId)
                 .eq(ReviewReply::getIsSellerReply, true)
+                .orderByAsc(ReviewReply::getCreatedAt)
                 .one();
     }
 }

@@ -17,12 +17,12 @@ public interface ScenarioRecommendationMapper extends BaseMapper<ScenarioRecomme
     /**
      * 根据场景类型查询推荐商品
      */
-    @Select("SELECT * FROM scenario_recommendations WHERE scenario_type = #{scenarioType} ORDER BY recommendation_score DESC")
+    @Select("SELECT * FROM scenario_recommendations WHERE scenario_type = #{scenarioType} ORDER BY success_rate DESC")
     List<ScenarioRecommendation> findByScenarioType(@Param("scenarioType") String scenarioType);
     
     /**
-     * 根据商品ID查询场景推荐
+     * 根据用户ID查询场景推荐
      */
-    @Select("SELECT * FROM scenario_recommendations WHERE product_id = #{productId}")
-    List<ScenarioRecommendation> findByProductId(@Param("productId") Long productId);
+    @Select("SELECT * FROM scenario_recommendations WHERE user_id = #{userId} ORDER BY success_rate DESC")
+    List<ScenarioRecommendation> findByUserId(@Param("userId") Long userId);
 }

@@ -7,11 +7,7 @@ import com.dailydiscover.service.RegionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -22,33 +18,27 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> impleme
     
     @Override
     public Region getByRegionCode(String regionCode) {
-        return lambdaQuery().eq(Region::getRegionCode, regionCode).one();
+        return regionMapper.findByRegionCode(regionCode);
     }
     
     @Override
     public List<Region> searchRegions(String keyword) {
-        return lambdaQuery()
-                .like(Region::getRegionName, keyword)
-                .or()
-                .like(Region::getRegionCode, keyword)
-                .orderByAsc(Region::getRegionLevel)
-                .orderByAsc(Region::getRegionCode)
-                .list();
+        return regionMapper.findByNameLike(keyword);
     }
     
     @Override
     public java.util.List<Region> getByParentId(String parentId) {
-        return lambdaQuery().eq(Region::getRegionParentId, parentId).orderByAsc(Region::getRegionCode).list();
+        return regionMapper.findByParentId(parentId);
     }
     
     @Override
     public java.util.List<Region> getTopLevelRegions() {
-        return lambdaQuery().isNull(Region::getRegionParentId).or().eq(Region::getRegionParentId, "0").orderByAsc(Region::getRegionCode).list();
+        return regionMapper.findTopLevelRegions();
     }
     
     @Override
     public java.util.List<Region> getByNameLike(String name) {
-        return lambdaQuery().like(Region::getRegionName, name).orderByAsc(Region::getRegionCode).list();
+        return regionMapper.findByNameLike(name);
     }
     
     @Override

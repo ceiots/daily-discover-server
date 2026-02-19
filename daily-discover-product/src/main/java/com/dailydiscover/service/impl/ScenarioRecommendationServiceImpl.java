@@ -19,17 +19,17 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     
     @Override
     public List<ScenarioRecommendation> getRecommendationsByScenarioType(String scenarioType) {
-        return lambdaQuery().eq(ScenarioRecommendation::getScenarioType, scenarioType).orderByDesc(ScenarioRecommendation::getPriority).list();
+        return scenarioRecommendationMapper.findByScenarioType(scenarioType);
     }
     
     @Override
     public List<ScenarioRecommendation> getPersonalizedScenarioRecommendations(Long userId) {
-        return lambdaQuery().eq(ScenarioRecommendation::getUserId, userId).orderByDesc(ScenarioRecommendation::getPriority).list();
+        return scenarioRecommendationMapper.findByUserId(userId);
     }
     
     @Override
     public List<ScenarioRecommendation> getRecommendationsByProductId(Long productId) {
-        return lambdaQuery().eq(ScenarioRecommendation::getProductId, productId).orderByDesc(ScenarioRecommendation::getPriority).list();
+        return lambdaQuery().eq(ScenarioRecommendation::getProductId, productId).orderByDesc(ScenarioRecommendation::getSuccessRate).list();
     }
     
     @Override
@@ -58,7 +58,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     
     @Override
     public List<ScenarioRecommendation> getActiveRecommendations() {
-        return lambdaQuery().eq(ScenarioRecommendation::getStatus, "active").orderByDesc(ScenarioRecommendation::getPriority).list();
+        return scenarioRecommendationMapper.findActiveRecommendations();
     }
     
     @Override
