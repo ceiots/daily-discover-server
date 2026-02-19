@@ -16,26 +16,31 @@ public interface SellerProfileService extends IService<SellerProfile> {
     /**
      * 更新卖家资料
      */
-    boolean updateSellerProfile(Long sellerId, String companyName, String contactPerson, 
-                               String contactPhone, String businessLicense, String description);
+    boolean updateSellerProfile(Long sellerId, String contactInfo, String services, 
+                               String certifications, String businessHours);
     
     /**
-     * 更新卖家评分
+     * 更新卖家好评率
      */
-    boolean updateSellerRating(Long sellerId, Double rating, Integer totalReviews);
+    boolean updatePositiveFeedback(Long sellerId, java.math.BigDecimal positiveFeedback);
     
     /**
-     * 更新卖家状态
+     * 更新卖家联系信息
      */
-    boolean updateSellerStatus(Long sellerId, String status);
+    boolean updateContactInfo(Long sellerId, String contactInfo);
     
     /**
-     * 获取高评分卖家列表
+     * 更新卖家服务项目
      */
-    java.util.List<SellerProfile> getHighRatedSellers(Double minRating, Integer limit);
+    boolean updateServices(Long sellerId, String services);
     
     /**
-     * 获取卖家统计信息
+     * 更新卖家认证信息
      */
-    java.util.Map<String, Object> getSellerStats();
+    boolean updateCertifications(Long sellerId, String certifications);
+    
+    /**
+     * 更新卖家营业时间
+     */
+    boolean updateBusinessHours(Long sellerId, String businessHours);
 }

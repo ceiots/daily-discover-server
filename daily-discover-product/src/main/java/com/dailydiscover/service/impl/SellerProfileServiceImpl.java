@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -19,28 +20,28 @@ public class SellerProfileServiceImpl extends ServiceImpl<SellerProfileMapper, S
     
     @Override
     public SellerProfile getBySellerId(Long sellerId) {
-        return lambdaQuery().eq(SellerProfile::getSellerId, sellerId).one();
+        return sellerProfileMapper.findBySellerId(sellerId);
     }
     
     @Override
-    public SellerProfile createProfile(Long sellerId, String storeName, String storeDescription, String contactInfo) {
-        SellerProfile profile = new SellerProfile();
-        profile.setSellerId(sellerId);
-        profile.setStoreName(storeName);
-        profile.setStoreDescription(storeDescription);
-        profile.setContactInfo(contactInfo);
-        profile.setStatus("active");
-        
-        save(profile);
-        return profile;
-    }
-    
-    @Override
-    public boolean updateStoreInfo(Long sellerId, String storeName, String storeDescription) {
+    public boolean updateSellerProfile(Long sellerId, String contactInfo, String services, 
+                                      String certifications, String businessHours) {
         SellerProfile profile = getBySellerId(sellerId);
         if (profile != null) {
-            profile.setStoreName(storeName);
-            profile.setStoreDescription(storeDescription);
+            profile.setContactInfo(contactInfo);
+            profile.setServices(services);
+            profile.setCertifications(certifications);
+            profile.setBusinessHours(businessHours);
+            return updateById(profile);
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean updatePositiveFeedback(Long sellerId, BigDecimal positiveFeedback) {
+        SellerProfile profile = getBySellerId(sellerId);
+        if (profile != null) {
+            profile.setPositiveFeedback(positiveFeedback);
             return updateById(profile);
         }
         return false;
@@ -57,20 +58,40 @@ public class SellerProfileServiceImpl extends ServiceImpl<SellerProfileMapper, S
     }
     
     @Override
-    public boolean updateSellerRating(Long sellerId, Double rating) {
+    public boolean updateServices(Long sellerId, String services) {
         SellerProfile profile = getBySellerId(sellerId);
         if (profile != null) {
-            profile.setSellerRating(rating);
+            profile.setServices(services);
             return updateById(profile);
         }
         return false;
     }
     
     @Override
-    public List<SellerProfile> getTopRatedSellers(Integer limit) {
-        return lambdaQuery()
-                .orderByDesc(SellerProfile::getSellerRating)
-                .last("LIMIT " + limit)
-                .list();
+    public boolean updateCertifications(Long sellerId, String certifications) {
+        SellerProfile profile = getBySellerId(sellerId);
+        if (profile != null) {
+            profile.setCertifications(certifications);
+            return updateById(profile);
+        }
+        return false;
     }
+    
+    @Override
+    public boolean updateBusinessHours(Long sellerId, String businessHours) {
+        SellerProfile profile = getBySellerId(sellerId);
+        if (profile != null) {
+            profile.setBusinessHours(businessHours);
+            return updateById(profile);
+        }
+        return false;
+    }
+    
+    /**
+     * 获取高好评率的商家资料
+     */
+    public SellerProfile getHighRatingProfile(Double minRating) {
+        return sellerProfileMapper.findHighRatingProfiles(minRating);
+    }
+
 }

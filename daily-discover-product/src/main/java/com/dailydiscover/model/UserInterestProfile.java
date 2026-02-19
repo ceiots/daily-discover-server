@@ -29,3 +29,7 @@ public class UserInterestProfile {
     @TableField("profile_version")
     private Integer profileVersion;
 }
+    
+    @TableField("profile_version")
+    private Integer profileVersion;
+}

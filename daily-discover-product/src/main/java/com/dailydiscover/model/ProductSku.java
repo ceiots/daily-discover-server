@@ -15,26 +15,14 @@ public class ProductSku {
     @TableField("product_id")
     private Long productId;
     
-    @TableField("sku_code")
-    private String skuCode;
-    
-    @TableField("specs_json")
-    private String specsJson;
-    
-    @TableField("specs_text")
-    private String specsText;
+    @TableField("seller_id")
+    private Long sellerId;
     
     @TableField("price")
     private BigDecimal price;
     
-    @TableField("stock")
-    private Integer stock;
-    
-    @TableField("sort_order")
-    private Integer sortOrder;
-    
-    @TableField("is_deleted")
-    private Boolean isDeleted;
+    @TableField("original_price")
+    private BigDecimal originalPrice;
     
     @TableField("created_at")
     private LocalDateTime createdAt;

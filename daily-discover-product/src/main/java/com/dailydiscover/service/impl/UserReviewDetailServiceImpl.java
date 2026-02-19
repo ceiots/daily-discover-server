@@ -23,15 +23,14 @@ public class UserReviewDetailServiceImpl extends ServiceImpl<UserReviewDetailMap
     }
     
     @Override
-    public boolean updateReviewDetail(Long reviewId, String reviewContent, String reviewImages, 
-                                     String pros, String cons, String usageExperience) {
+    public boolean updateReviewDetail(Long reviewId, String comment, String imageUrls, 
+                                     String videoUrl, String moderationNotes) {
         UserReviewDetail detail = getByReviewId(reviewId);
         if (detail != null) {
-            detail.setReviewContent(reviewContent);
-            detail.setReviewImages(reviewImages);
-            detail.setPros(pros);
-            detail.setCons(cons);
-            detail.setUsageExperience(usageExperience);
+            detail.setComment(comment);
+            detail.setImageUrls(imageUrls);
+            detail.setVideoUrl(videoUrl);
+            detail.setModerationNotes(moderationNotes);
             return updateById(detail);
         }
         return false;
@@ -41,11 +40,11 @@ public class UserReviewDetailServiceImpl extends ServiceImpl<UserReviewDetailMap
     public boolean addReviewImages(Long reviewId, String imageUrls) {
         UserReviewDetail detail = getByReviewId(reviewId);
         if (detail != null) {
-            String currentImages = detail.getReviewImages();
+            String currentImages = detail.getImageUrls();
             if (currentImages == null || currentImages.isEmpty()) {
-                detail.setReviewImages(imageUrls);
+                detail.setImageUrls(imageUrls);
             } else {
-                detail.setReviewImages(currentImages + "," + imageUrls);
+                detail.setImageUrls(currentImages + "," + imageUrls);
             }
             return updateById(detail);
         }
@@ -55,8 +54,8 @@ public class UserReviewDetailServiceImpl extends ServiceImpl<UserReviewDetailMap
     @Override
     public List<UserReviewDetail> getReviewsWithImages(Integer limit) {
         return lambdaQuery()
-                .isNotNull(UserReviewDetail::getReviewImages)
-                .ne(UserReviewDetail::getReviewImages, "")
+                .isNotNull(UserReviewDetail::getImageUrls)
+                .ne(UserReviewDetail::getImageUrls, "")
                 .last(limit != null ? "LIMIT " + limit : "")
                 .list();
     }

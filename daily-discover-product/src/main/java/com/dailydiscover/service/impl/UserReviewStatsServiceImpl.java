@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 @Service
 @Slf4j
@@ -24,7 +25,7 @@ public class UserReviewStatsServiceImpl extends ServiceImpl<UserReviewStatsMappe
     
     @Override
     public boolean updateUserReviewStats(Long userId, Integer totalReviews, Integer helpfulReviews, 
-                                        Integer unhelpfulReviews, BigDecimal averageRating) {
+                                        Integer unhelpfulReviews, Double averageRating) {
         UserReviewStats stats = getByUserId(userId);
         if (stats == null) {
             stats = new UserReviewStats();

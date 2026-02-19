@@ -16,8 +16,8 @@ public interface UserReviewDetailService extends IService<UserReviewDetail> {
     /**
      * 更新评论详情
      */
-    boolean updateReviewDetail(Long reviewId, String reviewContent, String reviewImages, 
-                              String pros, String cons, String usageExperience);
+    boolean updateReviewDetail(Long reviewId, String comment, String imageUrls, 
+                              String videoUrl, String moderationNotes);
     
     /**
      * 添加评论图片

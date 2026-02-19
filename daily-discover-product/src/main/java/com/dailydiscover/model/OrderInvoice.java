@@ -51,9 +51,6 @@ public class OrderInvoice {
     @TableField("issued_at")
     private LocalDateTime issuedAt;
     
-    @TableField("invoice_no")
-    private String invoiceNo;
-    
     @TableField("invoice_number")
     private String invoiceNumber;
     

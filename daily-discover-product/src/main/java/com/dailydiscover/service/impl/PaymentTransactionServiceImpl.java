@@ -62,7 +62,7 @@ public class PaymentTransactionServiceImpl extends ServiceImpl<PaymentTransactio
     
     @Override
     public Map<String, Object> getPaymentStats(String startDate, String endDate) {
-        return paymentTransactionMapper.getPaymentStats(startDate, endDate);
+        return paymentTransactionMapper.getPaymentStatsSingle(startDate, endDate);
     }
     
     @Override

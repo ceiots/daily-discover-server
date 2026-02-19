@@ -56,4 +56,7 @@ public class CustomerServiceAgent {
     
     @TableField("last_activity_at")
     private LocalDateTime lastActivityAt;
+}    
+    @TableField("last_activity_at")
+    private LocalDateTime lastActivityAt;
 }

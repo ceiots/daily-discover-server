@@ -107,6 +107,15 @@ public interface PaymentTransactionMapper extends BaseMapper<PaymentTransaction>
     List<Map<String, Object>> getPaymentStats(@Param("startDate") String startDate, @Param("endDate") String endDate);
     
     /**
+     * 获取支付统计信息（单条记录）
+     */
+    @Select("SELECT COUNT(*) as total_count, SUM(amount) as total_amount, " +
+            "SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_count, " +
+            "SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as completed_amount " +
+            "FROM payment_transactions WHERE created_at BETWEEN #{startDate} AND #{endDate}")
+    Map<String, Object> getPaymentStatsSingle(@Param("startDate") String startDate, @Param("endDate") String endDate);
+    
+    /**
      * 验证支付请求
      */
     @Select("SELECT COUNT(*) > 0 FROM payment_methods pm " +

@@ -12,23 +12,8 @@ import java.time.LocalDateTime;
 @TableName("user_review_stats")
 public class UserReviewStats {
     
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-    
-    @TableField("user_id")
-    private Long userId;
-    
-    @TableField("total_reviews")
-    private Integer totalReviews;
-    
-    @TableField("helpful_reviews")
-    private Integer helpfulReviews;
-    
-    @TableField("unhelpful_reviews")
-    private Integer unhelpfulReviews;
-    
-    @TableField("average_rating")
-    private BigDecimal averageRating;
+    @TableId(value = "review_id", type = IdType.INPUT)
+    private Long reviewId;
     
     @TableField("helpful_count")
     private Integer helpfulCount;

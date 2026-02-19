@@ -17,9 +17,21 @@ public class ProductSearchKeyword {
     @TableField("search_count")
     private Integer searchCount;
     
+    @TableField("click_count")
+    private Integer clickCount;
+    
+    @TableField("conversion_count")
+    private Integer conversionCount;
+    
     @TableField("last_searched_at")
     private LocalDateTime lastSearchedAt;
     
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    @TableField("is_trending")
+    private Boolean isTrending;
+    
+    @TableField("is_recommended")
+    private Boolean isRecommended;
+    
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
 }

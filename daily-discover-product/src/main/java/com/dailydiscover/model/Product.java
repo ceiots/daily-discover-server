@@ -40,6 +40,7 @@ public class Product {
     private Integer status;
     
     @TableField("is_deleted")
+    @TableLogic
     private Integer isDeleted;
     
     @TableField("main_image_url")
