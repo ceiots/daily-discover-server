@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.ScenarioRecommendationMapper;
 import com.dailydiscover.model.ScenarioRecommendation;
 import com.dailydiscover.service.ScenarioRecommendationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,9 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     
     @Override
     public List<ScenarioRecommendation> getRecommendationsByProductId(Long productId) {
-        return lambdaQuery().eq(ScenarioRecommendation::getProductId, productId).orderByDesc(ScenarioRecommendation::getSuccessRate).list();
+        // 由于表结构中没有 product_id 字段，此方法无法实现
+        log.warn("表结构中没有 product_id 字段，无法根据商品ID查询场景推荐");
+        return java.util.Collections.emptyList();
     }
     
     @Override
@@ -40,7 +43,17 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
         recommendation.setScenarioType(scenarioType);
         recommendation.setTimeSlot(timeSlot);
         recommendation.setScenarioStory(scenarioStory);
-        recommendation.setStatus("active");
+        
+        // 将推荐商品列表转换为JSON字符串
+        if (recommendedProducts != null && !recommendedProducts.isEmpty()) {
+            try {
+                recommendation.setRecommendedProducts(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(recommendedProducts));
+            } catch (JsonProcessingException e) {
+                log.error("JSON序列化失败: {}", e.getMessage());
+                // 如果序列化失败，可以设置为空字符串或记录错误
+                recommendation.setRecommendedProducts("");
+            }
+        }
         
         save(recommendation);
         return recommendation;
@@ -58,35 +71,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     
     @Override
     public List<ScenarioRecommendation> getActiveRecommendations() {
-        return scenarioRecommendationMapper.findActiveRecommendations();
-    }
-    
-    @Override
-    public boolean updateRecommendationPriority(Long recommendationId, Integer priority) {
-        ScenarioRecommendation recommendation = getById(recommendationId);
-        if (recommendation != null) {
-            recommendation.setPriority(priority);
-            return updateById(recommendation);
-        }
-        return false;
-    }
-    
-    @Override
-    public boolean toggleRecommendationStatus(Long recommendationId, String status) {
-        ScenarioRecommendation recommendation = getById(recommendationId);
-        if (recommendation != null) {
-            recommendation.setStatus(status);
-            return updateById(recommendation);
-        }
-        return false;
-    }
-    
-    @Override
-    public List<Long> getRecommendedProductIdsByScenario(String scenarioType, Integer limit) {
-        List<ScenarioRecommendation> recommendations = getRecommendationsByScenarioType(scenarioType);
-        return recommendations.stream()
-                .limit(limit)
-                .map(ScenarioRecommendation::getProductId)
-                .collect(java.util.stream.Collectors.toList());
+        // 由于表结构中没有 status 字段，返回所有推荐
+        return list();
     }
 }

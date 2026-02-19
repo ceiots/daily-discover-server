@@ -34,7 +34,7 @@ public interface ReviewReplyService extends IService<ReviewReply> {
     Integer getReplyCountByReviewId(Long reviewId);
     
     /**
-     * 根据评论ID和商家ID查询商家回复
+     * 根据评论ID查询商家回复（返回第一个商家回复）
      */
-    ReviewReply getReplyByReviewAndSeller(Long reviewId, Long sellerId);
+    ReviewReply getSellerReplyByReviewId(Long reviewId);
 }
