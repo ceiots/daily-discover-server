@@ -18,66 +18,53 @@ public class ProductInventoryConfigServiceImpl extends ServiceImpl<ProductInvent
     private ProductInventoryConfigMapper productInventoryConfigMapper;
     
     @Override
-    public ProductInventoryConfig getByProductId(Long productId) {
-        // 使用 MyBatis-Plus 的 lambda 查询实现
-        return lambdaQuery().eq(ProductInventoryConfig::getProductId, productId).one();
+    public ProductInventoryConfig getByInventoryId(Long inventoryId) {
+        return productInventoryConfigMapper.selectById(inventoryId);
     }
     
     @Override
-    public boolean updateAlertThreshold(Long productId, Integer lowStockThreshold, Integer outOfStockThreshold) {
-        ProductInventoryConfig config = getByProductId(productId);
+    public boolean updateAlertThreshold(Long inventoryId, Integer minStockLevel, Integer maxStockLevel) {
+        ProductInventoryConfig config = getByInventoryId(inventoryId);
         if (config != null) {
-            config.setLowStockThreshold(lowStockThreshold);
-            config.setOutOfStockThreshold(outOfStockThreshold);
-            return updateById(config);
+            config.setMinStockLevel(minStockLevel);
+            config.setMaxStockLevel(maxStockLevel);
+            return productInventoryConfigMapper.updateById(config) > 0;
         }
         return false;
     }
     
     @Override
-    public boolean updateInventoryStrategy(Long productId, String strategyType, String strategyParams) {
-        ProductInventoryConfig config = getByProductId(productId);
-        if (config != null) {
-            config.setStrategyType(strategyType);
-            config.setStrategyParams(strategyParams);
-            return updateById(config);
-        }
-        return false;
-    }
-    
-    @Override
-    public boolean toggleAlertEnabled(Long productId, Boolean enabled) {
-        ProductInventoryConfig config = getByProductId(productId);
-        if (config != null) {
-            config.setAlertEnabled(enabled);
-            return updateById(config);
-        }
-        return false;
-    }
-    
-    @Override
-    public boolean updateSafetyStock(Long productId, Integer safetyStock) {
-        ProductInventoryConfig config = getByProductId(productId);
+    public boolean updateSafetyStock(Long inventoryId, Integer safetyStock) {
+        ProductInventoryConfig config = getByInventoryId(inventoryId);
         if (config != null) {
             config.setSafetyStock(safetyStock);
-            return updateById(config);
+            return productInventoryConfigMapper.updateById(config) > 0;
         }
         return false;
     }
     
     @Override
-    public List<ProductInventoryConfig> getProductsNeedAlert() {
-        return lambdaQuery()
-                .eq(ProductInventoryConfig::getAlertEnabled, true)
-                .list();
+    public List<ProductInventoryConfig> getInventoriesNeedRestock() {
+        return productInventoryConfigMapper.findInventoriesNeedRestock();
     }
     
     @Override
-    public boolean batchUpdateConfig(List<Long> productIds, String configKey, String configValue) {
-        return lambdaUpdate()
-                .in(ProductInventoryConfig::getProductId, productIds)
-                .setSql(configKey + " = " + configValue)
-                .update();
+    public boolean batchUpdateConfig(List<Long> inventoryIds, String configKey, String configValue) {
+        return productInventoryConfigMapper.batchUpdateConfig(inventoryIds, configKey, configValue) > 0;
+    }
+    
+    /**
+     * 根据库存名称查询库存配置
+     */
+    public ProductInventoryConfig getByInventoryName(String inventoryName) {
+        return productInventoryConfigMapper.findByInventoryName(inventoryName);
+    }
+    
+    /**
+     * 根据库存编码查询库存配置
+     */
+    public ProductInventoryConfig getByInventoryCode(String inventoryCode) {
+        return productInventoryConfigMapper.findByInventoryCode(inventoryCode);
     }
     
     @Override

@@ -46,4 +46,41 @@ public class SellerServiceImpl extends ServiceImpl<SellerMapper, Seller> impleme
     public List<Seller> findByStatus(String status) {
         return sellerMapper.findByStatus(status);
     }
+
+    @Override
+    public Seller findById(Long id) {
+        return getById(id);
+    }
+
+    @Override
+    public List<Seller> findAll() {
+        return list();
+    }
+
+    @Override
+    public List<Seller> findVerifiedSellers() {
+        return lambdaQuery()
+                .eq(Seller::getIsVerified, true)
+                .list();
+    }
+
+    @Override
+    public boolean save(Seller seller) {
+        return super.save(seller);
+    }
+
+    @Override
+    public boolean update(Seller seller) {
+        return super.updateById(seller);
+    }
+
+    @Override
+    public boolean deactivate(Long id) {
+        Seller seller = getById(id);
+        if (seller != null) {
+            seller.setStatus("inactive");
+            return updateById(seller);
+        }
+        return false;
+    }
 }

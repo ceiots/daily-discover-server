@@ -37,7 +37,7 @@ public class ProductInventoryCoreServiceImpl extends ServiceImpl<ProductInventor
         // 使用 MyBatis-Plus 的 lambda 更新实现
         return lambdaUpdate()
                 .eq(ProductInventoryCore::getProductId, productId)
-                .set(ProductInventoryCore::getStockQuantity, quantity)
+                .set(ProductInventoryCore::getQuantity, quantity)
                 .update();
     }
     
@@ -46,7 +46,7 @@ public class ProductInventoryCoreServiceImpl extends ServiceImpl<ProductInventor
         // 使用 MyBatis-Plus 的 lambda 更新实现
         return lambdaUpdate()
                 .eq(ProductInventoryCore::getProductId, productId)
-                .setSql("stock_quantity = stock_quantity + " + quantity)
+                .setSql("quantity = quantity + " + quantity)
                 .update();
     }
     
@@ -55,7 +55,7 @@ public class ProductInventoryCoreServiceImpl extends ServiceImpl<ProductInventor
         // 使用 MyBatis-Plus 的 lambda 更新实现
         return lambdaUpdate()
                 .eq(ProductInventoryCore::getProductId, productId)
-                .setSql("stock_quantity = stock_quantity - " + quantity)
+                .setSql("quantity = quantity - " + quantity)
                 .update();
     }
     
@@ -63,15 +63,15 @@ public class ProductInventoryCoreServiceImpl extends ServiceImpl<ProductInventor
     public boolean checkStockSufficient(Long productId, Integer requiredQuantity) {
         // 使用 MyBatis-Plus 的 lambda 查询实现
         ProductInventoryCore inventory = getByProductId(productId);
-        return inventory != null && inventory.getStockQuantity() >= requiredQuantity;
+        return inventory != null && inventory.getQuantity() >= requiredQuantity;
     }
     
     @Override
     public List<ProductInventoryCore> getLowStockProducts(Integer threshold) {
         // 使用 MyBatis-Plus 的 lambda 查询实现
         return lambdaQuery()
-                .le(ProductInventoryCore::getStockQuantity, threshold)
-                .gt(ProductInventoryCore::getStockQuantity, 0)
+                .le(ProductInventoryCore::getQuantity, threshold)
+                .gt(ProductInventoryCore::getQuantity, 0)
                 .list();
     }
     
@@ -79,7 +79,7 @@ public class ProductInventoryCoreServiceImpl extends ServiceImpl<ProductInventor
     public List<ProductInventoryCore> getOutOfStockProducts() {
         // 使用 MyBatis-Plus 的 lambda 查询实现
         return lambdaQuery()
-                .le(ProductInventoryCore::getStockQuantity, 0)
+                .le(ProductInventoryCore::getQuantity, 0)
                 .list();
     }
 }
