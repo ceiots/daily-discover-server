@@ -19,12 +19,12 @@ public class OrderInvoiceServiceImpl extends ServiceImpl<OrderInvoiceMapper, Ord
     
     @Override
     public OrderInvoice getByOrderId(Long orderId) {
-        return lambdaQuery().eq(OrderInvoice::getOrderId, orderId).one();
+        return orderInvoiceMapper.findByOrderId(orderId);
     }
     
     @Override
     public OrderInvoice getByInvoiceNumber(String invoiceNumber) {
-        return lambdaQuery().eq(OrderInvoice::getInvoiceNumber, invoiceNumber).one();
+        return orderInvoiceMapper.findByInvoiceNo(invoiceNumber);
     }
     
     @Override
@@ -36,7 +36,7 @@ public class OrderInvoiceServiceImpl extends ServiceImpl<OrderInvoiceMapper, Ord
         invoice.setInvoiceTitle(invoiceTitle);
         invoice.setTaxNumber(taxNumber);
         invoice.setInvoiceContent(invoiceContent);
-        invoice.setStatus("pending");
+        invoice.setInvoiceStatus("pending");
         
         save(invoice);
         return invoice;
@@ -46,7 +46,7 @@ public class OrderInvoiceServiceImpl extends ServiceImpl<OrderInvoiceMapper, Ord
     public boolean updateInvoiceStatus(Long orderId, String status) {
         OrderInvoice invoice = getByOrderId(orderId);
         if (invoice != null) {
-            invoice.setStatus(status);
+            invoice.setInvoiceStatus(status);
             return updateById(invoice);
         }
         return false;
@@ -57,8 +57,8 @@ public class OrderInvoiceServiceImpl extends ServiceImpl<OrderInvoiceMapper, Ord
         OrderInvoice invoice = getByOrderId(orderId);
         if (invoice != null) {
             invoice.setInvoiceNumber(invoiceNumber);
-            invoice.setStatus("issued");
-            invoice.setIssueTime(new java.util.Date());
+            invoice.setInvoiceStatus("issued");
+            invoice.setIssuedAt(java.time.LocalDateTime.now());
             return updateById(invoice);
         }
         return false;
@@ -68,7 +68,7 @@ public class OrderInvoiceServiceImpl extends ServiceImpl<OrderInvoiceMapper, Ord
     public boolean voidInvoice(Long orderId) {
         OrderInvoice invoice = getByOrderId(orderId);
         if (invoice != null) {
-            invoice.setStatus("void");
+            invoice.setInvoiceStatus("void");
             return updateById(invoice);
         }
         return false;
@@ -76,11 +76,11 @@ public class OrderInvoiceServiceImpl extends ServiceImpl<OrderInvoiceMapper, Ord
     
     @Override
     public List<OrderInvoice> getPendingInvoices() {
-        return lambdaQuery().eq(OrderInvoice::getStatus, "pending").list();
+        return orderInvoiceMapper.findPendingInvoices();
     }
     
     @Override
     public List<OrderInvoice> getIssuedInvoices() {
-        return lambdaQuery().eq(OrderInvoice::getStatus, "issued").list();
+        return orderInvoiceMapper.findIssuedInvoices();
     }
 }

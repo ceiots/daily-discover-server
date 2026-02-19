@@ -44,18 +44,8 @@ public class ProductSkuSpecOptionServiceImpl extends ServiceImpl<ProductSkuSpecO
     }
     
     @Override
-    public boolean deleteOption(Long optionId) {
-        return removeById(optionId);
-    }
-    
-    @Override
     public List<ProductSkuSpecOption> getOptionsByProductId(Long productId) {
         // 通过规格定义获取选项
-        return productSkuSpecOptionMapper.findOptionsByProductId(productId);
-    }
-    
-    @Override
-    public ProductSkuSpecOption getOptionById(Long optionId) {
-        return getById(optionId);
+        return productSkuSpecOptionMapper.findByProductId(productId);
     }
 }

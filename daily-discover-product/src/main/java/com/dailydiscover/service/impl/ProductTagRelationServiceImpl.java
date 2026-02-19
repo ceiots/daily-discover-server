@@ -19,12 +19,12 @@ public class ProductTagRelationServiceImpl extends ServiceImpl<ProductTagRelatio
     
     @Override
     public List<ProductTagRelation> getRelationsByProductId(Long productId) {
-        return lambdaQuery().eq(ProductTagRelation::getProductId, productId).list();
+        return productTagRelationMapper.findByProductId(productId);
     }
     
     @Override
     public List<ProductTagRelation> getRelationsByTagId(Long tagId) {
-        return lambdaQuery().eq(ProductTagRelation::getTagId, tagId).list();
+        return productTagRelationMapper.findByTagId(tagId);
     }
     
     @Override

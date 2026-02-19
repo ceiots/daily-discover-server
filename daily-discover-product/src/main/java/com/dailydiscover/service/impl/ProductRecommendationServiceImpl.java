@@ -19,17 +19,17 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     
     @Override
     public java.util.List<ProductRecommendation> getRecommendationsByProductId(Long productId) {
-        return lambdaQuery().eq(ProductRecommendation::getProductId, productId).orderByDesc(ProductRecommendation::getScore).list();
+        return productRecommendationMapper.findByProductId(productId);
     }
     
     @Override
     public java.util.List<ProductRecommendation> getPersonalizedRecommendations(Long userId) {
-        return lambdaQuery().eq(ProductRecommendation::getUserId, userId).orderByDesc(ProductRecommendation::getScore).list();
+        return productRecommendationMapper.findByUserId(userId);
     }
     
     @Override
     public java.util.List<ProductRecommendation> getRecommendationsByType(String recommendationType) {
-        return lambdaQuery().eq(ProductRecommendation::getRecommendationType, recommendationType).orderByDesc(ProductRecommendation::getScore).list();
+        return productRecommendationMapper.findByType(recommendationType);
     }
     
 

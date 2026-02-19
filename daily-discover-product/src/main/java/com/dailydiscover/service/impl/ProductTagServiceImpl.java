@@ -19,12 +19,12 @@ public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, Product
     
     @Override
     public List<ProductTag> getActiveTags() {
-        return lambdaQuery().eq(ProductTag::getStatus, "active").orderByAsc(ProductTag::getTagOrder).list();
+        return productTagMapper.findActiveTags();
     }
     
     @Override
     public List<ProductTag> getTagsByType(String tagType) {
-        return lambdaQuery().eq(ProductTag::getTagType, tagType).eq(ProductTag::getStatus, "active").orderByAsc(ProductTag::getTagOrder).list();
+        return productTagMapper.findByType(tagType);
     }
     
     @Override

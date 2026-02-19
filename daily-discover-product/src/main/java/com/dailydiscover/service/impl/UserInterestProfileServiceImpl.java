@@ -19,7 +19,7 @@ public class UserInterestProfileServiceImpl extends ServiceImpl<UserInterestProf
     
     @Override
     public UserInterestProfile getByUserId(Long userId) {
-        return lambdaQuery().eq(UserInterestProfile::getUserId, userId).one();
+        return userInterestProfileMapper.findByUserId(userId);
     }
     
     @Override
