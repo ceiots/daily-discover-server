@@ -2,10 +2,17 @@ target/
 logs/
 .trae/
 
-# 忽略所有Markdown文档，除了README.md
+# 忽略所有Markdown文档，除了README.md和API文档
 *.md
 !README.md
 !**/README.md
-!API_CALL_GUIDE.md
+!API_PRODUCT_MANAGEMENT.md
+!API_ORDER_MANAGEMENT.md
+!API_USER_REVIEW.md
+!API_CUSTOMER_SERVICE.md
+!API_COUPON_SYSTEM.md
+!API_AFTER_SALES.md
+!API_REGION_MANAGEMENT.md
+!API_USER_BEHAVIOR.md
 
 *.todo.md
