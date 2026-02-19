@@ -14,6 +14,9 @@ public class ProductInventoryConfig {
     @TableId(value = "inventory_id", type = IdType.INPUT)
     private Long inventoryId;
     
+    @TableField("product_id")
+    private Long productId;
+    
     @TableField("inventory_name")
     private String inventoryName;
     

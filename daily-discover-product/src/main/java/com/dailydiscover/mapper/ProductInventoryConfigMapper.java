@@ -22,6 +22,12 @@ public interface ProductInventoryConfigMapper extends BaseMapper<ProductInventor
     ProductInventoryConfig findByInventoryName(@Param("inventoryName") String inventoryName);
     
     /**
+     * 根据商品ID查询库存配置
+     */
+    @Select("SELECT * FROM product_inventory_config WHERE product_id = #{productId}")
+    ProductInventoryConfig findByProductId(@Param("productId") Long productId);
+    
+    /**
      * 根据库存编码查询库存配置
      */
     @Select("SELECT * FROM product_inventory_config WHERE inventory_code = #{inventoryCode}")

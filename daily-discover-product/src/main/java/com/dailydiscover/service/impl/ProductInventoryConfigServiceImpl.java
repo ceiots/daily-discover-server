@@ -23,6 +23,11 @@ public class ProductInventoryConfigServiceImpl extends ServiceImpl<ProductInvent
     }
     
     @Override
+    public ProductInventoryConfig getByProductId(Long productId) {
+        return productInventoryConfigMapper.findByProductId(productId);
+    }
+    
+    @Override
     public boolean updateAlertThreshold(Long inventoryId, Integer minStockLevel, Integer maxStockLevel) {
         ProductInventoryConfig config = getByInventoryId(inventoryId);
         if (config != null) {

@@ -9,6 +9,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface ProductInventoryConfigService extends IService<ProductInventoryConfig> {
     
     /**
+     * 根据商品ID查询库存配置
+     */
+    ProductInventoryConfig getByProductId(Long productId);
+    
+    /**
      * 根据库存ID查询库存配置
      */
     ProductInventoryConfig getByInventoryId(Long inventoryId);

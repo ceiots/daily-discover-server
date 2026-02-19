@@ -187,11 +187,11 @@ INSERT INTO product_inventory_core (id, product_id, sku_id, warehouse_id, quanti
 (4, 3, 4, 1, 50, 0);
 
 -- 插入库存配置数据
-INSERT INTO product_inventory_config (inventory_id, inventory_name, inventory_code, location_code, location_description, safety_stock, min_stock_level, max_stock_level, last_restock_date, next_restock_date) VALUES
-(1, '北京仓-电子产品区-A01', 'BJ-WH-A01', 'A-01-01', '北京仓库A区01货架', 10, 5, 200, '2026-02-01 10:00:00', '2026-02-15 10:00:00'),
-(2, '北京仓-电子产品区-A02', 'BJ-WH-A02', 'A-01-02', '北京仓库A区02货架', 10, 5, 150, '2026-02-01 10:00:00', '2026-02-15 10:00:00'),
-(3, '北京仓-音频设备区-A02', 'BJ-WH-A02-AUDIO', 'A-02-01', '北京仓库A区02音频设备区', 20, 10, 300, '2026-02-01 10:00:00', '2026-02-20 10:00:00'),
-(4, '北京仓-电脑设备区-B01', 'BJ-WH-B01', 'B-01-01', '北京仓库B区01货架', 5, 2, 100, '2026-02-01 10:00:00', '2026-02-25 10:00:00');
+INSERT INTO product_inventory_config (inventory_id, product_id, inventory_name, inventory_code, location_code, location_description, safety_stock, min_stock_level, max_stock_level, last_restock_date, next_restock_date) VALUES
+(1, 1, '北京仓-电子产品区-A01', 'BJ-WH-A01', 'A-01-01', '北京仓库A区01货架', 10, 5, 200, '2026-02-01 10:00:00', '2026-02-15 10:00:00'),
+(2, 1, '北京仓-电子产品区-A02', 'BJ-WH-A02', 'A-01-02', '北京仓库A区02货架', 10, 5, 150, '2026-02-01 10:00:00', '2026-02-15 10:00:00'),
+(3, 2, '北京仓-音频设备区-A02', 'BJ-WH-A02-AUDIO', 'A-02-01', '北京仓库A区02音频设备区', 20, 10, 300, '2026-02-01 10:00:00', '2026-02-20 10:00:00'),
+(4, 3, '北京仓-电脑设备区-B01', 'BJ-WH-B01', 'B-01-01', '北京仓库B区01货架', 5, 2, 100, '2026-02-01 10:00:00', '2026-02-25 10:00:00');
 
 -- 插入库存操作记录数据
 INSERT INTO inventory_transactions (inventory_id, product_id, sku_id, warehouse_id, transaction_type, quantity_change, previous_quantity, new_quantity, reference_type, reference_id, notes, operator_id) VALUES
