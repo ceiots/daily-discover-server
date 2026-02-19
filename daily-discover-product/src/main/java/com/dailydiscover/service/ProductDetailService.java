@@ -49,4 +49,9 @@ public interface ProductDetailService {
      * 获取商品特性
      */
     java.util.List<String> getProductFeatures(Long productId);
+    
+    /**
+     * 获取完整商品详情
+     */
+    ProductFullDetailDTO getProductFullDetail(Long productId);
 }

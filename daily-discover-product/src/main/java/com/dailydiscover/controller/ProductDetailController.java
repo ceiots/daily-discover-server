@@ -1,6 +1,7 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.dto.ProductFullDetailDTO;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
@@ -71,6 +72,21 @@ public class ProductDetailController {
                 return ResponseEntity.ok(products);
             }
             return ResponseEntity.ok(List.of());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/full-detail")
+    @ApiLog("获取完整商品详情")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<ProductFullDetailDTO> getProductFullDetail(@PathVariable Long productId) {
+        try {
+            ProductFullDetailDTO productDetail = productDetailService.getProductFullDetail(productId);
+            if (productDetail != null) {
+                return ResponseEntity.ok(productDetail);
+            }
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
