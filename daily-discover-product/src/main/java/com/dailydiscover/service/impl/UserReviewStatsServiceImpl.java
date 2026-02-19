@@ -19,7 +19,7 @@ public class UserReviewStatsServiceImpl extends ServiceImpl<UserReviewStatsMappe
     
     @Override
     public UserReviewStats getByReviewId(Long reviewId) {
-        return lambdaQuery().eq(UserReviewStats::getReviewId, reviewId).one();
+        return userReviewStatsMapper.findByReviewId(reviewId);
     }
     
     @Override
@@ -90,17 +90,25 @@ public class UserReviewStatsServiceImpl extends ServiceImpl<UserReviewStatsMappe
     
     @Override
     public List<UserReviewStats> getTopHelpfulReviews(Integer limit) {
-        return lambdaQuery()
-                .orderByDesc(UserReviewStats::getHelpfulCount)
-                .last(limit != null ? "LIMIT " + limit : "")
-                .list();
+        UserReviewStats highHelpfulStats = userReviewStatsMapper.findHighHelpfulReviews(1);
+        if (highHelpfulStats != null) {
+            return lambdaQuery()
+                    .orderByDesc(UserReviewStats::getHelpfulCount)
+                    .last(limit != null ? "LIMIT " + limit : "")
+                    .list();
+        }
+        return List.of();
     }
     
     @Override
     public List<UserReviewStats> getTopLikedReviews(Integer limit) {
-        return lambdaQuery()
-                .orderByDesc(UserReviewStats::getLikeCount)
-                .last(limit != null ? "LIMIT " + limit : "")
-                .list();
+        UserReviewStats highLikeStats = userReviewStatsMapper.findHighLikeReviews(1);
+        if (highLikeStats != null) {
+            return lambdaQuery()
+                    .orderByDesc(UserReviewStats::getLikeCount)
+                    .last(limit != null ? "LIMIT " + limit : "")
+                    .list();
+        }
+        return List.of();
     }
 }

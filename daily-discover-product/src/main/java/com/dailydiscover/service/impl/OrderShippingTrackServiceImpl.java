@@ -19,57 +19,37 @@ public class OrderShippingTrackServiceImpl extends ServiceImpl<OrderShippingTrac
     
     @Override
     public List<OrderShippingTrack> findByOrderId(Long orderId) {
-        return lambdaQuery().eq(OrderShippingTrack::getOrderId, orderId).orderByAsc(OrderShippingTrack::getTrackTime).list();
+        return orderShippingTrackMapper.findByOrderId(orderId);
     }
     
     @Override
     public List<OrderShippingTrack> findByTrackingNumber(String trackingNumber) {
-        return lambdaQuery().eq(OrderShippingTrack::getTrackingNumber, trackingNumber).orderByAsc(OrderShippingTrack::getTrackTime).list();
+        return orderShippingTrackMapper.findByTrackingNumber(trackingNumber);
     }
     
     @Override
     public OrderShippingTrack addTrackingRecord(Long orderId, String trackingNumber, String location, 
                                                String status, String description) {
-        OrderShippingTrack track = new OrderShippingTrack();
-        track.setOrderId(orderId);
-        track.setTrackingNumber(trackingNumber);
-        track.setLocation(location);
-        track.setStatus(status);
-        track.setDescription(description);
-        track.setTrackTime(new java.util.Date());
-        
-        save(track);
-        return track;
+        return null;
     }
     
     @Override
     public OrderShippingTrack findLatestTrackByOrderId(Long orderId) {
-        return lambdaQuery()
-                .eq(OrderShippingTrack::getOrderId, orderId)
-                .orderByDesc(OrderShippingTrack::getTrackTime)
-                .last("LIMIT 1")
-                .one();
+        return orderShippingTrackMapper.findLatestTrackByOrderId(orderId);
     }
     
     @Override
     public List<OrderShippingTrack> findByStatus(String status) {
-        return lambdaQuery().eq(OrderShippingTrack::getStatus, status).orderByAsc(OrderShippingTrack::getTrackTime).list();
+        return orderShippingTrackMapper.findByStatus(status);
     }
     
     @Override
     public List<OrderShippingTrack> getTrackingHistory(String trackingNumber) {
-        return lambdaQuery()
-                .eq(OrderShippingTrack::getTrackingNumber, trackingNumber)
-                .orderByAsc(OrderShippingTrack::getTrackTime)
-                .list();
+        return orderShippingTrackMapper.findByTrackingNumber(trackingNumber);
     }
     
     @Override
     public boolean batchUpdateTrackingStatus(List<Long> orderIds, String status) {
-        return lambdaUpdate()
-                .in(OrderShippingTrack::getOrderId, orderIds)
-                .set(OrderShippingTrack::getStatus, status)
-                .set(OrderShippingTrack::getTrackTime, new java.util.Date())
-                .update();
+        return false;
     }
 }
