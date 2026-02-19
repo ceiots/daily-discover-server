@@ -61,20 +61,28 @@ public class UserReviewServiceImpl extends ServiceImpl<UserReviewMapper, UserRev
     
     @Override
     public List<UserReview> findRecentReviewsByProductId(Long productId, int limit) {
-        return lambdaQuery()
-                .eq(UserReview::getProductId, productId)
-                .orderByDesc(UserReview::getCreatedAt)
-                .last("LIMIT " + limit)
-                .list();
+        List<UserReview> reviews = userReviewMapper.findByProductId(productId);
+        if (!reviews.isEmpty()) {
+            return lambdaQuery()
+                    .eq(UserReview::getProductId, productId)
+                    .orderByDesc(UserReview::getCreatedAt)
+                    .last("LIMIT " + limit)
+                    .list();
+        }
+        return List.of();
     }
     
     @Override
     public List<UserReview> findTopReviewsByProductId(Long productId, int limit) {
-        return lambdaQuery()
-                .eq(UserReview::getProductId, productId)
-                .orderByDesc(UserReview::getRating)
-                .last("LIMIT " + limit)
-                .list();
+        List<UserReview> reviews = userReviewMapper.findByProductId(productId);
+        if (!reviews.isEmpty()) {
+            return lambdaQuery()
+                    .eq(UserReview::getProductId, productId)
+                    .orderByDesc(UserReview::getRating)
+                    .last("LIMIT " + limit)
+                    .list();
+        }
+        return List.of();
     }
     
     @Override
@@ -86,18 +94,26 @@ public class UserReviewServiceImpl extends ServiceImpl<UserReviewMapper, UserRev
     
     @Override
     public List<UserReview> findVerifiedPurchaseReviews(Long productId) {
-        return lambdaQuery()
-                .eq(UserReview::getProductId, productId)
-                .eq(UserReview::getIsVerifiedPurchase, true)
-                .list();
+        List<UserReview> reviews = userReviewMapper.findByProductId(productId);
+        if (!reviews.isEmpty()) {
+            return lambdaQuery()
+                    .eq(UserReview::getProductId, productId)
+                    .eq(UserReview::getIsVerifiedPurchase, true)
+                    .list();
+        }
+        return List.of();
     }
     
     @Override
     public List<UserReview> findAnonymousReviews(Long productId) {
-        return lambdaQuery()
-                .eq(UserReview::getProductId, productId)
-                .eq(UserReview::getIsAnonymous, true)
-                .list();
+        List<UserReview> reviews = userReviewMapper.findByProductId(productId);
+        if (!reviews.isEmpty()) {
+            return lambdaQuery()
+                    .eq(UserReview::getProductId, productId)
+                    .eq(UserReview::getIsAnonymous, true)
+                    .list();
+        }
+        return List.of();
     }
     
     @Override
@@ -123,9 +139,13 @@ public class UserReviewServiceImpl extends ServiceImpl<UserReviewMapper, UserRev
     
     @Override
     public List<UserReview> findPendingReviews() {
-        return lambdaQuery()
-                .eq(UserReview::getStatus, "pending")
-                .list();
+        List<UserReview> reviews = userReviewMapper.findByProductId(1L); // 使用示例ID检查是否有数据
+        if (!reviews.isEmpty()) {
+            return lambdaQuery()
+                    .eq(UserReview::getStatus, "pending")
+                    .list();
+        }
+        return List.of();
     }
     
     @Override

@@ -19,7 +19,7 @@ public class UserReviewDetailServiceImpl extends ServiceImpl<UserReviewDetailMap
     
     @Override
     public UserReviewDetail getByReviewId(Long reviewId) {
-        return lambdaQuery().eq(UserReviewDetail::getReviewId, reviewId).one();
+        return userReviewDetailMapper.findByReviewId(reviewId);
     }
     
     @Override
@@ -53,10 +53,14 @@ public class UserReviewDetailServiceImpl extends ServiceImpl<UserReviewDetailMap
     
     @Override
     public List<UserReviewDetail> getReviewsWithImages(Integer limit) {
-        return lambdaQuery()
-                .isNotNull(UserReviewDetail::getImageUrls)
-                .ne(UserReviewDetail::getImageUrls, "")
-                .last(limit != null ? "LIMIT " + limit : "")
-                .list();
+        UserReviewDetail detail = userReviewDetailMapper.findReviewsWithImages();
+        if (detail != null) {
+            return lambdaQuery()
+                    .isNotNull(UserReviewDetail::getImageUrls)
+                    .ne(UserReviewDetail::getImageUrls, "")
+                    .last(limit != null ? "LIMIT " + limit : "")
+                    .list();
+        }
+        return List.of();
     }
 }

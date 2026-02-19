@@ -19,41 +19,67 @@ public class ProductInventoryCoreServiceImpl extends ServiceImpl<ProductInventor
     
     @Override
     public ProductInventoryCore getByProductId(Long productId) {
-        return productInventoryCoreMapper.getByProductId(productId);
+        // 使用 MyBatis-Plus 的 lambda 查询实现
+        List<ProductInventoryCore> inventoryList = lambdaQuery()
+                .eq(ProductInventoryCore::getProductId, productId)
+                .list();
+        return inventoryList != null && !inventoryList.isEmpty() ? inventoryList.get(0) : null;
     }
     
     @Override
     public ProductInventoryCore getBySkuId(Long skuId) {
-        return productInventoryCoreMapper.getBySkuId(skuId);
+        // 使用 Mapper 方法查询
+        return productInventoryCoreMapper.findBySkuId(skuId);
     }
     
     @Override
     public boolean updateStockQuantity(Long productId, Integer quantity) {
-        return productInventoryCoreMapper.updateStockQuantity(productId, quantity);
+        // 使用 MyBatis-Plus 的 lambda 更新实现
+        return lambdaUpdate()
+                .eq(ProductInventoryCore::getProductId, productId)
+                .set(ProductInventoryCore::getStockQuantity, quantity)
+                .update();
     }
     
     @Override
     public boolean increaseStock(Long productId, Integer quantity) {
-        return productInventoryCoreMapper.increaseStock(productId, quantity);
+        // 使用 MyBatis-Plus 的 lambda 更新实现
+        return lambdaUpdate()
+                .eq(ProductInventoryCore::getProductId, productId)
+                .setSql("stock_quantity = stock_quantity + " + quantity)
+                .update();
     }
     
     @Override
     public boolean decreaseStock(Long productId, Integer quantity) {
-        return productInventoryCoreMapper.decreaseStock(productId, quantity);
+        // 使用 MyBatis-Plus 的 lambda 更新实现
+        return lambdaUpdate()
+                .eq(ProductInventoryCore::getProductId, productId)
+                .setSql("stock_quantity = stock_quantity - " + quantity)
+                .update();
     }
     
     @Override
     public boolean checkStockSufficient(Long productId, Integer requiredQuantity) {
-        return productInventoryCoreMapper.checkStockSufficient(productId, requiredQuantity);
+        // 使用 MyBatis-Plus 的 lambda 查询实现
+        ProductInventoryCore inventory = getByProductId(productId);
+        return inventory != null && inventory.getStockQuantity() >= requiredQuantity;
     }
     
     @Override
     public List<ProductInventoryCore> getLowStockProducts(Integer threshold) {
-        return productInventoryCoreMapper.getLowStockProducts(threshold);
+        // 使用 MyBatis-Plus 的 lambda 查询实现
+        return lambdaQuery()
+                .le(ProductInventoryCore::getStockQuantity, threshold)
+                .gt(ProductInventoryCore::getStockQuantity, 0)
+                .list();
     }
     
     @Override
     public List<ProductInventoryCore> getOutOfStockProducts() {
-        return productInventoryCoreMapper.getOutOfStockProducts();
+        // 使用 MyBatis-Plus 的 lambda 查询实现
+        return lambdaQuery()
+                .le(ProductInventoryCore::getStockQuantity, 0)
+                .list();
     }
 }

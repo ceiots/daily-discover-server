@@ -70,8 +70,6 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
         log.setUserId(userId);
         log.setBehaviorType(behaviorType);
         log.setProductId(targetId);
-        log.setTargetType(targetType);
-        log.setDetails(details);
         
         save(log);
         return log;

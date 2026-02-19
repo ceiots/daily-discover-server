@@ -19,8 +19,8 @@ public class ProductInventoryConfigServiceImpl extends ServiceImpl<ProductInvent
     
     @Override
     public ProductInventoryConfig getByProductId(Long productId) {
-        // 使用 Mapper 方法查询
-        return productInventoryConfigMapper.findByProductId(productId);
+        // 使用 MyBatis-Plus 的 lambda 查询实现
+        return lambdaQuery().eq(ProductInventoryConfig::getProductId, productId).one();
     }
     
     @Override
