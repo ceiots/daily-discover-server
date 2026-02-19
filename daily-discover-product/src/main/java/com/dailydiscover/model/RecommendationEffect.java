@@ -40,4 +40,13 @@ public class RecommendationEffect {
     
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+    
+    @TableField("interaction_type")
+    private String interactionType;
+    
+    @TableField("interaction_result")
+    private String interactionResult;
+    
+    @TableField("interaction_time")
+    private java.util.Date interactionTime;
 }

@@ -18,36 +18,36 @@ public class CustomerServiceConversationServiceImpl extends ServiceImpl<Customer
     private CustomerServiceConversationMapper customerServiceConversationMapper;
     
     @Override
-    public List<CustomerServiceConversation> getByUserId(Long userId) {
+    public List<CustomerServiceConversation> findByUserId(Long userId) {
         return customerServiceConversationMapper.findByUserId(userId);
     }
     
     @Override
-    public List<CustomerServiceConversation> getByAgentId(Long agentId) {
+    public List<CustomerServiceConversation> findByAgentId(Long agentId) {
         return customerServiceConversationMapper.findByAgentId(agentId);
     }
     
     @Override
-    public List<CustomerServiceConversation> getActiveConversations() {
+    public List<CustomerServiceConversation> findActiveConversations() {
         return customerServiceConversationMapper.findActiveConversations();
     }
     
     @Override
-    public List<CustomerServiceConversation> getPendingConversations() {
+    public List<CustomerServiceConversation> findPendingConversations() {
         return customerServiceConversationMapper.findPendingConversations();
     }
     
     @Override
-    public List<CustomerServiceConversation> getByStatus(String status) {
+    public List<CustomerServiceConversation> findByStatus(String status) {
         return customerServiceConversationMapper.findByStatus(status);
     }
     
     @Override
-    public CustomerServiceConversation createConversation(Long userId, String subject, String category) {
+    public CustomerServiceConversation createConversation(Long userId, Long categoryId, String issueDescription) {
         CustomerServiceConversation conversation = new CustomerServiceConversation();
         conversation.setUserId(userId);
-        conversation.setSubject(subject);
-        conversation.setCategory(category);
+        conversation.setCategoryId(categoryId);
+        conversation.setIssueDescription(issueDescription);
         conversation.setStatus("pending");
         
         save(conversation);
@@ -55,7 +55,7 @@ public class CustomerServiceConversationServiceImpl extends ServiceImpl<Customer
     }
     
     @Override
-    public boolean assignConversation(Long conversationId, Long agentId) {
+    public boolean assignAgentToConversation(Long conversationId, Long agentId) {
         CustomerServiceConversation conversation = getById(conversationId);
         if (conversation != null) {
             conversation.setAgentId(agentId);
@@ -66,10 +66,10 @@ public class CustomerServiceConversationServiceImpl extends ServiceImpl<Customer
     }
     
     @Override
-    public boolean closeConversation(Long conversationId) {
+    public boolean updateConversationStatus(Long conversationId, String status) {
         CustomerServiceConversation conversation = getById(conversationId);
         if (conversation != null) {
-            conversation.setStatus("closed");
+            conversation.setStatus(status);
             return updateById(conversation);
         }
         return false;
@@ -82,5 +82,20 @@ public class CustomerServiceConversationServiceImpl extends ServiceImpl<Customer
                 .eq(CustomerServiceConversation::getId, conversationId)
                 .set(CustomerServiceConversation::getLastMessageTime, new java.util.Date())
                 .update();
+    }
+    
+    @Override
+    public java.util.Map<String, Object> getConversationStats() {
+        long totalConversations = count();
+        long pendingConversations = lambdaQuery().eq(CustomerServiceConversation::getStatus, "pending").count();
+        long activeConversations = lambdaQuery().eq(CustomerServiceConversation::getStatus, "active").count();
+        long closedConversations = lambdaQuery().eq(CustomerServiceConversation::getStatus, "closed").count();
+        
+        return java.util.Map.of(
+            "total", totalConversations,
+            "pending", pendingConversations,
+            "active", activeConversations,
+            "closed", closedConversations
+        );
     }
 }

@@ -29,6 +29,9 @@ public class CustomerServiceConversation {
     @TableField("title")
     private String title;
     
+    @TableField("issue_description")
+    private String issueDescription;
+    
     @TableField("status")
     private String status;
     
@@ -49,6 +52,9 @@ public class CustomerServiceConversation {
     
     @TableField("first_response_at")
     private LocalDateTime firstResponseAt;
+    
+    @TableField("last_message_time")
+    private LocalDateTime lastMessageTime;
     
     @TableField("resolved_at")
     private LocalDateTime resolvedAt;

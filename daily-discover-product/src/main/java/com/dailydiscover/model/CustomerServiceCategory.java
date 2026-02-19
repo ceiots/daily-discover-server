@@ -32,6 +32,9 @@ public class CustomerServiceCategory {
     @TableField("is_enabled")
     private Boolean isEnabled;
     
+    @TableField("status")
+    private String status;
+    
     @TableField("created_at")
     private LocalDateTime createdAt;
     

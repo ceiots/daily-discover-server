@@ -32,4 +32,9 @@ public interface ReviewReplyService extends IService<ReviewReply> {
      * 获取评论的回复统计
      */
     Integer getReplyCountByReviewId(Long reviewId);
+    
+    /**
+     * 根据评论ID和商家ID查询商家回复
+     */
+    ReviewReply getReplyByReviewAndSeller(Long reviewId, Long sellerId);
 }

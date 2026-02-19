@@ -54,6 +54,9 @@ public class OrderInvoice {
     @TableField("invoice_no")
     private String invoiceNo;
     
+    @TableField("invoice_number")
+    private String invoiceNumber;
+    
     @TableField("created_at")
     private LocalDateTime createdAt;
     

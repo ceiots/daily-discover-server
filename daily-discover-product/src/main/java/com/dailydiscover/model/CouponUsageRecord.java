@@ -30,6 +30,9 @@ public class CouponUsageRecord {
     @TableField("discount_amount")
     private BigDecimal discountAmount;
     
+    @TableField("order_amount")
+    private BigDecimal orderAmount;
+    
     @TableField("used_at")
     private LocalDateTime usedAt;
     

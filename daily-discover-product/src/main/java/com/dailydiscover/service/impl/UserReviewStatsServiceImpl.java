@@ -24,7 +24,7 @@ public class UserReviewStatsServiceImpl extends ServiceImpl<UserReviewStatsMappe
     
     @Override
     public boolean updateUserReviewStats(Long userId, Integer totalReviews, Integer helpfulReviews, 
-                                        Integer unhelpfulReviews, Double averageRating) {
+                                        Integer unhelpfulReviews, BigDecimal averageRating) {
         UserReviewStats stats = getByUserId(userId);
         if (stats == null) {
             stats = new UserReviewStats();

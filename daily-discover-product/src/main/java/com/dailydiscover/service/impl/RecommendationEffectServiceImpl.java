@@ -74,4 +74,40 @@ public class RecommendationEffectServiceImpl extends ServiceImpl<RecommendationE
             "effectivenessRate", effectivenessRate
         );
     }
+    
+    @Override
+    public boolean recordImpression(Long recommendationId, Long userId) {
+        RecommendationEffect effect = new RecommendationEffect();
+        effect.setUserId(userId);
+        effect.setRecommendationId(recommendationId);
+        effect.setInteractionType("impression");
+        effect.setInteractionResult("viewed");
+        effect.setInteractionTime(new java.util.Date());
+        
+        return save(effect);
+    }
+    
+    @Override
+    public boolean recordClick(Long recommendationId, Long userId) {
+        RecommendationEffect effect = new RecommendationEffect();
+        effect.setUserId(userId);
+        effect.setRecommendationId(recommendationId);
+        effect.setInteractionType("click");
+        effect.setInteractionResult("clicked");
+        effect.setInteractionTime(new java.util.Date());
+        
+        return save(effect);
+    }
+    
+    @Override
+    public boolean recordConversion(Long recommendationId, Long userId) {
+        RecommendationEffect effect = new RecommendationEffect();
+        effect.setUserId(userId);
+        effect.setRecommendationId(recommendationId);
+        effect.setInteractionType("conversion");
+        effect.setInteractionResult("converted");
+        effect.setInteractionTime(new java.util.Date());
+        
+        return save(effect);
+    }
 }

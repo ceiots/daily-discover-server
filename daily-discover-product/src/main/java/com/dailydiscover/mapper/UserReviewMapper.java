@@ -3,7 +3,6 @@ package com.dailydiscover.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.model.UserReview;
 import com.dailydiscover.model.UserReviewDetail;
-import com.dailydiscover.model.UserReviewStats;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

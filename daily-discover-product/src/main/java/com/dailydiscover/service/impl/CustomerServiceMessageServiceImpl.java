@@ -80,13 +80,16 @@ public class CustomerServiceMessageServiceImpl extends ServiceImpl<CustomerServi
     }
     
     @Override
-    public boolean attachFileToMessage(Long messageId, String fileUrl, String fileName) {
-        CustomerServiceMessage message = getById(messageId);
-        if (message != null) {
-            message.setFileUrl(fileUrl);
-            message.setFileName(fileName);
-            return updateById(message);
-        }
-        return false;
+    public boolean deleteMessage(Long messageId) {
+        return removeById(messageId);
+    }
+    
+    @Override
+    public CustomerServiceMessage getLatestMessage(Long conversationId) {
+        return lambdaQuery()
+                .eq(CustomerServiceMessage::getConversationId, conversationId)
+                .orderByDesc(CustomerServiceMessage::getCreatedAt)
+                .last("LIMIT 1")
+                .one();
     }
 }

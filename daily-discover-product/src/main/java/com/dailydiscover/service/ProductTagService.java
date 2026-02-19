@@ -36,4 +36,33 @@ public interface ProductTagService extends IService<ProductTag> {
      * @return 是否成功
      */
     boolean incrementUsageCount(Long tagId);
+    
+    /**
+     * 获取活跃标签
+     * @return 活跃标签列表
+     */
+    java.util.List<ProductTag> getActiveTags();
+    
+    /**
+     * 根据标签类型查询标签
+     * @param tagType 标签类型
+     * @return 标签列表
+     */
+    java.util.List<ProductTag> getTagsByType(String tagType);
+    
+    /**
+     * 更新标签状态
+     * @param tagId 标签ID
+     * @param status 状态
+     * @return 是否成功
+     */
+    boolean updateTagStatus(Long tagId, String status);
+    
+    /**
+     * 更新标签排序
+     * @param tagId 标签ID
+     * @param tagOrder 排序值
+     * @return 是否成功
+     */
+    boolean updateTagOrder(Long tagId, Integer tagOrder);
 }

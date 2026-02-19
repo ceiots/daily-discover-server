@@ -27,4 +27,19 @@ public class UserReviewDetail {
     
     @TableField("moderation_notes")
     private String moderationNotes;
+    
+    @TableField("review_content")
+    private String reviewContent;
+    
+    @TableField("review_images")
+    private String reviewImages;
+    
+    @TableField("pros")
+    private String pros;
+    
+    @TableField("cons")
+    private String cons;
+    
+    @TableField("usage_experience")
+    private String usageExperience;
 }

@@ -35,7 +35,7 @@ public class ProductDetailServiceImpl extends ServiceImpl<ProductDetailMapper, P
     
     @Override
     public ProductDetail save(ProductDetail productDetail) {
-        save(productDetail);
+        super.save(productDetail);
         return productDetail;
     }
     
