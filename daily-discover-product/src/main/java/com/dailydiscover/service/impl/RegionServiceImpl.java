@@ -8,7 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -18,52 +21,8 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> impleme
     private RegionMapper regionMapper;
     
     @Override
-    public List<Region> getProvinces() {
-        return lambdaQuery().eq(Region::getLevel, 1).orderByAsc(Region::getRegionCode).list();
-    }
-    
-    @Override
-    public List<Region> getCitiesByProvinceCode(String provinceCode) {
-        return lambdaQuery().eq(Region::getParentCode, provinceCode).eq(Region::getLevel, 2).orderByAsc(Region::getRegionCode).list();
-    }
-    
-    @Override
-    public List<Region> getDistrictsByCityCode(String cityCode) {
-        return lambdaQuery().eq(Region::getParentCode, cityCode).eq(Region::getLevel, 3).orderByAsc(Region::getRegionCode).list();
-    }
-    
-    @Override
     public Region getByRegionCode(String regionCode) {
         return lambdaQuery().eq(Region::getRegionCode, regionCode).one();
-    }
-    
-    @Override
-    public Region getByRegionName(String regionName) {
-        return lambdaQuery().eq(Region::getRegionName, regionName).one();
-    }
-    
-    @Override
-    public String getFullRegionPath(String regionCode) {
-        Region region = getByRegionCode(regionCode);
-        if (region == null) {
-            return "";
-        }
-        
-        StringBuilder path = new StringBuilder(region.getRegionName());
-        
-        // 递归获取父级区域
-        String parentCode = region.getParentCode();
-        while (parentCode != null && !parentCode.isEmpty()) {
-            Region parent = getByRegionCode(parentCode);
-            if (parent != null) {
-                path.insert(0, parent.getRegionName() + " ");
-                parentCode = parent.getParentCode();
-            } else {
-                break;
-            }
-        }
-        
-        return path.toString();
     }
     
     @Override
@@ -72,14 +31,14 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> impleme
                 .like(Region::getRegionName, keyword)
                 .or()
                 .like(Region::getRegionCode, keyword)
-                .orderByAsc(Region::getLevel)
+                .orderByAsc(Region::getRegionLevel)
                 .orderByAsc(Region::getRegionCode)
                 .list();
     }
     
     @Override
-    public java.util.List<Region> getByParentId(Long parentId) {
-        return lambdaQuery().eq(Region::getRegionParentId, String.valueOf(parentId)).orderByAsc(Region::getRegionCode).list();
+    public java.util.List<Region> getByParentId(String parentId) {
+        return lambdaQuery().eq(Region::getRegionParentId, parentId).orderByAsc(Region::getRegionCode).list();
     }
     
     @Override
@@ -94,42 +53,13 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> impleme
     
     @Override
     public java.util.List<Region> getRegionTree() {
-        // 获取所有地区并按层级排序
-        List<Region> allRegions = lambdaQuery().orderByAsc(Region::getLevel).orderByAsc(Region::getRegionCode).list();
-        
-        // 构建树形结构
-        Map<Long, Region> regionMap = new HashMap<>();
-        List<Region> rootRegions = new ArrayList<>();
-        
-        for (Region region : allRegions) {
-            regionMap.put(region.getId(), region);
-        }
-        
-        for (Region region : allRegions) {
-            String parentId = region.getRegionParentId();
-            if (parentId == null || parentId.isEmpty() || "0".equals(parentId)) {
-                rootRegions.add(region);
-            } else {
-                // Since regionParentId is String, we need to find parent by regionId
-                Region parent = regionMap.values().stream()
-                    .filter(r -> r.getRegionId().equals(parentId))
-                    .findFirst()
-                    .orElse(null);
-                if (parent != null) {
-                    if (parent.getChildren() == null) {
-                        parent.setChildren(new ArrayList<>());
-                    }
-                    parent.getChildren().add(region);
-                }
-            }
-        }
-        
-        return rootRegions;
+        // 获取所有地区并按层级和地区代码排序
+        return regionMapper.findAllRegions();
     }
     
     @Override
-    public String getFullRegionPath(Long regionId) {
-        Region region = getById(String.valueOf(regionId));
+    public String getFullRegionPath(String regionId) {
+        Region region = getById(regionId);
         if (region == null) {
             return "";
         }

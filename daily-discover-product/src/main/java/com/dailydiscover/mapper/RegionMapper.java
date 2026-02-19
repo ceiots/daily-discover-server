@@ -17,13 +17,13 @@ public interface RegionMapper extends BaseMapper<Region> {
     /**
      * 根据父级地区ID查询子地区
      */
-    @Select("SELECT * FROM regions WHERE parent_id = #{parentId} ORDER BY region_code ASC")
-    List<Region> findByParentId(@Param("parentId") Long parentId);
+    @Select("SELECT * FROM regions WHERE region_parent_id = #{parentId} ORDER BY region_code ASC")
+    List<Region> findByParentId(@Param("parentId") String parentId);
     
     /**
      * 查询顶级地区（省份）
      */
-    @Select("SELECT * FROM regions WHERE parent_id IS NULL ORDER BY region_code ASC")
+    @Select("SELECT * FROM regions WHERE region_parent_id IS NULL OR region_parent_id = '0' ORDER BY region_code ASC")
     List<Region> findTopLevelRegions();
     
     /**
@@ -39,8 +39,8 @@ public interface RegionMapper extends BaseMapper<Region> {
     List<Region> findByNameLike(@Param("name") String name);
     
     /**
-     * 查询所有启用的地区
+     * 查询所有地区
      */
-    @Select("SELECT * FROM regions WHERE status = 'active' ORDER BY region_code ASC")
-    List<Region> findActiveRegions();
+    @Select("SELECT * FROM regions ORDER BY region_level ASC, region_code ASC")
+    List<Region> findAllRegions();
 }

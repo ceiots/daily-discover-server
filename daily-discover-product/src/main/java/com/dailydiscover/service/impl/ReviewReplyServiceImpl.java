@@ -51,9 +51,11 @@ public class ReviewReplyServiceImpl extends ServiceImpl<ReviewReplyMapper, Revie
     
     @Override
     public ReviewReply getReplyByReviewAndSeller(Long reviewId, Long sellerId) {
+        // 根据数据库表结构，商家回复通过 is_seller_reply 字段标识
+        // 这里查询指定评论的商家回复（如果有多个商家回复，返回第一个）
         return lambdaQuery()
                 .eq(ReviewReply::getReviewId, reviewId)
-                .eq(ReviewReply::getSellerId, sellerId)
+                .eq(ReviewReply::getIsSellerReply, true)
                 .one();
     }
 }

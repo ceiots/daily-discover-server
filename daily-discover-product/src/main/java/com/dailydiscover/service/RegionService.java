@@ -16,7 +16,7 @@ public interface RegionService extends IService<Region> {
     /**
      * 根据父级地区ID查询子地区
      */
-    java.util.List<Region> getByParentId(Long parentId);
+    java.util.List<Region> getByParentId(String parentId);
     
     /**
      * 查询顶级地区
@@ -36,5 +36,10 @@ public interface RegionService extends IService<Region> {
     /**
      * 获取完整的地区路径
      */
-    String getFullRegionPath(Long regionId);
+    String getFullRegionPath(String regionId);
+    
+    /**
+     * 搜索地区
+     */
+    java.util.List<Region> searchRegions(String keyword);
 }
