@@ -52,7 +52,7 @@ public class RegionController {
 
     @GetMapping("/parent/{parentId}")
     @ApiLog("根据父级地区ID获取子地区")
-    public ResponseEntity<List<Region>> getRegionsByParentId(@PathVariable Long parentId) {
+    public ResponseEntity<List<Region>> getRegionsByParentId(@PathVariable String parentId) {
         try {
             List<Region> regions = regionService.getByParentId(parentId);
             return ResponseEntity.ok(regions);
@@ -85,7 +85,7 @@ public class RegionController {
 
     @GetMapping("/{id}/path")
     @ApiLog("获取完整的地区路径")
-    public ResponseEntity<String> getFullRegionPath(@PathVariable Long id) {
+    public ResponseEntity<String> getFullRegionPath(@PathVariable String id) {
         try {
             String path = regionService.getFullRegionPath(id);
             return ResponseEntity.ok(path);

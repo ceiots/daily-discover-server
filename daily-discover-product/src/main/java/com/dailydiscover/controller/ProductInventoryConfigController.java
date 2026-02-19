@@ -55,7 +55,6 @@ public class ProductInventoryConfigController {
     @ApiLog("获取需要预警的商品列表")
     public ResponseEntity<List<ProductInventoryConfig>> getProductsNeedAlert() {
         try {
-            // 使用现有的 getInventoriesNeedRestock 方法替代
             List<ProductInventoryConfig> configs = productInventoryConfigService.getInventoriesNeedRestock();
             return ResponseEntity.ok(configs);
         } catch (Exception e) {
@@ -114,8 +113,12 @@ public class ProductInventoryConfigController {
     @ApiLog("启用/禁用库存预警")
     public ResponseEntity<Void> toggleAlertEnabled(@PathVariable Long id, @RequestParam Boolean enabled) {
         try {
-            // 由于接口中没有 toggleAlertEnabled 方法，此功能暂时无法实现
-            return ResponseEntity.notFound().build();
+            // 通过更新安全库存阈值来实现预警功能
+            // enabled=true: 设置正常的安全库存阈值
+            // enabled=false: 设置极高的阈值来禁用预警
+            Integer safetyStock = enabled ? 10 : Integer.MAX_VALUE;
+            boolean success = productInventoryConfigService.updateSafetyStock(id, safetyStock);
+            return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

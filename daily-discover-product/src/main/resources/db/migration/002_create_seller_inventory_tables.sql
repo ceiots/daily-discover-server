@@ -97,6 +97,9 @@ CREATE TABLE IF NOT EXISTS product_inventory_core (
 CREATE TABLE IF NOT EXISTS product_inventory_config (
     inventory_id BIGINT PRIMARY KEY COMMENT '库存ID（关联product_inventory_core.id）',
     
+    -- 关联商品信息
+    product_id BIGINT NOT NULL COMMENT '商品ID（关联products.id）',
+    
     -- 库存名称和标识
     inventory_name VARCHAR(200) COMMENT '库存名称（如：北京仓-电子产品区）',
     inventory_code VARCHAR(100) UNIQUE COMMENT '库存编码（唯一标识）',
