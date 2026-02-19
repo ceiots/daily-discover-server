@@ -36,9 +36,14 @@ public interface ProductMapper extends BaseMapper<Product> {
     List<Product> findHotProducts();
     
     /**
-     * 查询新品
+     * 查询新品（最近7天内创建的商品）
      */
-    @Select("SELECT * FROM products WHERE is_new = true AND status = 'active' ORDER BY created_at DESC")
+    @Select("SELECT p.*, COALESCE(rs.average_rating, 0) as rating, COALESCE(rs.total_reviews, 0) as reviews, COALESCE(pss.sales_count, 0) as sales " +
+            "FROM products p " +
+            "LEFT JOIN review_stats rs ON p.id = rs.product_id " +
+            "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +
+            "WHERE p.status = 1 AND p.is_deleted = 0 AND p.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+            "ORDER BY p.created_at DESC")
     List<Product> findNewProducts();
     
     /**

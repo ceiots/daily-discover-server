@@ -31,7 +31,6 @@ VITE_API_BASE_URL=https://myapp.dailydiscover.top/v1/products
 - 获取每日上新商品: `GET ${API_BASE_URL}/products/daily-new`
 - 获取实时热点: `GET ${API_BASE_URL}/products/hotspots`
 - 获取明日内容: `GET ${API_BASE_URL}/products/tomorrow-contents`
-- 获取优惠券商品: `GET ${API_BASE_URL}/products/coupons`
 - 创建商品: `POST ${API_BASE_URL}/products`
 - 更新商品: `PUT ${API_BASE_URL}/products/{id}`
 - 删除商品: `DELETE ${API_BASE_URL}/products/{id}`

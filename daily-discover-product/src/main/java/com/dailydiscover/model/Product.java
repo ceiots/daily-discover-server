@@ -51,4 +51,14 @@ public class Product {
     
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+    
+    // 扩展字段 - 不映射到数据库表，用于查询结果
+    @TableField(exist = false)
+    private BigDecimal rating; // 商品评分
+    
+    @TableField(exist = false)
+    private Integer reviews; // 评论数
+    
+    @TableField(exist = false)
+    private Integer sales; // 销量
 }

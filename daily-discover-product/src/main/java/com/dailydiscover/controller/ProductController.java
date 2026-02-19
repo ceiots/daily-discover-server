@@ -133,18 +133,6 @@ public class ProductController {
         }
     }
     
-    @GetMapping("/coupons")
-    @ApiLog("获取优惠券")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<Product>> getCoupons() {
-        try {
-            List<Product> products = productService.findHotProducts();
-            return ResponseEntity.ok(products);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
     @PostMapping
     @ApiLog("创建商品")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
