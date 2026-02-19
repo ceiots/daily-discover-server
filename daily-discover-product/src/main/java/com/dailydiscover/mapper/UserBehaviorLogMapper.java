@@ -2,6 +2,8 @@ package com.dailydiscover.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.model.UserBehaviorLog;
+import com.dailydiscover.model.dto.ProductViewCountDTO;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -67,5 +69,5 @@ public interface UserBehaviorLogMapper extends BaseMapper<UserBehaviorLog> {
      */
     @Select("SELECT product_id, COUNT(*) as view_count FROM user_behavior_logs WHERE behavior_type = 'view' " +
             "GROUP BY product_id ORDER BY view_count DESC LIMIT #{limit}")
-    List<Long> getPopularProducts(@Param("limit") int limit);
+    List<ProductViewCountDTO> getPopularProducts(@Param("limit") int limit);
 }

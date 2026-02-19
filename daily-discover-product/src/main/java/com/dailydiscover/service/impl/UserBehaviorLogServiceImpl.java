@@ -3,6 +3,7 @@ package com.dailydiscover.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.UserBehaviorLogMapper;
 import com.dailydiscover.model.UserBehaviorLog;
+import com.dailydiscover.model.dto.ProductViewCountDTO;
 import com.dailydiscover.service.UserBehaviorLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     
     @Override
     public boolean recordUserBehavior(Long userId, Long productId, String behaviorType, String sessionId) {
-        return userBehaviorLogMapper.recordUserBehavior(userId, productId, behaviorType, sessionId);
+        return userBehaviorLogMapper.recordUserBehavior(userId, productId, behaviorType, sessionId) > 0;
     }
     
     @Override
@@ -40,7 +41,7 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     }
     
     @Override
-    public List<Long> getPopularProducts(int limit) {
+    public List<ProductViewCountDTO> getPopularProducts(int limit) {
         return userBehaviorLogMapper.getPopularProducts(limit);
     }
     
@@ -94,16 +95,16 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     @Override
     public List<Map<String, Object>> getHotProductBehaviorStats(Integer limit) {
         // 实现热门商品行为统计逻辑
-        List<Long> popularProducts = getPopularProducts(limit);
+        List<ProductViewCountDTO> popularProducts = getPopularProducts(limit);
         
         return popularProducts.stream()
-                .map(productId -> {
-                    List<UserBehaviorLog> productLogs = getProductBehaviorHistory(productId, 1000);
-                    long viewCount = productLogs.stream().filter(log -> "view".equals(log.getBehaviorType())).count();
+                .map(dto -> {
+                    List<UserBehaviorLog> productLogs = getProductBehaviorHistory(dto.getProductId(), 1000);
+                    long viewCount = dto.getViewCount(); // 直接从DTO获取视图计数
                     long clickCount = productLogs.stream().filter(log -> "click".equals(log.getBehaviorType())).count();
                     
                     return Map.of(
-                        "productId", productId,
+                        "productId", dto.getProductId(),
                         "viewCount", viewCount,
                         "clickCount", clickCount
                     );

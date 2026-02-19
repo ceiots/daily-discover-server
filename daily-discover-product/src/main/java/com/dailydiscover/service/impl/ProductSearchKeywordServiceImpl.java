@@ -47,7 +47,6 @@ public class ProductSearchKeywordServiceImpl extends ServiceImpl<ProductSearchKe
     public List<ProductSearchKeyword> getPopularKeywords(int limit) {
         // 使用 MyBatis-Plus 的 lambda 查询实现热门关键词查询
         return lambdaQuery()
-                .eq(ProductSearchKeyword::getIsDeleted, 0)
                 .orderByDesc(ProductSearchKeyword::getSearchCount)
                 .last("LIMIT " + limit)
                 .list();
@@ -55,10 +54,9 @@ public class ProductSearchKeywordServiceImpl extends ServiceImpl<ProductSearchKe
     
     @Override
     public List<ProductSearchKeyword> getTrendingKeywords(int limit) {
-        // 使用 MyBatis-Plus 的 lambda 查询实现趋势关键词查询（按最近搜索次数排序）
+        // 使用 MyBatis-Plus 的 lambda 查询实现趋势关键词查询（按搜索次数排序）
         return lambdaQuery()
-                .eq(ProductSearchKeyword::getIsDeleted, 0)
-                .orderByDesc(ProductSearchKeyword::getRecentSearchCount)
+                .orderByDesc(ProductSearchKeyword::getSearchCount)
                 .last("LIMIT " + limit)
                 .list();
     }
@@ -68,7 +66,6 @@ public class ProductSearchKeywordServiceImpl extends ServiceImpl<ProductSearchKe
         ProductSearchKeyword keyword = getById(id);
         if (keyword != null) {
             keyword.setSearchCount(keyword.getSearchCount() + 1);
-            keyword.setRecentSearchCount(keyword.getRecentSearchCount() + 1);
             return updateById(keyword);
         }
         return false;

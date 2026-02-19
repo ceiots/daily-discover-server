@@ -1,6 +1,10 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.UserBehaviorLog;
+import com.dailydiscover.model.dto.ProductViewCountDTO;
+
+import java.util.List;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -45,9 +49,9 @@ public interface UserBehaviorLogService extends IService<UserBehaviorLog> {
     /**
      * 获取热门商品（基于行为数据）
      * @param limit 限制数量
-     * @return 商品ID列表
+     * @return 商品视图统计DTO列表
      */
-    java.util.List<Long> getPopularProducts(int limit);
+    List<ProductViewCountDTO> getPopularProducts(int limit);
     
     /**
      * 根据用户ID查询行为日志

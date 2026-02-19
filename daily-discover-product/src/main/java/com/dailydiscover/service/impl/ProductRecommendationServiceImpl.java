@@ -17,12 +17,16 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     
     @Override
     public java.util.List<ProductRecommendation> getRecommendationsByProductId(Long productId) {
-        // 使用 MyBatis-Plus 的 lambda 查询实现
-        return lambdaQuery()
-                .eq(ProductRecommendation::getProductId, productId)
-                .eq(ProductRecommendation::getIsActive, true)
-                .orderByAsc(ProductRecommendation::getPosition)
-                .list();
+        // 先检查Mapper是否有数据
+        java.util.List<ProductRecommendation> recommendations = productRecommendationMapper.findByUserId(1L); // 使用示例用户ID
+        if (!recommendations.isEmpty()) {
+            return lambdaQuery()
+                    .eq(ProductRecommendation::getProductId, productId)
+                    .eq(ProductRecommendation::getIsActive, true)
+                    .orderByAsc(ProductRecommendation::getPosition)
+                    .list();
+        }
+        return java.util.List.of();
     }
     
     @Override
@@ -33,12 +37,16 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     
     @Override
     public java.util.List<ProductRecommendation> getRecommendationsByType(String recommendationType) {
-        // 使用 MyBatis-Plus 的 lambda 查询实现
-        return lambdaQuery()
-                .eq(ProductRecommendation::getRecommendationType, recommendationType)
-                .eq(ProductRecommendation::getIsActive, true)
-                .orderByDesc(ProductRecommendation::getRecommendationScore)
-                .list();
+        // 先检查Mapper是否有数据
+        java.util.List<ProductRecommendation> recommendations = productRecommendationMapper.findByUserId(1L); // 使用示例用户ID
+        if (!recommendations.isEmpty()) {
+            return lambdaQuery()
+                    .eq(ProductRecommendation::getRecommendationType, recommendationType)
+                    .eq(ProductRecommendation::getIsActive, true)
+                    .orderByDesc(ProductRecommendation::getRecommendationScore)
+                    .list();
+        }
+        return java.util.List.of();
     }
     
 

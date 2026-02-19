@@ -20,18 +20,18 @@ public interface ProductSearchKeywordMapper extends BaseMapper<ProductSearchKeyw
     /**
      * 查询搜索建议
      */
-    @Select("SELECT keyword FROM product_search_keywords WHERE keyword LIKE CONCAT(#{keyword}, '%') AND is_deleted = 0 ORDER BY search_count DESC LIMIT 10")
+    @Select("SELECT keyword FROM product_search_keywords WHERE keyword LIKE CONCAT(#{keyword}, '%') ORDER BY search_count DESC LIMIT 10")
     List<String> findSuggestions(@Param("keyword") String keyword);
     
     /**
      * 查询热门搜索关键词
      */
-    @Select("SELECT keyword FROM product_search_keywords WHERE is_deleted = 0 ORDER BY search_count DESC LIMIT #{limit}")
+    @Select("SELECT keyword FROM product_search_keywords ORDER BY search_count DESC LIMIT #{limit}")
     List<String> findHotKeywords(@Param("limit") int limit);
     
     /**
      * 根据关键词查询搜索统计
      */
-    @Select("SELECT * FROM product_search_keywords WHERE keyword = #{keyword} AND is_deleted = 0")
+    @Select("SELECT * FROM product_search_keywords WHERE keyword = #{keyword}")
     ProductSearchKeyword findByKeyword(@Param("keyword") String keyword);
 }
