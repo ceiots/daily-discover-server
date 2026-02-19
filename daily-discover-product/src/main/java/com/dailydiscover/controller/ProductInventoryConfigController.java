@@ -43,8 +43,7 @@ public class ProductInventoryConfigController {
     @ApiLog("根据商品ID获取库存配置")
     public ResponseEntity<ProductInventoryConfig> getProductInventoryConfigByProductId(@PathVariable Long productId) {
         try {
-            // 由于表结构中没有 product_id 字段，使用库存ID作为替代方案
-            ProductInventoryConfig config = productInventoryConfigService.getByInventoryId(productId);
+            ProductInventoryConfig config = productInventoryConfigService.getByProductId(productId);
             return config != null ? ResponseEntity.ok(config) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
