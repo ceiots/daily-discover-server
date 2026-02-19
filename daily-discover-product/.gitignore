@@ -6,3 +6,6 @@ logs/
 *.md
 !README.md
 !**/README.md
+!API_CALL_GUIDE.md
+
+*.todo.md
