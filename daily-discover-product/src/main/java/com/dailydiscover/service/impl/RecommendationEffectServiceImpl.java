@@ -19,12 +19,14 @@ public class RecommendationEffectServiceImpl extends ServiceImpl<RecommendationE
     
     @Override
     public List<RecommendationEffect> getEffectsByUserId(Long userId) {
-        return lambdaQuery().eq(RecommendationEffect::getUserId, userId).orderByDesc(RecommendationEffect::getInteractionTime).list();
+        // 使用 Mapper 方法查询
+        return recommendationEffectMapper.findByUserId(userId);
     }
     
     @Override
     public List<RecommendationEffect> getEffectsByRecommendationId(Long recommendationId) {
-        return lambdaQuery().eq(RecommendationEffect::getRecommendationId, recommendationId).orderByDesc(RecommendationEffect::getInteractionTime).list();
+        // 使用 Mapper 方法查询
+        return recommendationEffectMapper.findByRecommendationId(recommendationId);
     }
     
     @Override

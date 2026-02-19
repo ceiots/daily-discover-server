@@ -9,28 +9,37 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface UserReviewStatsService extends IService<UserReviewStats> {
     
     /**
-     * 根据用户ID查询评论统计
+     * 根据评价ID查询评论统计
      */
-    UserReviewStats getByUserId(Long userId);
+    UserReviewStats getByReviewId(Long reviewId);
     
     /**
-     * 更新用户评论统计
+     * 更新评论统计
      */
-    boolean updateUserReviewStats(Long userId, Integer totalReviews, Integer helpfulReviews, 
-                                 Integer unhelpfulReviews, Double averageRating);
+    boolean updateReviewStats(Long reviewId, Integer helpfulCount, Integer replyCount, Integer likeCount);
     
     /**
-     * 增加用户评论统计
+     * 增加有用数量统计
      */
-    boolean incrementUserReviewStats(Long userId, Integer rating, Boolean isHelpful);
+    boolean incrementHelpfulCount(Long reviewId);
     
     /**
-     * 获取活跃评论用户列表
+     * 增加回复数量统计
      */
-    java.util.List<UserReviewStats> getActiveReviewers(Integer limit);
+    boolean incrementReplyCount(Long reviewId);
     
     /**
-     * 获取高质量评论用户列表
+     * 增加点赞数量统计
      */
-    java.util.List<UserReviewStats> getHighQualityReviewers(Double minRating, Integer minHelpfulReviews, Integer limit);
+    boolean incrementLikeCount(Long reviewId);
+    
+    /**
+     * 获取高有用数量的评论统计列表
+     */
+    java.util.List<UserReviewStats> getTopHelpfulReviews(Integer limit);
+    
+    /**
+     * 获取高点赞数量的评论统计列表
+     */
+    java.util.List<UserReviewStats> getTopLikedReviews(Integer limit);
 }

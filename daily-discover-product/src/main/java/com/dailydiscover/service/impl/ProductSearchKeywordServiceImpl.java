@@ -39,17 +39,20 @@ public class ProductSearchKeywordServiceImpl extends ServiceImpl<ProductSearchKe
     
     @Override
     public ProductSearchKeyword getByKeyword(String keyword) {
-        return lambdaQuery().eq(ProductSearchKeyword::getKeyword, keyword).one();
+        // 使用 Mapper 方法查询
+        return productSearchKeywordMapper.findByKeyword(keyword);
     }
     
     @Override
     public List<ProductSearchKeyword> getPopularKeywords(int limit) {
-        return lambdaQuery().orderByDesc(ProductSearchKeyword::getSearchCount).last("LIMIT " + limit).list();
+        // 使用 Mapper 方法查询热门关键词
+        return productSearchKeywordMapper.findPopularKeywords(limit);
     }
     
     @Override
     public List<ProductSearchKeyword> getTrendingKeywords(int limit) {
-        return lambdaQuery().orderByDesc(ProductSearchKeyword::getRecentSearchCount).last("LIMIT " + limit).list();
+        // 使用 Mapper 方法查询趋势关键词
+        return productSearchKeywordMapper.findTrendingKeywords(limit);
     }
     
     @Override

@@ -39,34 +39,33 @@ public class UserReviewStatsController {
         }
     }
 
-    @GetMapping("/user/{userId}")
-    @ApiLog("根据用户ID查询评论统计")
-    public ResponseEntity<UserReviewStats> getUserReviewStatsByUserId(@PathVariable Long userId) {
+    @GetMapping("/review/{reviewId}")
+    @ApiLog("根据评价ID查询评论统计")
+    public ResponseEntity<UserReviewStats> getUserReviewStatsByReviewId(@PathVariable Long reviewId) {
         try {
-            UserReviewStats stats = userReviewStatsService.getByUserId(userId);
+            UserReviewStats stats = userReviewStatsService.getByReviewId(reviewId);
             return stats != null ? ResponseEntity.ok(stats) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/top-reviewers")
-    @ApiLog("获取活跃评论用户排名")
-    public ResponseEntity<List<UserReviewStats>> getTopReviewers(@RequestParam(defaultValue = "10") int limit) {
+    @GetMapping("/top-helpful")
+    @ApiLog("获取高有用数量评论排名")
+    public ResponseEntity<List<UserReviewStats>> getTopHelpfulReviews(@RequestParam(defaultValue = "10") int limit) {
         try {
-            List<UserReviewStats> stats = userReviewStatsService.getActiveReviewers(limit);
+            List<UserReviewStats> stats = userReviewStatsService.getTopHelpfulReviews(limit);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/high-quality")
-    @ApiLog("获取高质量评论用户")
-    public ResponseEntity<List<UserReviewStats>> getHighQualityReviewers(@RequestParam(defaultValue = "4.5") Double minAvgRating,
-                                                                        @RequestParam(defaultValue = "10") int limit) {
+    @GetMapping("/top-liked")
+    @ApiLog("获取高点赞数量评论排名")
+    public ResponseEntity<List<UserReviewStats>> getTopLikedReviews(@RequestParam(defaultValue = "10") int limit) {
         try {
-            List<UserReviewStats> stats = userReviewStatsService.getHighQualityReviewers(minAvgRating, 10, limit);
+            List<UserReviewStats> stats = userReviewStatsService.getTopLikedReviews(limit);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -88,7 +87,7 @@ public class UserReviewStatsController {
     @ApiLog("更新用户评论统计")
     public ResponseEntity<UserReviewStats> updateUserReviewStats(@PathVariable Long id, @RequestBody UserReviewStats stats) {
         try {
-            stats.setId(id);
+            stats.setReviewId(id);
             boolean success = userReviewStatsService.updateById(stats);
             return success ? ResponseEntity.ok(stats) : ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -96,22 +95,33 @@ public class UserReviewStatsController {
         }
     }
 
-    @PutMapping("/user/{userId}/increment")
-    @ApiLog("增加用户评论统计")
-    public ResponseEntity<Void> incrementUserReviewStats(@PathVariable Long userId, @RequestParam Integer rating) {
+    @PutMapping("/review/{reviewId}/helpful")
+    @ApiLog("增加有用数量统计")
+    public ResponseEntity<Void> incrementHelpfulCount(@PathVariable Long reviewId) {
         try {
-            boolean success = userReviewStatsService.incrementUserReviewStats(userId, rating, true);
+            boolean success = userReviewStatsService.incrementHelpfulCount(reviewId);
             return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @PutMapping("/user/{userId}/decrement")
-    @ApiLog("减少用户评论统计")
-    public ResponseEntity<Void> decrementUserReviewStats(@PathVariable Long userId, @RequestParam Integer rating) {
+    @PutMapping("/review/{reviewId}/reply")
+    @ApiLog("增加回复数量统计")
+    public ResponseEntity<Void> incrementReplyCount(@PathVariable Long reviewId) {
         try {
-            boolean success = userReviewStatsService.incrementUserReviewStats(userId, rating, false);
+            boolean success = userReviewStatsService.incrementReplyCount(reviewId);
+            return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/review/{reviewId}/like")
+    @ApiLog("增加点赞数量统计")
+    public ResponseEntity<Void> incrementLikeCount(@PathVariable Long reviewId) {
+        try {
+            boolean success = userReviewStatsService.incrementLikeCount(reviewId);
             return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

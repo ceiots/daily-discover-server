@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @Slf4j
@@ -19,19 +18,20 @@ public class ProductSalesStatsServiceImpl extends ServiceImpl<ProductSalesStatsM
     
     @Override
     public ProductSalesStats getSalesStatsByProductAndGranularity(Long productId, String timeGranularity) {
-        return lambdaQuery()
-                .eq(ProductSalesStats::getProductId, productId)
-                .eq(ProductSalesStats::getTimeGranularity, timeGranularity)
-                .one();
+        // 使用 Mapper 方法查询
+        java.util.List<ProductSalesStats> statsList = productSalesStatsMapper.findByProductIdAndGranularity(productId, timeGranularity);
+        return statsList != null && !statsList.isEmpty() ? statsList.get(0) : null;
     }
     
     @Override
     public java.util.List<ProductSalesStats> getTopProducts(int limit) {
-        return lambdaQuery().orderByDesc(ProductSalesStats::getSalesCount).last("LIMIT " + limit).list();
+        // 使用 Mapper 方法查询热门商品
+        return productSalesStatsMapper.findTopSellingProducts(limit);
     }
     
     @Override
     public boolean updateSalesStats(Long productId, int salesCount, java.math.BigDecimal salesAmount) {
+        // 使用 Mapper 方法查询并更新
         ProductSalesStats stats = lambdaQuery().eq(ProductSalesStats::getProductId, productId).one();
         if (stats != null) {
             stats.setSalesCount(stats.getSalesCount() + salesCount);

@@ -19,7 +19,8 @@ public class ProductInventoryConfigServiceImpl extends ServiceImpl<ProductInvent
     
     @Override
     public ProductInventoryConfig getByProductId(Long productId) {
-        return lambdaQuery().eq(ProductInventoryConfig::getProductId, productId).one();
+        // 使用 Mapper 方法查询
+        return productInventoryConfigMapper.findByProductId(productId);
     }
     
     @Override

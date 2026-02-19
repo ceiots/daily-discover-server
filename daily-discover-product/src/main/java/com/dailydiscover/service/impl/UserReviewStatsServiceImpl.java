@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.math.BigDecimal;
 
 @Service
 @Slf4j
@@ -19,72 +18,88 @@ public class UserReviewStatsServiceImpl extends ServiceImpl<UserReviewStatsMappe
     private UserReviewStatsMapper userReviewStatsMapper;
     
     @Override
-    public UserReviewStats getByUserId(Long userId) {
-        return lambdaQuery().eq(UserReviewStats::getUserId, userId).one();
+    public UserReviewStats getByReviewId(Long reviewId) {
+        return lambdaQuery().eq(UserReviewStats::getReviewId, reviewId).one();
     }
     
     @Override
-    public boolean updateUserReviewStats(Long userId, Integer totalReviews, Integer helpfulReviews, 
-                                        Integer unhelpfulReviews, Double averageRating) {
-        UserReviewStats stats = getByUserId(userId);
+    public boolean updateReviewStats(Long reviewId, Integer helpfulCount, Integer replyCount, Integer likeCount) {
+        UserReviewStats stats = getByReviewId(reviewId);
         if (stats == null) {
             stats = new UserReviewStats();
-            stats.setUserId(userId);
-            stats.setTotalReviews(totalReviews);
-            stats.setHelpfulReviews(helpfulReviews);
-            stats.setUnhelpfulReviews(unhelpfulReviews);
-            stats.setAverageRating(averageRating);
+            stats.setReviewId(reviewId);
+            stats.setHelpfulCount(helpfulCount);
+            stats.setReplyCount(replyCount);
+            stats.setLikeCount(likeCount);
             return save(stats);
         } else {
-            stats.setTotalReviews(totalReviews);
-            stats.setHelpfulReviews(helpfulReviews);
-            stats.setUnhelpfulReviews(unhelpfulReviews);
-            stats.setAverageRating(averageRating);
+            stats.setHelpfulCount(helpfulCount);
+            stats.setReplyCount(replyCount);
+            stats.setLikeCount(likeCount);
             return updateById(stats);
         }
     }
     
     @Override
-    public boolean incrementUserReviewStats(Long userId, Integer rating, Boolean isHelpful) {
-        UserReviewStats stats = getByUserId(userId);
+    public boolean incrementHelpfulCount(Long reviewId) {
+        UserReviewStats stats = getByReviewId(reviewId);
         if (stats == null) {
             stats = new UserReviewStats();
-            stats.setUserId(userId);
-            stats.setTotalReviews(1);
-            stats.setHelpfulReviews(isHelpful ? 1 : 0);
-            stats.setUnhelpfulReviews(isHelpful ? 0 : 1);
-            stats.setAverageRating(rating.doubleValue());
+            stats.setReviewId(reviewId);
+            stats.setHelpfulCount(1);
+            stats.setReplyCount(0);
+            stats.setLikeCount(0);
             return save(stats);
         } else {
-            stats.setTotalReviews(stats.getTotalReviews() + 1);
-            if (isHelpful) {
-                stats.setHelpfulReviews(stats.getHelpfulReviews() + 1);
-            } else {
-                stats.setUnhelpfulReviews(stats.getUnhelpfulReviews() + 1);
-            }
-            
-            // 更新平均评分
-            double totalScore = stats.getAverageRating() * (stats.getTotalReviews() - 1) + rating;
-            stats.setAverageRating(totalScore / stats.getTotalReviews());
-            
+            stats.setHelpfulCount(stats.getHelpfulCount() + 1);
             return updateById(stats);
         }
     }
     
     @Override
-    public List<UserReviewStats> getActiveReviewers(Integer limit) {
+    public boolean incrementReplyCount(Long reviewId) {
+        UserReviewStats stats = getByReviewId(reviewId);
+        if (stats == null) {
+            stats = new UserReviewStats();
+            stats.setReviewId(reviewId);
+            stats.setHelpfulCount(0);
+            stats.setReplyCount(1);
+            stats.setLikeCount(0);
+            return save(stats);
+        } else {
+            stats.setReplyCount(stats.getReplyCount() + 1);
+            return updateById(stats);
+        }
+    }
+    
+    @Override
+    public boolean incrementLikeCount(Long reviewId) {
+        UserReviewStats stats = getByReviewId(reviewId);
+        if (stats == null) {
+            stats = new UserReviewStats();
+            stats.setReviewId(reviewId);
+            stats.setHelpfulCount(0);
+            stats.setReplyCount(0);
+            stats.setLikeCount(1);
+            return save(stats);
+        } else {
+            stats.setLikeCount(stats.getLikeCount() + 1);
+            return updateById(stats);
+        }
+    }
+    
+    @Override
+    public List<UserReviewStats> getTopHelpfulReviews(Integer limit) {
         return lambdaQuery()
-                .orderByDesc(UserReviewStats::getTotalReviews)
+                .orderByDesc(UserReviewStats::getHelpfulCount)
                 .last(limit != null ? "LIMIT " + limit : "")
                 .list();
     }
     
     @Override
-    public List<UserReviewStats> getHighQualityReviewers(Double minRating, Integer minHelpfulReviews, Integer limit) {
+    public List<UserReviewStats> getTopLikedReviews(Integer limit) {
         return lambdaQuery()
-                .ge(UserReviewStats::getAverageRating, minRating)
-                .ge(UserReviewStats::getHelpfulReviews, minHelpfulReviews)
-                .orderByDesc(UserReviewStats::getHelpfulReviews)
+                .orderByDesc(UserReviewStats::getLikeCount)
                 .last(limit != null ? "LIMIT " + limit : "")
                 .list();
     }

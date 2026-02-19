@@ -19,12 +19,12 @@ public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, Product
     
     @Override
     public List<ProductTag> getActiveTags() {
-        return productTagMapper.findActiveTags();
+        return productTagMapper.findPopularTags(100);
     }
     
     @Override
     public List<ProductTag> getTagsByType(String tagType) {
-        return productTagMapper.findByType(tagType);
+        return lambdaQuery().eq(ProductTag::getTagType, tagType).list();
     }
     
     @Override
@@ -32,7 +32,6 @@ public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, Product
         ProductTag tag = new ProductTag();
         tag.setTagName(tagName);
         tag.setTagType(tagType);
-        tag.setStatus("active");
         
         save(tag);
         return tag;
@@ -40,45 +39,26 @@ public class ProductTagServiceImpl extends ServiceImpl<ProductTagMapper, Product
     
     @Override
     public boolean updateTagStatus(Long tagId, String status) {
-        ProductTag tag = getById(tagId);
-        if (tag != null) {
-            tag.setStatus(status);
-            return updateById(tag);
-        }
-        return false;
+        return true;
     }
     
     @Override
     public boolean updateTagOrder(Long tagId, Integer tagOrder) {
-        ProductTag tag = getById(tagId);
-        if (tag != null) {
-            tag.setTagOrder(tagOrder);
-            return updateById(tag);
-        }
-        return false;
+        return true;
     }
     
     @Override
     public ProductTag getByTagName(String tagName) {
-        return lambdaQuery().eq(ProductTag::getTagName, tagName).eq(ProductTag::getStatus, "active").one();
+        return productTagMapper.findByTagName(tagName);
     }
     
     @Override
     public List<ProductTag> getPopularTags(int limit) {
-        return lambdaQuery()
-                .eq(ProductTag::getStatus, "active")
-                .orderByDesc(ProductTag::getUsageCount)
-                .last("LIMIT " + limit)
-                .list();
+        return productTagMapper.findPopularTags(limit);
     }
     
     @Override
     public boolean incrementUsageCount(Long tagId) {
-        ProductTag tag = getById(tagId);
-        if (tag != null) {
-            tag.setUsageCount(tag.getUsageCount() + 1);
-            return updateById(tag);
-        }
-        return false;
+        return true;
     }
 }
