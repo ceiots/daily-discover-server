@@ -3,7 +3,7 @@ package com.dailydiscover.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.UserBehaviorLogMapper;
 import com.dailydiscover.model.UserBehaviorLog;
-import com.dailydiscover.model.dto.ProductViewCountDTO;
+import com.dailydiscover.dto.ProductViewCountDTO;
 import com.dailydiscover.service.UserBehaviorLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,9 +104,9 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
                     long clickCount = productLogs.stream().filter(log -> "click".equals(log.getBehaviorType())).count();
                     
                     return Map.of(
-                        "productId", dto.getProductId(),
-                        "viewCount", viewCount,
-                        "clickCount", clickCount
+                        "productId", (Object) dto.getProductId(),
+                        "viewCount", (Object) viewCount,
+                        "clickCount", (Object) clickCount
                     );
                 })
                 .collect(java.util.stream.Collectors.toList());

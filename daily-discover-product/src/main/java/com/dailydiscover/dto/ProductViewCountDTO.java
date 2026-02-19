@@ -1,4 +1,4 @@
-package com.dailydiscover.model.dto;
+package com.dailydiscover.dto;
 
 import lombok.Data;
 

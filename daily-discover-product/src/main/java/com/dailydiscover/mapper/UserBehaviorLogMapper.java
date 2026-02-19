@@ -2,7 +2,7 @@ package com.dailydiscover.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.model.UserBehaviorLog;
-import com.dailydiscover.model.dto.ProductViewCountDTO;
+import com.dailydiscover.dto.ProductViewCountDTO;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

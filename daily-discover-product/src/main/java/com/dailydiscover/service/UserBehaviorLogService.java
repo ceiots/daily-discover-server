@@ -1,7 +1,7 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.UserBehaviorLog;
-import com.dailydiscover.model.dto.ProductViewCountDTO;
+import com.dailydiscover.dto.ProductViewCountDTO;
 
 import java.util.List;
 

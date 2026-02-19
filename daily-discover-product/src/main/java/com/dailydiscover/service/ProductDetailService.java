@@ -23,7 +23,7 @@ public interface ProductDetailService {
     /**
      * 保存商品详情
      */
-    ProductDetail save(ProductDetail productDetail);
+    boolean save(ProductDetail productDetail);
     
     /**
      * 更新商品详情
