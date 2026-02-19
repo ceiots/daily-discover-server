@@ -17,7 +17,7 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
     
     @Override
     public ReviewStats getByProductId(Long productId) {
-        return lambdaQuery().eq(ReviewStats::getProductId, productId).one();
+        return reviewStatsMapper.findByProductId(productId);
     }
     
     @Override
@@ -33,7 +33,7 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
                 positiveReviews, neutralReviews, negativeReviews, 0, 0);
             stats.setRatingDistribution(ratingDistribution);
             stats.setAverageRating(new java.math.BigDecimal(averageRating));
-            return save(stats);
+            return reviewStatsMapper.insert(stats) > 0;
         } else {
             stats.setTotalReviews(totalReviews);
             // 使用 rating_distribution 字段存储评分分布
@@ -41,7 +41,7 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
                 positiveReviews, neutralReviews, negativeReviews, 0, 0);
             stats.setRatingDistribution(ratingDistribution);
             stats.setAverageRating(new java.math.BigDecimal(averageRating));
-            return updateById(stats);
+            return reviewStatsMapper.updateById(stats) > 0;
         }
     }
     
@@ -66,7 +66,7 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
                     rating == 2 ? 1 : 0, rating == 1 ? 1 : 0);
             }
             stats.setRatingDistribution(ratingDistribution);
-            return save(stats);
+            return reviewStatsMapper.insert(stats) > 0;
         } else {
             stats.setTotalReviews(stats.getTotalReviews() + 1);
             
@@ -76,7 +76,7 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
             
             // 更新评分分布（这里简化处理，实际应该解析JSON并更新）
             // 由于rating_distribution是JSON字段，这里只更新总评分，分布需要更复杂的逻辑
-            return updateById(stats);
+            return reviewStatsMapper.updateById(stats) > 0;
         }
     }
     
@@ -96,25 +96,25 @@ public class ReviewStatsServiceImpl extends ServiceImpl<ReviewStatsMapper, Revie
             
             // 更新评分分布（这里简化处理，实际应该解析JSON并更新）
             // 由于rating_distribution是JSON字段，这里只更新总评分，分布需要更复杂的逻辑
-            return updateById(stats);
+            return reviewStatsMapper.updateById(stats) > 0;
         }
         return false;
     }
     
     @Override
     public java.util.List<ReviewStats> getHighRatedProducts(Double minRating, Integer limit) {
-        return lambdaQuery()
-                .ge(ReviewStats::getAverageRating, minRating)
-                .orderByDesc(ReviewStats::getAverageRating)
-                .last(limit != null ? "LIMIT " + limit : "")
-                .list();
+        return reviewStatsMapper.findHighRatingStats(minRating, limit);
     }
     
     @Override
     public java.util.List<ReviewStats> getReviewStatsRanking(Integer limit) {
-        return lambdaQuery()
-                .orderByDesc(ReviewStats::getTotalReviews)
-                .last(limit != null ? "LIMIT " + limit : "")
-                .list();
+        return reviewStatsMapper.findPopularStats(limit);
+    }
+    
+    /**
+     * 批量更新评价统计
+     */
+    public boolean batchUpdateReviewStats(java.util.List<ReviewStats> statsList) {
+        return reviewStatsMapper.batchUpdateReviewStats(statsList) > 0;
     }
 }

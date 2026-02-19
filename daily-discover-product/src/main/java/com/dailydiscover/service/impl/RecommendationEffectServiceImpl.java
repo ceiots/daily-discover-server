@@ -30,54 +30,6 @@ public class RecommendationEffectServiceImpl extends ServiceImpl<RecommendationE
     }
     
     @Override
-    public RecommendationEffect recordInteraction(Long userId, Long recommendationId, String interactionType, String interactionResult) {
-        RecommendationEffect effect = new RecommendationEffect();
-        effect.setUserId(userId);
-        effect.setRecommendationId(recommendationId);
-        effect.setInteractionType(interactionType);
-        effect.setInteractionResult(interactionResult);
-        effect.setInteractionTime(new java.util.Date());
-        
-        save(effect);
-        return effect;
-    }
-    
-    @Override
-    public boolean updateInteractionResult(Long effectId, String interactionResult) {
-        RecommendationEffect effect = getById(effectId);
-        if (effect != null) {
-            effect.setInteractionResult(interactionResult);
-            return updateById(effect);
-        }
-        return false;
-    }
-    
-    @Override
-    public List<RecommendationEffect> getEffectStatsByTimeRange(java.time.LocalDateTime startTime, java.time.LocalDateTime endTime) {
-        return lambdaQuery()
-                .between(RecommendationEffect::getInteractionTime, startTime, endTime)
-                .list();
-    }
-    
-    @Override
-    public java.util.Map<String, Object> getRecommendationEffectiveness(Long recommendationId) {
-        List<RecommendationEffect> effects = getEffectsByRecommendationId(recommendationId);
-        
-        long totalInteractions = effects.size();
-        long positiveInteractions = effects.stream()
-                .filter(effect -> "positive".equals(effect.getInteractionResult()))
-                .count();
-        
-        double effectivenessRate = totalInteractions > 0 ? (double) positiveInteractions / totalInteractions : 0.0;
-        
-        return java.util.Map.of(
-            "totalInteractions", totalInteractions,
-            "positiveInteractions", positiveInteractions,
-            "effectivenessRate", effectivenessRate
-        );
-    }
-    
-    @Override
     public boolean recordImpression(Long recommendationId, Long userId) {
         RecommendationEffect effect = new RecommendationEffect();
         effect.setUserId(userId);
