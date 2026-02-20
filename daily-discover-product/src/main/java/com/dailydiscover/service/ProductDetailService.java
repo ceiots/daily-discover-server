@@ -1,15 +1,17 @@
 package com.dailydiscover.service;
 
-import com.dailydiscover.dto.ProductFullDetailDTO;
 import com.dailydiscover.model.ProductDetail;
 import java.util.List;
 
+/**
+ * 商品详情服务接口（电商媒体管理）
+ */
 public interface ProductDetailService {
     
     /**
-     * 根据商品ID查询商品详情
+     * 根据商品ID查询商品所有媒体详情
      */
-    ProductDetail findByProductId(Long productId);
+    List<ProductDetail> findByProductId(Long productId);
     
     /**
      * 根据ID查询商品详情
@@ -37,22 +39,37 @@ public interface ProductDetailService {
     boolean delete(Long id);
     
     /**
-     * 获取商品图片列表
+     * 根据商品ID和媒体类型查询媒体详情
      */
-    java.util.List<String> getProductImages(Long productId);
+    List<ProductDetail> findByProductIdAndMediaType(Long productId, Integer mediaType);
     
     /**
-     * 获取商品规格参数
+     * 获取商品轮播图（媒体类型=1）
      */
-    java.util.List<String> getProductSpecifications(Long productId);
+    List<ProductDetail> getProductCarousel(Long productId);
     
     /**
-     * 获取商品特性
+     * 获取商品详情图（媒体类型=2）
      */
-    java.util.List<String> getProductFeatures(Long productId);
+    List<ProductDetail> getProductDetailImages(Long productId);
     
     /**
-     * 获取完整商品详情
+     * 获取商品视频（is_video=1）
      */
-    ProductFullDetailDTO getProductFullDetail(Long productId);
+    List<ProductDetail> getProductVideos(Long productId);
+    
+    /**
+     * 获取商品图片（is_video=0）
+     */
+    List<ProductDetail> getProductImages(Long productId);
+    
+    /**
+     * 根据商品ID删除所有媒体详情
+     */
+    boolean deleteByProductId(Long productId);
+    
+    /**
+     * 根据商品ID和媒体类型删除媒体详情
+     */
+    boolean deleteByProductIdAndMediaType(Long productId, Integer mediaType);
 }

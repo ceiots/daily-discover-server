@@ -1,7 +1,6 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.UserBehaviorLog;
-import com.dailydiscover.model.UserBehaviorLogCore;
 import com.dailydiscover.model.UserBehaviorLogDetails;
 import com.dailydiscover.dto.ProductViewCountDTO;
 

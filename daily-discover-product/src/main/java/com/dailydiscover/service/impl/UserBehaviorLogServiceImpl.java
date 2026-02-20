@@ -3,7 +3,6 @@ package com.dailydiscover.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.UserBehaviorLogMapper;
 import com.dailydiscover.model.UserBehaviorLog;
-import com.dailydiscover.model.UserBehaviorLogCore;
 import com.dailydiscover.model.UserBehaviorLogDetails;
 import com.dailydiscover.dto.ProductViewCountDTO;
 import com.dailydiscover.service.UserBehaviorLogService;
@@ -59,25 +58,21 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     
     @Override
     public List<UserBehaviorLog> getByTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
-        // 使用 MyBatis-Plus 的 lambda 查询
-        List<UserBehaviorLog> logs = lambdaQuery()
-                .ge(UserBehaviorLog::getCreatedAt, startTime)
-                .le(UserBehaviorLog::getCreatedAt, endTime)
-                .orderByDesc(UserBehaviorLog::getCreatedAt)
-                .list();
-        return logs;
+        // 调用 Mapper 层根据时间范围查询
+        return userBehaviorLogMapper.findByTimeRange(startTime, endTime);
     }
     
     @Override
     public UserBehaviorLog recordBehavior(Long userId, String behaviorType, Long targetId, String targetType, String details) {
-        // 使用 MyBatis-Plus 的 save 方法
-        UserBehaviorLog log = new UserBehaviorLog();
-        log.setUserId(userId);
-        log.setBehaviorType(behaviorType);
-        log.setProductId(targetId);
+        // 调用 Mapper 层记录用户行为
+        int result = userBehaviorLogMapper.recordUserBehavior(userId, targetId, behaviorType, null);
         
-        save(log);
-        return log;
+        if (result > 0) {
+            // 返回新创建的用户行为记录
+            List<UserBehaviorLog> logs = userBehaviorLogMapper.findByUserId(userId, 1);
+            return logs.isEmpty() ? null : logs.get(0);
+        }
+        return null;
     }
     
     @Override
@@ -152,23 +147,14 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     
     @Override
     public List<UserBehaviorLog> getCompleteUserBehaviorHistory(Long userId, int limit) {
-        // 获取用户行为历史数据
-        List<UserBehaviorLog> logs = lambdaQuery()
-                .eq(UserBehaviorLog::getUserId, userId)
-                .orderByDesc(UserBehaviorLog::getCreatedAt)
-                .last("LIMIT " + limit)
-                .list();
-        return logs;
+        // 调用 Mapper 层获取用户行为历史数据
+        return userBehaviorLogMapper.findByUserId(userId, limit);
     }
     
     @Override
     public List<UserBehaviorLog> getCompleteProductBehaviorHistory(Long productId, int limit) {
-        // 获取商品行为历史数据
-        return lambdaQuery()
-                .eq(UserBehaviorLog::getProductId, productId)
-                .orderByDesc(UserBehaviorLog::getCreatedAt)
-                .last("LIMIT " + limit)
-                .list();
+        // 调用 Mapper 层获取商品行为历史数据
+        return userBehaviorLogMapper.findByProductId(productId, limit);
     }
     
     @Override

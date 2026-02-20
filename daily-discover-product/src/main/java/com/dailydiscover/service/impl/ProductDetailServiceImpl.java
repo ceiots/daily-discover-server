@@ -1,25 +1,18 @@
 package com.dailydiscover.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dailydiscover.dto.ProductFullDetailDTO;
 import com.dailydiscover.mapper.ProductDetailMapper;
-import com.dailydiscover.mapper.ProductSkuSpecMapper;
-import com.dailydiscover.mapper.ProductTagMapper;
-import com.dailydiscover.mapper.ProductTagRelationMapper;
 import com.dailydiscover.model.ProductDetail;
-import com.dailydiscover.model.ProductSkuSpec;
-import com.dailydiscover.model.ProductTag;
-import com.dailydiscover.model.ProductTagRelation;
 import com.dailydiscover.service.ProductDetailService;
 import lombok.extern.slf4j.Slf4j;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+/**
+ * 商品详情服务实现类（电商媒体管理）
+ */
 @Service
 @Slf4j
 public class ProductDetailServiceImpl extends ServiceImpl<ProductDetailMapper, ProductDetail> implements ProductDetailService {
@@ -27,17 +20,8 @@ public class ProductDetailServiceImpl extends ServiceImpl<ProductDetailMapper, P
     @Autowired
     private ProductDetailMapper productDetailMapper;
     
-    @Autowired
-    private ProductSkuSpecMapper productSkuSpecMapper;
-    
-    @Autowired
-    private ProductTagMapper productTagMapper;
-    
-    @Autowired
-    private ProductTagRelationMapper productTagRelationMapper;
-    
     @Override
-    public ProductDetail findByProductId(Long productId) {
+    public List<ProductDetail> findByProductId(Long productId) {
         return productDetailMapper.findByProductId(productId);
     }
     
@@ -68,86 +52,40 @@ public class ProductDetailServiceImpl extends ServiceImpl<ProductDetailMapper, P
     }
     
     @Override
-    public java.util.List<String> getProductImages(Long productId) {
-        ProductDetail detail = findByProductId(productId);
-        if (detail != null && detail.getMediaUrl() != null) {
-            return java.util.List.of(detail.getMediaUrl().split(","));
-        }
-        return java.util.Collections.emptyList();
+    public List<ProductDetail> findByProductIdAndMediaType(Long productId, Integer mediaType) {
+        return productDetailMapper.findByProductIdAndMediaType(productId, mediaType);
     }
     
     @Override
-    public java.util.List<String> getProductSpecifications(Long productId) {
-        // 查询商品规格信息
-        List<ProductSkuSpec> specs = productSkuSpecMapper.findByProductId(productId);
-        
-        // 提取规格名称列表
-        return specs.stream()
-                .map(ProductSkuSpec::getSpecName)
-                .collect(Collectors.toList());
+    public List<ProductDetail> getProductCarousel(Long productId) {
+        return productDetailMapper.getProductCarousel(productId);
     }
     
     @Override
-    public java.util.List<String> getProductFeatures(Long productId) {
-        // 查询商品标签关联关系
-        List<ProductTagRelation> tagRelations = productTagRelationMapper.findByProductId(productId);
-        
-        // 提取标签ID列表
-        List<Long> tagIds = tagRelations.stream()
-                .map(ProductTagRelation::getTagId)
-                .collect(Collectors.toList());
-        
-        if (tagIds.isEmpty()) {
-            return java.util.Collections.emptyList();
-        }
-        
-        // 查询标签详细信息
-        List<ProductTag> tags = productTagMapper.selectList(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<ProductTag>()
-                        .in("id", tagIds)
-                        .eq("tag_type", "feature")
-        );
-        
-        // 提取特性标签名称列表
-        return tags.stream()
-                .map(ProductTag::getTagName)
-                .collect(Collectors.toList());
+    public List<ProductDetail> getProductDetailImages(Long productId) {
+        return productDetailMapper.getProductDetailImages(productId);
     }
     
     @Override
-    public ProductFullDetailDTO getProductFullDetail(Long productId) {
-        try {
-            // 创建完整的商品详情DTO
-            ProductFullDetailDTO productDetail = new ProductFullDetailDTO();
-            
-            // 获取商品基础信息
-            ProductDetail detail = findByProductId(productId);
-            if (detail == null) {
-                return null;
-            }
-            
-            // 设置基础信息
-            productDetail.setId(detail.getProductId());
-            productDetail.setTitle(detail.getTitle());
-            productDetail.setDescription(detail.getDescription());
-            productDetail.setImageUrl(detail.getMediaUrl());
-            productDetail.setCategoryId(detail.getCategoryId());
-            productDetail.setBrand(detail.getBrand());
-            productDetail.setModel(detail.getModel());
-            
-            // 设置价格信息（使用min_price和max_price）
-            productDetail.setPrice(detail.getMinPrice());
-            productDetail.setCurrentPrice(detail.getMinPrice());
-            productDetail.setOriginalPrice(detail.getMaxPrice());
-            
-            // 计算折扣
-            if (detail.getMaxPrice() != null && detail.getMinPrice() != null && 
-                detail.getMaxPrice().compareTo(detail.getMinPrice()) > 0) {
-                BigDecimal discount = detail.getMaxPrice().subtract(detail.getMinPrice())
-                    .divide(detail.getMaxPrice(), 2, java.math.RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal(100));
-                productDetail.setDiscount(discount.intValue());
-            } else {
+    public List<ProductDetail> getProductVideos(Long productId) {
+        return productDetailMapper.getProductVideos(productId);
+    }
+    
+    @Override
+    public List<ProductDetail> getProductImages(Long productId) {
+        return productDetailMapper.getProductImages(productId);
+    }
+    
+    @Override
+    public boolean deleteByProductId(Long productId) {
+        return productDetailMapper.deleteByProductId(productId) > 0;
+    }
+    
+    @Override
+    public boolean deleteByProductIdAndMediaType(Long productId, Integer mediaType) {
+        return productDetailMapper.deleteByProductIdAndMediaType(productId, mediaType) > 0;
+    }
+}
                 productDetail.setDiscount(0);
             }
             
