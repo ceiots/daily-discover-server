@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 /**
  * 用户行为日志服务接口（支持双表操作）
  */
-public interface UserBehaviorLogService extends IService<UserBehaviorLogCore> {
+public interface UserBehaviorLogService extends IService<UserBehaviorLog> {
     
     /**
      * 记录用户行为

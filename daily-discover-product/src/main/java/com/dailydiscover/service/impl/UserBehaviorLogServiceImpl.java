@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMapper, UserBehaviorLogCore> implements UserBehaviorLogService {
+public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMapper, UserBehaviorLog> implements UserBehaviorLogService {
     
     @Autowired
     private UserBehaviorLogMapper userBehaviorLogMapper;
@@ -29,14 +29,12 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     
     @Override
     public List<UserBehaviorLog> getUserBehaviorHistory(Long userId, int limit) {
-        List<UserBehaviorLogCore> coreLogs = userBehaviorLogMapper.getUserBehaviorHistory(userId, limit);
-        return convertCoreToFull(coreLogs);
+        return userBehaviorLogMapper.getUserBehaviorHistory(userId, limit);
     }
     
     @Override
     public List<UserBehaviorLog> getProductBehaviorHistory(Long productId, int limit) {
-        List<UserBehaviorLogCore> coreLogs = userBehaviorLogMapper.getProductBehaviorHistory(productId, limit);
-        return convertCoreToFull(coreLogs);
+        return userBehaviorLogMapper.getProductBehaviorHistory(productId, limit);
     }
     
     @Override
@@ -51,46 +49,34 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     
     @Override
     public List<UserBehaviorLog> getByUserId(Long userId) {
-        List<UserBehaviorLogCore> coreLogs = userBehaviorLogMapper.findByUserId(userId, 1000); // 默认限制1000条记录
-        return convertCoreToFull(coreLogs);
+        return userBehaviorLogMapper.findByUserId(userId, 1000); // 默认限制1000条记录
     }
     
     @Override
     public List<UserBehaviorLog> getByBehaviorType(String behaviorType) {
-        List<UserBehaviorLogCore> coreLogs = userBehaviorLogMapper.findByBehaviorType(behaviorType, 1000); // 默认限制1000条记录
-        return convertCoreToFull(coreLogs);
+        return userBehaviorLogMapper.findByBehaviorType(behaviorType, 1000); // 默认限制1000条记录
     }
     
     @Override
     public List<UserBehaviorLog> getByTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
-        // 使用 MyBatis-Plus 的 lambda 查询替代不存在的 Mapper 方法
-        List<UserBehaviorLogCore> coreLogs = lambdaQuery()
-                .ge(UserBehaviorLogCore::getCreatedAt, startTime)
-                .le(UserBehaviorLogCore::getCreatedAt, endTime)
-                .orderByDesc(UserBehaviorLogCore::getCreatedAt)
+        // 使用 MyBatis-Plus 的 lambda 查询
+        List<UserBehaviorLog> logs = lambdaQuery()
+                .ge(UserBehaviorLog::getCreatedAt, startTime)
+                .le(UserBehaviorLog::getCreatedAt, endTime)
+                .orderByDesc(UserBehaviorLog::getCreatedAt)
                 .list();
-        return convertCoreToFull(coreLogs);
+        return logs;
     }
     
     @Override
     public UserBehaviorLog recordBehavior(Long userId, String behaviorType, Long targetId, String targetType, String details) {
-        // 使用 MyBatis-Plus 的 save 方法替代不存在的 Mapper 方法
-        UserBehaviorLogCore coreLog = new UserBehaviorLogCore();
-        coreLog.setUserId(userId);
-        coreLog.setBehaviorType(behaviorType);
-        coreLog.setProductId(targetId);
-        
-        save(coreLog);
-        
-        // 转换为完整对象返回
+        // 使用 MyBatis-Plus 的 save 方法
         UserBehaviorLog log = new UserBehaviorLog();
-        log.setId(coreLog.getId());
-        log.setUserId(coreLog.getUserId());
-        log.setProductId(coreLog.getProductId());
-        log.setBehaviorType(coreLog.getBehaviorType());
-        log.setBehaviorWeight(coreLog.getBehaviorWeight());
-        log.setSessionId(coreLog.getSessionId());
-        log.setCreatedAt(coreLog.getCreatedAt());
+        log.setUserId(userId);
+        log.setBehaviorType(behaviorType);
+        log.setProductId(targetId);
+        
+        save(log);
         return log;
     }
     
@@ -150,24 +136,11 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     public boolean recordUserBehaviorWithDetails(Long userId, Long productId, String behaviorType, 
                                                 String sessionId, String referrerUrl, String behaviorContext) {
         try {
-            // 1. 先插入核心表
-            UserBehaviorLogCore coreLog = new UserBehaviorLogCore();
-            coreLog.setUserId(userId);
-            coreLog.setProductId(productId);
-            coreLog.setBehaviorType(behaviorType);
-            coreLog.setSessionId(sessionId);
+            // 调用 Mapper 层记录用户行为
+            int result = userBehaviorLogMapper.recordUserBehavior(userId, productId, behaviorType, sessionId);
             
-            boolean coreSaved = save(coreLog);
-            
-            if (coreSaved && coreLog.getId() != null) {
-                // 2. 再插入详情表
-                UserBehaviorLogDetails detailsLog = new UserBehaviorLogDetails();
-                detailsLog.setId(coreLog.getId());
-                detailsLog.setReferrerUrl(referrerUrl);
-                detailsLog.setBehaviorContext(behaviorContext);
-                
-                // 需要创建详情表的Mapper，这里先返回成功
-                log.info("成功记录用户行为，核心表ID: {}, 详情待插入", coreLog.getId());
+            if (result > 0) {
+                log.info("成功记录用户行为，用户ID: {}, 商品ID: {}, 行为类型: {}", userId, productId, behaviorType);
                 return true;
             }
             return false;
@@ -179,49 +152,23 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
     
     @Override
     public List<UserBehaviorLog> getCompleteUserBehaviorHistory(Long userId, int limit) {
-        // 获取核心数据
-        List<UserBehaviorLogCore> coreLogs = lambdaQuery()
-                .eq(UserBehaviorLogCore::getUserId, userId)
-                .orderByDesc(UserBehaviorLogCore::getCreatedAt)
+        // 获取用户行为历史数据
+        List<UserBehaviorLog> logs = lambdaQuery()
+                .eq(UserBehaviorLog::getUserId, userId)
+                .orderByDesc(UserBehaviorLog::getCreatedAt)
                 .last("LIMIT " + limit)
                 .list();
-        
-        // 转换为完整对象（这里简化处理，实际需要关联查询详情表）
-        return coreLogs.stream().map(core -> {
-            UserBehaviorLog log = new UserBehaviorLog();
-            log.setId(core.getId());
-            log.setUserId(core.getUserId());
-            log.setProductId(core.getProductId());
-            log.setBehaviorType(core.getBehaviorType());
-            log.setBehaviorWeight(core.getBehaviorWeight());
-            log.setSessionId(core.getSessionId());
-            log.setCreatedAt(core.getCreatedAt());
-            // 详情字段需要从详情表查询，这里留空
-            return log;
-        }).collect(java.util.stream.Collectors.toList());
+        return logs;
     }
     
     @Override
     public List<UserBehaviorLog> getCompleteProductBehaviorHistory(Long productId, int limit) {
-        // 获取核心数据
-        List<UserBehaviorLogCore> coreLogs = lambdaQuery()
-                .eq(UserBehaviorLogCore::getProductId, productId)
-                .orderByDesc(UserBehaviorLogCore::getCreatedAt)
+        // 获取商品行为历史数据
+        return lambdaQuery()
+                .eq(UserBehaviorLog::getProductId, productId)
+                .orderByDesc(UserBehaviorLog::getCreatedAt)
                 .last("LIMIT " + limit)
                 .list();
-        
-        // 转换为完整对象
-        return coreLogs.stream().map(core -> {
-            UserBehaviorLog log = new UserBehaviorLog();
-            log.setId(core.getId());
-            log.setUserId(core.getUserId());
-            log.setProductId(core.getProductId());
-            log.setBehaviorType(core.getBehaviorType());
-            log.setBehaviorWeight(core.getBehaviorWeight());
-            log.setSessionId(core.getSessionId());
-            log.setCreatedAt(core.getCreatedAt());
-            return log;
-        }).collect(java.util.stream.Collectors.toList());
     }
     
     @Override
@@ -233,21 +180,5 @@ public class UserBehaviorLogServiceImpl extends ServiceImpl<UserBehaviorLogMappe
         return details;
     }
     
-    /**
-     * 将核心表记录转换为完整记录
-     */
-    private List<UserBehaviorLog> convertCoreToFull(List<UserBehaviorLogCore> coreLogs) {
-        return coreLogs.stream().map(core -> {
-            UserBehaviorLog log = new UserBehaviorLog();
-            log.setId(core.getId());
-            log.setUserId(core.getUserId());
-            log.setProductId(core.getProductId());
-            log.setBehaviorType(core.getBehaviorType());
-            log.setBehaviorWeight(core.getBehaviorWeight());
-            log.setSessionId(core.getSessionId());
-            log.setCreatedAt(core.getCreatedAt());
-            // 详情字段需要从详情表查询，这里留空
-            return log;
-        }).collect(java.util.stream.Collectors.toList());
-    }
+
 }
