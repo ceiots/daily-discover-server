@@ -7,7 +7,7 @@
 SERVICE_NAME="${SERVICE_NAME:-daily-discover-product}"
 JAR_FILE="${JAR_FILE:-target/daily-discover-product-1.0.0.jar}"
 LOG_FILE="logs/application.log"
-SERVICE_PORT="${SERVICE_PORT:-8092}"
+SERVICE_PORT="${SERVICE_PORT:-1}"
 MAVEN_ARGS="${MAVEN_ARGS:--DskipTests}"
 
 # 代理配置（通过环境变量获取，可选）

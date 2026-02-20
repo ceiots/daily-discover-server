@@ -1,6 +1,8 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.UserBehaviorLog;
+import com.dailydiscover.model.UserBehaviorLogCore;
+import com.dailydiscover.model.UserBehaviorLogDetails;
 import com.dailydiscover.dto.ProductViewCountDTO;
 
 import java.util.List;
@@ -8,9 +10,9 @@ import java.util.List;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * 用户行为日志服务接口
+ * 用户行为日志服务接口（支持双表操作）
  */
-public interface UserBehaviorLogService extends IService<UserBehaviorLog> {
+public interface UserBehaviorLogService extends IService<UserBehaviorLogCore> {
     
     /**
      * 记录用户行为
@@ -88,4 +90,40 @@ public interface UserBehaviorLogService extends IService<UserBehaviorLog> {
      * 获取行为趋势分析
      */
     java.util.Map<String, Object> getBehaviorTrendAnalysis(String behaviorType, java.time.LocalDateTime startTime, java.time.LocalDateTime endTime);
+    
+    /**
+     * 记录用户行为（双表操作）
+     * @param userId 用户ID
+     * @param productId 商品ID
+     * @param behaviorType 行为类型
+     * @param sessionId 会话ID
+     * @param referrerUrl 来源页面
+     * @param behaviorContext 行为上下文
+     * @return 是否成功
+     */
+    boolean recordUserBehaviorWithDetails(Long userId, Long productId, String behaviorType, 
+                                         String sessionId, String referrerUrl, String behaviorContext);
+    
+    /**
+     * 根据用户ID查询完整行为记录（包含详情）
+     * @param userId 用户ID
+     * @param limit 限制数量
+     * @return 完整行为记录列表
+     */
+    java.util.List<UserBehaviorLog> getCompleteUserBehaviorHistory(Long userId, int limit);
+    
+    /**
+     * 根据商品ID查询完整行为记录（包含详情）
+     * @param productId 商品ID
+     * @param limit 限制数量
+     * @return 完整行为记录列表
+     */
+    java.util.List<UserBehaviorLog> getCompleteProductBehaviorHistory(Long productId, int limit);
+    
+    /**
+     * 根据行为ID获取行为详情
+     * @param behaviorId 行为ID
+     * @return 行为详情
+     */
+    UserBehaviorLogDetails getBehaviorDetails(Long behaviorId);
 }

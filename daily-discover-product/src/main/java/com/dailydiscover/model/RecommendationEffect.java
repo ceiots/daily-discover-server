@@ -48,5 +48,5 @@ public class RecommendationEffect {
     private String interactionResult;
     
     @TableField("interaction_time")
-    private java.util.Date interactionTime;
+    private LocalDateTime interactionTime;
 }

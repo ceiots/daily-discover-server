@@ -36,7 +36,7 @@ public class RecommendationEffectServiceImpl extends ServiceImpl<RecommendationE
         effect.setRecommendationId(recommendationId);
         effect.setInteractionType("impression");
         effect.setInteractionResult("viewed");
-        effect.setInteractionTime(new java.util.Date());
+        effect.setInteractionTime(java.time.LocalDateTime.now());
         
         return save(effect);
     }
@@ -48,7 +48,7 @@ public class RecommendationEffectServiceImpl extends ServiceImpl<RecommendationE
         effect.setRecommendationId(recommendationId);
         effect.setInteractionType("click");
         effect.setInteractionResult("clicked");
-        effect.setInteractionTime(new java.util.Date());
+        effect.setInteractionTime(java.time.LocalDateTime.now());
         
         return save(effect);
     }
@@ -60,7 +60,7 @@ public class RecommendationEffectServiceImpl extends ServiceImpl<RecommendationE
         effect.setRecommendationId(recommendationId);
         effect.setInteractionType("conversion");
         effect.setInteractionResult("converted");
-        effect.setInteractionTime(new java.util.Date());
+        effect.setInteractionTime(java.time.LocalDateTime.now());
         
         return save(effect);
     }

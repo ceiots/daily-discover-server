@@ -23,11 +23,16 @@ VITE_API_BASE_URL=https://myapp.dailydiscover.top/v1/products
 - 获取所有用户行为日志: `GET ${API_BASE_URL}/user-behavior-logs`
 - 根据ID获取用户行为日志: `GET ${API_BASE_URL}/user-behavior-logs/{id}`
 - 根据用户ID获取行为日志: `GET ${API_BASE_URL}/user-behavior-logs/user/{userId}`
-- 根据行为类型获取日志: `GET ${API_BASE_URL}/user-behavior-logs/type/{behaviorType}`
+- 根据行为类型获取日志: `GET ${API_BASE_URL}/user-behavior-logs/behavior/{behaviorType}`
 - 根据商品ID获取行为日志: `GET ${API_BASE_URL}/user-behavior-logs/product/{productId}`
 - 创建用户行为日志: `POST ${API_BASE_URL}/user-behavior-logs`
 - 更新用户行为日志: `PUT ${API_BASE_URL}/user-behavior-logs/{id}`
 - 删除用户行为日志: `DELETE ${API_BASE_URL}/user-behavior-logs/{id}`
+- 记录用户行为（包含详情）: `POST ${API_BASE_URL}/user-behavior-logs/with-details`
+- 获取用户完整行为历史（包含详情）: `GET ${API_BASE_URL}/user-behavior-logs/user/{userId}/complete`
+- 获取商品完整行为历史（包含详情）: `GET ${API_BASE_URL}/user-behavior-logs/product/{productId}/complete`
+- 获取行为详情: `GET ${API_BASE_URL}/user-behavior-logs/{id}/details`
+
 
 ### 2. 用户兴趣画像管理
 

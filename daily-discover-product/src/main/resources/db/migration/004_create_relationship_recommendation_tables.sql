@@ -14,6 +14,8 @@ DROP TABLE IF EXISTS product_recommendations;
 DROP TABLE IF EXISTS product_sales_stats;
 DROP TABLE IF EXISTS recommendation_effects;
 DROP TABLE IF EXISTS user_behavior_logs;
+DROP TABLE IF EXISTS user_behavior_logs_core;
+DROP TABLE IF EXISTS user_behavior_logs_details;
 DROP TABLE IF EXISTS scenario_recommendations;
 DROP TABLE IF EXISTS user_interest_profiles;
 
@@ -59,11 +61,13 @@ CREATE TABLE IF NOT EXISTS product_sales_stats (
     -- 用户行为数据
     view_count INT DEFAULT 0 COMMENT '浏览量',
     favorite_count INT DEFAULT 0 COMMENT '收藏量',
+    share_count INT DEFAULT 0 COMMENT '分享量',
     cart_count INT DEFAULT 0 COMMENT '加购量',
-    conversion_rate DECIMAL(5,2) COMMENT '转化率',
     
-    -- 业务标识
-    is_trending BOOLEAN DEFAULT false COMMENT '是否趋势商品',
+    -- 商品质量数据
+    avg_rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '平均评分',
+    review_count INT DEFAULT 0 COMMENT '评价数量',
+    return_count INT DEFAULT 0 COMMENT '退货数量',
     
     -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -75,7 +79,7 @@ CREATE TABLE IF NOT EXISTS product_sales_stats (
     INDEX idx_stat_date (stat_date),
     INDEX idx_rank (`rank`),
     INDEX idx_sales_count (sales_count),
-    INDEX idx_is_trending (is_trending),
+    INDEX idx_avg_rating (avg_rating),
     INDEX idx_product_granularity_date (product_id, time_granularity, stat_date),
     
     -- 唯一约束（避免重复统计）
@@ -84,22 +88,32 @@ CREATE TABLE IF NOT EXISTS product_sales_stats (
 
 
 
--- 用户行为表（记录浏览、点击、购买等行为）
-CREATE TABLE IF NOT EXISTS user_behavior_logs (
+-- 用户行为核心表（高频查询字段，支持实时业务）
+CREATE TABLE IF NOT EXISTS user_behavior_logs_core (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '行为ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
-    behavior_type VARCHAR(20) NOT NULL COMMENT '行为类型',
+    behavior_type VARCHAR(20) NOT NULL COMMENT '行为类型：view-浏览, favorite-收藏, cart-加购, purchase-购买, share-分享',
     behavior_weight DECIMAL(3,2) DEFAULT 1.0 COMMENT '行为权重',
     session_id VARCHAR(100) COMMENT '会话ID',
-    referrer_url VARCHAR(500) COMMENT '来源页面',
-    behavior_context JSON COMMENT '行为上下文（设备、位置等）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     
     INDEX idx_user_behavior (user_id, behavior_type, created_at),
     INDEX idx_product_behavior (product_id, behavior_type, created_at),
-    INDEX idx_session (session_id)
-) COMMENT '用户行为日志表';
+    INDEX idx_session (session_id),
+    INDEX idx_created_at (created_at)
+) COMMENT '用户行为核心表（高频查询字段）';
+
+-- 用户行为详情表（低频查询大字段，用于深度分析）
+CREATE TABLE IF NOT EXISTS user_behavior_logs_details (
+    id BIGINT PRIMARY KEY COMMENT '行为ID（与核心表一致）',
+    referrer_url VARCHAR(500) COMMENT '来源页面',
+    behavior_context JSON COMMENT '行为上下文（设备、位置等）',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    
+    INDEX idx_id (id),
+    INDEX idx_created_at (created_at)
+) COMMENT '用户行为详情表（低频查询大字段）';
 
 -- 场景推荐表（基于用户场景的个性化推荐）
 CREATE TABLE IF NOT EXISTS scenario_recommendations (
@@ -244,24 +258,24 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 4, 3, 'limited_time', 0.85, 1, '{"reason": "限时优惠搭配性能升级", "highlight": "限时特惠组合"}', true, '2026-02-03 00:00:00');
 
 -- 插入销量统计数据（单一表设计）
-INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, cart_count, conversion_rate, is_trending) VALUES
+INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, share_count, cart_count, avg_rating, review_count, return_count) VALUES
 -- 日粒度数据
-(1, 'daily', '2026-02-01', 1, 25, 7475.00, 25.5, 500, 45, 30, 3.0, true),
-(2, 'daily', '2026-02-01', 2, 18, 3582.00, 18.3, 450, 35, 25, 2.8, true),
-(3, 'daily', '2026-02-01', 3, 12, 71988.00, 30.1, 600, 50, 35, 3.5, false),
-(4, 'daily', '2026-02-01', 4, 8, 39992.00, 15.7, 400, 30, 20, 2.5, false),
+(1, 'daily', '2026-02-01', 1, 25, 7475.00, 25.5, 500, 45, 15, 30, 4.5, 20, 1),
+(2, 'daily', '2026-02-01', 2, 18, 3582.00, 18.3, 450, 35, 8, 25, 4.8, 15, 0),
+(3, 'daily', '2026-02-01', 3, 12, 71988.00, 30.1, 600, 50, 5, 35, 4.2, 8, 1),
+(4, 'daily', '2026-02-01', 4, 8, 39992.00, 15.7, 400, 30, 20, 20, 4.7, 12, 0),
 
 -- 月粒度数据
-(1, 'monthly', '2026-02-01', 1, 80, 23920.00, 15.2, 2500, 120, 80, 3.2, true),
-(2, 'monthly', '2026-02-01', 2, 60, 11940.00, 12.8, 2000, 100, 70, 2.9, true),
-(3, 'monthly', '2026-02-01', 3, 40, 239952.00, 18.5, 8000, 400, 300, 3.8, false),
-(4, 'monthly', '2026-02-01', 4, 30, 149976.00, 14.3, 6000, 300, 200, 3.1, false),
+(1, 'monthly', '2026-02-01', 1, 80, 23920.00, 15.2, 2500, 120, 45, 80, 4.5, 80, 4),
+(2, 'monthly', '2026-02-01', 2, 60, 11940.00, 12.8, 2000, 100, 24, 70, 4.8, 60, 2),
+(3, 'monthly', '2026-02-01', 3, 40, 239952.00, 18.5, 8000, 400, 15, 300, 4.2, 32, 3),
+(4, 'monthly', '2026-02-01', 4, 30, 149976.00, 14.3, 6000, 300, 60, 200, 4.7, 48, 1),
 
 -- 年粒度数据
-(1, 'yearly', '2026-01-01', 1, 500, 149500.00, 20.5, 15000, 800, 500, 3.5, true),
-(2, 'yearly', '2026-01-01', 2, 350, 69650.00, 18.2, 12000, 600, 400, 3.2, true),
-(3, 'yearly', '2026-01-01', 3, 250, 1499760.00, 15.8, 50000, 2500, 1800, 3.6, false),
-(4, 'yearly', '2026-01-01', 4, 200, 999840.00, 13.5, 40000, 2000, 1500, 3.3, false);
+(1, 'yearly', '2026-01-01', 1, 500, 149500.00, 20.5, 15000, 800, 180, 500, 4.5, 400, 20),
+(2, 'yearly', '2026-01-01', 2, 350, 69650.00, 18.2, 12000, 600, 96, 400, 4.8, 280, 10),
+(3, 'yearly', '2026-01-01', 3, 250, 1499760.00, 15.8, 50000, 2500, 60, 1800, 4.2, 200, 15),
+(4, 'yearly', '2026-01-01', 4, 200, 999840.00, 13.5, 40000, 2000, 240, 1500, 4.7, 240, 8);
 
 
 
@@ -295,14 +309,39 @@ INSERT INTO product_tag_relations (product_id, tag_id) VALUES
 (4, 7),  -- 智能手机 - 旗舰
 (5, 8);  -- 男士衬衫 - 纯棉
 
--- 插入用户行为日志数据
-INSERT INTO user_behavior_logs (user_id, product_id, behavior_type, behavior_weight, session_id, referrer_url, behavior_context) VALUES
-(1001, 1, 'view', 1.0, 'session001', 'https://example.com/products', '{"device": "mobile", "location": "北京"}'),
-(1001, 1, 'favorite', 1.5, 'session001', 'https://example.com/products/1', '{"device": "mobile", "location": "北京"}'),
-(1002, 2, 'view', 1.0, 'session002', 'https://example.com/products', '{"device": "desktop", "location": "上海"}'),
-(1002, 2, 'cart', 2.0, 'session002', 'https://example.com/products/2', '{"device": "desktop", "location": "上海"}'),
-(1003, 3, 'view', 1.0, 'session003', 'https://example.com/products', '{"device": "tablet", "location": "广州"}'),
-(1003, 3, 'purchase', 3.0, 'session003', 'https://example.com/products/3', '{"device": "tablet", "location": "广州"}');
+-- 插入用户行为日志核心数据
+INSERT INTO user_behavior_logs_core (user_id, product_id, behavior_type, behavior_weight, session_id) VALUES
+(1001, 1, 'view', 1.0, 'session001'),
+(1001, 1, 'favorite', 1.5, 'session001'),
+(1001, 1, 'share', 1.2, 'session001'),
+(1002, 2, 'view', 1.0, 'session002'),
+(1002, 2, 'cart', 2.0, 'session002'),
+(1002, 2, 'share', 1.2, 'session002'),
+(1003, 3, 'view', 1.0, 'session003'),
+(1003, 3, 'purchase', 3.0, 'session003'),
+(1003, 3, 'share', 1.2, 'session003'),
+(1001, 4, 'view', 1.0, 'session001'),
+(1001, 4, 'share', 1.2, 'session001'),
+(1002, 1, 'share', 1.2, 'session002'),
+(1003, 2, 'favorite', 1.5, 'session003'),
+(1003, 4, 'cart', 2.0, 'session003');
+
+-- 插入用户行为日志详情数据（与核心表ID对应）
+INSERT INTO user_behavior_logs_details (id, referrer_url, behavior_context) VALUES
+(1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', '{"device": "mobile", "location": "北京"}'),
+(2, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', '{"device": "mobile", "location": "北京"}'),
+(3, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', '{"device": "mobile", "location": "北京", "sharing_type": "wechat"}'),
+(4, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '{"device": "desktop", "location": "上海"}'),
+(5, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '{"device": "desktop", "location": "上海"}'),
+(6, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '{"device": "desktop", "location": "上海", "sharing_type": "weibo"}'),
+(7, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop', '{"device": "tablet", "location": "广州"}'),
+(8, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop', '{"device": "tablet", "location": "广州"}'),
+(9, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop', '{"device": "tablet", "location": "广州", "sharing_type": "link"}'),
+(10, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', '{"device": "mobile", "location": "北京"}'),
+(11, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', '{"device": "mobile", "location": "北京", "sharing_type": "wechat"}'),
+(12, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', '{"device": "desktop", "location": "上海", "sharing_type": "qq"}'),
+(13, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '{"device": "tablet", "location": "广州"}'),
+(14, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', '{"device": "tablet", "location": "广州"}');
 
 -- 插入推荐效果追踪数据
 INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count, click_count, conversion_count, last_impressed_at, last_clicked_at) VALUES

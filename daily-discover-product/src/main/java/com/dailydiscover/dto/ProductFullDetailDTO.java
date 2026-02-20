@@ -4,14 +4,13 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 完整商品详情数据传输对象
  * 聚合所有商品相关信息，供前端商品详情页面使用
  */
 @Data
-public class ProductDetailDTO {
+public class ProductFullDetailDTO {
     
     // 商品基础信息
     private Long id;
