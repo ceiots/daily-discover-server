@@ -34,15 +34,17 @@ VITE_API_BASE_URL=https://myapp.dailydiscover.top/v1/products
 - 更新商品: `PUT ${API_BASE_URL}/products/{id}`
 - 删除商品: `DELETE ${API_BASE_URL}/products/{id}`
 
-#### ProductDetailController - 商品详情
-**接口功能**: 商品图片、规格参数、特性、相关商品推荐等
+#### ProductDetailController - 商品详情（电商媒体管理）
+**接口功能**: 商品媒体资源管理、轮播图、详情图、视频、图片等媒体资源查询
 
 **API端点**:
-- 获取商品图片列表: `GET ${API_BASE_URL}/{productId}/images`
-- 获取商品规格参数: `GET ${API_BASE_URL}/{productId}/specifications`
-- 获取商品特性: `GET ${API_BASE_URL}/{productId}/features`
-- 获取相关商品推荐: `GET ${API_BASE_URL}/{productId}/related`
-- 获取完整商品详情: `GET ${API_BASE_URL}/{productId}/full-detail`
+- 获取商品所有媒体详情: `GET ${API_BASE_URL}/products/{productId}/details/all`
+- 获取商品轮播图（媒体类型=1）: `GET ${API_BASE_URL}/products/{productId}/details/carousel`
+- 获取商品详情图（媒体类型=2）: `GET ${API_BASE_URL}/products/{productId}/details/detail-images`
+- 获取商品视频（is_video=1）: `GET ${API_BASE_URL}/products/{productId}/details/videos`
+- 获取商品图片（is_video=0）: `GET ${API_BASE_URL}/products/{productId}/details/images`
+- 根据媒体类型获取商品媒体: `GET ${API_BASE_URL}/products/{productId}/details/media-type/{mediaType}`
+- 获取相关商品推荐: `GET ${API_BASE_URL}/products/{productId}/details/related`
 
 ### 2. 商品SKU管理
 

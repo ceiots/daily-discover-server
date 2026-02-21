@@ -1,8 +1,8 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
-import com.dailydiscover.dto.ProductFullDetailDTO;
 import com.dailydiscover.model.Product;
+import com.dailydiscover.model.ProductDetail;
 import com.dailydiscover.service.ProductDetailService;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -13,45 +13,85 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 商品详情控制器（电商媒体管理）
+ */
 @RestController
-@RequestMapping("/{productId}")
+@RequestMapping("/{productId}/details")
 @RequiredArgsConstructor
 public class ProductDetailController {
     
     private final ProductDetailService productDetailService;
     private final ProductService productService;
 
-    @GetMapping("/images")
-    @ApiLog("获取商品图片列表")
+    @GetMapping("/all")
+    @ApiLog("获取商品所有媒体详情")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<List<String>> getProductImages(@PathVariable Long productId) {
+    public ResponseEntity<List<ProductDetail>> getAllProductMedia(@PathVariable Long productId) {
         try {
-            List<String> images = productDetailService.getProductImages(productId);
+            List<ProductDetail> mediaDetails = productDetailService.findByProductId(productId);
+            return ResponseEntity.ok(mediaDetails);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/carousel")
+    @ApiLog("获取商品轮播图")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<ProductDetail>> getProductCarousel(@PathVariable Long productId) {
+        try {
+            List<ProductDetail> carouselImages = productDetailService.getProductCarousel(productId);
+            return ResponseEntity.ok(carouselImages);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/detail-images")
+    @ApiLog("获取商品详情图")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<ProductDetail>> getProductDetailImages(@PathVariable Long productId) {
+        try {
+            List<ProductDetail> detailImages = productDetailService.getProductDetailImages(productId);
+            return ResponseEntity.ok(detailImages);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/videos")
+    @ApiLog("获取商品视频")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<ProductDetail>> getProductVideos(@PathVariable Long productId) {
+        try {
+            List<ProductDetail> videos = productDetailService.getProductVideos(productId);
+            return ResponseEntity.ok(videos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/images")
+    @ApiLog("获取商品图片")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<ProductDetail>> getProductImages(@PathVariable Long productId) {
+        try {
+            List<ProductDetail> images = productDetailService.getProductImages(productId);
             return ResponseEntity.ok(images);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
-    @GetMapping("/specifications")
-    @ApiLog("获取商品规格参数")
+    @GetMapping("/media-type/{mediaType}")
+    @ApiLog("根据媒体类型获取商品媒体")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<List<String>> getProductSpecifications(@PathVariable Long productId) {
+    public ResponseEntity<List<ProductDetail>> getProductMediaByType(@PathVariable Long productId, 
+                                                                    @PathVariable Integer mediaType) {
         try {
-            List<String> specifications = productDetailService.getProductSpecifications(productId);
-            return ResponseEntity.ok(specifications);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/features")
-    @ApiLog("获取商品特性")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<String>> getProductFeatures(@PathVariable Long productId) {
-        try {
-            List<String> features = productDetailService.getProductFeatures(productId);
-            return ResponseEntity.ok(features);
+            List<ProductDetail> mediaDetails = productDetailService.findByProductIdAndMediaType(productId, mediaType);
+            return ResponseEntity.ok(mediaDetails);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -72,21 +112,6 @@ public class ProductDetailController {
                 return ResponseEntity.ok(products);
             }
             return ResponseEntity.ok(List.of());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/full-detail")
-    @ApiLog("获取完整商品详情")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<ProductFullDetailDTO> getProductFullDetail(@PathVariable Long productId) {
-        try {
-            ProductFullDetailDTO productDetail = productDetailService.getProductFullDetail(productId);
-            if (productDetail != null) {
-                return ResponseEntity.ok(productDetail);
-            }
-            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
