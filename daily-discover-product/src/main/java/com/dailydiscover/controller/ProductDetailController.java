@@ -104,12 +104,16 @@ public class ProductDetailController {
         try {
             Product product = productService.findById(productId);
             if (product != null) {
-                List<Product> products = productService.findAll();
-                products = products.stream()
+                // 基于分类获取相关商品（更合理的推荐逻辑）
+                List<Product> relatedProducts = productService.findByCategoryId(product.getCategoryId());
+                
+                // 过滤掉当前商品，并限制返回数量
+                relatedProducts = relatedProducts.stream()
                     .filter(p -> !p.getId().equals(productId))
-                    .limit(10)
+                    .limit(8)
                     .collect(Collectors.toList());
-                return ResponseEntity.ok(products);
+                
+                return ResponseEntity.ok(relatedProducts);
             }
             return ResponseEntity.ok(List.of());
         } catch (Exception e) {
