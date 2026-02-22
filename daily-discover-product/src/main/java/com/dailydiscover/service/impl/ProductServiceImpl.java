@@ -3,6 +3,7 @@ package com.dailydiscover.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.model.Product;
+import com.dailydiscover.model.dto.ProductBasicInfoDTO;
 import com.dailydiscover.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +54,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
     
     @Override
-    public List<Product> findAll() {
-        return list();
+    public ProductBasicInfoDTO findBasicInfoById(Long id) {
+        return productMapper.findBasicInfoById(id);
     }
     
     @Override

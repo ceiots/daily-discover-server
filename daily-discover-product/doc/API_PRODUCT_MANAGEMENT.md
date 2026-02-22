@@ -20,8 +20,7 @@ VITE_API_BASE_URL=https://myapp.dailydiscover.top/v1/products
 **接口功能**: 商品CRUD操作、商家商品查询、商品搜索、热门商品、新品推荐等
 
 **API端点**:
-- 获取所有商品: `GET ${API_BASE_URL}/products`
-- 根据ID获取商品: `GET ${API_BASE_URL}/products/{id}`
+- 根据ID获取商品基础信息（分层加载第一层）: `GET ${API_BASE_URL}/products/{id}`
 - 根据商家ID获取商品: `GET ${API_BASE_URL}/products/seller/{sellerId}`
 - 根据分类ID获取商品: `GET ${API_BASE_URL}/products/category/{categoryId}`
 - 获取热门商品: `GET ${API_BASE_URL}/products/hot`

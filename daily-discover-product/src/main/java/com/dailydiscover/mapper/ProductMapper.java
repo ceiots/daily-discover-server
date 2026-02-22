@@ -2,6 +2,7 @@ package com.dailydiscover.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.model.Product;
+import com.dailydiscover.model.dto.ProductBasicInfoDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -51,4 +52,26 @@ public interface ProductMapper extends BaseMapper<Product> {
      */
     @Select("SELECT * FROM products WHERE is_recommended = true AND status = 'active' ORDER BY rating DESC")
     List<Product> findRecommendedProducts();
+    
+    /**
+     * 根据ID查询商品基础信息（包含所有首屏显示所需信息）
+     */
+    @Select("SELECT " +
+            "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
+            "p.min_price, p.max_price, p.main_image_url, " +
+            "pd.description as recommendation, " +
+            "p.min_price as current_price, p.max_price as original_price, " +
+            "CASE WHEN p.max_price > p.min_price THEN ROUND((p.max_price - p.min_price) / p.max_price * 100, 0) ELSE 0 END as discount, " +
+            "COALESCE(pss.sales_count, 0) as sales, " +
+            "CASE WHEN COALESCE(pss.sales_count, 0) > 100 THEN '热销中' WHEN COALESCE(pss.sales_count, 0) > 50 THEN '销量不错' ELSE '新品上架' END as urgency_hint, " +
+            "COALESCE(rs.average_rating, 0) as rating, COALESCE(rs.total_reviews, 0) as reviews, " +
+            "s.name as seller_name, s.rating as seller_rating, " +
+            "p.created_at, p.updated_at " +
+            "FROM products p " +
+            "LEFT JOIN product_details pd ON p.id = pd.product_id AND pd.media_type = 1 " +
+            "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +
+            "LEFT JOIN review_stats rs ON p.id = rs.product_id " +
+            "LEFT JOIN sellers s ON p.seller_id = s.id " +
+            "WHERE p.id = #{id} AND p.status = 1 AND p.is_deleted = 0")
+    ProductBasicInfoDTO findBasicInfoById(@Param("id") Long id);
 }

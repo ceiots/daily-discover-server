@@ -2,6 +2,7 @@ package com.dailydiscover.controller;
 
 import com.dailydiscover.common.annotation.ApiLog;
 import com.dailydiscover.model.*;
+import com.dailydiscover.model.dto.ProductBasicInfoDTO;
 import com.dailydiscover.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,22 +19,11 @@ public class ProductController {
     private final ProductService productService;
     
     @GetMapping("/{id}")
-    @ApiLog("根据ID获取商品")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    @ApiLog("根据ID获取商品基础信息")
+    public ResponseEntity<ProductBasicInfoDTO> getProductById(@PathVariable Long id) {
         try {
-            Product product = productService.findById(id);
-            return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping
-    @ApiLog("获取所有商品")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        try {
-            List<Product> products = productService.findAll();
-            return ResponseEntity.ok(products);
+            ProductBasicInfoDTO productBasicInfo = productService.findBasicInfoById(id);
+            return productBasicInfo != null ? ResponseEntity.ok(productBasicInfo) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

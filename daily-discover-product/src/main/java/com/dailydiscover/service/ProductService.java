@@ -1,6 +1,7 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.Product;
+import com.dailydiscover.model.dto.ProductBasicInfoDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
@@ -42,9 +43,9 @@ public interface ProductService extends IService<Product> {
     Product findById(Long id);
     
     /**
-     * 查询所有商品
+     * 根据ID查询商品基础信息（包含所有首屏显示所需信息）
      */
-    List<Product> findAll();
+    ProductBasicInfoDTO findBasicInfoById(Long id);
     
     /**
      * 保存商品
