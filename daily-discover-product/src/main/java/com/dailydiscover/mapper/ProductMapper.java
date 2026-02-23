@@ -58,14 +58,13 @@ public interface ProductMapper extends BaseMapper<Product> {
      */
     @Select("SELECT " +
             "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
-            "p.min_price, p.max_price, p.main_image_url, " +
-            "pd.description as recommendation, " +
-            "p.min_price as current_price, p.max_price as original_price, " +
-            "CASE WHEN p.max_price > p.min_price THEN ROUND((p.max_price - p.min_price) / p.max_price * 100, 0) ELSE 0 END as discount, " +
-            "COALESCE(pss.sales_count, 0) as sales, " +
-            "CASE WHEN COALESCE(pss.sales_count, 0) > 100 THEN '热销中' WHEN COALESCE(pss.sales_count, 0) > 50 THEN '销量不错' ELSE '新品上架' END as urgency_hint, " +
-            "COALESCE(rs.average_rating, 0) as rating, COALESCE(rs.total_reviews, 0) as reviews, " +
-            "s.name as seller_name, s.rating as seller_rating, " +
+            "p.min_price, p.max_price, p.main_image_url, p.base_recommendation, " +
+            "p.min_price, p.max_price, " +
+            "CASE WHEN p.max_price > p.min_price THEN ROUND((p.max_price - p.min_price) / p.max_price * 100, 0) ELSE 0 END, " +
+            "COALESCE(pss.sales_count, 0), " +
+            "CASE WHEN COALESCE(pss.sales_count, 0) > 100 THEN '热销中' WHEN COALESCE(pss.sales_count, 0) > 50 THEN '销量不错' ELSE '新品上架' END, " +
+            "COALESCE(rs.average_rating, 0), COALESCE(rs.total_reviews, 0), " +
+            "s.name, s.rating, " +
             "p.created_at, p.updated_at " +
             "FROM products p " +
             "LEFT JOIN product_details pd ON p.id = pd.product_id AND pd.media_type = 1 " +
