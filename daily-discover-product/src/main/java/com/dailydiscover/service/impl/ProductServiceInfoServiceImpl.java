@@ -32,4 +32,12 @@ public class ProductServiceInfoServiceImpl implements ProductServiceInfoService 
     public List<ProductServiceInfoDTO.ServiceCategoryDTO> getEnabledCategories() {
         return productServiceInfoMapper.findAllEnabledCategories();
     }
+    
+    /**
+     * 根据分类ID获取信息项
+     */
+    @Override
+    public List<ProductServiceInfoDTO> getInfoItemsByCategoryId(Long categoryId) {
+        return productServiceInfoMapper.findInfoItemsByCategoryId(categoryId);
+    }
 }

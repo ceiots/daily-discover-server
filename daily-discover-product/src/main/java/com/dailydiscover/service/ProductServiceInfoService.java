@@ -18,4 +18,9 @@ public interface ProductServiceInfoService {
      * 获取所有启用的产品服务信息分类
      */
     List<ProductServiceInfoDTO.ServiceCategoryDTO> getEnabledCategories();
+    
+    /**
+     * 根据分类ID获取信息项
+     */
+    List<ProductServiceInfoDTO> getInfoItemsByCategoryId(Long categoryId);
 }

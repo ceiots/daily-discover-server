@@ -45,6 +45,14 @@ VITE_API_BASE_URL=https://myapp.dailydiscover.top/v1/products
 - 根据媒体类型获取商品媒体: `GET ${API_BASE_URL}/products/{productId}/details/media-type/{mediaType}`
 - 获取相关商品推荐: `GET ${API_BASE_URL}/products/{productId}/details/related`
 
+#### ProductServiceInfoController - 产品服务信息管理
+**接口功能**: 产品参数、售后服务、认证信息等可扩展服务信息的查询
+
+**API端点**:
+- 获取商品的产品服务信息: `GET ${API_BASE_URL}/products/{productId}/service-info`
+- 获取所有启用的产品服务信息分类: `GET ${API_BASE_URL}/products/service-info/categories`
+- 根据分类ID获取信息项: `GET ${API_BASE_URL}/products/service-info/categories/{categoryId}/items`
+
 ### 2. 商品SKU管理
 
 #### ProductSkuController - 商品SKU管理

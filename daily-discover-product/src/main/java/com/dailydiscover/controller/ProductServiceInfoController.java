@@ -49,4 +49,20 @@ public class ProductServiceInfoController {
         
         return ResponseEntity.ok(categories);
     }
+    
+    /**
+     * 根据分类ID获取信息项
+     */
+    @GetMapping("/service-info/categories/{categoryId}/items")
+    public ResponseEntity<List<ProductServiceInfoDTO>> getInfoItemsByCategoryId(
+            @PathVariable("categoryId") Long categoryId) {
+        
+        List<ProductServiceInfoDTO> infoItems = productServiceInfoService.getInfoItemsByCategoryId(categoryId);
+        
+        if (infoItems.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        
+        return ResponseEntity.ok(infoItems);
+    }
 }
