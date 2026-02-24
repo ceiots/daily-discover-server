@@ -1,6 +1,6 @@
 package com.dailydiscover.controller;
 
-import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.common.logging.ApiLog;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.model.ProductDetail;
 import com.dailydiscover.service.ProductDetailService;

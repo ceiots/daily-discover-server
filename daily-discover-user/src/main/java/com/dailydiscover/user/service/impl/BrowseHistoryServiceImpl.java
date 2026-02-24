@@ -5,7 +5,7 @@ import com.dailydiscover.user.dto.BrowseHistoryResponse;
 import com.dailydiscover.user.entity.BrowseHistory;
 import com.dailydiscover.user.mapper.BrowseHistoryMapper;
 import com.dailydiscover.user.service.BrowseHistoryService;
-import com.dailydiscover.common.util.LogTracer;
+import com.dailydiscover.common.logging.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

@@ -5,6 +5,7 @@ import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.model.Product;
 import com.dailydiscover.model.dto.ProductBasicInfoDTO;
 import com.dailydiscover.service.ProductService;
+import com.dailydiscover.common.logging.LogTracer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     
     @Override
     public ProductBasicInfoDTO findBasicInfoById(Long id) {
-        return productMapper.findBasicInfoById(id);
+        ProductBasicInfoDTO result = productMapper.findBasicInfoById(id);
+        // 记录数据库查询结果
+        LogTracer.traceDatabaseQuery("findBasicInfoById", id, result);
+        return result;
     }
     
     @Override

@@ -1,6 +1,6 @@
 package com.dailydiscover.controller;
 
-import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.common.logging.ApiLog;
 import com.dailydiscover.model.ScenarioRecommendation;
 import com.dailydiscover.service.ScenarioRecommendationService;
 import lombok.RequiredArgsConstructor;

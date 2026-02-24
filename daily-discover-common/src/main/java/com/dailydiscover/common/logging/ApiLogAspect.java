@@ -1,8 +1,5 @@
-package com.dailydiscover.common.aspect;
+package com.dailydiscover.common.logging;
 
-import com.dailydiscover.common.annotation.ApiLog;
-import com.dailydiscover.common.config.ApiLogConfig;
-import com.dailydiscover.common.util.ApiLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -32,7 +29,7 @@ public class ApiLogAspect {
     /**
      * 定义切点：所有标记了@ApiLog注解的方法
      */
-    @Pointcut("@annotation(com.dailydiscover.common.annotation.ApiLog)")
+    @Pointcut("@annotation(com.dailydiscover.common.logging.ApiLog)")
     public void apiLogPointcut() {}
     
     /**

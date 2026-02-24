@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import com.dailydiscover.user.dto.*;
 import com.dailydiscover.user.entity.User;
 import com.dailydiscover.user.service.AuthService;
-import com.dailydiscover.common.util.LogTracer;
+import com.dailydiscover.common.logging.LogTracer;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;

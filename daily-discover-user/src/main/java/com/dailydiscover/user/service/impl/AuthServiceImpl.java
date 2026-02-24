@@ -10,7 +10,7 @@ import com.dailydiscover.user.mapper.UserMapper;
 import com.dailydiscover.user.mapper.UserTokenMapper;
 import com.dailydiscover.user.service.AuthService;
 import com.dailydiscover.common.security.JwtUtil;
-import com.dailydiscover.common.util.LogTracer;
+import com.dailydiscover.common.logging.LogTracer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

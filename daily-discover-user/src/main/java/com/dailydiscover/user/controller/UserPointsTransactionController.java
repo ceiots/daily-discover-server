@@ -3,7 +3,7 @@ package com.dailydiscover.user.controller;
 import com.dailydiscover.user.dto.UserPointsTransactionResponse;
 import com.dailydiscover.user.entity.UserPointsTransaction;
 import com.dailydiscover.user.service.UserPointsTransactionService;
-import com.dailydiscover.common.util.LogTracer;
+import com.dailydiscover.common.logging.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

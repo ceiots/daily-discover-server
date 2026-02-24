@@ -1,4 +1,4 @@
-package com.dailydiscover.common.config;
+package com.dailydiscover.common.logging;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -5,7 +5,7 @@ import com.dailydiscover.user.dto.UserCollectionResponse;
 import com.dailydiscover.user.entity.UserCollection;
 import com.dailydiscover.user.mapper.UserCollectionMapper;
 import com.dailydiscover.user.service.UserCollectionService;
-import com.dailydiscover.common.util.LogTracer;
+import com.dailydiscover.common.logging.LogTracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

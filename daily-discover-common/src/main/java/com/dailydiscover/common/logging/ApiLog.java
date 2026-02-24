@@ -1,4 +1,4 @@
-package com.dailydiscover.common.annotation;
+package com.dailydiscover.common.logging;
 
 import java.lang.annotation.*;
 

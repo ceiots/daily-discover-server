@@ -1,6 +1,6 @@
 package com.dailydiscover.controller;
 
-import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.common.logging.ApiLog;
 import com.dailydiscover.model.ProductTag;
 import com.dailydiscover.service.ProductTagService;
 import lombok.RequiredArgsConstructor;

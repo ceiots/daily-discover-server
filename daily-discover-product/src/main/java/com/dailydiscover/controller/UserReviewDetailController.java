@@ -1,6 +1,6 @@
 package com.dailydiscover.controller;
 
-import com.dailydiscover.common.annotation.ApiLog;
+import com.dailydiscover.common.logging.ApiLog;
 import com.dailydiscover.model.UserReviewDetail;
 import com.dailydiscover.service.UserReviewDetailService;
 import lombok.RequiredArgsConstructor;

@@ -1,0 +1,47 @@
+== Info: Host ceiots.tailb3fdd6.ts.net:443 was resolved.
+== Info: IPv6: (none)
+== Info: IPv4: 100.66.16.45
+== Info:   Trying 100.66.16.45:443...
+== Info: schannel: disabled automatic use of client certificate
+== Info: ALPN: curl offers http/1.1
+== Info: ALPN: server accepted http/1.1
+== Info: Connected to ceiots.tailb3fdd6.ts.net (100.66.16.45) port 443
+== Info: using HTTP/1.x
+=> Send header, 146 bytes (0x92)
+0000: GET /v1/products/1 HTTP/1.1
+001d: Host: ceiots.tailb3fdd6.ts.net
+003d: User-Agent: curl/8.14.1
+0056: Content-Type: application/json
+0076: Accept: application/json
+0090: 
+== Info: schannel: remote party requests renegotiation
+== Info: schannel: renegotiating SSL/TLS connection
+== Info: schannel: SSL/TLS connection renegotiated
+== Info: Request completely sent off
+<= Recv header, 36 bytes (0x24)
+0000: HTTP/1.1 500 Internal Server Error
+<= Recv header, 63 bytes (0x3f)
+0000: Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+<= Recv header, 19 bytes (0x13)
+0000: Content-Length: 0
+<= Recv header, 37 bytes (0x25)
+0000: Date: Tue, 24 Feb 2026 05:48:03 GMT
+<= Recv header, 12 bytes (0xc)
+0000: Expires: 0
+<= Recv header, 18 bytes (0x12)
+0000: Pragma: no-cache
+<= Recv header, 14 bytes (0xe)
+0000: Vary: Origin
+<= Recv header, 37 bytes (0x25)
+0000: Vary: Access-Control-Request-Method
+<= Recv header, 38 bytes (0x26)
+0000: Vary: Access-Control-Request-Headers
+<= Recv header, 33 bytes (0x21)
+0000: X-Content-Type-Options: nosniff
+<= Recv header, 23 bytes (0x17)
+0000: X-Frame-Options: DENY
+<= Recv header, 21 bytes (0x15)
+0000: X-Xss-Protection: 0
+<= Recv header, 2 bytes (0x2)
+0000: 
+== Info: Connection #0 to host ceiots.tailb3fdd6.ts.net left intact
