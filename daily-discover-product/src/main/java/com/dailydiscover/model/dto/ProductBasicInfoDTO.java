@@ -34,8 +34,8 @@ public class ProductBasicInfoDTO {
     private Integer total_reviews; // 评价数量
     
     // 商家信息
-    private String name;
-    private String rating;
+    private String seller_name;
+    private String seller_rating;
     
     // 时间信息
     private LocalDateTime createdAt;
