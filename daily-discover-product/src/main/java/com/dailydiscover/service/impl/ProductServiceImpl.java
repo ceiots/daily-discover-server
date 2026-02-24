@@ -78,9 +78,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             if (result.getTitle() == null) result.setTitle("");
             if (result.getSeller_name() == null) result.setSeller_name("");
             if (result.getSeller_rating() == null) result.setSeller_rating("");
-            if (result.getRecommendationTitle() == null) result.setRecommendationTitle("");
-            if (result.getRecommendationDescription() == null) result.setRecommendationDescription("");
-            if (result.getRecommendationMetadata() == null) result.setRecommendationMetadata("");
         }
         
         // 追踪数据库查询结果

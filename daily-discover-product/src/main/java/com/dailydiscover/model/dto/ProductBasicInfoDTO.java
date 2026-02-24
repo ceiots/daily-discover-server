@@ -38,11 +38,8 @@ public class ProductBasicInfoDTO {
     private String seller_rating;
     
     // 时间信息
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime created_at;
+    private LocalDateTime updated_at;
     
-    // 推荐语信息
-    private String recommendationTitle;
-    private String recommendationDescription;
-    private String recommendationMetadata;
+
 }
