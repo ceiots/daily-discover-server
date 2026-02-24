@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS products (
     INDEX idx_category_status_price (category_id, status, min_price) COMMENT '分类状态价格查询',
     INDEX idx_created_at (created_at) COMMENT '新品推荐',
     INDEX idx_brand_model (brand, model) COMMENT '品牌型号查询',
+    INDEX idx_status_is_deleted (status, is_deleted) COMMENT '状态和删除状态复合索引',
     
     -- 软删除索引
     INDEX idx_is_deleted (is_deleted) COMMENT '软删除状态查询'
