@@ -11,30 +11,31 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * HTTP API日志记录器
- * 专门用于记录HTTP层面的API调用日志，包括请求/响应信息、状态码、性能等
- * 职责：HTTP协议层面的日志记录
+ * 专门用于记录HTTP层面的API调用日志，包括URL、HTTP方法、状态码、客户端IP等HTTP协议信息
+ * 职责：仅处理HTTP层面信息，不涉及业务逻辑追踪
  */
 @Slf4j
 @Component
 public class ApiLogger {
     
     /**
-     * 记录HTTP API调用信息（自动获取调用方法名）
+     * 记录HTTP API调用信息
      */
-    public static void logHttpApiCall(String apiDescription, HttpServletRequest request, Object response, long duration, boolean success) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        
-        // 如果apiDescription为空，自动获取调用方法名
-        String actualDescription = apiDescription;
-        if (apiDescription == null || apiDescription.trim().isEmpty()) {
-            actualDescription = extractMethodNameFromStackTrace();
+    public static void logHttpApiCall(String apiDescription, HttpServletRequest request, 
+                                     Object response, long duration, boolean success,
+                                     boolean logRequest, boolean logResponse) {
+        // 性能优化：仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
         }
         
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("🌐 HTTP API调用 | ").append(actualDescription)
+        logBuilder.append("🌐 HTTP API调用 | ").append(apiDescription)
                   .append(" | ").append(timestamp);
         
-        // HTTP层面信息
+        // HTTP层面信息（核心职责）
         logBuilder.append(" | URL: ").append(request.getRequestURL());
         logBuilder.append(" | 方法: ").append(request.getMethod());
         logBuilder.append(" | 客户端: ").append(getClientIP(request));
@@ -44,9 +45,11 @@ public class ApiLogger {
         logBuilder.append(" | 状态码: ").append(statusCode);
         logBuilder.append(" | 状态: ").append(success ? "成功" : "失败");
         
-        // 响应内容（简化版）
-        String responseContent = formatResponse(response);
-        logBuilder.append(" | 响应: ").append(responseContent);
+        // 响应内容（根据配置决定是否记录）
+        if (logResponse) {
+            String responseContent = formatResponseSafely(response);
+            logBuilder.append(" | 响应: ").append(responseContent);
+        }
         
         // 性能信息
         logBuilder.append(" | 耗时: ").append(duration).append("ms");
@@ -55,22 +58,22 @@ public class ApiLogger {
     }
     
     /**
-     * 记录HTTP API异常信息（自动获取调用方法名）
+     * 记录HTTP API异常信息
      */
-    public static void logHttpApiException(String apiDescription, HttpServletRequest request, Exception exception, long duration) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        
-        // 如果apiDescription为空，自动获取调用方法名
-        String actualDescription = apiDescription;
-        if (apiDescription == null || apiDescription.trim().isEmpty()) {
-            actualDescription = extractMethodNameFromStackTrace();
+    public static void logHttpApiException(String apiDescription, HttpServletRequest request, 
+                                          Exception exception, long duration) {
+        // 性能优化：仅在需要记录时执行
+        if (!log.isErrorEnabled()) {
+            return;
         }
         
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("❌ HTTP API异常 | ").append(actualDescription)
+        logBuilder.append("❌ HTTP API异常 | ").append(apiDescription)
                   .append(" | ").append(timestamp);
         
-        // HTTP层面信息
+        // HTTP层面信息（核心职责）
         logBuilder.append(" | URL: ").append(request.getRequestURL());
         logBuilder.append(" | 方法: ").append(request.getMethod());
         logBuilder.append(" | 客户端: ").append(getClientIP(request));
@@ -123,34 +126,31 @@ public class ApiLogger {
     }
     
     /**
-     * 格式化响应对象为字符串（简化版，仅用于HTTP层面）
+     * 安全格式化响应对象，防止大对象或循环引用导致的性能问题
      */
-    private static String formatResponse(Object response) {
+    private static String formatResponseSafely(Object response) {
         if (response == null) {
             return "null";
         }
         
-        // 简化处理：直接使用toString，限制长度
-        String str = response.toString();
-        return str.length() > 100 ? str.substring(0, 100) + "..." : str;
-    }
-    
-    /**
-     * 从调用栈中提取方法名（参考LogTracer实现）
-     */
-    private static String extractMethodNameFromStackTrace() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        
-        // 跳过ApiLogger类本身的方法调用，找到调用者的方法
-        for (int i = 3; i < stackTrace.length; i++) {
-            StackTraceElement element = stackTrace[i];
-            if (!element.getClassName().contains("ApiLogger") && 
-                !element.getClassName().contains("LogTracer") &&
-                !element.getClassName().contains("Aspect")) {
-                // 返回完整的类名和方法名
-                return element.getClassName() + "." + element.getMethodName();
+        try {
+            // 限制对象深度和长度，防止性能问题
+            String str = response.toString();
+            
+            // 安全检查：防止无限递归或超大对象
+            if (str.length() > 500) {
+                return str.substring(0, 500) + "... [内容过长已截断]";
             }
+            
+            // 检查是否包含内存地址（可能未重写toString）
+            if (str.contains("@") && str.matches(".*@[0-9a-f]+.*")) {
+                return "[对象实例，详细内容请使用LogTracer追踪]";
+            }
+            
+            return str;
+        } catch (Exception e) {
+            // 防止toString方法抛出异常
+            return "[格式化失败: " + e.getMessage() + "]";
         }
-        return "Unknown Method";
     }
 }

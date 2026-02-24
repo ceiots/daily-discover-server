@@ -64,15 +64,21 @@ public class ApiLogAspect {
         long startTime = System.currentTimeMillis();
         Object result;
         
+        // 读取@ApiLog注解配置（实际使用所有配置属性）
+        boolean logRequest = apiLog != null ? apiLog.logRequest() : true;
+        boolean logResponse = apiLog != null ? apiLog.logResponse() : true;
+        boolean logExecutionTime = apiLog != null ? apiLog.logExecutionTime() : true;
+        boolean logException = apiLog != null ? apiLog.logException() : true;
+        
         try {
             // 执行目标方法
             result = joinPoint.proceed();
-            long duration = System.currentTimeMillis() - startTime;
+            long duration = logExecutionTime ? System.currentTimeMillis() - startTime : -1;
             
-            // 记录成功日志
+            // 记录成功日志（根据注解配置，记录所有请求）
             HttpServletRequest request = getCurrentRequest();
             if (request != null) {
-                ApiLogger.logHttpApiCall(apiDescription, request, result, duration, true);
+                ApiLogger.logHttpApiCall(apiDescription, request, result, duration, true, logRequest, logResponse);
             }
             
             return result;
@@ -80,10 +86,12 @@ public class ApiLogAspect {
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
             
-            // 记录异常日志
-            HttpServletRequest request = getCurrentRequest();
-            if (request != null && throwable instanceof Exception) {
-                ApiLogger.logHttpApiException(apiDescription, request, (Exception) throwable, duration);
+            // 异常请求强制记录（不参与采样）
+            if (throwable instanceof Exception && logException) {
+                HttpServletRequest request = getCurrentRequest();
+                if (request != null) {
+                    ApiLogger.logHttpApiException(apiDescription, request, (Exception) throwable, duration);
+                }
             }
             
             throw throwable;

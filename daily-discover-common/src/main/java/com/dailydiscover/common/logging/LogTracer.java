@@ -39,6 +39,11 @@ public class LogTracer {
      * @param result 返回结果
      */
     public static <T> void traceBusinessMethod(Object params, T result) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
+        
         String callerLocation = getCallerLocation();
         String methodName = extractMethodNameFromStackTrace();
         log.info("📋 业务方法追踪 | 位置: {} | 方法: {} | 入参: {} | 出参: {}", callerLocation, methodName, params, result);
@@ -49,6 +54,10 @@ public class LogTracer {
      * @param params 入参信息
      */
     public static void traceBusinessMethodWithParams(Object params) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         traceBusinessMethod(params, null);
     }
     
@@ -57,6 +66,10 @@ public class LogTracer {
      * @param result 返回结果
      */
     public static <T> void traceBusinessMethodWithResult(T result) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         traceBusinessMethod(null, result);
     }
     
@@ -82,6 +95,10 @@ public class LogTracer {
      * @param result 查询结果
      */
     public static <T> void traceDatabaseQuery(String sql, Object params, T result) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         String callerLocation = getCallerLocation();
         String methodName = extractMethodNameFromStackTrace();
         log.info("🗃️  数据库查询 | 位置: {} | 方法: {} | SQL: {} | 参数: {} | 结果: {}", callerLocation, methodName, sql, params, result);
@@ -92,6 +109,10 @@ public class LogTracer {
      * @param data 请求或响应数据
      */
     public static void traceBusinessApiCall(Object data) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         String callerLocation = getCallerLocation();
         String methodName = extractMethodNameFromStackTrace();
         
@@ -118,6 +139,10 @@ public class LogTracer {
      * @param details 操作详情
      */
     public static void traceBusinessOperation(Object details) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         String callerLocation = getCallerLocation();
         String methodName = extractMethodNameFromStackTrace();
         log.info("💼 业务操作 | 位置: {} | 方法: {} | 详情: {}", callerLocation, methodName, details);
@@ -128,6 +153,10 @@ public class LogTracer {
      * @param exception 异常对象
      */
     public static void traceBusinessException(Exception exception) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isErrorEnabled()) {
+            return;
+        }
         String callerLocation = getCallerLocation();
         log.error("❌ 业务异常追踪 | 位置: {} | 异常类型: {} | 异常信息: {}", callerLocation, exception.getClass().getSimpleName(), exception.getMessage());
     }
@@ -137,6 +166,10 @@ public class LogTracer {
      * @param startTime 开始时间
      */
     public static void traceBusinessPerformance(long startTime) {
+        // 性能优化：懒加载，仅在需要记录时执行
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
         String callerLocation = getCallerLocation();

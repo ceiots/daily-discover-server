@@ -31,4 +31,19 @@ public class ApiLogConfig {
      * 需要排除的方法名（逗号分隔）
      */
     private String excludeMethods = "";
+    
+    /**
+     * 敏感字段列表（逗号分隔），自动脱敏
+     */
+    private String sensitiveFields = "password,phone,idCard,email,bankCard";
+    
+    /**
+     * 是否启用异步日志记录
+     */
+    private boolean asyncEnabled = false;
+    
+    /**
+     * 响应体最大记录长度（字符数）
+     */
+    private int maxResponseLength = 500;
 }

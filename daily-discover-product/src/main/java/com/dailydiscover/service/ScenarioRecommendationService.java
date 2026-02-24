@@ -55,4 +55,45 @@ public interface ScenarioRecommendationService extends IService<ScenarioRecommen
      * 获取活跃推荐（Controller中调用的方法）
      */
     java.util.List<ScenarioRecommendation> getActiveRecommendations();
+    
+    /**
+     * 生成推荐语
+     * @param request 推荐语生成请求
+     * @return 生成的推荐语
+     */
+    com.dailydiscover.model.dto.RecommendationPhraseResponseDTO generateRecommendationPhrase(
+            com.dailydiscover.model.dto.RecommendationPhraseRequestDTO request);
+    
+    /**
+     * 获取推荐语列表
+     * @param scenarioType 场景类型
+     * @param approvalStatus 审核状态（JSON路径查询）
+     * @return 推荐语列表
+     */
+    java.util.List<com.dailydiscover.model.dto.RecommendationPhraseResponseDTO> getRecommendationPhrases(
+            String scenarioType, String approvalStatus);
+    
+    /**
+     * 更新推荐语元数据
+     * @param id 推荐ID
+     * @param metadataJson 元数据JSON
+     * @return 是否成功
+     */
+    boolean updateRecommendationMetadata(Long id, String metadataJson);
+    
+    /**
+     * 记录推荐语使用
+     * @param id 推荐ID
+     * @return 是否成功
+     */
+    boolean recordRecommendationUsage(Long id);
+    
+    /**
+     * 根据商品ID获取推荐语（独立接口，不耦合商品逻辑）
+     * @param productId 商品ID
+     * @param scenarioType 场景类型
+     * @return 推荐语信息
+     */
+    com.dailydiscover.model.dto.RecommendationPhraseResponseDTO getProductRecommendation(
+            Long productId, String scenarioType);
 }

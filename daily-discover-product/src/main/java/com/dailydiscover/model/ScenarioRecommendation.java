@@ -38,8 +38,14 @@ public class ScenarioRecommendation {
     @TableField("success_rate")
     private Double successRate;
     
-    @TableField("avg_engagement")
-    private Double avgEngagement;
+    @TableField("recommendation_title")
+    private String recommendationTitle;
+    
+    @TableField("recommendation_description")
+    private String recommendationDescription;
+    
+    @TableField("recommendation_metadata")
+    private String recommendationMetadata;
     
     @TableField("created_at")
     private LocalDateTime createdAt;

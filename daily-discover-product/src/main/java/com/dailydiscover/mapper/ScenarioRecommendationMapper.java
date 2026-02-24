@@ -25,4 +25,16 @@ public interface ScenarioRecommendationMapper extends BaseMapper<ScenarioRecomme
      */
     @Select("SELECT * FROM scenario_recommendations WHERE user_id = #{userId} ORDER BY success_rate DESC")
     List<ScenarioRecommendation> findByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 根据商品ID和场景类型查询推荐语
+     */
+    @Select("SELECT * FROM scenario_recommendations " +
+            "WHERE scenario_type = #{scenarioType} " +
+            "AND recommendation_metadata->'$.approval_status' = 'approved' " +
+            "AND JSON_CONTAINS(recommended_products, CAST(#{productId} AS JSON)) " +
+            "ORDER BY (recommendation_metadata->'$.quality_score') DESC " +
+            "LIMIT 1")
+    ScenarioRecommendation findRecommendationByProductAndScenario(@Param("productId") Long productId, 
+                                                                @Param("scenarioType") String scenarioType);
 }

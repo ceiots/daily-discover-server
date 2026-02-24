@@ -105,4 +105,18 @@ public class ScenarioRecommendationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
+    @GetMapping("/product/{productId}/recommendation")
+    @ApiLog("获取商品推荐语")
+    public ResponseEntity<com.dailydiscover.model.dto.RecommendationPhraseResponseDTO> getProductRecommendation(
+            @PathVariable Long productId, 
+            @RequestParam(defaultValue = "product_detail") String scenarioType) {
+        try {
+            com.dailydiscover.model.dto.RecommendationPhraseResponseDTO recommendation = 
+                    scenarioRecommendationService.getProductRecommendation(productId, scenarioType);
+            return recommendation != null ? ResponseEntity.ok(recommendation) : ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

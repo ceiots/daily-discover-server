@@ -40,4 +40,9 @@ public class ProductBasicInfoDTO {
     // 时间信息
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // 推荐语信息
+    private String recommendationTitle;
+    private String recommendationDescription;
+    private String recommendationMetadata;
 }

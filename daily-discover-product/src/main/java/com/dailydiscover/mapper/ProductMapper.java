@@ -54,20 +54,16 @@ public interface ProductMapper extends BaseMapper<Product> {
     List<Product> findRecommendedProducts();
     
     /**
-     * 根据ID查询商品基础信息（包含所有首屏显示所需信息）
+     * 根据ID查询商品基础信息（极致性能优化版）
      */
     @Select("SELECT " +
             "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
             "p.min_price, p.max_price, p.main_image_url, " +
-            "p.min_price, p.max_price, " +
-            "CASE WHEN p.max_price > p.min_price THEN ROUND((p.max_price - p.min_price) / p.max_price * 100, 0) ELSE 0 END, " +
-            "COALESCE(pss.sales_count, 0), " +
-            "CASE WHEN COALESCE(pss.sales_count, 0) > 100 THEN '热销中' WHEN COALESCE(pss.sales_count, 0) > 50 THEN '销量不错' ELSE '新品上架' END, " +
-            "COALESCE(rs.average_rating, 0), COALESCE(rs.total_reviews, 0), " +
-            "s.name, s.rating, " +
+            "COALESCE(pss.sales_count, 0) as sales_count, " +
+            "COALESCE(rs.average_rating, 0) as average_rating, COALESCE(rs.total_reviews, 0) as total_reviews, " +
+            "s.name as seller_name, s.rating as seller_rating, " +
             "p.created_at, p.updated_at " +
             "FROM products p " +
-            "LEFT JOIN product_details pd ON p.id = pd.product_id AND pd.media_type = 1 " +
             "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +
             "LEFT JOIN review_stats rs ON p.id = rs.product_id " +
             "LEFT JOIN sellers s ON p.seller_id = s.id " +

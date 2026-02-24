@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS user_behavior_logs_details (
     INDEX idx_created_at (created_at)
 ) COMMENT '用户行为详情表（低频查询大字段）';
 
--- 场景推荐表（基于用户场景的个性化推荐）
+-- 场景推荐表（精简版，基于用户场景的个性化推荐）
 CREATE TABLE IF NOT EXISTS scenario_recommendations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     
@@ -135,19 +135,27 @@ CREATE TABLE IF NOT EXISTS scenario_recommendations (
     recommended_products JSON COMMENT '推荐商品ID列表',
     scenario_story VARCHAR(500) COMMENT '场景故事文案',
     
-    -- 效果指标
-    success_rate DECIMAL(5,4) COMMENT '场景成功率',
-    avg_engagement DECIMAL(5,2) COMMENT '平均参与度',
+    -- 推荐语核心内容
+    recommendation_title VARCHAR(200) COMMENT '推荐标题',
+    recommendation_description TEXT COMMENT '推荐描述',
+    
+    -- 推荐语元数据（JSON格式存储辅助信息）
+    recommendation_metadata JSON COMMENT '推荐语元数据：{"style": "default", "ai_generated": false, "approval_status": "pending", "quality_score": 0.0, "usage_count": 0}',
     
     -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
+    -- 核心索引
     INDEX idx_user_scenario (user_id, scenario_type) COMMENT '用户场景关联查询',
     INDEX idx_scenario_type (scenario_type),
     INDEX idx_time_slot (time_slot),
-    INDEX idx_user_state (user_state)
-) COMMENT '场景推荐表';
+    INDEX idx_user_state (user_state),
+    
+    -- 推荐语索引
+    INDEX idx_recommendation_metadata ((CAST(recommendation_metadata->'$.approval_status' AS CHAR(20)))) COMMENT '审核状态查询',
+    INDEX idx_recommendation_quality ((CAST(recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)))) COMMENT '质量评分查询'
+) COMMENT '场景推荐表（精简版）';
 
 -- 用户兴趣画像表（个性化推荐基础）
 CREATE TABLE IF NOT EXISTS user_interest_profiles (
@@ -349,17 +357,45 @@ INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count
 (2, 1002, 3, 1, 0, '2026-02-01 14:20:00', '2026-02-01 14:25:00'),
 (3, 1003, 8, 3, 2, '2026-02-01 16:45:00', '2026-02-01 16:50:00');
 
+-- 插入商品详情页通用场景推荐语
+INSERT INTO scenario_recommendations (
+    user_id, scenario_type, recommendation_title, recommendation_description, 
+    recommendation_metadata
+) VALUES
+-- 商品详情页通用推荐语（scenario_type = 'product_detail'）
+(NULL, 'product_detail', '智能手表推荐', '这款智能手表功能强大，适合运动健康监测，续航时间长，设计时尚。', '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
+(NULL, 'product_detail', '无线耳机推荐', '降噪效果出色，音质清晰通透，佩戴舒适，适合通勤和运动使用。', '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
+(NULL, 'product_detail', '笔记本电脑推荐', '轻薄便携，性能强劲，适合办公和学习使用，续航能力优秀。', '{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.88, "usage_count": 0}'),
+(NULL, 'product_detail', '智能手机推荐', '拍照效果出色，运行流畅，屏幕显示清晰，性价比高。', '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0}'),
+(NULL, 'product_detail', '男士衬衫推荐', '面料舒适，版型修身，适合商务和休闲场合，品质保证。', '{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.79, "usage_count": 0}');
+
 -- 插入场景推荐数据（包含通用模板和个性化推荐）
-INSERT INTO scenario_recommendations (user_id, scenario_type, time_slot, location_context, user_state, weather_conditions, recommended_products, scenario_story, success_rate, avg_engagement) VALUES
+INSERT INTO scenario_recommendations (
+    user_id, scenario_type, time_slot, location_context, user_state, 
+    weather_conditions, recommended_products, scenario_story,
+    recommendation_title, recommendation_description, recommendation_metadata
+) VALUES
 -- 通用模板（user_id为NULL）
-(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐', 0.75, 4.2),
-(NULL, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航', 0.68, 3.8),
+(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐',
+'清晨好物推荐，开启美好一天', '为您精选清晨必备好物，从早餐用具到个人护理，让每个清晨都充满活力与期待。',
+'{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.8, "usage_count": 0}'),
+(NULL, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航',
+'通勤必备神器，让路途更轻松', '精选通勤路上实用好物，降噪耳机、便携充电宝等，让您的通勤时光更加舒适高效。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.75, "usage_count": 0}'),
 
 -- 个性化推荐（关联具体用户）
-(1001, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天', 0.85, 4.8),
-(1002, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性', 0.78, 4.5),
-(1003, 'work', '09:00-12:00', '{"location": "office"}', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康', 0.72, 4.0),
-(1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境', 0.65, 3.5);
+(1001, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天',
+'科技达人专属，开启智能生活', '基于您的科技偏好，为您精选智能手表和智能家居设备，打造高效智能生活体验。',
+'{"style": "creative", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
+(1002, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性',
+'时尚通勤装备，展现个性魅力', '结合您的时尚品味，精选降噪耳机与时尚背包，让通勤路上也能展现独特风格。',
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
+(1003, 'work', '09:00-12:00', '{"location": "office"}', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康',
+'高效办公装备，提升工作效率', '针对办公场景需求，精选轻薄笔记本和人体工学椅，助您高效工作同时保护健康。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
+(1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境',
+'晚间放松时光，享受科技生活', '结束一天忙碌，用智能手机和智能家居设备打造舒适放松的晚间时光。',
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.7, "usage_count": 0}');
 
 -- 插入用户兴趣画像数据
 INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests) VALUES
