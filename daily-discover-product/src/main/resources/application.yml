@@ -53,6 +53,8 @@ logging:
     com.dailydiscover.mapper: DEBUG
     # AOP日志级别
     com.dailydiscover.common.aspect: INFO
+    # 日志组件级别
+    com.dailydiscover.common.logging: DEBUG
 
 # Actuator配置
 management:

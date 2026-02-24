@@ -5,20 +5,52 @@ Daily Discover Product Service 是一个基于 Spring Boot 的商品推荐服务
 
 
 #### 本地访问（推荐开发环境）
+### 商品基础信息接口
+
 ```bash
-# 测试服务健康状态和商品接口
-curl -X GET http://localhost:8092/actuator/health && echo "" && curl -X GET http://localhost:8092
+# 根据商品ID获取基础信息
+curl -X GET http://localhost:8092/1
+
+# 根据商家获取商品
+curl -X GET http://localhost:8092/seller/1
+
+# 根据分类获取商品
+curl -X GET http://localhost:8092/category/1
+```
+
+### 响应格式示例
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "智能护眼台灯",
+      "description": "智能调光，保护视力健康",
+      "imageUrl": "http://example.com/image.jpg",
+      "price": 159.00,
+      "originalPrice": 229.00,
+      "discount": 30,
+      "rating": 4.8,
+      "sales": 3200,
+      "category": "electronics",
+      "tags": ["晨间推荐", "办公必备"]
+    }
+  ],
+  "total": 10,
+  "page": 1,
+  "size": 10,
+  "timestamp": "2024-01-01T08:00:00Z"
+}
 ```
 
 
-**curl 命令：**
-```bash
-# 获取晨间推荐
-curl -X GET http://localhost:8092/products/recommendations/morning
+### 使用建议
 
-# 获取夜晚推荐
-curl -X GET http://localhost:8092/products/recommendations/evening
-```
+1. **时间策略**: 晨间推荐适合6-10点调用，夜晚推荐适合18-24点调用
+2. **缓存策略**: 推荐结果可缓存1-2小时，提高响应速度
+3. **个性化**: 可结合用户ID进行更精准的推荐
+4. **监控**: 建议监控接口响应时间和成功率
 
 
 

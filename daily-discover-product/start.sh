@@ -190,7 +190,7 @@ restart_service() {
     sleep 3
     
     # 调用独立的日志监控方法
-    monitor_logs_continuously
+    #monitor_logs_continuously
 }
  
 # 启动服务核心逻辑
