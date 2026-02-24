@@ -22,9 +22,6 @@ public class ProductBasicInfoDTO {
     private BigDecimal max_price;
     private String main_image_url;
     
-    // 推荐语/产品描述
-    private String base_recommendation;
-    
     // 折扣信息
     private BigDecimal discount; // 折扣
     

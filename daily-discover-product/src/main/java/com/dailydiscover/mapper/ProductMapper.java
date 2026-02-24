@@ -58,7 +58,7 @@ public interface ProductMapper extends BaseMapper<Product> {
      */
     @Select("SELECT " +
             "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
-            "p.min_price, p.max_price, p.main_image_url, p.base_recommendation, " +
+            "p.min_price, p.max_price, p.main_image_url, " +
             "p.min_price, p.max_price, " +
             "CASE WHEN p.max_price > p.min_price THEN ROUND((p.max_price - p.min_price) / p.max_price * 100, 0) ELSE 0 END, " +
             "COALESCE(pss.sales_count, 0), " +

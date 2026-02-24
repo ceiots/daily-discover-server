@@ -70,11 +70,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理其他异常 - RESTful风格：直接返回500状态码
+     * 处理服务层异常 - RESTful风格：直接返回500状态码，但记录更详细的上下文信息
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Void> handleException(Exception e) {
-        log.error("系统异常", e);
+        // 获取调用栈信息，识别服务层异常
+        StackTraceElement[] stackTrace = e.getStackTrace();
+        String serviceMethod = "未知方法";
+        
+        // 查找第一个服务层方法调用
+        for (StackTraceElement element : stackTrace) {
+            if (element.getClassName().contains("com.dailydiscover.service")) {
+                serviceMethod = element.getClassName().substring(element.getClassName().lastIndexOf('.') + 1) 
+                    + "." + element.getMethodName();
+                break;
+            }
+        }
+        
+        log.error("服务层异常 - 方法: {}, 异常: {}", serviceMethod, e.getMessage(), e);
         // 系统错误使用500 Internal Server Error状态码
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }

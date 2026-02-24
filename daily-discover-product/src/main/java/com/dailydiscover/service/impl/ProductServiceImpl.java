@@ -59,21 +59,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         // 追踪业务方法调用
         LogTracer.traceBusinessMethodWithParams(id);
         
-        try {
-            ProductBasicInfoDTO result = productMapper.findBasicInfoById(id);
-            
-            // 追踪数据库查询结果
-            LogTracer.traceDatabaseQuery("findBasicInfoById", id, result);
-            
-            // 追踪业务方法结果
-            LogTracer.traceBusinessMethodWithResult(result);
-            
-            return result;
-        } catch (Exception e) {
-            // 追踪业务异常
-            LogTracer.traceBusinessException(e);
-            throw e;
-        }
+        ProductBasicInfoDTO result = productMapper.findBasicInfoById(id);
+        
+        // 追踪数据库查询结果
+        LogTracer.traceDatabaseQuery("findBasicInfoById", id, result);
+        
+        // 追踪业务方法结果
+        LogTracer.traceBusinessMethodWithResult(result);
+        
+        return result;
     }
     
     @Override
