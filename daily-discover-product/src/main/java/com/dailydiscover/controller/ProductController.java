@@ -75,18 +75,6 @@ public class ProductController {
         }
     }
     
-    @GetMapping("/recommended")
-    @ApiLog("获取推荐产品")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<Product>> getRecommendedProducts() {
-        try {
-            List<Product> products = productService.findRecommendedProducts();
-            return ResponseEntity.ok(products);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
     @GetMapping("/daily-new")
     @ApiLog("获取每日上新商品")
     @PreAuthorize("permitAll()")
@@ -105,18 +93,6 @@ public class ProductController {
     public ResponseEntity<List<Product>> getHotspots() {
         try {
             List<Product> products = productService.findHotProducts();
-            return ResponseEntity.ok(products);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    @GetMapping("/tomorrow-contents")
-    @ApiLog("获取明日内容")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<List<Product>> getTomorrowContents() {
-        try {
-            List<Product> products = productService.findRecommendedProducts();
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

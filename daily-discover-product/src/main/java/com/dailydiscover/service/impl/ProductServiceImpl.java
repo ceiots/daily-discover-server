@@ -46,11 +46,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
     
     @Override
-    public List<Product> findRecommendedProducts() {
-        return productMapper.findRecommendedProducts();
-    }
-    
-    @Override
     public Product findById(Long id) {
         return getById(id);
     }
@@ -65,19 +60,19 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         // 确保所有字段都有默认值，避免返回null
         if (result != null) {
             // 设置默认值
-            if (result.getSeller_id() == null) result.setSeller_id(0L);
-            if (result.getCategory_id() == null) result.setCategory_id(0L);
-            if (result.getMin_price() == null) result.setMin_price(new BigDecimal("0.00"));
-            if (result.getMax_price() == null) result.setMax_price(new BigDecimal("0.00"));
-            if (result.getMain_image_url() == null) result.setMain_image_url("");
+            if (result.getSellerId() == null) result.setSellerId(0L);
+            if (result.getCategoryId() == null) result.setCategoryId(0L);
+            if (result.getMinPrice() == null) result.setMinPrice(new BigDecimal("0.00"));
+            if (result.getMaxPrice() == null) result.setMaxPrice(new BigDecimal("0.00"));
+            if (result.getMainImageUrl() == null) result.setMainImageUrl("");
             if (result.getDiscount() == null) result.setDiscount(new BigDecimal("0.00"));
-            if (result.getSales_count() == null) result.setSales_count(0);
-            if (result.getUrgency_hint() == null) result.setUrgency_hint("");
-            if (result.getAverage_rating() == null) result.setAverage_rating(new BigDecimal("0.00"));
-            if (result.getTotal_reviews() == null) result.setTotal_reviews(0);
+            if (result.getSalesCount() == null) result.setSalesCount(0);
+            if (result.getUrgencyHint() == null) result.setUrgencyHint("");
+            if (result.getAverageRating() == null) result.setAverageRating(new BigDecimal("0.00"));
+            if (result.getTotalReviews() == null) result.setTotalReviews(0);
             if (result.getTitle() == null) result.setTitle("");
-            if (result.getSeller_name() == null) result.setSeller_name("");
-            if (result.getSeller_rating() == null) result.setSeller_rating("");
+            if (result.getSellerName() == null) result.setSellerName("");
+            if (result.getSellerRating() == null) result.setSellerRating("");
         }
         
         // 追踪数据库查询结果

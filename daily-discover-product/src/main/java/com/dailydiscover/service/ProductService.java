@@ -33,11 +33,6 @@ public interface ProductService extends IService<Product> {
     List<Product> findNewProducts();
     
     /**
-     * 查询推荐商品
-     */
-    List<Product> findRecommendedProducts();
-    
-    /**
      * 根据ID查询商品
      */
     Product findById(Long id);

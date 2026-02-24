@@ -1,5 +1,6 @@
 package com.dailydiscover.model.dto;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,33 +14,33 @@ public class ProductBasicInfoDTO {
     
     // 商品基础信息
     private Long id;
-    private Long seller_id;
+    private Long sellerId;
     private String title;
-    private Long category_id;
+    private Long categoryId;
     private String brand;
     private String model;
-    private BigDecimal min_price;
-    private BigDecimal max_price;
-    private String main_image_url;
+    private BigDecimal minPrice;
+    private BigDecimal maxPrice;
+    private String mainImageUrl;
     
     // 折扣信息
     private BigDecimal discount; // 折扣
     
     // 销量信息
-    private Integer sales_count; // 销量
-    private String urgency_hint; // 紧迫感提示
+    private Integer salesCount; // 销量
+    private String urgencyHint; // 紧迫感提示
     
     // 评价信息
-    private BigDecimal average_rating; // 平均评分
-    private Integer total_reviews; // 评价数量
+    private BigDecimal averageRating; // 平均评分
+    private Integer totalReviews; // 评价数量
     
     // 商家信息
-    private String seller_name;
-    private String seller_rating;
+    private String sellerName;
+    private String sellerRating;
     
     // 时间信息
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     
 
 }

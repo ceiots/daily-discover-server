@@ -48,12 +48,6 @@ public interface ProductMapper extends BaseMapper<Product> {
     List<Product> findNewProducts();
     
     /**
-     * 查询推荐商品
-     */
-    @Select("SELECT * FROM products WHERE is_recommended = true AND status = 'active' ORDER BY rating DESC")
-    List<Product> findRecommendedProducts();
-    
-    /**
      * 根据ID查询商品基础信息（极致性能优化版）
      */
     @Select("SELECT " +
