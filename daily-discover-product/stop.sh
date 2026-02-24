@@ -13,6 +13,16 @@ SERVICE_PORT="${SERVICE_PORT:-8092}"
 find_port_process() {
     local port="$1"
     
+    # 首先尝试使用 netstat (Windows Git Bash 兼容)
+    if command -v netstat >/dev/null 2>&1; then
+        # Windows Git Bash 下的 netstat 格式
+        local pid=$(netstat -ano 2>/dev/null | grep ":$port " | awk '{print $5}' | head -1)
+        if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+            echo "$pid"
+            return 0
+        fi
+    fi
+    
     # 尝试使用 lsof 查找端口进程
     if command -v lsof >/dev/null 2>&1; then
         local pid=$(lsof -ti:$port 2>/dev/null)
@@ -22,16 +32,7 @@ find_port_process() {
         fi
     fi
     
-    # 如果 lsof 不可用，使用 netstat
-    if command -v netstat >/dev/null 2>&1; then
-        local pid=$(netstat -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
-        if [ -n "$pid" ]; then
-            echo "$pid"
-            return 0
-        fi
-    fi
-    
-    # 如果 netstat 也不可用，使用 ss
+    # 如果 netstat 不可用，使用 ss
     if command -v ss >/dev/null 2>&1; then
         local pid=$(ss -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'=' -f2 | cut -d',' -f1)
         if [ -n "$pid" ]; then
@@ -84,37 +85,63 @@ stop_service() {
         echo
         
         # 统一停止方式 (支持 Linux/Unix 和 Windows Git Bash)
-        echo "🔧 使用 kill 命令停止进程..."
-        # 尝试正常停止
-        if kill "$port_pid" 2>/dev/null; then
-            echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
-        else
-            echo "❌ 发送停止信号失败"
-        fi
+        echo "🔧 使用 Windows 兼容方式停止进程..."
         
-        # 等待进程停止
-        local count=0
-        while kill -0 "$port_pid" 2>/dev/null && [ $count -lt 5 ]; do
-            echo "⏳ 等待进程停止... ($count/5)"
-            sleep 1
-            count=$((count + 1))
-        done
-        
-        # 如果进程还在，强制终止
-        if kill -0 "$port_pid" 2>/dev/null; then
-            echo "⚠️  进程未正常停止，尝试强制终止..."
-            if kill -9 "$port_pid" 2>/dev/null; then
-                echo "✅ 已发送强制终止信号"
-                sleep 1
+        # Windows Git Bash 环境下使用 taskkill
+        if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+            # Windows 环境
+            echo "🪟 检测到 Windows 环境，使用 taskkill..."
+            if taskkill //F //PID "$port_pid" >/dev/null 2>&1; then
+                echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
             else
-                echo "❌ 强制终止失败"
+                echo "❌ 发送停止信号失败，尝试使用 wmic..."
+                if wmic process where "ProcessId=$port_pid" delete >/dev/null 2>&1; then
+                    echo "✅ 已使用 wmic 停止进程 (PID: $port_pid)"
+                else
+                    echo "❌ 停止进程失败"
+                fi
+            fi
+        else
+            # Linux/Unix 环境
+            echo "🐧 检测到 Linux/Unix 环境，使用 kill..."
+            # 尝试正常停止
+            if kill "$port_pid" 2>/dev/null; then
+                echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
+            else
+                echo "❌ 发送停止信号失败"
+            fi
+            
+            # 等待进程停止
+            local count=0
+            while kill -0 "$port_pid" 2>/dev/null && [ $count -lt 5 ]; do
+                echo "⏳ 等待进程停止... ($count/5)"
+                sleep 1
+                count=$((count + 1))
+            done
+            
+            # 如果进程还在，强制终止
+            if kill -0 "$port_pid" 2>/dev/null; then
+                echo "⚠️  进程未正常停止，尝试强制终止..."
+                if kill -9 "$port_pid" 2>/dev/null; then
+                    echo "✅ 已发送强制终止信号"
+                    sleep 1
+                else
+                    echo "❌ 强制终止失败"
+                fi
             fi
         fi
         
         # 最终检查
-        if kill -0 "$port_pid" 2>/dev/null; then
+        echo "🔍 检查进程状态..."
+        local final_pid=$(find_port_process "$SERVICE_PORT")
+        if [ -n "$final_pid" ] && [ "$final_pid" = "$port_pid" ]; then
             echo "❌ 无法停止进程 (PID: $port_pid)"
-            echo "💡 可能需要手动停止: kill -9 $port_pid"
+            echo "💡 可能需要手动停止:"
+            if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+                echo "   taskkill //F //PID $port_pid"
+            else
+                echo "   kill -9 $port_pid"
+            fi
         else
             echo "✅ 进程已成功停止 (PID: $port_pid)"
         fi

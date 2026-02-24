@@ -36,7 +36,7 @@ public class ApiLogger {
                   .append(" | ").append(timestamp);
         
         // HTTP层面信息（核心职责）
-        logBuilder.append(" | URL: ").append(request.getRequestURL());
+        logBuilder.append(" | URL: ").append(request.getRequestURL().toString());
         logBuilder.append(" | 方法: ").append(request.getMethod());
         logBuilder.append(" | 客户端: ").append(getClientIP(request));
         
@@ -74,7 +74,7 @@ public class ApiLogger {
                   .append(" | ").append(timestamp);
         
         // HTTP层面信息（核心职责）
-        logBuilder.append(" | URL: ").append(request.getRequestURL());
+        logBuilder.append(" | URL: ").append(request.getRequestURL().toString());
         logBuilder.append(" | 方法: ").append(request.getMethod());
         logBuilder.append(" | 客户端: ").append(getClientIP(request));
         

@@ -82,7 +82,18 @@ public class ProductRecommendationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
+    
+    @GetMapping("/recommended")
+    @ApiLog("获取推荐商品")
+    public ResponseEntity<List<ProductRecommendation>> getRecommendedProducts() {
+        try {
+            List<ProductRecommendation> recommendations = productRecommendationService.list();
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @PostMapping
     @ApiLog("创建商品推荐")
     public ResponseEntity<ProductRecommendation> createProductRecommendation(@RequestBody ProductRecommendation recommendation) {
