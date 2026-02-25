@@ -37,7 +37,11 @@ CREATE TABLE IF NOT EXISTS product_recommendations (
     INDEX idx_type_score (recommendation_type, recommendation_score) COMMENT '类型分数查询',
     INDEX idx_is_active (is_active),
     INDEX idx_product_type (product_id, recommendation_type),
-    INDEX idx_recommended_product (recommended_product_id)
+    INDEX idx_recommended_product (recommended_product_id),
+    
+    INDEX idx_product_active (product_id, is_active) COMMENT '商品详情页推荐查询优化',
+    INDEX idx_recommended_active (recommended_product_id, is_active) COMMENT '推荐商品有效性查询优化',
+    INDEX idx_user_type_active (user_id, recommendation_type, is_active) COMMENT '个性化推荐查询优化'
 ) COMMENT '商品推荐表';
 
 -- 内容推荐表（支持内容发现功能）
@@ -280,7 +284,12 @@ CREATE TABLE IF NOT EXISTS product_knowledge_graph (
     INDEX idx_product_relationship (product_id, relationship_type),
     INDEX idx_related_product (related_product_id),
     INDEX idx_relationship_strength (relationship_strength),
-    INDEX idx_is_active (is_active)
+    INDEX idx_is_active (is_active),
+    
+    INDEX idx_product_active (product_id, is_active) COMMENT '商品详情页搭配推荐查询优化',
+    INDEX idx_related_active (related_product_id, is_active) COMMENT '关联商品有效性查询优化',
+    INDEX idx_product_type_active (product_id, relationship_type, is_active) COMMENT '特定关系类型查询优化',
+    INDEX idx_strength_active (relationship_strength, is_active) COMMENT '按关系强度排序查询优化'
 ) COMMENT '商品知识图谱表（支持解决方案推荐）';
 
 -- 用户生命周期表（支持动态时间轴推荐）
@@ -339,6 +348,9 @@ INSERT INTO user_lifecycle_events (user_id, event_type, event_start_date, event_
 (1001, 'pregnancy', '2026-01-01', '2026-10-01', 'new_parent', 0.85, 'family_planning', '{"trimester": 2, "due_date": "2026-10-01"}', true),
 (1002, 'career_change', '2026-02-01', '2026-05-01', 'relocation', 0.75, 'professional_development', '{"industry": "tech", "position": "senior"}', true),
 (1003, 'education', '2026-03-01', '2026-06-30', 'career_change', 0.8, 'student_life', '{"major": "computer_science", "graduation_date": "2026-06-30"}', true);
+
+-- 插入统一推荐数据（续）
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active) VALUES
 (NULL, 2, 5, 'content_based', 0.65, true),
 (NULL, 3, 1, 'similar', 0.7, true),
 (NULL, 3, 4, 'complementary', 0.9, true),

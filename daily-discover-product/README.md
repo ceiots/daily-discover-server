@@ -148,7 +148,7 @@ mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\007_create_payment_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\008_create_promotion_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\009_create_customer_service_tables.sql"
-
+mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\010_create_content_management_tables.sql"
 ```
 
 ## 开发指南
