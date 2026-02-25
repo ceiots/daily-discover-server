@@ -7,31 +7,248 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ProductRecommendationMapper extends BaseMapper<ProductRecommendation> {
     
+    // ==================== 首页推荐场景 ====================
+    
+    /**
+     * 今日发现推荐（商品+内容混合）
+     */
+    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.name as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
+            "FROM product_recommendations pr " +
+            "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
+            "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
+            "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "AND ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<Map<String, Object>> findDailyDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit);
+    
+    /**
+     * 生活场景推荐
+     */
+    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, sr.confidence_score " +
+            "FROM scenario_recommendations sr " +
+            "WHERE sr.scenario_type IN ('time_based', 'location_based', 'weather_based') " +
+            "AND JSON_CONTAINS(sr.location_context, #{context}) AND (sr.user_id IS NULL OR sr.user_id = #{userId}) AND sr.is_active = true " +
+            "ORDER BY sr.confidence_score DESC LIMIT #{limit}")
+    List<Map<String, Object>> findScenarioRecommendations(@Param("userId") Long userId, @Param("context") String context, @Param("limit") int limit);
+    
+    /**
+     * 社区热榜推荐
+     */
+    @Select("SELECT p.id as item_id, p.name as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating " +
+            "FROM products p " +
+            "JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY ps.sales_count DESC, ps.view_count DESC LIMIT #{limit}")
+    List<Map<String, Object>> findCommunityHotProducts(@Param("limit") int limit);
+    
+    /**
+     * 个性化发现流推荐
+     */
+    @Select("SELECT pr.recommended_product_id as item_id, p.name as title, p.main_image_url as image_url, pr.recommendation_score " +
+            "FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
+            "WHERE pr.user_id = #{userId} AND pr.recommendation_type = 'personalized' AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<Map<String, Object>> findPersonalizedDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit);
+    
+    // ==================== 商品详情页推荐场景 ====================
+    
+    /**
+     * 相似商品推荐
+     */
+    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.name, p.main_image_url " +
+            "FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'similar' AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<Map<String, Object>> findSimilarProducts(@Param("productId") Long productId, @Param("limit") int limit);
+    
+    /**
+     * 搭配商品推荐（基于知识图谱）
+     */
+    @Select("SELECT pkg.related_product_id, pkg.relationship_type, p.name, p.main_image_url, pkg.relationship_strength " +
+            "FROM product_knowledge_graph pkg " +
+            "JOIN products p ON pkg.related_product_id = p.id " +
+            "WHERE pkg.product_id = #{productId} AND pkg.relationship_type IN ('complementary', 'bundle') " +
+            "AND pkg.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pkg.relationship_strength DESC LIMIT #{limit}")
+    List<Map<String, Object>> findComplementaryProducts(@Param("productId") Long productId, @Param("limit") int limit);
+    
+    /**
+     * 价格敏感推荐
+     */
+    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.name, p.main_image_url, p.max_price " +
+            "FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'similar' " +
+            "AND p.max_price BETWEEN #{minPrice} AND #{maxPrice} " +
+            "AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<Map<String, Object>> findPriceSensitiveProducts(@Param("productId") Long productId, @Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice, @Param("limit") int limit);
+    
+    // ==================== 搜索页面推荐场景 ====================
+    
+    /**
+     * 搜索结果为空时的兜底推荐
+     */
+    @Select("SELECT p.id, p.name, p.main_image_url, ps.sales_count, ps.avg_rating " +
+            "FROM products p " +
+            "JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "JOIN product_tag_relations ptr ON p.id = ptr.product_id " +
+            "JOIN product_tags pt ON ptr.tag_id = pt.id " +
+            "WHERE pt.name LIKE CONCAT('%', #{keyword}, '%') " +
+            "AND ps.time_granularity = 'daily' " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY ps.sales_count DESC, ps.avg_rating DESC LIMIT #{limit}")
+    List<Map<String, Object>> findFallbackRecommendations(@Param("keyword") String keyword, @Param("limit") int limit);
+    
+    /**
+     * 筛选条件推荐（基于搜索词的属性）
+     */
+    @Select("SELECT DISTINCT pt.name as tag_name, COUNT(*) as product_count " +
+            "FROM product_tags pt " +
+            "JOIN product_tag_relations ptr ON pt.id = ptr.tag_id " +
+            "JOIN products p ON ptr.product_id = p.id " +
+            "WHERE p.name LIKE CONCAT('%', #{keyword}, '%') " +
+            "AND pt.tag_type IN ('brand', 'category', 'attribute') " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "GROUP BY pt.name " +
+            "HAVING COUNT(*) > 0 " +
+            "ORDER BY COUNT(*) DESC LIMIT #{limit}")
+    List<Map<String, Object>> findFilterSuggestions(@Param("keyword") String keyword, @Param("limit") int limit);
+    
+    /**
+     * 查询意图识别（品牌/品类/属性）
+     */
+    @Select("SELECT " +
+            "CASE " +
+            "    WHEN EXISTS (SELECT 1 FROM product_tags WHERE name = #{keyword} AND tag_type = 'brand') THEN 'brand' " +
+            "    WHEN EXISTS (SELECT 1 FROM product_tags WHERE name = #{keyword} AND tag_type = 'category') THEN 'category' " +
+            "    ELSE 'keyword' " +
+            "END as query_intent")
+    Map<String, Object> detectQueryIntent(@Param("keyword") String keyword);
+    
+    // ==================== 购物车页面推荐场景 ====================
+    
+    /**
+     * 凑单推荐（满减优惠）
+     */
+    @Select("SELECT p.id, p.name, p.main_image_url, p.max_price, ps.sales_count, ps.avg_rating " +
+            "FROM products p " +
+            "JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "WHERE p.max_price <= #{remainingAmount} " +
+            "AND p.max_price > #{remainingAmount} * 0.3 " +
+            "AND ps.sales_count > 10 " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY ps.avg_rating DESC, ps.sales_count DESC LIMIT #{limit}")
+    List<Map<String, Object>> findBundleRecommendations(@Param("remainingAmount") Double remainingAmount, @Param("limit") int limit);
+    
+    /**
+     * 购物车内商品的价格变化监控
+     */
+    @Select("SELECT p.id, p.name, pp.current_price, pp.previous_price, " +
+            "(pp.previous_price - pp.current_price) as price_drop " +
+            "FROM products p " +
+            "JOIN product_prices pp ON p.id = pp.product_id " +
+            "WHERE p.id IN (${productIds}) " +
+            "AND pp.current_price < pp.previous_price " +
+            "AND pp.price_updated_at > DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+            "ORDER BY price_drop DESC")
+    List<Map<String, Object>> findPriceDrops(@Param("productIds") String productIds);
+    
+    /**
+     * 库存稀缺性提示
+     */
+    @Select("SELECT p.id, p.name, pi.current_stock, pi.low_stock_threshold, " +
+            "CASE " +
+            "    WHEN pi.current_stock <= pi.low_stock_threshold THEN 'low_stock' " +
+            "    WHEN pi.current_stock <= 5 THEN 'very_low_stock' " +
+            "    ELSE 'normal' " +
+            "END as stock_status " +
+            "FROM products p " +
+            "JOIN product_inventory pi ON p.id = pi.product_id " +
+            "WHERE p.id IN (${productIds}) " +
+            "AND pi.current_stock <= pi.low_stock_threshold")
+    List<Map<String, Object>> findLowStockProducts(@Param("productIds") String productIds);
+    
+    /**
+     * 性价比替代品推荐（谨慎使用）
+     */
+    @Select("SELECT p.id, p.name, p.main_image_url, p.max_price, ps.avg_rating, ps.sales_count " +
+            "FROM products p " +
+            "JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "JOIN product_tag_relations ptr1 ON p.id = ptr1.product_id " +
+            "JOIN product_tag_relations ptr2 ON ptr1.tag_id = ptr2.tag_id " +
+            "WHERE ptr2.product_id IN (${cartProductIds}) " +
+            "AND p.max_price < (SELECT max_price FROM products WHERE id = #{targetProductId}) * 0.9 " +
+            "AND ps.avg_rating >= (SELECT avg_rating FROM product_sales_stats WHERE product_id = #{targetProductId}) " +
+            "AND p.id NOT IN (${cartProductIds}) " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY (ps.avg_rating * 0.6 + (1 - p.max_price/(SELECT max_price FROM products WHERE id = #{targetProductId})) * 0.4) DESC " +
+            "LIMIT #{limit}")
+    List<Map<String, Object>> findAlternativeProducts(@Param("cartProductIds") String cartProductIds, @Param("targetProductId") Long targetProductId, @Param("limit") int limit);
+    
+    // ==================== 基础推荐方法 ====================
+    
     /**
      * 根据商品ID和推荐类型查询推荐列表
      */
-    @Select("SELECT * FROM product_recommendations WHERE product_id = #{productId} AND recommendation_type = #{recommendationType} AND is_deleted = 0 ORDER BY sort_order ASC")
+    @Select("SELECT pr.* FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = #{recommendationType} " +
+            "AND pr.is_active = true AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT 10")
     List<ProductRecommendation> findByProductIdAndType(@Param("productId") Long productId, @Param("recommendationType") String recommendationType);
     
     /**
      * 根据用户ID查询个性化推荐
      */
-    @Select("SELECT * FROM product_recommendations WHERE user_id = #{userId} AND is_deleted = 0 ORDER BY score DESC LIMIT 20")
+    @Select("SELECT pr.* FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.user_id = #{userId} AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT 20")
     List<ProductRecommendation> findByUserId(@Param("userId") Long userId);
-    
-    /**
-     * 查询每日发现推荐
-     */
-    @Select("SELECT * FROM product_recommendations WHERE recommendation_type = 'daily_discover' AND is_deleted = 0 ORDER BY score DESC LIMIT 50")
-    List<ProductRecommendation> findDailyDiscoverProducts();
     
     /**
      * 根据推荐类型查询热门推荐
      */
-    @Select("SELECT * FROM product_recommendations WHERE recommendation_type = #{recommendationType} AND is_deleted = 0 ORDER BY score DESC LIMIT #{limit}")
+    @Select("SELECT pr.* FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.recommendation_type = #{recommendationType} AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
     List<ProductRecommendation> findByTypeWithLimit(@Param("recommendationType") String recommendationType, @Param("limit") int limit);
+    
+    /**
+     * 根据商品ID查询相关推荐
+     */
+    @Select("SELECT pr.* FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.product_id = #{productId} AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<ProductRecommendation> findRelatedProductsByProductId(@Param("productId") Long productId, @Param("limit") int limit);
+    
+    /**
+     * 查询通用推荐（无用户ID的推荐）
+     */
+    @Select("SELECT pr.* FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.user_id IS NULL AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<ProductRecommendation> findGeneralRecommendations(@Param("limit") int limit);
 }

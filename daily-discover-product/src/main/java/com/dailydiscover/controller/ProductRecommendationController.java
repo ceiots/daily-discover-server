@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/product-recommendations")
@@ -51,10 +52,32 @@ public class ProductRecommendationController {
     }
 
     @GetMapping("/product/{productId}")
-    @ApiLog("根据商品ID获取推荐")
+    @ApiLog("根据商品ID获取相关推荐")
     public ResponseEntity<List<ProductRecommendation>> getProductRecommendationsByProductId(@PathVariable Long productId) {
         try {
-            List<ProductRecommendation> recommendations = productRecommendationService.list();
+            List<ProductRecommendation> recommendations = productRecommendationService.getRecommendationsByProductId(productId);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/product/{productId}/similar")
+    @ApiLog("根据商品ID获取相似商品推荐")
+    public ResponseEntity<List<ProductRecommendation>> getSimilarRecommendationsByProductId(@PathVariable Long productId) {
+        try {
+            List<ProductRecommendation> recommendations = productRecommendationService.getSimilarRecommendations(productId);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/product/{productId}/complementary")
+    @ApiLog("根据商品ID获取搭配商品推荐")
+    public ResponseEntity<List<ProductRecommendation>> getComplementaryRecommendationsByProductId(@PathVariable Long productId) {
+        try {
+            List<ProductRecommendation> recommendations = productRecommendationService.getComplementaryRecommendations(productId);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -65,7 +88,29 @@ public class ProductRecommendationController {
     @ApiLog("根据推荐类型获取推荐")
     public ResponseEntity<List<ProductRecommendation>> getProductRecommendationsByType(@PathVariable String recommendationType) {
         try {
-            List<ProductRecommendation> recommendations = productRecommendationService.list();
+            List<ProductRecommendation> recommendations = productRecommendationService.getRecommendationsByType(recommendationType);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/daily-discover/{userId}")
+    @ApiLog("获取每日发现推荐")
+    public ResponseEntity<List<ProductRecommendation>> getDailyDiscoverRecommendations(@PathVariable Long userId) {
+        try {
+            List<ProductRecommendation> recommendations = productRecommendationService.getDailyDiscoverRecommendations(userId);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/general")
+    @ApiLog("获取通用推荐")
+    public ResponseEntity<List<ProductRecommendation>> getGeneralRecommendations(@RequestParam(defaultValue = "20") int limit) {
+        try {
+            List<ProductRecommendation> recommendations = productRecommendationService.getGeneralRecommendations(limit);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -87,7 +132,20 @@ public class ProductRecommendationController {
     @ApiLog("获取推荐商品")
     public ResponseEntity<List<ProductRecommendation>> getRecommendedProducts() {
         try {
-            List<ProductRecommendation> recommendations = productRecommendationService.list();
+            List<ProductRecommendation> recommendations = productRecommendationService.getGeneralRecommendations(10);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/product/{productId}/detail")
+    @ApiLog("获取商品详情页推荐（统一接口）")
+    public ResponseEntity<List<Map<String, Object>>> getProductDetailRecommendations(
+            @PathVariable Long productId,
+            @RequestParam(defaultValue = "0") Double currentPrice) {
+        try {
+            List<Map<String, Object>> recommendations = productRecommendationService.getProductDetailRecommendations(productId, currentPrice);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
