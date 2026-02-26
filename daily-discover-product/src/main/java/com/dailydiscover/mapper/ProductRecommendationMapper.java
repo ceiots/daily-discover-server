@@ -17,7 +17,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐（商品+内容混合）
      */
-    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.name as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
+    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
             "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
@@ -40,7 +40,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 社区热榜推荐
      */
-    @Select("SELECT p.id as item_id, p.name as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating " +
+    @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
@@ -51,7 +51,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 个性化发现流推荐
      */
-    @Select("SELECT pr.recommended_product_id as item_id, p.name as title, p.main_image_url as image_url, pr.recommendation_score " +
+    @Select("SELECT pr.recommended_product_id as item_id, p.title as title, p.main_image_url as image_url, pr.recommendation_score " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
             "JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
@@ -65,7 +65,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 相似商品推荐
      */
-    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.name, p.main_image_url " +
+    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.title as name, p.main_image_url " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
             "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'similar' AND pr.is_active = true " +
@@ -76,7 +76,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 搭配商品推荐（基于知识图谱）
      */
-    @Select("SELECT pkg.related_product_id, pkg.relationship_type, p.name, p.main_image_url, pkg.relationship_strength " +
+    @Select("SELECT pkg.related_product_id, pkg.relationship_type, p.title as name, p.main_image_url, pkg.relationship_strength " +
             "FROM product_knowledge_graph pkg " +
             "JOIN products p ON pkg.related_product_id = p.id " +
             "WHERE pkg.product_id = #{productId} AND pkg.relationship_type IN ('complementary', 'bundle') " +
@@ -88,31 +88,30 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 价格敏感推荐
      */
-    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.name, p.main_image_url, p.max_price " +
+    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.title as name, p.main_image_url, p.max_price " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
             "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'similar' " +
-            "AND p.max_price BETWEEN #{minPrice} AND #{maxPrice} " +
-            "AND pr.is_active = true " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
+            "AND p.max_price <= #{currentPrice} * 1.2 AND p.max_price >= #{currentPrice} * 0.8 " +
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
-    List<Map<String, Object>> findPriceSensitiveProducts(@Param("productId") Long productId, @Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice, @Param("limit") int limit);
+    List<Map<String, Object>> findPriceSensitiveProducts(@Param("productId") Long productId, @Param("currentPrice") Double currentPrice, @Param("limit") int limit);
     
     // ==================== 搜索页面推荐场景 ====================
     
     /**
      * 搜索结果为空时的兜底推荐
      */
-    @Select("SELECT p.id, p.name, p.main_image_url, ps.sales_count, ps.avg_rating " +
+    @Select("SELECT p.id, p.title as name, p.main_image_url, ps.sales_count, ps.avg_rating " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "JOIN product_tag_relations ptr ON p.id = ptr.product_id " +
             "JOIN product_tags pt ON ptr.tag_id = pt.id " +
-            "WHERE pt.name LIKE CONCAT('%', #{keyword}, '%') " +
-            "AND ps.time_granularity = 'daily' " +
+            "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY ps.sales_count DESC, ps.avg_rating DESC LIMIT #{limit}")
-    List<Map<String, Object>> findFallbackRecommendations(@Param("keyword") String keyword, @Param("limit") int limit);
+            "AND pt.tag_name IN (SELECT tag_name FROM product_tags WHERE tag_type = 'trending') " +
+            "ORDER BY ps.sales_count DESC, ps.view_count DESC LIMIT #{limit}")
+    List<Map<String, Object>> findFallbackRecommendations(@Param("limit") int limit);
     
     /**
      * 筛选条件推荐（基于搜索词的属性）
@@ -121,13 +120,12 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "FROM product_tags pt " +
             "JOIN product_tag_relations ptr ON pt.id = ptr.tag_id " +
             "JOIN products p ON ptr.product_id = p.id " +
-            "WHERE p.name LIKE CONCAT('%', #{keyword}, '%') " +
+            "WHERE p.title LIKE CONCAT('%', #{keyword}, '%') " +
             "AND pt.tag_type IN ('brand', 'category', 'attribute') " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
             "GROUP BY pt.name " +
-            "HAVING COUNT(*) > 0 " +
             "ORDER BY COUNT(*) DESC LIMIT #{limit}")
-    List<Map<String, Object>> findFilterSuggestions(@Param("keyword") String keyword, @Param("limit") int limit);
+    List<Map<String, Object>> findRelatedKeywords(@Param("keyword") String keyword, @Param("limit") int limit);
     
     /**
      * 查询意图识别（品牌/品类/属性）
@@ -145,20 +143,19 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 凑单推荐（满减优惠）
      */
-    @Select("SELECT p.id, p.name, p.main_image_url, p.max_price, ps.sales_count, ps.avg_rating " +
+    @Select("SELECT p.id, p.title as name, p.main_image_url, p.max_price, ps.sales_count, ps.avg_rating " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "WHERE p.max_price <= #{remainingAmount} " +
-            "AND p.max_price > #{remainingAmount} * 0.3 " +
-            "AND ps.sales_count > 10 " +
+            "AND ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY ps.avg_rating DESC, ps.sales_count DESC LIMIT #{limit}")
-    List<Map<String, Object>> findBundleRecommendations(@Param("remainingAmount") Double remainingAmount, @Param("limit") int limit);
+            "ORDER BY ps.sales_count DESC, ps.avg_rating DESC LIMIT #{limit}")
+    List<Map<String, Object>> findAddOnProducts(@Param("remainingAmount") Double remainingAmount, @Param("limit") int limit);
     
     /**
      * 购物车内商品的价格变化监控
      */
-    @Select("SELECT p.id, p.name, pp.current_price, pp.previous_price, " +
+    @Select("SELECT p.id, p.title as name, pp.current_price, pp.previous_price, " +
             "(pp.previous_price - pp.current_price) as price_drop " +
             "FROM products p " +
             "JOIN product_prices pp ON p.id = pp.product_id " +
@@ -171,22 +168,23 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 库存稀缺性提示
      */
-    @Select("SELECT p.id, p.name, pi.current_stock, pi.low_stock_threshold, " +
+    @Select("SELECT p.id, p.title as name, pi.current_stock, pi.low_stock_threshold, " +
             "CASE " +
             "    WHEN pi.current_stock <= pi.low_stock_threshold THEN 'low_stock' " +
             "    WHEN pi.current_stock <= 5 THEN 'very_low_stock' " +
-            "    ELSE 'normal' " +
+            "    ELSE 'normal_stock' " +
             "END as stock_status " +
             "FROM products p " +
             "JOIN product_inventory pi ON p.id = pi.product_id " +
-            "WHERE p.id IN (${productIds}) " +
-            "AND pi.current_stock <= pi.low_stock_threshold")
-    List<Map<String, Object>> findLowStockProducts(@Param("productIds") String productIds);
+            "WHERE pi.current_stock <= pi.low_stock_threshold " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pi.current_stock ASC LIMIT #{limit}")
+    List<Map<String, Object>> findLowStockProducts(@Param("limit") int limit);
     
     /**
      * 性价比替代品推荐（谨慎使用）
      */
-    @Select("SELECT p.id, p.name, p.main_image_url, p.max_price, ps.avg_rating, ps.sales_count " +
+    @Select("SELECT p.id, p.title as name, p.main_image_url, p.max_price, ps.avg_rating, ps.sales_count " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "JOIN product_tag_relations ptr1 ON p.id = ptr1.product_id " +
@@ -199,7 +197,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY (ps.avg_rating * 0.6 + (1 - p.max_price/(SELECT max_price FROM products WHERE id = #{targetProductId})) * 0.4) DESC " +
             "LIMIT #{limit}")
     List<Map<String, Object>> findAlternativeProducts(@Param("cartProductIds") String cartProductIds, @Param("targetProductId") Long targetProductId, @Param("limit") int limit);
-    
+     
     // ==================== 基础推荐方法 ====================
     
     /**

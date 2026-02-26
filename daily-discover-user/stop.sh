@@ -13,6 +13,40 @@ SERVICE_PORT="${SERVICE_PORT:-8091}"
 find_port_process() {
     local port="$1"
     
+    # 检测操作系统类型
+    local os_type=""
+    case "$(uname -s)" in
+        Linux*)     os_type="linux" ;;
+        Darwin*)    os_type="mac" ;;
+        CYGWIN*|MINGW*|MSYS*) os_type="windows" ;;
+        *)          os_type="unknown" ;;
+    esac
+    
+    # Windows 环境处理
+    if [ "$os_type" = "windows" ]; then
+        # 使用 Windows 兼容的方式查找端口进程
+        if command -v netstat >/dev/null 2>&1; then
+            # Windows 的 netstat 输出格式不同
+            local pid=$(netstat -ano 2>/dev/null | grep ":$port " | awk '{print $5}' | head -1)
+            if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+                echo "$pid"
+                return 0
+            fi
+        fi
+        
+        # 尝试使用 tasklist 查找 Java 进程
+        if command -v tasklist >/dev/null 2>&1; then
+            local pid=$(tasklist /FI "PID eq $port" 2>/dev/null | grep java | awk '{print $2}' | head -1)
+            if [ -n "$pid" ]; then
+                echo "$pid"
+                return 0
+            fi
+        fi
+        
+        return 1
+    fi
+    
+    # Linux/Mac 环境处理
     # 尝试使用 lsof 查找端口进程
     if command -v lsof >/dev/null 2>&1; then
         local pid=$(lsof -ti:$port 2>/dev/null)
@@ -40,8 +74,8 @@ find_port_process() {
         fi
     fi
     
-    # 如果以上命令都不可用，使用 /proc 文件系统
-    if [ -d "/proc" ]; then
+    # 如果以上命令都不可用，使用 /proc 文件系统 (仅限 Linux)
+    if [ "$os_type" = "linux" ] && [ -d "/proc" ]; then
         for pid_dir in /proc/[0-9]*; do
             if [ -r "$pid_dir/net/tcp" ]; then
                 if grep -q ":$(printf '%04X' $port)" "$pid_dir/net/tcp" 2>/dev/null; then
@@ -83,38 +117,86 @@ stop_service() {
         ps -p "$port_pid" -o pid,user,cmd 2>/dev/null || echo "⚠️  无法获取进程详细信息"
         echo
         
+        # 检测操作系统类型
+        local os_type=""
+        case "$(uname -s)" in
+            Linux*)     os_type="linux" ;;
+            Darwin*)    os_type="mac" ;;
+            CYGWIN*|MINGW*|MSYS*) os_type="windows" ;;
+            *)          os_type="unknown" ;;
+        esac
+        
         # 统一停止方式 (支持 Linux/Unix 和 Windows Git Bash)
-        echo "🔧 使用 kill 命令停止进程..."
-        # 尝试正常停止
-        if kill "$port_pid" 2>/dev/null; then
-            echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
-        else
-            echo "❌ 发送停止信号失败"
-        fi
+        echo "🔧 使用操作系统兼容方式停止进程..."
         
-        # 等待进程停止
-        local count=0
-        while kill -0 "$port_pid" 2>/dev/null && [ $count -lt 5 ]; do
-            echo "⏳ 等待进程停止... ($count/5)"
-            sleep 1
-            count=$((count + 1))
-        done
-        
-        # 如果进程还在，强制终止
-        if kill -0 "$port_pid" 2>/dev/null; then
-            echo "⚠️  进程未正常停止，尝试强制终止..."
-            if kill -9 "$port_pid" 2>/dev/null; then
-                echo "✅ 已发送强制终止信号"
-                sleep 1
+        # Windows 环境处理
+        if [ "$os_type" = "windows" ]; then
+            # Windows 环境
+            echo "🪟 检测到 Windows 环境，使用 taskkill..."
+            
+            # 首先尝试直接使用 taskkill
+            if taskkill //F //PID "$port_pid" >/dev/null 2>&1; then
+                echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
+                # 等待进程停止
+                sleep 2
             else
-                echo "❌ 强制终止失败"
+                echo "❌ 发送停止信号失败，尝试使用 PowerShell..."
+                # 使用 PowerShell 停止进程
+                if powershell -Command "Stop-Process -Id $port_pid -Force" >/dev/null 2>&1; then
+                    echo "✅ 已使用 PowerShell 停止进程 (PID: $port_pid)"
+                    sleep 2
+                else
+                    echo "❌ 停止进程失败，尝试使用 cmd..."
+                    # 使用 cmd 的 taskkill
+                    if cmd //c "taskkill /F /PID $port_pid" >/dev/null 2>&1; then
+                        echo "✅ 已使用 cmd 停止进程 (PID: $port_pid)"
+                        sleep 2
+                    else
+                        echo "❌ 所有停止方法都失败"
+                    fi
+                fi
+            fi
+        else
+            # Linux/Unix 环境
+            echo "🐧 检测到 Linux/Unix 环境，使用 kill..."
+            # 尝试正常停止
+            if kill "$port_pid" 2>/dev/null; then
+                echo "✅ 已发送停止信号到进程 (PID: $port_pid)"
+            else
+                echo "❌ 发送停止信号失败"
+            fi
+            
+            # 等待进程停止
+            local count=0
+            while kill -0 "$port_pid" 2>/dev/null && [ $count -lt 5 ]; do
+                echo "⏳ 等待进程停止... ($count/5)"
+                sleep 1
+                count=$((count + 1))
+            done
+            
+            # 如果进程还在，强制终止
+            if kill -0 "$port_pid" 2>/dev/null; then
+                echo "⚠️  进程未正常停止，尝试强制终止..."
+                if kill -9 "$port_pid" 2>/dev/null; then
+                    echo "✅ 已发送强制终止信号"
+                    sleep 1
+                else
+                    echo "❌ 强制终止失败"
+                fi
             fi
         fi
         
         # 最终检查
-        if kill -0 "$port_pid" 2>/dev/null; then
+        echo "🔍 检查进程状态..."
+        local final_pid=$(find_port_process "$SERVICE_PORT")
+        if [ -n "$final_pid" ] && [ "$final_pid" = "$port_pid" ]; then
             echo "❌ 无法停止进程 (PID: $port_pid)"
-            echo "💡 可能需要手动停止: kill -9 $port_pid"
+            echo "💡 可能需要手动停止:"
+            if [ "$os_type" = "windows" ]; then
+                echo "   taskkill //F //PID $port_pid"
+            else
+                echo "   kill -9 $port_pid"
+            fi
         else
             echo "✅ 进程已成功停止 (PID: $port_pid)"
         fi

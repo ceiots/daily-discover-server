@@ -1,6 +1,7 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.ProductRecommendation;
+import com.dailydiscover.model.dto.RelatedProductDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,15 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * @return 搭配商品推荐列表
      */
     List<ProductRecommendation> getComplementaryRecommendations(Long productId);
+    
+    /**
+     * 获取商品详情页推荐（统一接口）
+     * @param productId 商品ID
+     * @param currentPrice 当前商品价格（用于价格敏感推荐）
+     * @param limit 限制数量
+     * @return 推荐商品列表
+     */
+    List<RelatedProductDTO> getProductDetailRecommendations(Long productId, Double currentPrice, Integer limit);
     
     /**
      * 获取每日发现推荐

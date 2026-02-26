@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -61,6 +62,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理静态资源未找到异常 - RESTful风格：直接返回404状态码
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.warn("静态资源未找到 - 资源路径: {}, URL: {}", 
+            e.getResourcePath(), getCurrentRequestURI());
+        // 资源未找到使用404 Not Found状态码
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    
+    /**
      * 处理HTTP方法不支持异常 - RESTful风格：直接返回405状态码
      */
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
@@ -82,8 +94,23 @@ public class GlobalExceptionHandler {
         Object value = e.getValue();
         Class<?> requiredType = e.getRequiredType();
         
-        log.error("参数类型转换异常 - 参数名: {}, 传入值: {}, 期望类型: {}, URL: {}", 
-            parameterName, value, requiredType != null ? requiredType.getSimpleName() : "未知", 
+        // 获取调用栈信息，识别Spring框架方法
+        StackTraceElement[] stackTrace = e.getStackTrace();
+        String frameworkMethod = "未知框架方法";
+        
+        // 查找第一个Spring框架方法调用
+        for (StackTraceElement element : stackTrace) {
+            String className = element.getClassName();
+            if (className.contains("org.springframework.web")) {
+                frameworkMethod = className.substring(className.lastIndexOf('.') + 1) 
+                    + "." + element.getMethodName() + "() 第" + element.getLineNumber() + "行";
+                break;
+            }
+        }
+        
+        log.error("参数类型转换异常 - 框架方法: {}, 参数名: {}, 传入值: {}, 期望类型: {}, URL: {}", 
+            frameworkMethod, parameterName, value, 
+            requiredType != null ? requiredType.getSimpleName() : "未知", 
             getCurrentRequestURI(), e);
         
         // 参数类型错误使用400 Bad Request状态码

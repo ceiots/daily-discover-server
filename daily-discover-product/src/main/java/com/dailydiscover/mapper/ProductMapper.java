@@ -63,4 +63,27 @@ public interface ProductMapper extends BaseMapper<Product> {
             "LEFT JOIN sellers s ON p.seller_id = s.id " +
             "WHERE p.id = #{id} AND p.status = 1 AND p.is_deleted = 0")
     ProductBasicInfoDTO findBasicInfoById(@Param("id") Long id);
+    
+    /**
+     * 根据ID列表批量查询商品基础信息（性能优化版）
+     */
+    @Select("<script>" +
+            "SELECT " +
+            "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
+            "p.min_price, p.max_price, p.main_image_url, " +
+            "COALESCE(pss.sales_count, 0) as sales_count, " +
+            "COALESCE(rs.average_rating, 0) as average_rating, COALESCE(rs.total_reviews, 0) as total_reviews, " +
+            "s.name as seller_name, s.rating as seller_rating, " +
+            "p.created_at, p.updated_at " +
+            "FROM products p " +
+            "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +
+            "LEFT JOIN review_stats rs ON p.id = rs.product_id " +
+            "LEFT JOIN sellers s ON p.seller_id = s.id " +
+            "WHERE p.id IN " +
+            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
+            "#{id}" +
+            "</foreach>" +
+            "AND p.status = 1 AND p.is_deleted = 0" +
+            "</script>")
+    List<ProductBasicInfoDTO> findBasicInfoByIds(@Param("ids") List<Long> ids);
 }

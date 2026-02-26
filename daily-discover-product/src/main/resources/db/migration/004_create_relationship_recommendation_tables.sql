@@ -320,12 +320,12 @@ COMMIT;
 -- ============================================
 
 -- 插入统一推荐数据（合并原相关商品和推荐数据）
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active) VALUES
-(NULL, 1, 2, 'complementary', 0.8, true),
-(NULL, 1, 3, 'similar', 0.7, true),
-(NULL, 1, 4, 'bundle', 0.75, true),
-(NULL, 2, 1, 'complementary', 0.8, true),
-(NULL, 2, 4, 'similar', 0.6, true);
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(NULL, 1, 2, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'bundle', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 1, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 4, 'similar', 0.6, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
 -- 插入内容推荐数据（支持每日发现功能）
 INSERT INTO content_recommendations (user_id, content_id, recommendation_type, recommendation_score, is_active) VALUES
@@ -350,19 +350,19 @@ INSERT INTO user_lifecycle_events (user_id, event_type, event_start_date, event_
 (1003, 'education', '2026-03-01', '2026-06-30', 'career_change', 0.8, 'student_life', '{"major": "computer_science", "graduation_date": "2026-06-30"}', true);
 
 -- 插入统一推荐数据（续）
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active) VALUES
-(NULL, 2, 5, 'content_based', 0.65, true),
-(NULL, 3, 1, 'similar', 0.7, true),
-(NULL, 3, 4, 'complementary', 0.9, true),
-(NULL, 3, 5, 'collaborative', 0.72, true),
-(NULL, 4, 1, 'collaborative', 0.82, true),
-(NULL, 4, 3, 'popular', 0.75, true),
-(NULL, 4, 5, 'trending', 0.68, true),
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(NULL, 2, 5, 'content_based', 0.65, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 1, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 4, 'complementary', 0.9, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 5, 'collaborative', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 4, 1, 'collaborative', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 4, 3, 'popular', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 4, 5, 'trending', 0.68, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 -- 每日发现特色推荐
-(NULL, 1, 2, 'daily_discovery', 0.95, true),
-(NULL, 2, 1, 'daily_discovery', 0.92, true),
-(NULL, 3, 4, 'new_arrival', 0.88, true),
-(NULL, 4, 3, 'limited_time', 0.85, true);
+(NULL, 1, 2, 'daily_discovery', 0.95, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 1, 'daily_discovery', 0.92, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 4, 'new_arrival', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 4, 3, 'limited_time', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
 -- 插入销量统计数据（单一表设计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, share_count, cart_count, avg_rating, review_count, return_count) VALUES
