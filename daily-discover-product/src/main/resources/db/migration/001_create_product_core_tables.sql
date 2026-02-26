@@ -6,6 +6,8 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
+DROP TABLE IF EXISTS product_tag_relations;
+DROP TABLE IF EXISTS product_tags;
 DROP TABLE IF EXISTS product_service_info_values;
 DROP TABLE IF EXISTS product_service_categories;
 DROP TABLE IF EXISTS shopping_cart;
@@ -219,9 +221,42 @@ CREATE TABLE IF NOT EXISTS product_sku_spec_options (
 
 
 
+-- ============================================
+-- 6. 商品标签系统模块（商品属性扩展）
+-- ============================================
+
+-- 商品标签表
+CREATE TABLE IF NOT EXISTS product_tags (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '标签ID',
+    tag_name VARCHAR(100) NOT NULL COMMENT '标签名称',
+    tag_type VARCHAR(20) DEFAULT 'custom' COMMENT '标签类型',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 索引优化
+    INDEX idx_tag_name (tag_name),
+    INDEX idx_tag_type (tag_type),
+    
+    -- 唯一约束（防止重复标签）
+    UNIQUE KEY uk_tag_name (tag_name)
+) COMMENT '商品标签表';
+
+-- 商品标签关联表
+CREATE TABLE IF NOT EXISTS product_tag_relations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '关联ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    tag_id BIGINT NOT NULL COMMENT '标签ID',
+    
+    UNIQUE KEY uk_product_tag (product_id, tag_id),
+    
+    -- 索引优化
+    INDEX idx_product_id (product_id),
+    INDEX idx_tag_id (tag_id),
+    INDEX idx_product_tag (product_id, tag_id)
+) COMMENT '商品标签关联表';
+
 
 -- ============================================
--- 6. 产品服务信息模块（可扩展设计）
+-- 7. 产品服务信息模块（可扩展设计）
 -- ============================================
 
 -- 产品服务信息分类表（定义信息类型）
@@ -346,7 +381,17 @@ INSERT INTO product_service_info_values (product_id, category_id, info_key, info
 (4, 2, 'return_policy', '退换货政策', 'text', NULL, '7天无理由退换货，1年官方保修', NULL, 1),
 (4, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 12, 2),
 (4, 3, 'quality_certification', '质量认证', 'text', NULL, '3C认证，入网许可证', NULL, 1),
-(4, 4, 'package_contents', '包装清单', 'text', NULL, 'iPhone 15，充电线，说明书，SIM卡针', NULL, 1);
+(4, 4, 'package_contents', '包装清单', 'text', NULL, 'iPhone 15，充电线，说明书，SIM卡针', NULL, 1),
+-- 运动蓝牙耳机（产品ID=5）
+(5, 1, 'origin', '产品产地', 'text', NULL, '美国', NULL, 1),
+(5, 1, 'weight', '产品重量', 'number', 'kg', NULL, 0.08, 2),
+(5, 1, 'dimensions', '产品尺寸', 'text', NULL, '2.5×2.5×1.2cm', NULL, 3),
+(5, 1, 'material', '产品材质', 'text', NULL, '硅胶材质，防水设计', NULL, 4),
+(5, 1, 'battery_life', '电池续航', 'number', 'hour', NULL, 6, 5),
+(5, 2, 'return_policy', '退换货政策', 'text', NULL, '30天无理由退换货，2年质保', NULL, 1),
+(5, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 24, 2),
+(5, 4, 'package_contents', '包装清单', 'text', NULL, 'Bose QuietComfort Earbuds II，充电盒，USB-C充电线，说明书', NULL, 1),
+(5, 5, 'usage_method', '使用方法', 'text', NULL, '打开充电盒自动连接，支持触控操作和语音助手', NULL, 1);
 
 
 -- ============================================
@@ -368,7 +413,8 @@ INSERT INTO products (seller_id, title, brand, model, category_id, min_price, ma
 (1, '智能手表 Pro', 'Apple', 'Watch Series 8', 4, 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
 (1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 4, 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
 (2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 3, 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
-(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 2, 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop');
+(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 2, 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
+(3, '运动蓝牙耳机', 'Bose', 'QuietComfort Earbuds II', 4, 249.00, 349.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&brightness=0.9');
 
 -- 插入商品详情数据（简化版）
 INSERT INTO product_details (product_id, media_type, media_url, is_video, thumbnail_url, sort_order) VALUES
@@ -395,6 +441,9 @@ INSERT INTO product_details (product_id, media_type, media_url, is_video, thumbn
 -- 无线降噪耳机（产品ID=2）
 (2, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', false, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop', 1),
 (2, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop', false, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop', 2),
+-- 运动蓝牙耳机（产品ID=5）
+(5, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&brightness=0.9', false, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop&brightness=0.9', 1),
+(5, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop&brightness=0.9', false, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&brightness=0.9', 2),
 
 -- 轻薄笔记本电脑（产品ID=3）
 (3, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop', false, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop', 1),
@@ -439,7 +488,34 @@ INSERT INTO product_skus (product_id, seller_id, price, original_price) VALUES
 -- 轻薄笔记本电脑（产品ID=3）的SKU
 (3, 2, 5999.00, 6999.00),
 (3, 2, 6999.00, 7999.00),
-(3, 2, 5999.00, 6999.00);
+(3, 2, 5999.00, 6999.00),
+-- 运动蓝牙耳机（产品ID=5）的SKU
+(5, 3, 249.00, 349.00),
+(5, 3, 299.00, 399.00);
+
+-- 插入商品标签数据
+INSERT INTO product_tags (tag_name, tag_type) VALUES
+('智能', 'feature'),
+('运动', 'feature'),
+('健康', 'feature'),
+('无线', 'feature'),
+('降噪', 'feature'),
+('轻薄', 'feature'),
+('旗舰', 'style'),
+('纯棉', 'feature');
+
+-- 插入商品标签关联数据
+INSERT INTO product_tag_relations (product_id, tag_id) VALUES
+(1, 1),  -- 智能手表 - 智能
+(1, 2),  -- 智能手表 - 运动
+(1, 3),  -- 智能手表 - 健康
+(2, 4),  -- 无线耳机 - 无线
+(2, 5),  -- 无线耳机 - 降噪
+(3, 6),  -- 笔记本电脑 - 轻薄
+(4, 7),  -- 智能手机 - 旗舰
+(5, 2),  -- 运动蓝牙耳机 - 运动
+(5, 4),  -- 运动蓝牙耳机 - 无线
+(5, 5);  -- 运动蓝牙耳机 - 降噪
 
 -- 插入购物车数据
 INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES

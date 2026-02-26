@@ -68,12 +68,4 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * @return 通用推荐列表
      */
     List<ProductRecommendation> getGeneralRecommendations(int limit);
-    
-    /**
-     * 获取商品详情页推荐（统一接口）
-     * @param productId 商品ID
-     * @param currentPrice 当前商品价格
-     * @return 合并后的推荐列表
-     */
-    List<Map<String, Object>> getProductDetailRecommendations(Long productId, Double currentPrice);
 }

@@ -101,31 +101,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
     
     @Override
-    public List<Map<String, Object>> getProductDetailRecommendations(Long productId, Double currentPrice) {
-        // 调用三参数版本，默认限制为10
-        List<RelatedProductDTO> dtos = getProductDetailRecommendations(productId, currentPrice, 10);
-        
-        // 转换为Map格式返回
-        return dtos.stream().map(dto -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", dto.getId());
-            map.put("name", dto.getName());
-            map.put("image", dto.getImage());
-            map.put("price", dto.getPrice());
-            map.put("originalPrice", dto.getOriginalPrice());
-            map.put("discount", dto.getDiscount());
-            map.put("rating", dto.getRating());
-            map.put("sales", dto.getSales());
-            map.put("category", dto.getCategory());
-            map.put("reviewCount", dto.getReviewCount());
-            map.put("recommendationType", dto.getRecommendationType());
-            map.put("similarity", dto.getSimilarity());
-            map.put("priority", dto.getPriority());
-            return map;
-        }).collect(Collectors.toList());
-    }
-
-    @Override
     public List<RelatedProductDTO> getProductDetailRecommendations(Long productId, Double currentPrice, Integer limit) {
         try {
             // 1. 并行获取三路推荐数据

@@ -7,8 +7,6 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS product_tag_relations;
-DROP TABLE IF EXISTS product_tags;
 DROP TABLE IF EXISTS product_search_keywords;
 DROP TABLE IF EXISTS product_recommendations;
 DROP TABLE IF EXISTS content_recommendations;
@@ -224,17 +222,6 @@ CREATE TABLE IF NOT EXISTS product_search_keywords (
     INDEX idx_is_recommended (is_recommended)
 ) COMMENT '商品搜索关键词表';
 
--- 商品标签表
-CREATE TABLE IF NOT EXISTS product_tags (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '标签ID',
-    tag_name VARCHAR(100) NOT NULL COMMENT '标签名称',
-    tag_type VARCHAR(20) DEFAULT 'custom' COMMENT '标签类型',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    UNIQUE KEY uk_tag_name (tag_name),
-    INDEX idx_tag_type (tag_type)
-) COMMENT '商品标签表';
-
 -- 推荐效果追踪表
 CREATE TABLE IF NOT EXISTS recommendation_effects (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '效果ID',
@@ -252,17 +239,6 @@ CREATE TABLE IF NOT EXISTS recommendation_effects (
     INDEX idx_impression_time (last_impressed_at),
     INDEX idx_click_time (last_clicked_at)
 ) COMMENT '推荐效果追踪表';
-
--- 商品标签关联表
-CREATE TABLE IF NOT EXISTS product_tag_relations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '关联ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    tag_id BIGINT NOT NULL COMMENT '标签ID',
-    
-    UNIQUE KEY uk_product_tag (product_id, tag_id),
-    INDEX idx_product_id (product_id),
-    INDEX idx_tag_id (tag_id)
-) COMMENT '商品标签关联表';
 
 -- ============================================
 -- 高级推荐功能新增表结构
@@ -324,6 +300,13 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 1, 2, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 3, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 4, 'bundle', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'collaborative', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'content_based', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'popular', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'trending', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'personalized', 0.79, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'new_arrival', 0.83, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'limited_time', 0.86, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 2, 1, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 2, 4, 'similar', 0.6, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
@@ -334,7 +317,10 @@ INSERT INTO content_recommendations (user_id, content_id, recommendation_type, r
 (NULL, 3, 'trending', 0.8, true),
 (NULL, 4, 'personalized', 0.75, true),
 (1001, 1, 'personalized', 0.95, true),
-(1002, 2, 'related', 0.7, true);
+(1002, 2, 'related', 0.7, true),
+(1003, 1, 'personalized', 0.88, true),
+(1004, 1, 'daily_discovery', 0.92, true),
+(1005, 1, 'trending', 0.85, true);
 
 -- 插入商品知识图谱数据（AI生成的关系数据）
 INSERT INTO product_knowledge_graph (product_id, related_product_id, relationship_type, relationship_strength, context_description, confidence_score, is_active) VALUES
@@ -360,9 +346,23 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 4, 5, 'trending', 0.68, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 -- 每日发现特色推荐
 (NULL, 1, 2, 'daily_discovery', 0.95, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'daily_discovery', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'daily_discovery', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 2, 1, 'daily_discovery', 0.92, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 3, 4, 'new_arrival', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 4, 3, 'limited_time', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
+(NULL, 4, 3, 'limited_time', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+-- 个性化推荐数据（模拟不同用户场景）
+(1001, 1, 2, 'personalized', 0.92, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1001, 1, 3, 'personalized', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1001, 1, 4, 'personalized', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1002, 1, 2, 'personalized', 0.89, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1002, 1, 3, 'personalized', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1003, 1, 2, 'personalized', 0.91, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1003, 1, 4, 'personalized', 0.87, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1004, 1, 3, 'personalized', 0.84, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1004, 1, 4, 'personalized', 0.79, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1005, 1, 2, 'personalized', 0.93, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(1005, 1, 3, 'personalized', 0.86, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
 -- 插入销量统计数据（单一表设计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, share_count, cart_count, avg_rating, review_count, return_count) VALUES
@@ -393,28 +393,6 @@ INSERT INTO product_search_keywords (keyword, search_count, click_count, convers
 ('笔记本电脑', 1800, 900, 150, '2026-02-01 16:45:00', true, false),
 ('智能手机', 2000, 1000, 180, '2026-02-01 17:10:00', true, false),
 ('男士衬衫', 800, 400, 60, '2026-02-01 11:30:00', false, false);
-
--- 插入商品标签数据
-INSERT INTO product_tags (tag_name, tag_type) VALUES
-('智能', 'feature'),
-('运动', 'feature'),
-('健康', 'feature'),
-('无线', 'feature'),
-('降噪', 'feature'),
-('轻薄', 'feature'),
-('旗舰', 'style'),
-('纯棉', 'feature');
-
--- 插入商品标签关联数据
-INSERT INTO product_tag_relations (product_id, tag_id) VALUES
-(1, 1),  -- 智能手表 - 智能
-(1, 2),  -- 智能手表 - 运动
-(1, 3),  -- 智能手表 - 健康
-(2, 4),  -- 无线耳机 - 无线
-(2, 5),  -- 无线耳机 - 降噪
-(3, 6),  -- 笔记本电脑 - 轻薄
-(4, 7),  -- 智能手机 - 旗舰
-(5, 8);  -- 男士衬衫 - 纯棉
 
 -- 插入用户行为日志核心数据
 INSERT INTO user_behavior_logs_core (user_id, product_id, behavior_type, behavior_weight, session_id) VALUES
@@ -494,7 +472,24 @@ INSERT INTO scenario_recommendations (
 '{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
 (1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境',
 '晚间放松时光，享受科技生活', '结束一天忙碌，用智能手机和智能家居设备打造舒适放松的晚间时光。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.7, "usage_count": 0}');
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.7, "usage_count": 0}'),
+
+-- 插入场景推荐数据（基于用户场景的推荐）
+(1001, 'fitness', NULL, NULL, NULL, NULL, '[1, 2, 4]', '运动爱好者专属：智能手表追踪运动数据，无线耳机享受运动音乐，智能手机记录运动轨迹',
+'运动装备推荐，助力健康生活', '基于您的运动偏好，为您精选智能手表、无线耳机和智能手机，让运动更加科学有趣。',
+'{"style": "active", "ai_generated": true, "approval_status": "approved", "quality_score": 0.87, "usage_count": 0}'),
+(1002, 'work', NULL, NULL, NULL, NULL, '[3, 1, 4]', '职场精英必备：笔记本电脑高效办公，智能手表管理时间，智能手机沟通协作',
+'职场装备推荐，提升工作效率', '针对职场需求，精选笔记本电脑、智能手表和智能手机，助您高效工作展现专业能力。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0}'),
+(1003, 'travel', NULL, NULL, NULL, NULL, '[2, 1, 4]', '旅行达人必备：无线耳机享受旅途音乐，智能手表导航定位，智能手机记录美好瞬间',
+'旅行装备推荐，让旅途更精彩', '结合旅行场景需求，精选无线耳机、智能手表和智能手机，让您的旅行更加舒适便捷。',
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.79, "usage_count": 0}'),
+(1004, 'gaming', NULL, NULL, NULL, NULL, '[4, 1, 2]', '游戏玩家专属：智能手机畅玩游戏，智能手表监测游戏状态，无线耳机沉浸体验',
+'游戏装备推荐，畅享游戏乐趣', '针对游戏爱好者，精选智能手机、智能手表和无线耳机，提供沉浸式游戏体验。',
+'{"style": "creative", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
+(1005, 'health', NULL, NULL, NULL, NULL, '[1, 2, 4]', '健康管理必备：智能手表监测健康指标，无线耳机放松身心，智能手机管理健康数据',
+'健康装备推荐，关爱身心健康', '基于健康管理需求，精选智能手表、无线耳机和智能手机，助您科学管理健康生活。',
+'{"style": "health", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}');
 
 -- 插入用户兴趣画像数据
 INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests) VALUES
