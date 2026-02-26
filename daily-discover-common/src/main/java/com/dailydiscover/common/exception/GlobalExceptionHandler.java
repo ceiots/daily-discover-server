@@ -7,6 +7,9 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -70,25 +73,66 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理服务层异常 - RESTful风格：直接返回500状态码，但记录更详细的上下文信息
+     * 处理参数类型不匹配异常 - 提供详细的错误信息
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Void> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        // 获取详细的参数信息
+        String parameterName = e.getName();
+        Object value = e.getValue();
+        Class<?> requiredType = e.getRequiredType();
+        
+        log.error("参数类型转换异常 - 参数名: {}, 传入值: {}, 期望类型: {}, URL: {}", 
+            parameterName, value, requiredType != null ? requiredType.getSimpleName() : "未知", 
+            getCurrentRequestURI(), e);
+        
+        // 参数类型错误使用400 Bad Request状态码
+        return ResponseEntity.badRequest().build();
+    }
+    
+    /**
+     * 处理服务层异常 - 提供更详细的定位信息
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Void> handleException(Exception e) {
-        // 获取调用栈信息，识别服务层异常
+        // 获取调用栈信息，识别异常来源
         StackTraceElement[] stackTrace = e.getStackTrace();
-        String serviceMethod = "未知方法";
+        String exceptionSource = "未知来源";
+        String controllerMethod = "未知控制器";
         
-        // 查找第一个服务层方法调用
+        // 查找第一个控制器或服务层方法调用
         for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().contains("com.dailydiscover.service")) {
-                serviceMethod = element.getClassName().substring(element.getClassName().lastIndexOf('.') + 1) 
-                    + "." + element.getMethodName();
+            String className = element.getClassName();
+            if (className.contains("com.dailydiscover.controller")) {
+                controllerMethod = className.substring(className.lastIndexOf('.') + 1) 
+                    + "." + element.getMethodName() + "() 第" + element.getLineNumber() + "行";
+                exceptionSource = "Controller层";
+                break;
+            } else if (className.contains("com.dailydiscover.service")) {
+                controllerMethod = className.substring(className.lastIndexOf('.') + 1) 
+                    + "." + element.getMethodName() + "() 第" + element.getLineNumber() + "行";
+                exceptionSource = "Service层";
                 break;
             }
         }
         
-        log.error("服务层异常 - 方法: {}, 异常: {}", serviceMethod, e.getMessage(), e);
+        log.error("系统异常 - 来源: {}, 方法: {}, URL: {}, 异常: {}", 
+            exceptionSource, controllerMethod, getCurrentRequestURI(), e.getMessage(), e);
+        
         // 系统错误使用500 Internal Server Error状态码
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+    
+    /**
+     * 获取当前请求的URI
+     */
+    private String getCurrentRequestURI() {
+        try {
+            jakarta.servlet.http.HttpServletRequest request = ((ServletRequestAttributes) 
+                RequestContextHolder.currentRequestAttributes()).getRequest();
+            return request.getRequestURI();
+        } catch (Exception e) {
+            return "未知URI";
+        }
     }
 }
