@@ -216,11 +216,12 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 生活场景推荐
      */
-    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, sr.confidence_score " +
+    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
+            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
             "FROM scenario_recommendations sr " +
-            "WHERE sr.scenario_type IN ('time_based', 'location_based', 'weather_based') " +
-            "AND JSON_CONTAINS(sr.context_data, #{contextData}) AND (sr.user_id IS NULL OR sr.user_id = #{userId}) AND sr.is_active = true " +
-            "ORDER BY sr.confidence_score DESC " +
+            "WHERE sr.scenario_type IN ('morning', 'afternoon', 'evening') " +
+            "AND JSON_CONTAINS(sr.location_context, #{contextData}) AND (sr.user_id IS NULL OR sr.user_id = #{userId}) " +
+            "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
     List<Map<String, Object>> findLifeScenarioRecommendations(@Param("userId") Long userId, @Param("contextData") String contextData);
 

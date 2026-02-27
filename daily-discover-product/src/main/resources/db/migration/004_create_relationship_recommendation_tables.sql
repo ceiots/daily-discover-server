@@ -289,6 +289,76 @@ CREATE TABLE IF NOT EXISTS user_lifecycle_events (
     INDEX idx_is_active (is_active)
 ) COMMENT '用户生命周期表（支持动态时间轴推荐）';
 
+-- ============================================
+-- 首页推荐四模块测试数据
+-- ============================================
+
+-- 1. 今日发现推荐数据（daily_discovery类型）
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(NULL, 1, 2, 'daily_discovery', 0.95, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(NULL, 1, 3, 'daily_discovery', 0.88, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(NULL, 1, 4, 'daily_discovery', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(NULL, 2, 1, 'daily_discovery', 0.92, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(NULL, 3, 4, 'daily_discovery', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(NULL, 4, 3, 'daily_discovery', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00');
+
+-- 2. 生活场景推荐数据（morning/afternoon/evening场景）
+INSERT INTO scenario_recommendations (
+    user_id, scenario_type, time_slot, location_context, user_state, 
+    weather_conditions, recommended_products, scenario_story,
+    recommendation_title, recommendation_description, recommendation_metadata
+) VALUES
+-- 早晨场景
+(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天',
+'清晨好物推荐，开启美好一天', '为您精选清晨必备好物，让每个清晨都充满活力与期待。',
+'{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
+
+-- 下午场景
+(NULL, 'afternoon', '14:00-16:00', '{"location": "office"}', 'working', '{"weather": "cloudy"}', '[3, 4]', '下午办公时间，提升工作效率的好物',
+'下午办公好物推荐，提升工作效率', '为您精选适合下午办公使用的产品，提高工作效率和舒适度。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
+
+-- 晚上场景
+(NULL, 'evening', '19:00-21:00', '{"location": "home"}', 'relaxed', '{"weather": "clear"}', '[5, 6]', '晚上休闲时光，放松身心的好物',
+'晚间休闲好物推荐，放松身心', '为您精选适合晚间休闲娱乐的产品，让您放松身心享受美好时光。',
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.80, "usage_count": 0}'),
+
+-- 个性化场景（用户ID=1）
+(1, 'morning', '07:00-09:00', '{"location": "home"}', 'energetic', '{"weather": "sunny"}', '[2, 3]', '个性化早晨推荐，根据您的喜好定制',
+'个性化早晨好物推荐', '基于您的兴趣偏好，为您定制专属的早晨好物推荐。',
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.90, "usage_count": 0}');
+
+-- 3. 社区热榜数据（销量统计）
+INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, view_count, favorite_count, avg_rating) VALUES
+(1, 'daily', CURDATE(), 1, 150, 75000.00, 3000, 120, 4.8),
+(2, 'daily', CURDATE(), 2, 120, 48000.00, 2500, 95, 4.7),
+(3, 'daily', CURDATE(), 3, 100, 60000.00, 2200, 85, 4.6),
+(4, 'daily', CURDATE(), 4, 90, 45000.00, 2000, 75, 4.5),
+(5, 'daily', CURDATE(), 5, 80, 32000.00, 1800, 65, 4.4),
+(6, 'daily', CURDATE(), 6, 70, 28000.00, 1600, 55, 4.3);
+
+-- 4. 个性化发现流数据（用户ID=1的个性化推荐）
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(1, 1, 2, 'personalized', 0.95, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 3, 'personalized', 0.92, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 4, 'personalized', 0.88, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 5, 'personalized', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 6, 'personalized', 0.82, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 2, 1, 'personalized', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 2, 3, 'personalized', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 2, 4, 'personalized', 0.84, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00');
+
+-- 5. 用户兴趣画像数据（用户ID=1）
+INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests, last_updated, profile_version) VALUES
+(1, '{"科技": 0.8, "运动": 0.6, "时尚": 0.4}', '{"浏览时段": "19:00-22:00", "点击偏好": "图片>文字"}', '{"新品偏好": "高", "价格敏感度": "中等"}', '{"热点事件": 0.9, "季节性": 0.7}', '2026-02-27 10:00:00', 1)
+ON DUPLICATE KEY UPDATE 
+interest_tags = VALUES(interest_tags),
+behavior_patterns = VALUES(behavior_patterns),
+discovery_preferences = VALUES(discovery_preferences),
+trending_interests = VALUES(trending_interests),
+last_updated = VALUES(last_updated),
+profile_version = profile_version + 1;
+
 COMMIT;
 
 -- ============================================
