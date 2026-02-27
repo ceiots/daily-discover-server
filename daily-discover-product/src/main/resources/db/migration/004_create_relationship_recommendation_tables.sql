@@ -497,4 +497,36 @@ INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, d
 (1002, '{"音频": 0.9, "时尚": 0.5, "旅行": 0.6}', '{"浏览时段": "12:00-14:00", "点击偏好": "视频>图片"}', '{"新品偏好": "中等", "品牌忠诚度": "高"}', '{"季节性": 0.7}'),
 (1003, '{"办公": 0.8, "游戏": 0.7, "摄影": 0.6}', '{"浏览时段": "20:00-23:00", "购买决策": "详细比较"}', '{"新品偏好": "低", "性价比优先": "是"}', '{"技术更新": 0.8}');
 
+-- ============================================
+-- 增加更多测试数据，确保每个查询都能返回2条以上的数据
+-- ============================================
+
+-- 为商品1（智能手表）增加更多相似推荐数据
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(NULL, 1, 3, 'similar', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 5, 'similar', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
+
+-- 为商品1（智能手表）增加更多价格敏感推荐数据
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(NULL, 1, 2, 'price_sensitive', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'price_sensitive', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'price_sensitive', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
+
+-- 为商品1（智能手表）增加更多知识图谱数据（用于互补推荐）
+INSERT INTO product_knowledge_graph (product_id, related_product_id, relationship_type, relationship_strength, context_description, confidence_score, is_active) VALUES
+(1, 2, 'complementary', 0.85, '智能手表与无线耳机是完美搭配', 0.9, true),
+(1, 3, 'complementary', 0.78, '智能手表与笔记本电脑协同工作', 0.85, true),
+(1, 4, 'complementary', 0.72, '智能手表与智能手机数据同步', 0.8, true),
+(1, 5, 'complementary', 0.68, '智能手表与运动耳机健身组合', 0.75, true);
+
+-- 为其他商品也增加推荐数据，确保系统完整性
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
+(NULL, 2, 1, 'similar', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 3, 'similar', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 4, 'similar', 0.70, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 1, 'similar', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 2, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 4, 'similar', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
+
 COMMIT;

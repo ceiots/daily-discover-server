@@ -164,14 +164,16 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             // 4. 最终排序：先按优先级降序，再按相关性分数降序
             List<Map<String, Object>> finalRecommendations = new ArrayList<>(uniqueRecommendations.values());
             finalRecommendations.sort((a, b) -> {
-                Double priorityA = (Double) a.get("priority");
-                Double priorityB = (Double) b.get("priority");
+                // 安全转换优先级，处理 BigDecimal 和 Double 类型
+                Double priorityA = convertToDouble(a.get("priority"));
+                Double priorityB = convertToDouble(b.get("priority"));
                 if (!priorityA.equals(priorityB)) {
                     return Double.compare(priorityB, priorityA); // 优先级降序
                 }
                 
-                Double scoreA = (Double) a.get("relevance_score");
-                Double scoreB = (Double) b.get("relevance_score");
+                // 安全转换相关性分数，处理 BigDecimal 和 Double 类型
+                Double scoreA = convertToDouble(a.get("relevance_score"));
+                Double scoreB = convertToDouble(b.get("relevance_score"));
                 return Double.compare(scoreB, scoreA); // 相关性分数降序
             });
             
@@ -269,5 +271,40 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             result.add(recommendation);
         }
         return result;
+    }
+    
+    /**
+     * 安全转换对象为 Double 类型
+     * 支持 BigDecimal、Double、Integer、Long、Float 等数字类型
+     */
+    private Double convertToDouble(Object value) {
+        if (value == null) {
+            return 0.0;
+        }
+        
+        if (value instanceof Double) {
+            return (Double) value;
+        } else if (value instanceof BigDecimal) {
+            return ((BigDecimal) value).doubleValue();
+        } else if (value instanceof Integer) {
+            return ((Integer) value).doubleValue();
+        } else if (value instanceof Long) {
+            return ((Long) value).doubleValue();
+        } else if (value instanceof Float) {
+            return ((Float) value).doubleValue();
+        } else if (value instanceof String) {
+            try {
+                return Double.parseDouble((String) value);
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
+        } else {
+            // 对于其他类型，尝试转换为字符串再解析
+            try {
+                return Double.parseDouble(value.toString());
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
+        }
     }
 }

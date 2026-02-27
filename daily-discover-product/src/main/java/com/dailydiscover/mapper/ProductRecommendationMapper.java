@@ -91,7 +91,8 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.title as name, p.main_image_url, p.max_price " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
-            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'similar' " +
+            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'price_sensitive' " +
+            "AND pr.is_active = true " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
             "AND p.max_price <= #{currentPrice} * 1.2 AND p.max_price >= #{currentPrice} * 0.8 " +
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
