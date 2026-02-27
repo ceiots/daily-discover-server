@@ -204,26 +204,39 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐（商品+内容混合）
      */
-    @Select("SELECT recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
+    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
             "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
             "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC, ps.view_count DESC " +
             "LIMIT 4")
     List<Map<String, Object>> findDailyDiscoveryProducts(@Param("userId") Long userId);
 
     /**
-     * 生活场景推荐
+     * 生活场景推荐 - 用户专属推荐（高性能）
      */
     @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
             "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
             "FROM scenario_recommendations sr " +
-            "WHERE sr.scenario_type IN ('morning', 'afternoon', 'evening') " +
-            "AND JSON_CONTAINS(sr.location_context, #{contextData}) AND (sr.user_id IS NULL OR sr.user_id = #{userId}) " +
+            "WHERE sr.user_id = #{userId} " +
+            "AND sr.scenario_type = #{timeContext} " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
-    List<Map<String, Object>> findLifeScenarioRecommendations(@Param("userId") Long userId, @Param("contextData") String contextData);
+    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext);
+
+    /**
+     * 生活场景推荐 - 通用推荐（高性能）
+     */
+    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
+            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
+            "FROM scenario_recommendations sr " +
+            "WHERE sr.user_id IS NULL " +
+            "AND sr.scenario_type = #{timeContext} " +
+            "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
+            "LIMIT 2")
+    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext);
 
     /**
      * 社区热榜推荐

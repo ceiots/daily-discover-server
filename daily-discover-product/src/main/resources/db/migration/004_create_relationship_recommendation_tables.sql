@@ -300,7 +300,85 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 1, 4, 'daily_discovery', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 (NULL, 2, 1, 'daily_discovery', 0.92, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 (NULL, 3, 4, 'daily_discovery', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(NULL, 4, 3, 'daily_discovery', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00');
+(NULL, 4, 3, 'daily_discovery', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+
+-- ========== 个性化推荐（personalized） ==========
+(1, 1, 2, 'personalized', 0.95, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 3, 'personalized', 0.92, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 4, 'personalized', 0.88, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 5, 'personalized', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 1, 6, 'personalized', 0.82, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 2, 1, 'personalized', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 2, 3, 'personalized', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+(1, 2, 4, 'personalized', 0.84, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
+
+-- ========== 相似商品推荐（similar） ==========
+(NULL, 1, 2, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'similar', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'price_sensitive', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'price_sensitive', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'price_sensitive', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 5, 'price_sensitive', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 6, 'price_sensitive', 0.65, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 7, 'price_sensitive', 0.6, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 8, 'price_sensitive', 0.55, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 9, 'price_sensitive', 0.5, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 10, 'price_sensitive', 0.45, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 11, 'price_sensitive', 0.4, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 12, 'price_sensitive', 0.35, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 13, 'price_sensitive', 0.3, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 14, 'price_sensitive', 0.25, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 15, 'price_sensitive', 0.2, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 1, 'similar', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 3, 'similar', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 4, 'similar', 0.70, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 1, 'similar', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 2, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 4, 'similar', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+
+-- ========== 其他推荐类型 ==========
+(NULL, 2, 1, 'complementary', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 3, 'complementary', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 4, 'complementary', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 1, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 2, 'complementary', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 4, 'complementary', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'bundle', 0.9, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'bundle', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'bundle', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'collaborative', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'collaborative', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'collaborative', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'content_based', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'content_based', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'content_based', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'popular', 0.9, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'popular', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'popular', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'trending', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'trending', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'trending', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'new_arrival', 0.92, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'new_arrival', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'new_arrival', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'limited_time', 0.9, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'limited_time', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'limited_time', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 5, 'content_based', 0.65, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 2, 5, 'content_based', 0.65, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 1, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 3, 1, 'collaborative', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 2, 'collaborative', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 3, 'collaborative', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 4, 'collaborative', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 5, 'collaborative', 0.65, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 6, 'collaborative', 0.6, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 7, 'collaborative', 0.55, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 8, 'collaborative', 0.5, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 9, 'collaborative', 0.45, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
+(NULL, 1, 10, 'collaborative', 0.4, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
 -- 2. 生活场景推荐数据（morning/afternoon/evening场景）
 INSERT INTO scenario_recommendations (
@@ -337,16 +415,7 @@ INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`
 (5, 'daily', CURDATE(), 5, 80, 32000.00, 1800, 65, 4.4),
 (6, 'daily', CURDATE(), 6, 70, 28000.00, 1600, 55, 4.3);
 
--- 4. 个性化发现流数据（用户ID=1的个性化推荐）
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
-(1, 1, 2, 'personalized', 0.95, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 1, 3, 'personalized', 0.92, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 1, 4, 'personalized', 0.88, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 1, 5, 'personalized', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 1, 6, 'personalized', 0.82, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 2, 1, 'personalized', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 2, 3, 'personalized', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 2, 4, 'personalized', 0.84, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00');
+
 
 -- 5. 用户兴趣画像数据（用户ID=1）
 INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests, last_updated, profile_version) VALUES
@@ -361,24 +430,7 @@ profile_version = profile_version + 1;
 
 COMMIT;
 
--- ============================================
--- 商品关系与推荐表初始数据
--- ============================================
 
--- 插入统一推荐数据（合并原相关商品和推荐数据）
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
-(NULL, 1, 2, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 3, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 4, 'bundle', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 2, 'collaborative', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 3, 'content_based', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 4, 'popular', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 2, 'trending', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 3, 'personalized', 0.79, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 4, 'new_arrival', 0.83, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 2, 'limited_time', 0.86, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 2, 1, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 2, 4, 'similar', 0.6, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
 -- 插入内容推荐数据（支持每日发现功能）
 INSERT INTO content_recommendations (user_id, content_id, recommendation_type, recommendation_score, is_active) VALUES
@@ -405,34 +457,7 @@ INSERT INTO user_lifecycle_events (user_id, event_type, event_start_date, event_
 (1002, 'career_change', '2026-02-01', '2026-05-01', 'relocation', 0.75, 'professional_development', '{"industry": "tech", "position": "senior"}', true),
 (1003, 'education', '2026-03-01', '2026-06-30', 'career_change', 0.8, 'student_life', '{"major": "computer_science", "graduation_date": "2026-06-30"}', true);
 
--- 插入统一推荐数据（续）
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
-(NULL, 2, 5, 'content_based', 0.65, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 3, 1, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 3, 4, 'complementary', 0.9, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 3, 5, 'collaborative', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 4, 1, 'collaborative', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 4, 3, 'popular', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 4, 5, 'trending', 0.68, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
--- 每日发现特色推荐
-(NULL, 1, 2, 'daily_discovery', 0.95, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 3, 'daily_discovery', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 4, 'daily_discovery', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 2, 1, 'daily_discovery', 0.92, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 3, 4, 'new_arrival', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 4, 3, 'limited_time', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
--- 个性化推荐数据（模拟不同用户场景）
-(1001, 1, 2, 'personalized', 0.92, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1001, 1, 3, 'personalized', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1001, 1, 4, 'personalized', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1002, 1, 2, 'personalized', 0.89, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1002, 1, 3, 'personalized', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1003, 1, 2, 'personalized', 0.91, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1003, 1, 4, 'personalized', 0.87, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1004, 1, 3, 'personalized', 0.84, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1004, 1, 4, 'personalized', 0.79, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1005, 1, 2, 'personalized', 0.93, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(1005, 1, 3, 'personalized', 0.86, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
+
 
 -- 插入销量统计数据（单一表设计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, share_count, cart_count, avg_rating, review_count, return_count) VALUES
@@ -567,21 +592,7 @@ INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, d
 (1002, '{"音频": 0.9, "时尚": 0.5, "旅行": 0.6}', '{"浏览时段": "12:00-14:00", "点击偏好": "视频>图片"}', '{"新品偏好": "中等", "品牌忠诚度": "高"}', '{"季节性": 0.7}'),
 (1003, '{"办公": 0.8, "游戏": 0.7, "摄影": 0.6}', '{"浏览时段": "20:00-23:00", "购买决策": "详细比较"}', '{"新品偏好": "低", "性价比优先": "是"}', '{"技术更新": 0.8}');
 
--- ============================================
--- 增加更多测试数据，确保每个查询都能返回2条以上的数据
--- ============================================
 
--- 为商品1（智能手表）增加更多相似推荐数据
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
-(NULL, 1, 3, 'similar', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 4, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 5, 'similar', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
-
--- 为商品1（智能手表）增加更多价格敏感推荐数据
-INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
-(NULL, 1, 2, 'price_sensitive', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 3, 'price_sensitive', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 4, 'price_sensitive', 0.75, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
 -- 为商品1（智能手表）增加更多知识图谱数据（用于互补推荐）
 INSERT INTO product_knowledge_graph (product_id, related_product_id, relationship_type, relationship_strength, context_description, confidence_score, is_active) VALUES
@@ -599,4 +610,3 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 3, 2, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 3, 4, 'similar', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
-COMMIT;

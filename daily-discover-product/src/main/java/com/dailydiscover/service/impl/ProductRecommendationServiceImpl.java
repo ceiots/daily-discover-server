@@ -313,7 +313,19 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId) {
         try {
-            return productRecommendationMapper.findDailyDiscoveryProducts(userId);
+            List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, 10);
+            
+            // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
+            return recommendations.stream()
+                .filter(item -> item.get("item_id") != null)
+                .collect(Collectors.toMap(
+                    item -> item.get("item_id"), // key: item_id
+                    item -> item,                 // value: item本身
+                    (existing, replacement) -> existing // 重复时保留第一个
+                ))
+                .values()
+                .stream()
+                .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("获取今日发现推荐失败，userId: {}", userId, e);
             return List.of();
@@ -321,11 +333,31 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     @Override
-    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String contextData) {
+    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext) {
         try {
-            return productRecommendationMapper.findLifeScenarioRecommendations(userId, contextData);
+            List<Map<String, Object>> result = new ArrayList<>();
+            
+            // 1. 先查询用户专属推荐（最多2条）
+            if (userId != null) {
+                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext);
+                result.addAll(userRecommendations);
+            }
+            
+            // 2. 如果用户专属推荐不足2条，补充通用推荐
+            if (result.size() < 2) {
+                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext);
+                
+                // 只补充到总共2条
+                int remaining = 2 - result.size();
+                if (remaining > 0 && generalRecommendations.size() > 0) {
+                    result.addAll(generalRecommendations.subList(0, Math.min(remaining, generalRecommendations.size())));
+                }
+            }
+            
+            // 3. 确保返回最多2条记录
+            return result.size() > 2 ? result.subList(0, 2) : result;
         } catch (Exception e) {
-            log.error("获取生活场景推荐失败，userId: {}, contextData: {}", userId, contextData, e);
+            log.error("获取生活场景推荐失败，userId: {}, timeContext: {}", userId, timeContext, e);
             return List.of();
         }
     }
@@ -343,7 +375,19 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<Map<String, Object>> getPersonalizedDiscoveryStream(Long userId) {
         try {
-            return productRecommendationMapper.findPersonalizedDiscoveryStream(userId);
+            List<Map<String, Object>> recommendations = productRecommendationMapper.findPersonalizedDiscoveryStream(userId);
+            
+            // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
+            return recommendations.stream()
+                .filter(item -> item.get("item_id") != null)
+                .collect(Collectors.toMap(
+                    item -> item.get("item_id"), // key: item_id
+                    item -> item,                 // value: item本身
+                    (existing, replacement) -> existing // 重复时保留第一个
+                ))
+                .values()
+                .stream()
+                .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("获取个性化发现流推荐失败，userId: {}", userId, e);
             return List.of();

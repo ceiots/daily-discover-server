@@ -184,9 +184,10 @@ public class ProductRecommendationController {
     @ApiLog("获取生活场景推荐")
     public ResponseEntity<List<Map<String, Object>>> getLifeScenarioRecommendations(
             @RequestParam(required = false) Long userId,
-            @RequestParam String contextData) {
+            @RequestParam(required = false, defaultValue = "morning") String timeContext,
+            @RequestParam(required = false) String locationContext) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, contextData);
+            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
