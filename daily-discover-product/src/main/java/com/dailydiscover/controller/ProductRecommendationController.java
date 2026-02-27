@@ -166,4 +166,52 @@ public class ProductRecommendationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    // ==================== 首页推荐四模块 ====================
+
+    @GetMapping("/daily-discovery")
+    @ApiLog("获取今日发现推荐")
+    public ResponseEntity<List<Map<String, Object>>> getDailyDiscoveryRecommendations(@RequestParam(required = false) Long userId) {
+        try {
+            List<Map<String, Object>> recommendations = productRecommendationService.getDailyDiscoveryRecommendations(userId);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/life-scenarios")
+    @ApiLog("获取生活场景推荐")
+    public ResponseEntity<List<Map<String, Object>>> getLifeScenarioRecommendations(
+            @RequestParam(required = false) Long userId,
+            @RequestParam String contextData) {
+        try {
+            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, contextData);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/community-hot-list")
+    @ApiLog("获取社区热榜推荐")
+    public ResponseEntity<List<Map<String, Object>>> getCommunityHotList() {
+        try {
+            List<Map<String, Object>> recommendations = productRecommendationService.getCommunityHotList();
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/personalized-discovery")
+    @ApiLog("获取个性化发现流推荐")
+    public ResponseEntity<List<Map<String, Object>>> getPersonalizedDiscoveryStream(@RequestParam Long userId) {
+        try {
+            List<Map<String, Object>> recommendations = productRecommendationService.getPersonalizedDiscoveryStream(userId);
+            return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

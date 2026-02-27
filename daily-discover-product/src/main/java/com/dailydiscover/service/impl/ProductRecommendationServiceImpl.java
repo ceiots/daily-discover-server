@@ -307,4 +307,46 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             }
         }
     }
+
+    // ==================== 首页推荐四模块 ====================
+
+    @Override
+    public List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId) {
+        try {
+            return productRecommendationMapper.findDailyDiscoveryProducts(userId);
+        } catch (Exception e) {
+            log.error("获取今日发现推荐失败，userId: {}", userId, e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String contextData) {
+        try {
+            return productRecommendationMapper.findLifeScenarioRecommendations(userId, contextData);
+        } catch (Exception e) {
+            log.error("获取生活场景推荐失败，userId: {}, contextData: {}", userId, contextData, e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getCommunityHotList() {
+        try {
+            return productRecommendationMapper.findCommunityHotList();
+        } catch (Exception e) {
+            log.error("获取社区热榜推荐失败", e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getPersonalizedDiscoveryStream(Long userId) {
+        try {
+            return productRecommendationMapper.findPersonalizedDiscoveryStream(userId);
+        } catch (Exception e) {
+            log.error("获取个性化发现流推荐失败，userId: {}", userId, e);
+            return List.of();
+        }
+    }
 }

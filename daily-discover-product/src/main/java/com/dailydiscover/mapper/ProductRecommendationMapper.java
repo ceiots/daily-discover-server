@@ -198,6 +198,56 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY (ps.avg_rating * 0.6 + (1 - p.max_price/(SELECT max_price FROM products WHERE id = #{targetProductId})) * 0.4) DESC " +
             "LIMIT #{limit}")
     List<Map<String, Object>> findAlternativeProducts(@Param("cartProductIds") String cartProductIds, @Param("targetProductId") Long targetProductId, @Param("limit") int limit);
+
+    // ==================== 首页推荐四模块 ====================
+
+    /**
+     * 今日发现推荐（商品+内容混合）
+     */
+    @Select("SELECT recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
+            "FROM product_recommendations pr " +
+            "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
+            "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
+            "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "LIMIT 4")
+    List<Map<String, Object>> findDailyDiscoveryProducts(@Param("userId") Long userId);
+
+    /**
+     * 生活场景推荐
+     */
+    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, sr.confidence_score " +
+            "FROM scenario_recommendations sr " +
+            "WHERE sr.scenario_type IN ('time_based', 'location_based', 'weather_based') " +
+            "AND JSON_CONTAINS(sr.context_data, #{contextData}) AND (sr.user_id IS NULL OR sr.user_id = #{userId}) AND sr.is_active = true " +
+            "ORDER BY sr.confidence_score DESC " +
+            "LIMIT 2")
+    List<Map<String, Object>> findLifeScenarioRecommendations(@Param("userId") Long userId, @Param("contextData") String contextData);
+
+    /**
+     * 社区热榜推荐
+     */
+    @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating " +
+            "FROM products p " +
+            "JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY ps.sales_count DESC, ps.view_count DESC " +
+            "LIMIT 6")
+    List<Map<String, Object>> findCommunityHotList();
+
+    /**
+     * 个性化发现流推荐
+     */
+    @Select("SELECT pr.recommended_product_id as item_id, p.title as title, p.main_image_url as image_url, pr.recommendation_score " +
+            "FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
+            "WHERE pr.user_id = #{userId} AND pr.recommendation_type = 'personalized' AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC " +
+            "LIMIT 8")
+    List<Map<String, Object>> findPersonalizedDiscoveryStream(@Param("userId") Long userId);
      
     // ==================== 基础推荐方法 ====================
     

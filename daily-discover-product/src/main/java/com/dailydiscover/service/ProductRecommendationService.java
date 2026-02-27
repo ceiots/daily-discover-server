@@ -68,4 +68,26 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * @return 通用推荐列表
      */
     List<ProductRecommendation> getGeneralRecommendations(int limit);
+
+    // ==================== 首页推荐四模块 ====================
+
+    /**
+     * 获取今日发现推荐
+     */
+    List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId);
+
+    /**
+     * 获取生活场景推荐
+     */
+    List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String contextData);
+
+    /**
+     * 获取社区热榜推荐
+     */
+    List<Map<String, Object>> getCommunityHotList();
+
+    /**
+     * 获取个性化发现流推荐
+     */
+    List<Map<String, Object>> getPersonalizedDiscoveryStream(Long userId);
 }
