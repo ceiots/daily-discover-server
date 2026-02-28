@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS scenario_recommendations (
     -- 场景定义
     scenario_type VARCHAR(20) COMMENT '场景类型',
     time_slot VARCHAR(20) COMMENT '时间段: "07:00-09:00"',
-    location_context JSON COMMENT '位置上下文: {"home", "office", "commute"}',
+    location_context VARCHAR(20) COMMENT '位置上下文值: home(家庭), office(办公室), commute(通勤), subway(地铁), outdoor(户外) - 存储单个值',
     
     -- 场景特征
     user_state VARCHAR(20) COMMENT '用户状态',
@@ -387,22 +387,22 @@ INSERT INTO scenario_recommendations (
     recommendation_title, recommendation_description, recommendation_metadata
 ) VALUES
 -- 早晨场景
-(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天',
+(NULL, 'morning', '07:00-09:00', 'home', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天',
 '清晨好物推荐，开启美好一天', '为您精选清晨必备好物，让每个清晨都充满活力与期待。',
 '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
 
 -- 下午场景
-(NULL, 'afternoon', '14:00-16:00', '{"location": "office"}', 'working', '{"weather": "cloudy"}', '[3, 4]', '下午办公时间，提升工作效率的好物',
+(NULL, 'afternoon', '14:00-16:00', 'office', 'working', '{"weather": "cloudy"}', '[3, 4]', '下午办公时间，提升工作效率的好物',
 '下午办公好物推荐，提升工作效率', '为您精选适合下午办公使用的产品，提高工作效率和舒适度。',
 '{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
 
 -- 晚上场景
-(NULL, 'evening', '19:00-21:00', '{"location": "home"}', 'relaxed', '{"weather": "clear"}', '[5, 6]', '晚上休闲时光，放松身心的好物',
+(NULL, 'evening', '19:00-21:00', 'home', 'relaxed', '{"weather": "clear"}', '[5, 6]', '晚上休闲时光，放松身心的好物',
 '晚间休闲好物推荐，放松身心', '为您精选适合晚间休闲娱乐的产品，让您放松身心享受美好时光。',
 '{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.80, "usage_count": 0}'),
 
 -- 个性化场景（用户ID=1）
-(1, 'morning', '07:00-09:00', '{"location": "home"}', 'energetic', '{"weather": "sunny"}', '[2, 3]', '个性化早晨推荐，根据您的喜好定制',
+(1, 'morning', '07:00-09:00', 'home', 'energetic', '{"weather": "sunny"}', '[2, 3]', '个性化早晨推荐，根据您的喜好定制',
 '个性化早晨好物推荐', '基于您的兴趣偏好，为您定制专属的早晨好物推荐。',
 '{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.90, "usage_count": 0}');
 
@@ -548,24 +548,24 @@ INSERT INTO scenario_recommendations (
     recommendation_title, recommendation_description, recommendation_metadata
 ) VALUES
 -- 通用模板（user_id为NULL）
-(NULL, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐',
+(NULL, 'morning', '07:00-09:00', 'home', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐',
 '清晨好物推荐，开启美好一天', '为您精选清晨必备好物，从早餐用具到个人护理，让每个清晨都充满活力与期待。',
 '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.8, "usage_count": 0}'),
-(NULL, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航',
+(NULL, 'commute', '08:00-09:00', 'subway', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航',
 '通勤必备神器，让路途更轻松', '精选通勤路上实用好物，降噪耳机、便携充电宝等，让您的通勤时光更加舒适高效。',
 '{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.75, "usage_count": 0}'),
 
 -- 个性化推荐（关联具体用户）
-(1001, 'morning', '07:00-09:00', '{"location": "home"}', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天',
+(1001, 'morning', '07:00-09:00', 'home', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天',
 '科技达人专属，开启智能生活', '基于您的科技偏好，为您精选智能手表和智能家居设备，打造高效智能生活体验。',
 '{"style": "creative", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-(1002, 'commute', '08:00-09:00', '{"location": "subway"}', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性',
+(1002, 'commute', '08:00-09:00', 'subway', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性',
 '时尚通勤装备，展现个性魅力', '结合您的时尚品味，精选降噪耳机与时尚背包，让通勤路上也能展现独特风格。',
 '{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
-(1003, 'work', '09:00-12:00', '{"location": "office"}', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康',
+(1003, 'work', '09:00-12:00', 'office', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康',
 '高效办公装备，提升工作效率', '针对办公场景需求，精选轻薄笔记本和人体工学椅，助您高效工作同时保护健康。',
 '{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
-(1001, 'evening', '19:00-22:00', '{"location": "home"}', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境',
+(1001, 'evening', '19:00-22:00', 'home', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境',
 '晚间放松时光，享受科技生活', '结束一天忙碌，用智能手机和智能家居设备打造舒适放松的晚间时光。',
 '{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.7, "usage_count": 0}'),
 

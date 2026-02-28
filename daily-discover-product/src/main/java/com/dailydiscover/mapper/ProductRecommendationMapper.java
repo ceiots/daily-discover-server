@@ -222,7 +222,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "FROM scenario_recommendations sr " +
             "WHERE sr.user_id = #{userId} " +
             "AND sr.scenario_type = #{timeContext} " +
-            "AND sr.location_key = #{locationKey} " +
+            "AND sr.location_context = #{locationKey} " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
     List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("locationKey") String locationKey);
@@ -235,7 +235,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "FROM scenario_recommendations sr " +
             "WHERE sr.user_id IS NULL " +
             "AND sr.scenario_type = #{timeContext} " +
-            "AND sr.location_key = #{locationKey} " +
+            "AND sr.location_context = #{locationKey} " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
     List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("locationKey") String locationKey);
