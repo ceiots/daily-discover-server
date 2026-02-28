@@ -333,19 +333,22 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     @Override
-    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext) {
+    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext) {
         try {
             List<Map<String, Object>> result = new ArrayList<>();
             
+            // 解析locationContext获取locationKey
+            String locationKey = extractLocationKey(locationContext);
+            
             // 1. 先查询用户专属推荐（最多2条）
             if (userId != null) {
-                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext);
+                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext, locationKey);
                 result.addAll(userRecommendations);
             }
             
             // 2. 如果用户专属推荐不足2条，补充通用推荐
             if (result.size() < 2) {
-                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext);
+                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext, locationKey);
                 
                 // 只补充到总共2条
                 int remaining = 2 - result.size();
@@ -357,9 +360,19 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             // 3. 确保返回最多2条记录
             return result.size() > 2 ? result.subList(0, 2) : result;
         } catch (Exception e) {
-            log.error("获取生活场景推荐失败，userId: {}, timeContext: {}", userId, timeContext, e);
+            log.error("获取生活场景推荐失败，userId: {}, timeContext: {}, locationContext: {}", userId, timeContext, locationContext, e);
             return List.of();
         }
+    }
+    
+    /**
+     * 获取locationKey（现在locationContext已经是简单字符串）
+     */
+    private String extractLocationKey(String locationContext) {
+        if (locationContext == null || locationContext.trim().isEmpty()) {
+            return "home"; // 默认值
+        }
+        return locationContext.trim(); // 直接返回字符串
     }
 
     @Override

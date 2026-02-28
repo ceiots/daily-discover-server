@@ -80,13 +80,14 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * 获取生活场景推荐
      * @param userId 用户ID
      * @param timeContext 时间场景（morning/afternoon/evening）
-     * @param locationContext 位置场景
-     * @return 生活场景推荐列表
+     * @param locationContext 位置场景（JSON格式，如{"location": "home"}）
+     * @return 生活场景推荐列表（保证返回2条记录）
      */
     List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext);
 
     /**
-     * 获取社区热榜推荐
+     * 获取社区热榜推荐（客观排名，不关联用户）
+     * @return 社区热榜推荐列表
      */
     List<Map<String, Object>> getCommunityHotList();
 

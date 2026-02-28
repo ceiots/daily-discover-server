@@ -222,9 +222,10 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "FROM scenario_recommendations sr " +
             "WHERE sr.user_id = #{userId} " +
             "AND sr.scenario_type = #{timeContext} " +
+            "AND sr.location_key = #{locationKey} " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
-    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext);
+    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("locationKey") String locationKey);
 
     /**
      * 生活场景推荐 - 通用推荐（高性能）
@@ -234,14 +235,16 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "FROM scenario_recommendations sr " +
             "WHERE sr.user_id IS NULL " +
             "AND sr.scenario_type = #{timeContext} " +
+            "AND sr.location_key = #{locationKey} " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
-    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext);
+    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("locationKey") String locationKey);
 
     /**
-     * 社区热榜推荐
+     * 社区热榜推荐（客观排名，不关联用户）
      */
-    @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating " +
+    @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, " +
+            "ps.sales_count, ps.view_count, ps.avg_rating " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
@@ -251,15 +254,25 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     List<Map<String, Object>> findCommunityHotList();
 
     /**
-     * 个性化发现流推荐
+     * 个性化发现流推荐（支持未登录用户）
      */
-    @Select("SELECT pr.recommended_product_id as item_id, p.title as title, p.main_image_url as image_url, pr.recommendation_score " +
+    @Select("SELECT pr.recommended_product_id as item_id, p.title as title, " +
+            "p.main_image_url as image_url, pr.recommendation_score, " +
+            "CASE " +
+            "    WHEN pr.user_id IS NOT NULL THEN 'personalized' " +
+            "    ELSE 'general' " +
+            "END as recommendation_type " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
-            "JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
-            "WHERE pr.user_id = #{userId} AND pr.recommendation_type = 'personalized' AND pr.is_active = true " +
+            "LEFT JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
+            "WHERE pr.recommendation_type = 'personalized' AND pr.is_active = true " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pr.recommendation_score DESC " +
+            "AND (pr.user_id = #{userId} OR pr.user_id IS NULL) " +
+            "ORDER BY " +
+            "    CASE " +
+            "        WHEN pr.user_id = #{userId} THEN pr.recommendation_score * 1.5 " +
+            "        ELSE pr.recommendation_score " +
+            "    END DESC " +
             "LIMIT 8")
     List<Map<String, Object>> findPersonalizedDiscoveryStream(@Param("userId") Long userId);
      

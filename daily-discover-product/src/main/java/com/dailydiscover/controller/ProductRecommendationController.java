@@ -187,7 +187,7 @@ public class ProductRecommendationController {
             @RequestParam(required = false, defaultValue = "morning") String timeContext,
             @RequestParam(required = false) String locationContext) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext);
+            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext, locationContext);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
