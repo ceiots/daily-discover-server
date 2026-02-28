@@ -357,14 +357,69 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 }
             }
             
-            // 3. 确保返回最多2条记录
-            return result.size() > 2 ? result.subList(0, 2) : result;
+            // 3. 解析推荐商品ID并查询完整商品信息
+            List<Map<String, Object>> finalResult = new ArrayList<>();
+            for (Map<String, Object> scenario : result) {
+                Map<String, Object> enrichedScenario = new HashMap<>(scenario);
+                
+                // 解析recommended_products字段（JSON字符串格式）
+                String recommendedProductsJson = (String) scenario.get("recommended_products");
+                if (recommendedProductsJson != null && !recommendedProductsJson.isEmpty()) {
+                    try {
+                        // 解析JSON字符串为商品ID列表
+                        List<Long> productIds = new com.fasterxml.jackson.databind.ObjectMapper()
+                                .readValue(recommendedProductsJson, new com.fasterxml.jackson.core.type.TypeReference<List<Long>>() {});
+                        
+                        // 查询完整商品信息
+                        if (!productIds.isEmpty()) {
+                            List<com.dailydiscover.model.dto.ProductBasicInfoDTO> productDetails = productMapper.findBasicInfoByIds(productIds);
+                            // 转换为Map格式
+                            List<Map<String, Object>> productMaps = productDetails.stream()
+                                .map(this::convertProductBasicInfoToMap)
+                                .collect(java.util.stream.Collectors.toList());
+                            enrichedScenario.put("recommended_products", productMaps);
+                        }
+                    } catch (Exception e) {
+                        log.warn("解析推荐商品JSON失败: {}", recommendedProductsJson);
+                        // 如果解析失败，保持原样
+                        enrichedScenario.put("recommended_products", new ArrayList<>());
+                    }
+                } else {
+                    enrichedScenario.put("recommended_products", new ArrayList<>());
+                }
+                
+                finalResult.add(enrichedScenario);
+            }
+            
+            // 4. 确保返回最多2条记录
+            return finalResult.size() > 2 ? finalResult.subList(0, 2) : finalResult;
         } catch (Exception e) {
             log.error("获取生活场景推荐失败，userId: {}, timeContext: {}, locationContext: {}", userId, timeContext, locationContext, e);
             return List.of();
         }
     }
     
+    /**
+     * 将ProductBasicInfoDTO转换为Map格式
+     */
+    private Map<String, Object> convertProductBasicInfoToMap(com.dailydiscover.model.dto.ProductBasicInfoDTO product) {
+        Map<String, Object> productMap = new HashMap<>();
+        productMap.put("id", product.getId());
+        productMap.put("title", product.getTitle());
+        productMap.put("description", product.getBrand() + " " + product.getModel());
+        productMap.put("mainImageUrl", product.getMainImageUrl());
+        productMap.put("category", product.getCategoryId());
+        productMap.put("price", product.getMaxPrice());
+        productMap.put("originalPrice", product.getMinPrice());
+        productMap.put("discount", product.getDiscount());
+        productMap.put("rating", product.getAverageRating());
+        productMap.put("reviewCount", product.getTotalReviews());
+        productMap.put("sales", product.getSalesCount());
+        productMap.put("isNew", true); // 默认值
+        productMap.put("isHot", false); // 默认值
+        return productMap;
+    }
+
     /**
      * 获取locationKey（现在locationContext已经是简单字符串）
      */
