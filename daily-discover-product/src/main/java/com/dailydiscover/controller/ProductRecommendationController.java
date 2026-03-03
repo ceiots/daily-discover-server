@@ -185,9 +185,13 @@ public class ProductRecommendationController {
     public ResponseEntity<List<Map<String, Object>>> getLifeScenarioRecommendations(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false, defaultValue = "morning") String timeContext,
-            @RequestParam(required = false) String locationContext) {
+            @RequestParam(required = false) String locationContext,
+            @RequestParam(required = false) String activityContext) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext, locationContext);
+            // 如果前端没有传入activityContext，传递null给Service层进行智能推断
+            String finalActivityContext = (activityContext != null && !activityContext.trim().isEmpty()) ? activityContext : null;
+            
+            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext, locationContext, finalActivityContext);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

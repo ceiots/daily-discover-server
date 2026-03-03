@@ -137,21 +137,22 @@ CREATE TABLE IF NOT EXISTS user_behavior_logs_details (
     INDEX idx_created_at (created_at)
 ) COMMENT '用户行为详情表（低频查询大字段）';
 
--- 场景推荐表（精简版，基于用户场景的个性化推荐）
+-- 场景推荐表（多维度设计，支持复合场景推荐）
 CREATE TABLE IF NOT EXISTS scenario_recommendations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     
     -- 用户关联（关键改进：支持个性化）
     user_id BIGINT COMMENT '用户ID（NULL表示通用模板）',
     
-    -- 场景定义
-    scenario_type VARCHAR(20) COMMENT '场景类型',
-    time_slot VARCHAR(20) COMMENT '时间段: "07:00-09:00"',
-    location_context VARCHAR(20) COMMENT '位置上下文值: home(家庭), office(办公室), commute(通勤), subway(地铁), outdoor(户外) - 存储单个值',
+    -- 多维度场景定义
+    scenario_time_type VARCHAR(20) COMMENT '时间场景类型：morning(早晨)/afternoon(下午)/evening(晚上)/night(深夜)',
+    scenario_activity_type VARCHAR(20) COMMENT '活动场景类型：commute(通勤)/work(工作)/fitness(健身)/travel(旅行)/gaming(游戏)/health(健康)/relax(休闲)',
+    scenario_location_type VARCHAR(20) COMMENT '位置场景类型：home(家庭)/office(办公室)/commute(通勤)/subway(地铁)/outdoor(户外)/gym(健身房)',
     
-    -- 场景特征
-    user_state VARCHAR(20) COMMENT '用户状态',
-    weather_conditions JSON COMMENT '天气条件: {"sunny", "rainy"}',
+    -- 场景特征（支持多维度组合）
+    time_slot VARCHAR(20) COMMENT '时间段: "07:00-09:00"',
+    user_state VARCHAR(20) COMMENT '用户状态：energetic(精力充沛)/relaxed(放松)/focused(专注)/tired(疲惫)',
+    weather_conditions JSON COMMENT '天气条件: {"weather": "sunny(晴朗)", "temperature": 25}',
     
     -- 推荐内容（动态计算，非固定列表）
     recommended_products JSON COMMENT '推荐商品ID列表',
@@ -168,17 +169,19 @@ CREATE TABLE IF NOT EXISTS scenario_recommendations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
-    -- 核心索引
-    INDEX idx_user_scenario (user_id, scenario_type) COMMENT '用户场景关联查询',
-    INDEX idx_scenario_type (scenario_type),
-    INDEX idx_time_slot (time_slot),
-    INDEX idx_user_state (user_state),
-    INDEX idx_scenario_user (user_id, scenario_type),
+    -- 多维度索引（支持复合查询）
+    INDEX idx_user_time_activity (user_id, scenario_time_type, scenario_activity_type) COMMENT '用户时间活动关联查询',
+    INDEX idx_time_activity_location (scenario_time_type, scenario_activity_type, scenario_location_type) COMMENT '时间活动位置组合查询',
+    INDEX idx_user_time (user_id, scenario_time_type),
+    INDEX idx_user_activity (user_id, scenario_activity_type),
+    INDEX idx_user_location (user_id, scenario_location_type),
+    INDEX idx_time_activity (scenario_time_type, scenario_activity_type),
+    INDEX idx_activity_location (scenario_activity_type, scenario_location_type),
     
     -- 推荐语索引
     INDEX idx_recommendation_metadata ((CAST(recommendation_metadata->'$.approval_status' AS CHAR(20)))) COMMENT '审核状态查询',
     INDEX idx_recommendation_quality ((CAST(recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)))) COMMENT '质量评分查询'
-) COMMENT '场景推荐表（精简版）';
+) COMMENT '场景推荐表（多维度设计）';
 
 -- 用户兴趣画像表（个性化推荐基础）
 CREATE TABLE IF NOT EXISTS user_interest_profiles (
@@ -380,31 +383,68 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 1, 9, 'collaborative', 0.45, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 10, 'collaborative', 0.4, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
--- 2. 生活场景推荐数据（morning/afternoon/evening场景）
+-- 插入场景推荐数据（多维度设计，支持复合场景）
 INSERT INTO scenario_recommendations (
-    user_id, scenario_type, time_slot, location_context, user_state, 
-    weather_conditions, recommended_products, scenario_story,
+    user_id, scenario_time_type, scenario_activity_type, scenario_location_type, 
+    time_slot, user_state, weather_conditions, recommended_products, scenario_story,
     recommendation_title, recommendation_description, recommendation_metadata
 ) VALUES
--- 早晨场景
-(NULL, 'morning', '07:00-09:00', 'home', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天',
-'清晨好物推荐，开启美好一天', '为您精选清晨必备好物，让每个清晨都充满活力与期待。',
+-- ==================== 时间维度推荐（基础场景） ====================
+-- 通用场景推荐（user_id为NULL）
+(NULL, 'morning', NULL, 'home', '05:00-11:59', 'energetic', '{"weather": "sunny", "temperature": 22}', '[1, 2]', '早晨时光，用科技产品开启美好一天',
+'清晨好物推荐，开启美好一天', '为您精选清晨必备好物，从早餐用具到个人护理，让每个清晨都充满活力与期待。',
 '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-
--- 下午场景
-(NULL, 'afternoon', '14:00-16:00', 'office', 'working', '{"weather": "cloudy"}', '[3, 4]', '下午办公时间，提升工作效率的好物',
-'下午办公好物推荐，提升工作效率', '为您精选适合下午办公使用的产品，提高工作效率和舒适度。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
-
--- 晚上场景
-(NULL, 'evening', '19:00-21:00', 'home', 'relaxed', '{"weather": "clear"}', '[5, 6]', '晚上休闲时光，放松身心的好物',
+(NULL, 'afternoon', NULL, 'home', '12:00-17:59', 'relaxed', '{"weather": "comfortable", "temperature": 26}', '[3, 4]', '午后休闲时光，放松身心的好物',
+'午后好物推荐，享受悠闲时光', '为您精选适合午后休闲的产品，从下午茶具到放松用品，让午后时光更加惬意舒适。',
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
+(NULL, 'evening', NULL, 'home', '18:00-04:59', 'relaxed', '{"weather": "clear", "temperature": 20}', '[5, 6]', '晚上休闲时光，放松身心的好物',
 '晚间休闲好物推荐，放松身心', '为您精选适合晚间休闲娱乐的产品，让您放松身心享受美好时光。',
 '{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.80, "usage_count": 0}'),
 
--- 个性化场景（用户ID=1）
-(1, 'morning', '07:00-09:00', 'home', 'energetic', '{"weather": "sunny"}', '[2, 3]', '个性化早晨推荐，根据您的喜好定制',
+-- ==================== 活动维度推荐（复合场景） ====================
+-- 通勤场景（时间+活动+位置）
+(NULL, 'morning', 'commute', 'subway', '07:00-09:00', 'focused', '{"weather": "comfortable", "temperature": 18}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航',
+'通勤必备神器，让路途更轻松', '精选通勤路上实用好物，降噪耳机、便携充电宝等，让您的通勤时光更加舒适高效。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.75, "usage_count": 0}'),
+(NULL, 'afternoon', 'commute', 'subway', '17:00-19:00', 'tired', '{"weather": "comfortable", "temperature": 24}', '[2, 7]', '下班路上，用音乐放松心情，充电宝为手机续航',
+'下班通勤装备，缓解疲劳', '精选适合下班通勤的放松装备，让您在下班路上也能享受片刻宁静。',
+'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
+
+-- 工作场景（时间+活动+位置）
+(NULL, 'morning', 'work', 'office', '09:00-12:00', 'focused', '{"weather": "indoor", "temperature": 23}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康',
+'高效办公装备，提升工作效率', '针对办公场景需求，精选轻薄笔记本和人体工学椅，助您高效工作同时保护健康。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
+(NULL, 'afternoon', 'work', 'office', '14:00-17:00', 'focused', '{"weather": "indoor", "temperature": 23}', '[3, 10]', '下午工作时光，高效办公设备助您专注',
+'下午办公装备，保持专注力', '为您精选适合下午工作的办公设备，帮助您保持高效工作状态。',
+'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.76, "usage_count": 0}'),
+
+-- 健身场景（时间+活动+位置）
+(NULL, 'morning', 'fitness', 'gym', '06:00-08:00', 'energetic', '{"weather": "sunny", "temperature": 20}', '[1, 2, 4]', '晨练时光，智能手表追踪运动数据，无线耳机享受运动音乐',
+'晨练装备推荐，开启活力一天', '精选适合晨练的运动装备，智能手表追踪健康数据，无线耳机享受运动乐趣。',
+'{"style": "active", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
+(NULL, 'evening', 'fitness', 'gym', '19:00-21:00', 'energetic', '{"weather": "indoor", "temperature": 22}', '[1, 2, 4]', '晚间健身，智能设备助您科学锻炼',
+'晚间健身装备，科学锻炼身体', '为您精选适合晚间健身的智能设备，帮助您科学锻炼，保持健康。',
+'{"style": "active", "ai_generated": true, "approval_status": "approved", "quality_score": 0.80, "usage_count": 0}'),
+
+-- ==================== 个性化场景推荐（用户ID=1） ====================
+-- 个性化时间维度推荐
+(1, 'morning', NULL, 'home', '05:00-11:59', 'energetic', '{"weather": "sunny", "temperature": 22}', '[2, 3]', '个性化早晨推荐，根据您的喜好定制',
 '个性化早晨好物推荐', '基于您的兴趣偏好，为您定制专属的早晨好物推荐。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.90, "usage_count": 0}');
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.90, "usage_count": 0}'),
+(1, 'afternoon', NULL, 'home', '12:00-17:59', 'relaxed', '{"weather": "comfortable", "temperature": 26}', '[4, 5]', '个性化午后推荐，根据您的喜好定制',
+'个性化午后好物推荐', '基于您的兴趣偏好，为您定制专属的午后好物推荐。',
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.88, "usage_count": 0}'),
+(1, 'evening', NULL, 'home', '18:00-04:59', 'relaxed', '{"weather": "clear", "temperature": 20}', '[6, 1]', '个性化晚间推荐，根据您的喜好定制',
+'个性化晚间好物推荐', '基于您的兴趣偏好，为您定制专属的晚间好物推荐。',
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.86, "usage_count": 0}'),
+
+-- 个性化复合场景推荐
+(1, 'morning', 'commute', 'subway', '08:00-09:00', 'focused', '{"weather": "comfortable", "temperature": 18}', '[2, 8]', '个性化通勤推荐：降噪耳机享受高品质音乐，搭配时尚背包展现个性',
+'个性化通勤装备，展现独特风格', '结合您的个人品味，精选适合通勤的时尚装备，让通勤路上也能展现个性魅力。',
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
+(1, 'afternoon', 'fitness', 'gym', '17:00-19:00', 'energetic', '{"weather": "indoor", "temperature": 22}', '[1, 2, 4]', '个性化健身推荐：智能手表追踪健康，无线耳机享受运动音乐',
+'个性化健身装备，科学锻炼身体', '根据您的健身习惯，为您定制专属的健身装备推荐，助您科学锻炼。',
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0});
 
 -- 3. 社区热榜数据（销量统计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, view_count, favorite_count, avg_rating) VALUES
@@ -529,68 +569,11 @@ INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count
 (2, 1002, 3, 1, 0, '2026-02-01 14:20:00', '2026-02-01 14:25:00'),
 (3, 1003, 8, 3, 2, '2026-02-01 16:45:00', '2026-02-01 16:50:00');
 
--- 插入商品详情页通用场景推荐语
-INSERT INTO scenario_recommendations (
-    user_id, scenario_type, recommendation_title, recommendation_description, 
-    recommendation_metadata
-) VALUES
--- 商品详情页通用推荐语（scenario_type = 'product_detail'）
-(NULL, 'product_detail', '智能手表推荐', '这款智能手表功能强大，适合运动健康监测，续航时间长，设计时尚。', '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-(NULL, 'product_detail', '无线耳机推荐', '降噪效果出色，音质清晰通透，佩戴舒适，适合通勤和运动使用。', '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
-(NULL, 'product_detail', '笔记本电脑推荐', '轻薄便携，性能强劲，适合办公和学习使用，续航能力优秀。', '{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.88, "usage_count": 0}'),
-(NULL, 'product_detail', '智能手机推荐', '拍照效果出色，运行流畅，屏幕显示清晰，性价比高。', '{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0}'),
-(NULL, 'product_detail', '男士衬衫推荐', '面料舒适，版型修身，适合商务和休闲场合，品质保证。', '{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.79, "usage_count": 0}');
 
--- 插入场景推荐数据（包含通用模板和个性化推荐）
-INSERT INTO scenario_recommendations (
-    user_id, scenario_type, time_slot, location_context, user_state, 
-    weather_conditions, recommended_products, scenario_story,
-    recommendation_title, recommendation_description, recommendation_metadata
-) VALUES
--- 通用模板（user_id为NULL）
-(NULL, 'morning', '07:00-09:00', 'home', 'relaxed', '{"weather": "sunny"}', '[1, 2]', '早晨时光，用科技产品开启美好一天。智能手表监测健康，无线耳机享受音乐',
-'清晨好物推荐，开启美好一天', '为您精选清晨必备好物，从早餐用具到个人护理，让每个清晨都充满活力与期待。',
-'{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.8, "usage_count": 0}'),
-(NULL, 'commute', '08:00-09:00', 'subway', 'focused', '{"weather": "comfortable"}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航',
-'通勤必备神器，让路途更轻松', '精选通勤路上实用好物，降噪耳机、便携充电宝等，让您的通勤时光更加舒适高效。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.75, "usage_count": 0}'),
 
--- 个性化推荐（关联具体用户）
-(1001, 'morning', '07:00-09:00', 'home', 'relaxed', '{"weather": "sunny"}', '[1, 3]', '科技爱好者专属：智能手表追踪健康数据，搭配最新智能家居设备开启高效一天',
-'科技达人专属，开启智能生活', '基于您的科技偏好，为您精选智能手表和智能家居设备，打造高效智能生活体验。',
-'{"style": "creative", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-(1002, 'commute', '08:00-09:00', 'subway', 'focused', '{"weather": "comfortable"}', '[2, 8]', '时尚达人通勤：降噪耳机享受高品质音乐，搭配时尚背包展现个性',
-'时尚通勤装备，展现个性魅力', '结合您的时尚品味，精选降噪耳机与时尚背包，让通勤路上也能展现独特风格。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
-(1003, 'work', '09:00-12:00', 'office', 'focused', '{"weather": "indoor"}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康',
-'高效办公装备，提升工作效率', '针对办公场景需求，精选轻薄笔记本和人体工学椅，助您高效工作同时保护健康。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
-(1001, 'evening', '19:00-22:00', 'home', 'relaxed', '{"weather": "evening"}', '[4, 10]', '科技宅晚间：智能手机娱乐放松，智能家居打造舒适环境',
-'晚间放松时光，享受科技生活', '结束一天忙碌，用智能手机和智能家居设备打造舒适放松的晚间时光。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.7, "usage_count": 0}'),
 
--- 插入场景推荐数据（基于用户场景的推荐）
-(1001, 'fitness', NULL, NULL, NULL, NULL, '[1, 2, 4]', '运动爱好者专属：智能手表追踪运动数据，无线耳机享受运动音乐，智能手机记录运动轨迹',
-'运动装备推荐，助力健康生活', '基于您的运动偏好，为您精选智能手表、无线耳机和智能手机，让运动更加科学有趣。',
-'{"style": "active", "ai_generated": true, "approval_status": "approved", "quality_score": 0.87, "usage_count": 0}'),
-(1002, 'work', NULL, NULL, NULL, NULL, '[3, 1, 4]', '职场精英必备：笔记本电脑高效办公，智能手表管理时间，智能手机沟通协作',
-'职场装备推荐，提升工作效率', '针对职场需求，精选笔记本电脑、智能手表和智能手机，助您高效工作展现专业能力。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0}'),
-(1003, 'travel', NULL, NULL, NULL, NULL, '[2, 1, 4]', '旅行达人必备：无线耳机享受旅途音乐，智能手表导航定位，智能手机记录美好瞬间',
-'旅行装备推荐，让旅途更精彩', '结合旅行场景需求，精选无线耳机、智能手表和智能手机，让您的旅行更加舒适便捷。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.79, "usage_count": 0}'),
-(1004, 'gaming', NULL, NULL, NULL, NULL, '[4, 1, 2]', '游戏玩家专属：智能手机畅玩游戏，智能手表监测游戏状态，无线耳机沉浸体验',
-'游戏装备推荐，畅享游戏乐趣', '针对游戏爱好者，精选智能手机、智能手表和无线耳机，提供沉浸式游戏体验。',
-'{"style": "creative", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-(1005, 'health', NULL, NULL, NULL, NULL, '[1, 2, 4]', '健康管理必备：智能手表监测健康指标，无线耳机放松身心，智能手机管理健康数据',
-'健康装备推荐，关爱身心健康', '基于健康管理需求，精选智能手表、无线耳机和智能手机，助您科学管理健康生活。',
-'{"style": "health", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}');
 
--- 插入用户兴趣画像数据
-INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests) VALUES
-(1001, '{"科技": 0.8, "运动": 0.6, "健康": 0.7}', '{"浏览时段": "19:00-22:00", "设备偏好": "手机"}', '{"新品偏好": "高", "价格敏感度": "低"}', '{"热点事件": 0.9}'),
-(1002, '{"音频": 0.9, "时尚": 0.5, "旅行": 0.6}', '{"浏览时段": "12:00-14:00", "点击偏好": "视频>图片"}', '{"新品偏好": "中等", "品牌忠诚度": "高"}', '{"季节性": 0.7}'),
-(1003, '{"办公": 0.8, "游戏": 0.7, "摄影": 0.6}', '{"浏览时段": "20:00-23:00", "购买决策": "详细比较"}', '{"新品偏好": "低", "性价比优先": "是"}', '{"技术更新": 0.8}');
+
 
 
 

@@ -48,14 +48,14 @@ public interface ProductMapper extends BaseMapper<Product> {
     List<Product> findNewProducts();
     
     /**
-     * 根据ID查询商品基础信息（极致性能优化版）
+     * 根据ID查询商品基础信息（简化版，避免复杂关联查询）
      */
     @Select("SELECT " +
             "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
             "p.min_price, p.max_price, p.main_image_url, " +
             "COALESCE(pss.sales_count, 0) as sales_count, " +
             "COALESCE(rs.average_rating, 0) as average_rating, COALESCE(rs.total_reviews, 0) as total_reviews, " +
-            "s.name as seller_name, s.rating as seller_rating, " +
+            "COALESCE(s.name, '未知商家') as seller_name, COALESCE(s.rating, 0.0) as seller_rating, " +
             "p.created_at, p.updated_at " +
             "FROM products p " +
             "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +

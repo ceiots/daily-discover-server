@@ -333,22 +333,28 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     @Override
-    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext) {
+    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext) {
         try {
             List<Map<String, Object>> result = new ArrayList<>();
             
             // 解析locationContext获取locationKey
             String locationKey = extractLocationKey(locationContext);
             
+            // 解析activityContext：如果前端传入则使用，否则智能推断
+            String finalActivityContext = activityContext;
+            if (finalActivityContext == null || finalActivityContext.trim().isEmpty()) {
+                finalActivityContext = extractActivityContext(locationContext);
+            }
+            
             // 1. 先查询用户专属推荐（最多2条）
             if (userId != null) {
-                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext, locationKey);
+                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext, finalActivityContext, locationKey);
                 result.addAll(userRecommendations);
             }
             
             // 2. 如果用户专属推荐不足2条，补充通用推荐
             if (result.size() < 2) {
-                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext, locationKey);
+                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext, finalActivityContext, locationKey);
                 
                 // 只补充到总共2条
                 int remaining = 2 - result.size();
@@ -428,6 +434,34 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             return "home"; // 默认值
         }
         return locationContext.trim(); // 直接返回字符串
+    }
+
+    /**
+     * 获取activityContext（基于位置和时间智能推断）
+     */
+    private String extractActivityContext(String locationContext) {
+        if (locationContext == null || locationContext.trim().isEmpty()) {
+            return "relax"; // 默认休闲活动
+        }
+        
+        String location = locationContext.trim().toLowerCase();
+        
+        // 基于位置智能推断活动类型
+        switch (location) {
+            case "home":
+                return "relax"; // 家庭场景通常是休闲活动
+            case "office":
+                return "work"; // 办公室场景通常是工作活动
+            case "commute":
+            case "subway":
+                return "commute"; // 通勤场景
+            case "gym":
+                return "fitness"; // 健身房场景
+            case "outdoor":
+                return "travel"; // 户外场景可能是旅行
+            default:
+                return "relax"; // 默认休闲活动
+        }
     }
 
     @Override

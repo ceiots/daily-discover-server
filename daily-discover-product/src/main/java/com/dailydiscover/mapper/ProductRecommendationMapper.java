@@ -27,15 +27,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
     List<Map<String, Object>> findDailyDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit);
     
-    /**
-     * 生活场景推荐
-     */
-    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, sr.confidence_score " +
-            "FROM scenario_recommendations sr " +
-            "WHERE sr.scenario_type IN ('time_based', 'location_based', 'weather_based') " +
-            "AND JSON_CONTAINS(sr.location_context, #{context}) AND (sr.user_id IS NULL OR sr.user_id = #{userId}) AND sr.is_active = true " +
-            "ORDER BY sr.confidence_score DESC LIMIT #{limit}")
-    List<Map<String, Object>> findScenarioRecommendations(@Param("userId") Long userId, @Param("context") String context, @Param("limit") int limit);
+
     
     /**
      * 社区热榜推荐
@@ -215,30 +207,32 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     List<Map<String, Object>> findDailyDiscoveryProducts(@Param("userId") Long userId);
 
     /**
-     * 生活场景推荐 - 用户专属推荐（高性能）
+     * 生活场景推荐 - 用户专属推荐（多维度设计）
      */
     @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
             "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
             "FROM scenario_recommendations sr " +
             "WHERE sr.user_id = #{userId} " +
-            "AND sr.scenario_type = #{timeContext} " +
-            "AND sr.location_context = #{locationKey} " +
+            "AND sr.scenario_time_type = #{timeContext} " +
+            "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
+            "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
-    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("locationKey") String locationKey);
+    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
 
     /**
-     * 生活场景推荐 - 通用推荐（高性能）
+     * 生活场景推荐 - 通用推荐（多维度设计）
      */
     @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
             "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
             "FROM scenario_recommendations sr " +
             "WHERE sr.user_id IS NULL " +
-            "AND sr.scenario_type = #{timeContext} " +
-            "AND sr.location_context = #{locationKey} " +
+            "AND sr.scenario_time_type = #{timeContext} " +
+            "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
+            "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 2")
-    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("locationKey") String locationKey);
+    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
 
     /**
      * 社区热榜推荐（客观排名，不关联用户）
