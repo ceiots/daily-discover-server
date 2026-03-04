@@ -37,16 +37,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
     }
     
-    @Override
-    public List<ProductRecommendation> getPersonalizedRecommendations(Long userId) {
-        try {
-            // 使用修复后的Mapper方法查询个性化推荐
-            return productRecommendationMapper.findByUserId(userId);
-        } catch (Exception e) {
-            log.error("获取个性化推荐失败，userId: {}", userId, e);
-            return List.of();
-        }
-    }
+
     
     @Override
     public List<ProductRecommendation> getRecommendationsByType(String recommendationType) {
@@ -62,6 +53,14 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<ProductRecommendation> getDailyDiscoverRecommendations(Long userId) {
         try {
+            // 优先使用个性化推荐，如果没有则使用每日发现推荐
+            List<ProductRecommendation> personalizedRecommendations = productRecommendationMapper.findByUserId(userId);
+            
+            if (!personalizedRecommendations.isEmpty()) {
+                return personalizedRecommendations;
+            }
+            
+            // 如果没有个性化推荐，则使用每日发现推荐
             List<Map<String, Object>> resultMaps = productRecommendationMapper.findDailyDiscoverProducts(userId, 10);
             return convertMapListToProductRecommendations(resultMaps);
         } catch (Exception e) {
@@ -363,8 +362,10 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 }
             }
             
-            // 3. 解析推荐商品ID并查询完整商品信息
+            // 3. 解析推荐商品ID并查询完整商品信息（全局去重）
             List<Map<String, Object>> finalResult = new ArrayList<>();
+            Set<Long> processedProductIds = new HashSet<>(); // 用于跟踪已处理的商品ID
+            
             for (Map<String, Object> scenario : result) {
                 Map<String, Object> enrichedScenario = new HashMap<>(scenario);
                 
@@ -376,14 +377,25 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                         List<Long> productIds = new com.fasterxml.jackson.databind.ObjectMapper()
                                 .readValue(recommendedProductsJson, new com.fasterxml.jackson.core.type.TypeReference<List<Long>>() {});
                         
+                        // 过滤掉已经处理过的商品ID
+                        List<Long> uniqueProductIds = productIds.stream()
+                                .filter(id -> !processedProductIds.contains(id))
+                                .collect(java.util.stream.Collectors.toList());
+                        
                         // 查询完整商品信息
-                        if (!productIds.isEmpty()) {
-                            List<com.dailydiscover.model.dto.ProductBasicInfoDTO> productDetails = productMapper.findBasicInfoByIds(productIds);
+                        if (!uniqueProductIds.isEmpty()) {
+                            List<com.dailydiscover.model.dto.ProductBasicInfoDTO> productDetails = productMapper.findBasicInfoByIds(uniqueProductIds);
                             // 转换为Map格式
                             List<Map<String, Object>> productMaps = productDetails.stream()
                                 .map(this::convertProductBasicInfoToMap)
                                 .collect(java.util.stream.Collectors.toList());
                             enrichedScenario.put("recommended_products", productMaps);
+                            
+                            // 记录已处理的商品ID
+                            uniqueProductIds.forEach(processedProductIds::add);
+                        } else {
+                            // 如果所有商品都已处理过，设置为空列表
+                            enrichedScenario.put("recommended_products", new ArrayList<>());
                         }
                     } catch (Exception e) {
                         log.warn("解析推荐商品JSON失败: {}", recommendedProductsJson);

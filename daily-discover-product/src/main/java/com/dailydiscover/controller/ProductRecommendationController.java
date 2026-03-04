@@ -33,19 +33,7 @@ public class ProductRecommendationController {
         }
     }
 
-    /**
-     * 根据用户ID获取个性化推荐（用户首页用）
-     */
-    @GetMapping("/user/{userId}")
-    @ApiLog("根据用户ID获取个性化推荐")
-    public ResponseEntity<List<ProductRecommendation>> getProductRecommendationsByUserId(@PathVariable Long userId) {
-        try {
-            List<ProductRecommendation> recommendations = productRecommendationService.getPersonalizedRecommendations(userId);
-            return ResponseEntity.ok(recommendations);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+
 
     /**
      * 商品详情页推荐接口（前端统一调用此接口）

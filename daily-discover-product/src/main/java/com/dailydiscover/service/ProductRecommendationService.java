@@ -18,12 +18,7 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      */
     List<ProductRecommendation> getRecommendationsByProductId(Long productId);
     
-    /**
-     * 根据用户ID获取个性化推荐
-     * @param userId 用户ID
-     * @return 个性化推荐列表
-     */
-    List<ProductRecommendation> getPersonalizedRecommendations(Long userId);
+
     
     /**
      * 根据推荐类型获取推荐商品

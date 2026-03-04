@@ -51,16 +51,14 @@ public interface ProductMapper extends BaseMapper<Product> {
      * 根据ID查询商品基础信息（简化版，避免复杂关联查询）
      */
     @Select("SELECT " +
-            "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
+            "p.id, p.title, p.category_id, p.brand, p.model, " +
             "p.min_price, p.max_price, p.main_image_url, " +
             "COALESCE(pss.sales_count, 0) as sales_count, " +
             "COALESCE(rs.average_rating, 0) as average_rating, COALESCE(rs.total_reviews, 0) as total_reviews, " +
-            "COALESCE(s.name, '未知商家') as seller_name, COALESCE(s.rating, 0.0) as seller_rating, " +
             "p.created_at, p.updated_at " +
             "FROM products p " +
             "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +
             "LEFT JOIN review_stats rs ON p.id = rs.product_id " +
-            "LEFT JOIN sellers s ON p.seller_id = s.id " +
             "WHERE p.id = #{id} AND p.status = 1 AND p.is_deleted = 0")
     ProductBasicInfoDTO findBasicInfoById(@Param("id") Long id);
     
@@ -68,17 +66,20 @@ public interface ProductMapper extends BaseMapper<Product> {
      * 根据ID列表批量查询商品基础信息（性能优化版）
      */
     @Select("<script>" +
-            "SELECT " +
-            "p.id, p.seller_id, p.title, p.category_id, p.brand, p.model, " +
+            "SELECT DISTINCT " +
+            "p.id, p.title, p.category_id, p.brand, p.model, " +
             "p.min_price, p.max_price, p.main_image_url, " +
             "COALESCE(pss.sales_count, 0) as sales_count, " +
             "COALESCE(rs.average_rating, 0) as average_rating, COALESCE(rs.total_reviews, 0) as total_reviews, " +
-            "s.name as seller_name, s.rating as seller_rating, " +
             "p.created_at, p.updated_at " +
             "FROM products p " +
-            "LEFT JOIN product_sales_stats pss ON p.id = pss.product_id AND pss.time_granularity = 'daily' " +
+            "LEFT JOIN (" +
+            "    SELECT product_id, MAX(sales_count) as sales_count " +
+            "    FROM product_sales_stats " +
+            "    WHERE time_granularity = 'daily' " +
+            "    GROUP BY product_id" +
+            ") pss ON p.id = pss.product_id " +
             "LEFT JOIN review_stats rs ON p.id = rs.product_id " +
-            "LEFT JOIN sellers s ON p.seller_id = s.id " +
             "WHERE p.id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +

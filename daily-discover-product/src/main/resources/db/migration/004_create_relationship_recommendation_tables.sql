@@ -444,7 +444,7 @@ INSERT INTO scenario_recommendations (
 '{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
 (1, 'afternoon', 'fitness', 'gym', '17:00-19:00', 'energetic', '{"weather": "indoor", "temperature": 22}', '[1, 2, 4]', '个性化健身推荐：智能手表追踪健康，无线耳机享受运动音乐',
 '个性化健身装备，科学锻炼身体', '根据您的健身习惯，为您定制专属的健身装备推荐，助您科学锻炼。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0});
+'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0}');
 
 -- 3. 社区热榜数据（销量统计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, view_count, favorite_count, avg_rating) VALUES

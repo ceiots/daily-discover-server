@@ -99,6 +99,21 @@ public class ProductController {
         }
     }
     
+    @GetMapping("/{id}/detail")
+    @ApiLog("获取商品详情页面基本信息")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Product> getProductDetailBasicInfo(@PathVariable Long id) {
+        try {
+            Product product = productService.findById(id);
+            if (product != null) {
+                return ResponseEntity.ok(product);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @PostMapping
     @ApiLog("创建商品")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
