@@ -336,6 +336,33 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
     }
 
+    // 获取场景类型颜色 - 优化为浅灰/浅棕底色
+    private String getScenarioColor(String title) {
+        if (title == null) return "#f8fafc";
+        if (title.contains("早餐") || title.contains("早晨") || title.contains("morning")) return "#f5f5f4";
+        if (title.contains("午餐") || title.contains("中午") || title.contains("afternoon")) return "#f8fafc";
+        if (title.contains("晚餐") || title.contains("晚上") || title.contains("evening")) return "#f3f4f6";
+        if (title.contains("运动") || title.contains("健身")) return "#f0fdf4";
+        if (title.contains("购物")) return "#fefce8";
+        if (title.contains("工作") || title.contains("学习")) return "#eff6ff";
+        return "#f8fafc";
+    }
+
+    // 获取场景类型图标文字 - 优化场景名，避免'生活'标签
+    private String getScenarioType(String title) {
+        if (title == null) return "场景推荐";
+        if (title.contains("早餐") || title.contains("早晨") || title.contains("morning")) return "早餐推荐";
+        if (title.contains("午餐") || title.contains("中午") || title.contains("afternoon")) return "午间推荐";
+        if (title.contains("晚餐") || title.contains("晚上") || title.contains("evening")) return "晚间推荐";
+        if (title.contains("运动") || title.contains("健身")) return "运动推荐";
+        if (title.contains("购物")) return "购物推荐";
+        if (title.contains("工作")) return "工作推荐";
+        if (title.contains("学习")) return "学习推荐";
+        if (title.contains("娱乐")) return "娱乐推荐";
+        if (title.contains("社交")) return "社交推荐";
+        return "场景推荐";
+    }
+
     @Override
     public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext) {
         try {
@@ -373,6 +400,11 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             
             for (Map<String, Object> scenario : result) {
                 Map<String, Object> enrichedScenario = new HashMap<>(scenario);
+                
+                // 添加场景类型和颜色信息（后端处理逻辑）
+                String title = (String) scenario.get("recommendation_title");
+                enrichedScenario.put("scenario_type", getScenarioType(title));
+                enrichedScenario.put("scenario_color", getScenarioColor(title));
                 
                 // 解析recommended_products字段（JSON字符串格式）
                 String recommendedProductsJson = (String) scenario.get("recommended_products");
