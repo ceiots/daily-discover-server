@@ -159,9 +159,9 @@ public class ProductRecommendationController {
 
     @GetMapping("/daily-discovery")
     @ApiLog("获取今日发现推荐")
-    public ResponseEntity<List<Map<String, Object>>> getDailyDiscoveryRecommendations(@RequestParam(required = false) Long userId) {
+    public ResponseEntity<List<Map<String, Object>>> getDailyDiscoveryRecommendations(@RequestParam(required = false) Long userId, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getDailyDiscoveryRecommendations(userId);
+            List<Map<String, Object>> recommendations = productRecommendationService.getDailyDiscoveryRecommendations(userId, limit, page);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -60,8 +60,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 return personalizedRecommendations;
             }
             
-            // 如果没有个性化推荐，则使用每日发现推荐
-            List<Map<String, Object>> resultMaps = productRecommendationMapper.findDailyDiscoverProducts(userId, 10);
+            // 如果没有个性化推荐，则使用每日发现推荐（第一页，10条数据）
+            List<Map<String, Object>> resultMaps = productRecommendationMapper.findDailyDiscoverProducts(userId, 10, 0);
             return convertMapListToProductRecommendations(resultMaps);
         } catch (Exception e) {
             log.error("获取每日发现推荐失败，userId: {}", userId, e);
@@ -310,9 +310,14 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     // ==================== 首页推荐四模块 ====================
 
     @Override
-    public List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId) {
+    public List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, 10);
+            // 设置默认值
+            int finalLimit = limit != null ? limit : 20;
+            int finalPage = page != null ? page : 1;
+            int offset = (finalPage - 1) * finalLimit;
+            
+            List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, finalLimit, offset);
             
             // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
             return recommendations.stream()
@@ -326,7 +331,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 .stream()
                 .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("获取今日发现推荐失败，userId: {}", userId, e);
+            log.error("获取今日发现推荐失败，userId: {}, page: {}", userId, page, e);
             return List.of();
         }
     }

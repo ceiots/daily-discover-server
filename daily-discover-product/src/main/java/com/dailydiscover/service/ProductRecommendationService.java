@@ -68,8 +68,12 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
 
     /**
      * 获取今日发现推荐
+     * @param userId 用户ID
+     * @param limit 每页数量
+     * @param page 页码（从1开始）
+     * @return 今日发现推荐列表
      */
-    List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId);
+    List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page);
 
     /**
      * 获取生活场景推荐（多维度设计）

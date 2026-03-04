@@ -24,8 +24,8 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
             "AND ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
-            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
-    List<Map<String, Object>> findDailyDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit);
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit} OFFSET #{offset}")
+    List<Map<String, Object>> findDailyDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit, @Param("offset") int offset);
     
 
     
