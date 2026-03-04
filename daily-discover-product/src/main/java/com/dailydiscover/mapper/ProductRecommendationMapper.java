@@ -217,7 +217,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
             "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
-            "LIMIT 2")
+            "LIMIT 4")
     List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
 
     /**
@@ -231,7 +231,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
             "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
-            "LIMIT 2")
+            "LIMIT 4")
     List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
 
     /**

@@ -350,18 +350,18 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 finalActivityContext = extractActivityContext(locationContext);
             }
             
-            // 1. 先查询用户专属推荐（最多2条）
+            // 1. 先查询用户专属推荐（最多4条）
             if (userId != null) {
                 List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext, finalActivityContext, locationKey);
                 result.addAll(userRecommendations);
             }
             
-            // 2. 如果用户专属推荐不足2条，补充通用推荐
-            if (result.size() < 2) {
+            // 2. 如果用户专属推荐不足4条，补充通用推荐
+            if (result.size() < 4) {
                 List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext, finalActivityContext, locationKey);
                 
-                // 只补充到总共2条
-                int remaining = 2 - result.size();
+                // 只补充到总共4条
+                int remaining = 4 - result.size();
                 if (remaining > 0 && generalRecommendations.size() > 0) {
                     result.addAll(generalRecommendations.subList(0, Math.min(remaining, generalRecommendations.size())));
                 }
@@ -414,8 +414,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 finalResult.add(enrichedScenario);
             }
             
-            // 4. 确保返回最多2条记录
-            return finalResult.size() > 2 ? finalResult.subList(0, 2) : finalResult;
+            // 4. 确保返回最多4条记录（前端横向滚动需要更多数据）
+            return finalResult.size() > 4 ? finalResult.subList(0, 4) : finalResult;
         } catch (Exception e) {
             log.error("获取生活场景推荐失败，userId: {}, timeContext: {}, locationContext: {}", userId, timeContext, locationContext, e);
             return List.of();
