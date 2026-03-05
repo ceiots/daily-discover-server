@@ -70,6 +70,10 @@ public class ApiLogAspect {
         boolean logExecutionTime = apiLog != null ? apiLog.logExecutionTime() : true;
         boolean logException = apiLog != null ? apiLog.logException() : true;
         
+        // 获取请求参数
+        Object[] args = joinPoint.getArgs();
+        String requestParams = formatRequestParameters(args, method);
+        
         try {
             // 执行目标方法
             result = joinPoint.proceed();
@@ -78,7 +82,7 @@ public class ApiLogAspect {
             // 记录成功日志（根据注解配置，记录所有请求）
             HttpServletRequest request = getCurrentRequest();
             if (request != null) {
-                ApiLogger.logHttpApiCall(apiDescription, request, result, duration, true, logRequest, logResponse);
+                ApiLogger.logHttpApiCall(apiDescription, request, result, duration, true, logRequest, logResponse, requestParams);
             }
             
             return result;
@@ -90,7 +94,7 @@ public class ApiLogAspect {
             if (throwable instanceof Exception && logException) {
                 HttpServletRequest request = getCurrentRequest();
                 if (request != null) {
-                    ApiLogger.logHttpApiException(apiDescription, request, (Exception) throwable, duration);
+                    ApiLogger.logHttpApiException(apiDescription, request, (Exception) throwable, duration, requestParams);
                 }
             }
             
@@ -150,5 +154,69 @@ public class ApiLogAspect {
         }
         
         return false;
+    }
+    
+    /**
+     * 格式化请求参数
+     */
+    private String formatRequestParameters(Object[] args, Method method) {
+        if (args == null || args.length == 0) {
+            return "无参数";
+        }
+        
+        try {
+            StringBuilder paramsBuilder = new StringBuilder();
+            String[] parameterNames = getParameterNames(method);
+            
+            for (int i = 0; i < args.length; i++) {
+                if (i > 0) {
+                    paramsBuilder.append(", ");
+                }
+                
+                String paramName = i < parameterNames.length ? parameterNames[i] : "param" + i;
+                Object paramValue = args[i];
+                
+                // 安全格式化参数值
+                String valueStr;
+                if (paramValue == null) {
+                    valueStr = "null";
+                } else if (paramValue instanceof String) {
+                    valueStr = "\"" + paramValue + "\"";
+                } else if (paramValue instanceof Number || paramValue instanceof Boolean) {
+                    valueStr = paramValue.toString();
+                } else {
+                    // 对于复杂对象，只显示类型和哈希值，防止大对象或循环引用
+                    valueStr = paramValue.getClass().getSimpleName() + "@" + System.identityHashCode(paramValue);
+                }
+                
+                paramsBuilder.append(paramName).append("=").append(valueStr);
+            }
+            
+            return paramsBuilder.toString();
+        } catch (Exception e) {
+            return "参数格式化失败: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * 获取方法参数名称
+     */
+    private String[] getParameterNames(Method method) {
+        try {
+            // 使用反射获取参数名称（需要编译时开启-parameters参数）
+            java.lang.reflect.Parameter[] parameters = method.getParameters();
+            String[] names = new String[parameters.length];
+            for (int i = 0; i < parameters.length; i++) {
+                names[i] = parameters[i].getName();
+            }
+            return names;
+        } catch (Exception e) {
+            // 如果无法获取参数名称，返回默认名称
+            String[] defaultNames = new String[method.getParameterCount()];
+            for (int i = 0; i < defaultNames.length; i++) {
+                defaultNames[i] = "arg" + i;
+            }
+            return defaultNames;
+        }
     }
 }

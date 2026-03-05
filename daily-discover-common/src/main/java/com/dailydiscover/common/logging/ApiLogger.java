@@ -23,7 +23,7 @@ public class ApiLogger {
      */
     public static void logHttpApiCall(String apiDescription, HttpServletRequest request, 
                                      Object response, long duration, boolean success,
-                                     boolean logRequest, boolean logResponse) {
+                                     boolean logRequest, boolean logResponse, String requestParams) {
         // 性能优化：仅在需要记录时执行
         if (!log.isInfoEnabled()) {
             return;
@@ -39,6 +39,11 @@ public class ApiLogger {
         logBuilder.append(" | URL: ").append(request.getRequestURL().toString());
         logBuilder.append(" | 方法: ").append(request.getMethod());
         logBuilder.append(" | 客户端: ").append(getClientIP(request));
+        
+        // 请求参数（根据配置决定是否记录）
+        if (logRequest && requestParams != null && !requestParams.isEmpty()) {
+            logBuilder.append(" | 参数: ").append(requestParams);
+        }
         
         // HTTP状态信息
         int statusCode = getResponseStatusCode();
@@ -61,7 +66,7 @@ public class ApiLogger {
      * 记录HTTP API异常信息
      */
     public static void logHttpApiException(String apiDescription, HttpServletRequest request, 
-                                          Exception exception, long duration) {
+                                          Exception exception, long duration, String requestParams) {
         // 性能优化：仅在需要记录时执行
         if (!log.isErrorEnabled()) {
             return;
@@ -77,6 +82,11 @@ public class ApiLogger {
         logBuilder.append(" | URL: ").append(request.getRequestURL().toString());
         logBuilder.append(" | 方法: ").append(request.getMethod());
         logBuilder.append(" | 客户端: ").append(getClientIP(request));
+        
+        // 请求参数
+        if (requestParams != null && !requestParams.isEmpty()) {
+            logBuilder.append(" | 参数: ").append(requestParams);
+        }
         
         // 异常信息
         logBuilder.append(" | 异常: ").append(exception.getMessage());

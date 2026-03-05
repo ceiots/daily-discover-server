@@ -17,13 +17,12 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐（商品+内容混合）
      */
-    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
+    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
             "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
             "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
-            "AND ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit} OFFSET #{offset}")
     List<Map<String, Object>> findDailyDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit, @Param("offset") int offset);
     
