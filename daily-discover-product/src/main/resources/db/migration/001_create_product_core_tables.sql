@@ -7,6 +7,8 @@ USE daily_discover;
 
 -- 删除表（便于可重复执行）
 DROP TABLE IF EXISTS product_tag_relations;
+DROP TABLE IF EXISTS product_selling_point_relations;
+DROP TABLE IF EXISTS product_selling_points;
 DROP TABLE IF EXISTS product_tags;
 DROP TABLE IF EXISTS product_service_info_values;
 DROP TABLE IF EXISTS product_service_categories;
@@ -256,7 +258,48 @@ CREATE TABLE IF NOT EXISTS product_tag_relations (
 
 
 -- ============================================
--- 7. 产品服务信息模块（可扩展设计）
+-- 7. 商品卖点标签系统模块（推荐系统专用）
+-- ============================================
+
+-- 商品卖点标签表（推荐系统特征标签）
+CREATE TABLE IF NOT EXISTS product_selling_points (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '卖点ID',
+    
+    -- 卖点基本信息
+    point_name VARCHAR(50) NOT NULL COMMENT '卖点名称（通用、可复用、分级描述）',
+    point_category VARCHAR(50) NOT NULL COMMENT '卖点大类（安全性、性能感、体验感、健康呵护、耐用性）',
+    point_sub_category VARCHAR(50) COMMENT '卖点小类（材质、降噪、续航等）',
+    point_description VARCHAR(200) COMMENT '卖点说明（具体、量化、打动人、有画面感）',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 索引优化
+    UNIQUE KEY uk_point_name (point_name) COMMENT '卖点名称唯一性',
+    INDEX idx_point_category (point_category),
+    INDEX idx_point_sub_category (point_sub_category),
+    INDEX idx_category_sub_category (point_category, point_sub_category)
+) COMMENT '商品卖点标签表（推荐系统特征标签）';
+
+-- 商品卖点关系表（商品与卖点关联）
+CREATE TABLE IF NOT EXISTS product_selling_point_relations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '关系ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    selling_point_id BIGINT NOT NULL COMMENT '卖点ID',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 索引优化
+    UNIQUE KEY uk_product_point (product_id, selling_point_id) COMMENT '商品卖点唯一性',
+    INDEX idx_product_id (product_id),
+    INDEX idx_selling_point_id (selling_point_id)
+) COMMENT '商品卖点关系表（商品与卖点关联）';
+
+-- ============================================
+-- 8. 产品服务信息模块（可扩展设计）
 -- ============================================
 
 -- 产品服务信息分类表（定义信息类型）
@@ -522,5 +565,80 @@ INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, sp
 (1001, 4, 1, 1, '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 1),
 (1001, 2, 3, 2, '{"颜色": "黑色"}', '黑色', 1),
 (1002, 4, 7, 1, '{"颜色": "蓝色", "存储": "256GB", "网络版本": "5G版"}', '蓝色 256GB 5G版', 1);
+
+-- ============================================
+-- 商品卖点标签系统初始数据
+-- ============================================
+
+-- 插入商品卖点标签数据（高转化电商版本）
+INSERT INTO product_selling_points (point_name, point_category, point_sub_category, point_description) VALUES
+-- ====================== 安全性（统一大类）
+('食品级材质', '安全性', '材质', '采用食品接触级安全材质，无毒无异味，母婴、老人日常使用都放心'),
+('无任何添加', '安全性', '成分', '0防腐剂、0香精、0色素，天然纯净，吃进嘴里、接触皮肤都更安心'),
+('0农残检测', '安全性', '检测', '经过专业机构检测，农残未检出，生鲜果蔬直接清洗即可食用'),
+('银离子抗菌', '安全性', '抗菌', '内置银离子抗菌层，有效抑制日常细菌滋生，贴身佩戴更卫生'),
+('无辐射安全', '安全性', '辐射', '低辐射合规设计，远低于国家安全标准，贴身佩戴、长期使用无负担'),
+
+-- ====================== 性能感
+('超轻便携', '性能感', '重量', '重量比手机还轻，随身放包、口袋无压力，出门携带完全不费劲'),
+('柔软舒适', '性能感', '触感', '高弹柔肤材质，触感细腻不磨皮肤，长时间佩戴/使用也不闷不勒'),
+('强效省电', '性能感', '能耗', '达到一级节能标准，待机更久、耗电更低，长期使用能省一大笔电费'),
+('快速充电', '性能感', '充电', '充电10分钟就能用很久，碎片化时间快速回血，出门从不担心没电'),
+('超长续航', '性能感', '续航', '一次充满，连续使用数天，告别频繁充电，出差旅行更省心'),
+
+-- ====================== 体验感
+('深度降噪', '体验感', '降噪', '有效隔绝外界嘈杂人声、交通噪音，办公、通勤、睡觉都能保持安静'),
+('静音运行', '体验感', '噪音', '运行声音极轻，深夜使用不打扰家人，图书馆、卧室都能安心用'),
+('一键操作', '体验感', '操作', '功能简单直观，一键开启/切换，不用看说明书，老人小孩都能轻松上手'),
+('智能控制', '体验感', '智能', '支持手机APP远程控制，不用起身就能调节，懒人、老人使用超方便'),
+('防滑不脱手', '体验感', '防滑', '表面防滑纹理设计，手上出汗、沾水也能牢牢握住，不易滑落摔落'),
+
+-- ====================== 健康呵护
+('护眼柔和', '健康呵护', '护眼', '屏幕无频闪、低蓝光，长时间看视频、办公、学习，眼睛不易酸胀疲劳'),
+('亲肤透气', '健康呵护', '透气', '透气面料不闷汗，夏天佩戴不粘皮肤，长时间使用也清爽舒适'),
+('环保材质', '健康呵护', '环保', '可降解环保材料，无毒无害，丢弃不污染环境，使用更有责任感'),
+
+-- ====================== 耐用性
+('耐高温', '耐用性', '耐温', '可承受高温不变形、不开裂、不释放有害物质，热水、高温环境都能用'),
+('防摔耐造', '耐用性', '防摔', '加固结构设计，日常不小心跌落、碰撞不易损坏，结实抗造更耐用'),
+('防水防尘', '耐用性', '防水', '日常泼溅、雨水、灰尘都不怕，户外、浴室、厨房都能安心使用');
+
+-- 插入商品卖点关系数据（重新调整以匹配新卖点ID）
+INSERT INTO product_selling_point_relations (product_id, selling_point_id) VALUES
+-- 智能手表 Pro（产品ID=1）
+(1, 6),  -- 超轻便携（性能感-重量）
+(1, 7),  -- 柔软舒适（性能感-触感）
+(1, 10), -- 超长续航（性能感-续航）
+(1, 5),  -- 无辐射安全（安全性-辐射）
+(1, 21), -- 防水防尘（耐用性-防水）
+
+-- 无线降噪耳机（产品ID=2）
+(2, 6),  -- 超轻便携（性能感-重量）
+(2, 10), -- 超长续航（性能感-续航）
+(2, 12), -- 静音运行（体验感-噪音）
+(2, 14), -- 智能控制（体验感-智能）
+(2, 20), -- 防摔耐造（耐用性-防摔）
+
+-- 轻薄笔记本电脑（产品ID=3）
+(3, 6),  -- 超轻便携（性能感-重量）
+(3, 8),  -- 强效省电（性能感-能耗）
+(3, 9),  -- 快速充电（性能感-充电）
+(3, 13), -- 一键操作（体验感-操作）
+(3, 19), -- 耐高温（耐用性-耐温）
+
+-- 智能手机旗舰版（产品ID=4）
+(4, 6),  -- 超轻便携（性能感-重量）
+(4, 9),  -- 快速充电（性能感-充电）
+(4, 10), -- 超长续航（性能感-续航）
+(4, 14), -- 智能控制（体验感-智能）
+(4, 15), -- 防滑不脱手（体验感-防滑）
+(4, 18), -- 环保材质（健康呵护-环保）
+
+-- 运动蓝牙耳机（产品ID=5）
+(5, 6),  -- 超轻便携（性能感-重量）
+(5, 7),  -- 柔软舒适（性能感-触感）
+(5, 10), -- 超长续航（性能感-续航）
+(5, 12), -- 静音运行（体验感-噪音）
+(5, 21); -- 防水防尘（耐用性-防水）
 
 COMMIT;

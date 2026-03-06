@@ -319,6 +319,15 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             
             List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, finalLimit, offset);
             
+            // 为每个推荐项添加推荐理由
+            recommendations.forEach(item -> {
+                // 如果SQL查询没有返回discovery_reason，或者返回的是默认值，则重新生成
+                String currentReason = (String) item.get("discovery_reason");
+                if (currentReason == null || currentReason.equals("为您精心挑选")) {
+                    item.put("discovery_reason", generateRecommendationReason(item));
+                }
+            });
+            
             // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
             return recommendations.stream()
                 .filter(item -> item.get("item_id") != null)
@@ -346,6 +355,148 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         if (title.contains("购物")) return "#fefce8";
         if (title.contains("工作") || title.contains("学习")) return "#eff6ff";
         return "#f8fafc";
+    }
+
+    // 生成推荐理由
+    private String generateRecommendationReason(Map<String, Object> productData) {
+        Double avgRating = getDoubleValue(productData.get("avg_rating"));
+        Integer viewCount = getIntegerValue(productData.get("view_count"));
+        Double recommendationScore = getDoubleValue(productData.get("recommendation_score"));
+        String title = (String) productData.get("title");
+        
+        // 基于商品标题关键词生成特性推荐语
+        String featureReason = generateFeatureReason(title);
+        
+        // 基于评分和浏览量的质量推荐语
+        String qualityReason = generateQualityReason(avgRating, viewCount, recommendationScore);
+        
+        // 组合推荐语：特性 + 质量
+        if (!featureReason.isEmpty() && !qualityReason.isEmpty()) {
+            return featureReason + "，" + qualityReason;
+        } else if (!featureReason.isEmpty()) {
+            return featureReason;
+        } else if (!qualityReason.isEmpty()) {
+            return qualityReason;
+        } else {
+            return "为您精心挑选";
+        }
+    }
+    
+    // 基于商品特性生成推荐语
+    private String generateFeatureReason(String title) {
+        if (title == null) return "";
+        
+        // 智能设备类
+        if (title.contains("智能") || title.contains("手表") || title.contains("耳机")) {
+            if (title.contains("降噪")) {
+                return "主动降噪技术，沉浸式体验";
+            } else if (title.contains("运动")) {
+                return "防水防汗设计，运动更自由";
+            } else if (title.contains("无线")) {
+                return "无线连接，摆脱束缚";
+            } else {
+                return "智能科技，便捷生活";
+            }
+        }
+        
+        // 电子设备类
+        if (title.contains("手机") || title.contains("电脑") || title.contains("平板")) {
+            if (title.contains("轻薄")) {
+                return "轻薄便携，随时随地办公";
+            } else if (title.contains("旗舰")) {
+                return "旗舰配置，性能强劲";
+            } else {
+                return "高性能设备，效率倍增";
+            }
+        }
+        
+        // 家居生活类
+        if (title.contains("家居") || title.contains("生活") || title.contains("装饰")) {
+            return "提升生活品质，营造温馨氛围";
+        }
+        
+        // 运动健身类
+        if (title.contains("运动") || title.contains("健身") || title.contains("跑步")) {
+            return "专业运动装备，助力健康生活";
+        }
+        
+        // 美妆护肤类
+        if (title.contains("美妆") || title.contains("护肤") || title.contains("化妆品")) {
+            return "呵护肌肤，展现自信美丽";
+        }
+        
+        // 服饰鞋包类
+        if (title.contains("服装") || title.contains("鞋子") || title.contains("包包")) {
+            return "时尚设计，彰显个性品味";
+        }
+        
+        return "";
+    }
+    
+    // 基于质量指标生成推荐语
+    private String generateQualityReason(Double avgRating, Integer viewCount, Double recommendationScore) {
+        // 评分优先
+        if (avgRating != null && avgRating >= 4.8) {
+            return "用户评分4.8+，品质有保障";
+        } else if (avgRating != null && avgRating >= 4.5) {
+            return "口碑优秀，值得信赖";
+        } else if (avgRating != null && avgRating >= 4.0) {
+            return "品质可靠，性价比高";
+        }
+        
+        // 热度其次
+        if (viewCount != null && viewCount > 500) {
+            return "热门爆款，大家都在买";
+        } else if (viewCount != null && viewCount > 200) {
+            return "人气商品，广受好评";
+        }
+        
+        // 推荐分数
+        if (recommendationScore != null && recommendationScore >= 0.9) {
+            return "高匹配度推荐，精准满足需求";
+        } else if (recommendationScore != null && recommendationScore >= 0.8) {
+            return "个性化推荐，符合您的偏好";
+        }
+        
+        return "精心挑选，品质保证";
+    }
+
+    // 获取双精度值
+    private Double getDoubleValue(Object value) {
+        if (value == null) return null;
+        if (value instanceof Double) {
+            return (Double) value;
+        } else if (value instanceof Float) {
+            return ((Float) value).doubleValue();
+        } else if (value instanceof Integer) {
+            return ((Integer) value).doubleValue();
+        } else if (value instanceof Long) {
+            return ((Long) value).doubleValue();
+        } else {
+            try {
+                return Double.parseDouble(value.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+    }
+
+    // 获取整数值
+    private Integer getIntegerValue(Object value) {
+        if (value == null) return null;
+        if (value instanceof Integer) {
+            return (Integer) value;
+        } else if (value instanceof Long) {
+            return ((Long) value).intValue();
+        } else if (value instanceof Double) {
+            return ((Double) value).intValue();
+        } else {
+            try {
+                return Integer.parseInt(value.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
     }
 
     // 获取场景类型图标文字 - 优化场景名，避免'生活'标签

@@ -17,7 +17,8 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐（商品+内容混合）
      */
-    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating " +
+    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating, " +
+            "COALESCE(pr.recommendation_reason, '为您精心挑选') as discovery_reason " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
             "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +

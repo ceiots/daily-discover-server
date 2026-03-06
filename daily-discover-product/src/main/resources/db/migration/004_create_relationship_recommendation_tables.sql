@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS product_recommendations (
     recommended_product_id BIGINT NOT NULL COMMENT '推荐商品ID',
     recommendation_type VARCHAR(30) NOT NULL COMMENT '推荐类型：similar-相似商品, complementary-互补商品, bundle-组合套装, collaborative-协同过滤, content_based-内容相似, popular-热门商品, trending-趋势商品, personalized-个性化推荐, daily_discovery-每日发现, new_arrival-新品推荐, limited_time-限时推荐',
     recommendation_score DECIMAL(5,2) DEFAULT 0.0 COMMENT '推荐分数',
+    recommendation_reason VARCHAR(200) COMMENT '推荐理由',
     is_active BOOLEAN DEFAULT true COMMENT '是否启用',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
