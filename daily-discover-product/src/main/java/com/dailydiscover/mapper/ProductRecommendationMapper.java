@@ -18,7 +18,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
      * 今日发现推荐（商品+内容混合）
      */
     @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating, " +
-            "COALESCE(pr.recommendation_reason, '为您精心挑选') as discovery_reason " +
+            "COALESCE(p.goods_slogan, '') as goods_slogan " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
             "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
@@ -32,7 +32,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 社区热榜推荐
      */
-    @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating " +
+    @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, ps.sales_count, ps.view_count, ps.avg_rating, COALESCE(p.goods_slogan, '') as goods_slogan " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
@@ -43,7 +43,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 个性化发现流推荐
      */
-    @Select("SELECT pr.recommended_product_id as item_id, p.title as title, p.main_image_url as image_url, pr.recommendation_score " +
+    @Select("SELECT pr.recommended_product_id as item_id, p.title as title, p.main_image_url as image_url, pr.recommendation_score, COALESCE(p.goods_slogan, '') as goods_slogan " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
             "JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
@@ -196,7 +196,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐（商品+内容混合）
      */
-    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating " +
+    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, ps.view_count, ps.avg_rating, COALESCE(p.goods_slogan, '') as goods_slogan " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
             "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
@@ -238,7 +238,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
      * 社区热榜推荐（客观排名，不关联用户）
      */
     @Select("SELECT p.id as item_id, p.title as title, p.main_image_url as image_url, " +
-            "ps.sales_count, ps.view_count, ps.avg_rating " +
+            "ps.sales_count, ps.view_count, ps.avg_rating, COALESCE(p.goods_slogan, '') as goods_slogan " +
             "FROM products p " +
             "JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "WHERE ps.time_granularity = 'daily' AND ps.stat_date = CURDATE() " +
@@ -251,7 +251,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
      * 个性化发现流推荐（支持未登录用户）
      */
     @Select("SELECT pr.recommended_product_id as item_id, p.title as title, " +
-            "p.main_image_url as image_url, pr.recommendation_score, " +
+            "p.main_image_url as image_url, pr.recommendation_score, COALESCE(p.goods_slogan, '') as goods_slogan, " +
             "CASE " +
             "    WHEN pr.user_id IS NOT NULL THEN 'personalized' " +
             "    ELSE 'general' " +

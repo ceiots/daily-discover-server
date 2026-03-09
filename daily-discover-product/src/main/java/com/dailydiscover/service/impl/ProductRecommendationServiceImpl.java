@@ -319,15 +319,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             
             List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, finalLimit, offset);
             
-            // 为每个推荐项添加推荐理由
-            recommendations.forEach(item -> {
-                // 如果SQL查询没有返回discovery_reason，或者返回的是默认值，则重新生成
-                String currentReason = (String) item.get("discovery_reason");
-                if (currentReason == null || currentReason.equals("为您精心挑选")) {
-                    item.put("discovery_reason", generateRecommendationReason(item));
-                }
-            });
-            
             // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
             return recommendations.stream()
                 .filter(item -> item.get("item_id") != null)

@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS products (
     brand VARCHAR(100) COMMENT '品牌名称',
     model VARCHAR(100) COMMENT '型号信息',
     
+    -- 商品专属推荐语（基于情绪+场景+利益）
+    goods_slogan VARCHAR(255) DEFAULT '' COMMENT '商品专属推荐语',
+    
     -- 价格范围（冗余字段，由SKU价格同步更新）
     min_price DECIMAL(10,2) COMMENT '最低价格（SKU价格最小值）',
     max_price DECIMAL(10,2) COMMENT '最高价格（SKU价格最大值）',
@@ -452,12 +455,12 @@ INSERT INTO product_categories (id, parent_id, name, image_url, sort_order, leve
 (7, 5, '女装', 'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=300&h=200&fit=crop', 2, 2, 1);
 
 -- 插入商品基础信息数据
-INSERT INTO products (seller_id, title, brand, model, category_id, min_price, max_price, status, main_image_url) VALUES
-(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 4, 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
-(1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 4, 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
-(2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 3, 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
-(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 2, 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
-(3, '运动蓝牙耳机', 'Bose', 'QuietComfort Earbuds II', 4, 249.00, 349.00, 1, 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop');
+INSERT INTO products (seller_id, title, brand, model, category_id, goods_slogan, min_price, max_price, status, main_image_url) VALUES
+(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 4, '全天候健康监测，运动数据实时记录，让健康管理更轻松', 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
+(1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 4, '通勤路上隔绝嘈杂，专注享受音乐时光，让每一天都充满能量', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
+(2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 3, '轻薄便携高效办公，随时随地创作无限可能，让工作更自由', 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
+(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 2, '超强性能流畅体验，拍照摄影专业水准，记录生活每一刻精彩', 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
+(3, '运动蓝牙耳机', 'Bose', 'QuietComfort Earbuds II', 4, '运动健身专属伴侣，防水防汗稳固佩戴，让运动更尽兴', 249.00, 349.00, 1, 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop');
 
 -- 插入商品详情数据（简化版）
 INSERT INTO product_details (product_id, media_type, media_url, is_video, thumbnail_url, sort_order) VALUES
