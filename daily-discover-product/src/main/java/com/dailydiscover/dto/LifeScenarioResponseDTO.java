@@ -1,11 +1,10 @@
 package com.dailydiscover.dto;
 
 import lombok.Data;
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 生活场景推荐响应DTO
+ * 生活场景推荐响应DTO（基于时间、日期、季节）
  */
 @Data
 public class LifeScenarioResponseDTO {
@@ -26,22 +25,17 @@ public class LifeScenarioResponseDTO {
     private String recommendationDescription;
     
     /**
-     * 置信度分数
-     */
-    private BigDecimal confidenceScore;
-    
-    /**
-     * 场景时间类型
+     * 时间段：morning(早晨)/afternoon(下午)/evening(晚上)/night(深夜)
      */
     private String scenarioTimeType;
     
     /**
-     * 场景活动类型
+     * 日期类型：weekday(工作日)/weekend(周末)/holiday(节假日)
      */
-    private String scenarioActivityType;
+    private String scenarioDayType;
     
     /**
-     * 场景位置类型
+     * 季节类型：spring(春季)/summer(夏季)/autumn(秋季)/winter(冬季)
      */
-    private String scenarioLocationType;
+    private String scenarioSeasonType;
 }

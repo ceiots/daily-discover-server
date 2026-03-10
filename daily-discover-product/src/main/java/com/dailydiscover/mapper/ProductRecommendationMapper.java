@@ -17,7 +17,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐（商品+内容混合）
      */
-    @Select("SELECT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating, " +
+    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating, " +
             "COALESCE(p.goods_slogan, '') as goods_slogan, p.max_price as price, p.min_price as original_price " +
             "FROM product_recommendations pr " +
             "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
@@ -207,56 +207,51 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     List<Map<String, Object>> findDailyDiscoveryProducts(@Param("userId") Long userId);
 
     /**
-     * 生活场景推荐 - 用户专属推荐（多维度设计）
+     * 生活场景推荐 - 用户专属推荐（基于时间、日期、季节）
      */
-    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
-            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score, " +
-            "sr.scenario_time_type, sr.scenario_activity_type, sr.scenario_location_type, " +
-            "JSON_ARRAYAGG(JSON_OBJECT( " +
-            "  'id', p.id, " +
-            "  'title', p.title, " +
-            "  'imageUrl', p.main_image_url, " +
-            "  'price', p.min_price, " +
-            "  'originalPrice', p.max_price, " +
-            "  'goodsSlogan', COALESCE(p.goods_slogan, ''), " +
-            "  'description', COALESCE(p.description, '') " +
-            ")) as product_details " +
+    @Select("SELECT sr.recommendation_title, sr.recommendation_description, " +
+            "sr.time_period, sr.day_type, sr.season_type, " +
+            "sr.recommended_products, sr.approval_status " +
             "FROM scenario_recommendations sr " +
-            "LEFT JOIN products p ON JSON_CONTAINS(sr.recommended_products, CAST(p.id AS JSON)) " +
             "WHERE sr.user_id = #{userId} " +
-            "AND sr.scenario_time_type = #{timeContext} " +
-            "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
-            "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
-            "GROUP BY sr.id " +
-            "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
+            "AND sr.time_period = #{timeContext} " +
+            "AND sr.day_type = #{dayType} " +
+            "AND sr.season_type = #{seasonType} " +
+            "AND sr.approval_status = 'approved' " +
+            "ORDER BY sr.created_at DESC " +
             "LIMIT 4")
-    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
+    List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("dayType") String dayType, @Param("seasonType") String seasonType);
 
     /**
-     * 生活场景推荐 - 通用推荐（多维度设计）
+     * 生活场景推荐 - 通用推荐（基于时间、日期、季节）
      */
-    @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
-            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score, " +
-            "sr.scenario_time_type, sr.scenario_activity_type, sr.scenario_location_type, " +
-            "JSON_ARRAYAGG(JSON_OBJECT( " +
-            "  'id', p.id, " +
-            "  'title', p.title, " +
-            "  'imageUrl', p.main_image_url, " +
-            "  'price', p.min_price, " +
-            "  'originalPrice', p.max_price, " +
-            "  'goodsSlogan', COALESCE(p.goods_slogan, ''), " +
-            "  'description', COALESCE(p.description, '') " +
-            ")) as product_details " +
+    @Select("SELECT sr.recommendation_title, sr.recommendation_description, " +
+            "sr.time_period, sr.day_type, sr.season_type, " +
+            "sr.recommended_products, sr.approval_status " +
             "FROM scenario_recommendations sr " +
-            "LEFT JOIN products p ON JSON_CONTAINS(sr.recommended_products, CAST(p.id AS JSON)) " +
             "WHERE sr.user_id IS NULL " +
-            "AND sr.scenario_time_type = #{timeContext} " +
-            "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
-            "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
-            "GROUP BY sr.id " +
-            "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
+            "AND sr.time_period = #{timeContext} " +
+            "AND sr.day_type = #{dayType} " +
+            "AND sr.season_type = #{seasonType} " +
+            "AND sr.approval_status = 'approved' " +
+            "ORDER BY sr.created_at DESC " +
             "LIMIT 4")
-    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
+    List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("dayType") String dayType, @Param("seasonType") String seasonType);
+
+    /**
+     * 根据商品ID列表查询商品详细信息
+     */
+    @Select({"<script>",
+            "SELECT id, title, main_image_url as imageUrl, min_price as price, max_price as originalPrice, " +
+            "COALESCE(goods_slogan, '') as goodsSlogan, COALESCE(description, '') as description " +
+            "FROM products " +
+            "WHERE id IN " +
+            "<foreach collection='productIds' item='id' open='(' separator=',' close=')'>" +
+            "#{id}" +
+            "</foreach>" +
+            " AND status = 1 AND is_deleted = 0" +
+            "</script>"})
+    List<Map<String, Object>> findProductsByIds(@Param("productIds") List<Long> productIds);
 
     /**
      * 社区热榜推荐（客观排名，不关联用户）

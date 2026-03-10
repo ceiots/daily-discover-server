@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS product_recommendations (
     
     INDEX idx_product_active (product_id, is_active) COMMENT '商品详情页推荐查询优化',
     INDEX idx_recommended_active (recommended_product_id, is_active) COMMENT '推荐商品有效性查询优化',
-    INDEX idx_user_type_active (user_id, recommendation_type, is_active) COMMENT '个性化推荐查询优化'
+    INDEX idx_user_type_active (user_id, recommendation_type, is_active) COMMENT '个性化推荐查询优化',
+    
+    -- 唯一约束：防止同一用户对同一商品的重复推荐
+    UNIQUE KEY uk_user_product_type (user_id, recommended_product_id, recommendation_type) COMMENT '用户商品类型唯一约束'
 ) COMMENT '商品推荐表';
 
 -- 内容推荐表（支持内容发现功能）
@@ -138,51 +141,37 @@ CREATE TABLE IF NOT EXISTS user_behavior_logs_details (
     INDEX idx_created_at (created_at)
 ) COMMENT '用户行为详情表（低频查询大字段）';
 
--- 场景推荐表（多维度设计，支持复合场景推荐）
+-- 场景推荐表（基于时间、日期、节日的简化设计）
 CREATE TABLE IF NOT EXISTS scenario_recommendations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     
     -- 用户关联（关键改进：支持个性化）
     user_id BIGINT COMMENT '用户ID（NULL表示通用模板）',
     
-    -- 多维度场景定义
-    scenario_time_type VARCHAR(20) COMMENT '时间场景类型：morning(早晨)/afternoon(下午)/evening(晚上)/night(深夜)',
-    scenario_activity_type VARCHAR(20) COMMENT '活动场景类型：commute(通勤)/work(工作)/fitness(健身)/travel(旅行)/gaming(游戏)/health(健康)/relax(休闲)',
-    scenario_location_type VARCHAR(20) COMMENT '位置场景类型：home(家庭)/office(办公室)/commute(通勤)/subway(地铁)/outdoor(户外)/gym(健身房)',
+    -- 时间维度（核心推荐维度）
+    time_period VARCHAR(20) NOT NULL COMMENT '时间段：morning(早晨)/afternoon(下午)/evening(晚上)/night(深夜)',
+    day_type VARCHAR(20) NOT NULL COMMENT '日期类型：weekday(工作日)/weekend(周末)/holiday(节假日)',
+    season_type VARCHAR(20) NOT NULL COMMENT '季节类型：spring(春季)/summer(夏季)/autumn(秋季)/winter(冬季)',
     
-    -- 场景特征（支持多维度组合）
-    time_slot VARCHAR(20) COMMENT '时间段: "07:00-09:00"',
-    user_state VARCHAR(20) COMMENT '用户状态：energetic(精力充沛)/relaxed(放松)/focused(专注)/tired(疲惫)',
-    weather_conditions JSON COMMENT '天气条件: {"weather": "sunny(晴朗)", "temperature": 25}',
-    
-    -- 推荐内容（动态计算，非固定列表）
-    recommended_products JSON COMMENT '推荐商品ID列表',
-    scenario_story VARCHAR(500) COMMENT '场景故事文案',
+    -- 推荐内容
+    recommended_products JSON NOT NULL COMMENT '推荐商品ID列表',
     
     -- 推荐语核心内容
-    recommendation_title VARCHAR(200) COMMENT '推荐标题',
-    recommendation_description TEXT COMMENT '推荐描述',
+    recommendation_title VARCHAR(200) NOT NULL COMMENT '推荐标题',
+    recommendation_description TEXT NOT NULL COMMENT '推荐描述',
     
-    -- 推荐语元数据（JSON格式存储辅助信息）
-    recommendation_metadata JSON COMMENT '推荐语元数据：{"style": "default", "ai_generated": false, "approval_status": "pending", "quality_score": 0.0, "usage_count": 0}',
+    -- 管理字段
+    approval_status VARCHAR(20) DEFAULT 'pending' COMMENT '审核状态：pending(待审核)/approved(已通过)/rejected(已拒绝)',
     
     -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
-    -- 多维度索引（支持复合查询）
-    INDEX idx_user_time_activity (user_id, scenario_time_type, scenario_activity_type) COMMENT '用户时间活动关联查询',
-    INDEX idx_time_activity_location (scenario_time_type, scenario_activity_type, scenario_location_type) COMMENT '时间活动位置组合查询',
-    INDEX idx_user_time (user_id, scenario_time_type),
-    INDEX idx_user_activity (user_id, scenario_activity_type),
-    INDEX idx_user_location (user_id, scenario_location_type),
-    INDEX idx_time_activity (scenario_time_type, scenario_activity_type),
-    INDEX idx_activity_location (scenario_activity_type, scenario_location_type),
-    
-    -- 推荐语索引
-    INDEX idx_recommendation_metadata ((CAST(recommendation_metadata->'$.approval_status' AS CHAR(20)))) COMMENT '审核状态查询',
-    INDEX idx_recommendation_quality ((CAST(recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)))) COMMENT '质量评分查询'
-) COMMENT '场景推荐表（多维度设计）';
+    -- 优化索引
+    INDEX idx_user_time_day (user_id, time_period, day_type) COMMENT '用户时间日期关联查询',
+    INDEX idx_time_day_season (time_period, day_type, season_type) COMMENT '时间日期季节组合查询',
+    INDEX idx_approval_status (approval_status) COMMENT '审核状态查询'
+) COMMENT '场景推荐表（基于时间、日期、节日的简化设计）';
 
 -- 用户兴趣画像表（个性化推荐基础）
 CREATE TABLE IF NOT EXISTS user_interest_profiles (
@@ -303,8 +292,6 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 1, 3, 'daily_discovery', 0.88, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 (NULL, 1, 4, 'daily_discovery', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 (NULL, 2, 1, 'daily_discovery', 0.92, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(NULL, 3, 4, 'daily_discovery', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(NULL, 4, 3, 'daily_discovery', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 
 -- ========== 个性化推荐（personalized） ==========
 (1, 1, 2, 'personalized', 0.95, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
@@ -313,12 +300,9 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (1, 1, 5, 'personalized', 0.85, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 (1, 1, 6, 'personalized', 0.82, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 (1, 2, 1, 'personalized', 0.90, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 2, 3, 'personalized', 0.87, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
-(1, 2, 4, 'personalized', 0.84, true, '2026-02-27 10:00:00', '2026-02-27 10:00:00'),
 
 -- ========== 相似商品推荐（similar） ==========
 (NULL, 1, 2, 'complementary', 0.8, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
-(NULL, 1, 3, 'similar', 0.7, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 3, 'similar', 0.85, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 4, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 2, 'price_sensitive', 0.88, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
@@ -384,68 +368,84 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 1, 9, 'collaborative', 0.45, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 1, 10, 'collaborative', 0.4, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
--- 插入场景推荐数据（多维度设计，支持复合场景）
+-- 插入场景推荐数据（基于时间、日期、节日的简化设计）
 INSERT INTO scenario_recommendations (
-    user_id, scenario_time_type, scenario_activity_type, scenario_location_type, 
-    time_slot, user_state, weather_conditions, recommended_products, scenario_story,
-    recommendation_title, recommendation_description, recommendation_metadata
+    user_id, time_period, day_type, season_type, 
+    recommended_products, recommendation_title, recommendation_description, approval_status
 ) VALUES
--- ==================== 时间维度推荐（基础场景） ====================
--- 通用场景推荐（user_id为NULL）
-(NULL, 'morning', NULL, 'home', '05:00-11:59', 'energetic', '{"weather": "sunny", "temperature": 22}', '[1, 2]', '早晨时光，用科技产品开启美好一天',
-'清晨好物推荐，开启美好一天', '为您精选清晨必备好物，从早餐用具到个人护理，让每个清晨都充满活力与期待。',
-'{"style": "default", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-(NULL, 'afternoon', NULL, 'home', '12:00-17:59', 'relaxed', '{"weather": "comfortable", "temperature": 26}', '[3, 4]', '午后休闲时光，放松身心的好物',
-'午后好物推荐，享受悠闲时光', '为您精选适合午后休闲的产品，从下午茶具到放松用品，让午后时光更加惬意舒适。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
-(NULL, 'evening', NULL, 'home', '18:00-04:59', 'relaxed', '{"weather": "clear", "temperature": 20}', '[5, 6]', '晚上休闲时光，放松身心的好物',
-'晚间休闲好物推荐，放松身心', '为您精选适合晚间休闲娱乐的产品，让您放松身心享受美好时光。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.80, "usage_count": 0}'),
+-- ==================== 通用场景推荐（user_id为NULL） ====================
+-- 工作日早晨推荐（通勤场景）
+(NULL, 'morning', 'weekday', 'spring', '[1, 2, 3]', 
+'通勤必备神器，让路途更轻松', 
+'精选通勤路上实用好物，降噪耳机、便携充电宝等，让您的通勤时光更加舒适高效。', 
+'approved'),
 
--- ==================== 活动维度推荐（复合场景） ====================
--- 通勤场景（时间+活动+位置）
-(NULL, 'morning', 'commute', 'subway', '07:00-09:00', 'focused', '{"weather": "comfortable", "temperature": 18}', '[2, 5]', '通勤路上，降噪耳机隔绝嘈杂，便携充电宝随时续航',
-'通勤必备神器，让路途更轻松', '精选通勤路上实用好物，降噪耳机、便携充电宝等，让您的通勤时光更加舒适高效。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.75, "usage_count": 0}'),
-(NULL, 'afternoon', 'commute', 'subway', '17:00-19:00', 'tired', '{"weather": "comfortable", "temperature": 24}', '[2, 7]', '下班路上，用音乐放松心情，充电宝为手机续航',
-'下班通勤装备，缓解疲劳', '精选适合下班通勤的放松装备，让您在下班路上也能享受片刻宁静。',
-'{"style": "casual", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
+-- 工作日午后推荐（办公场景）
+(NULL, 'afternoon', 'weekday', 'spring', '[4, 5, 6]', 
+'高效办公装备，提升工作效率', 
+'针对办公场景需求，精选轻薄笔记本和人体工学椅，助您高效工作同时保护健康。', 
+'approved'),
 
--- 工作场景（时间+活动+位置）
-(NULL, 'morning', 'work', 'office', '09:00-12:00', 'focused', '{"weather": "indoor", "temperature": 23}', '[3, 9]', '办公达人必备：轻薄笔记本高效办公，搭配人体工学椅保护健康',
-'高效办公装备，提升工作效率', '针对办公场景需求，精选轻薄笔记本和人体工学椅，助您高效工作同时保护健康。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.78, "usage_count": 0}'),
-(NULL, 'afternoon', 'work', 'office', '14:00-17:00', 'focused', '{"weather": "indoor", "temperature": 23}', '[3, 10]', '下午工作时光，高效办公设备助您专注',
-'下午办公装备，保持专注力', '为您精选适合下午工作的办公设备，帮助您保持高效工作状态。',
-'{"style": "professional", "ai_generated": true, "approval_status": "approved", "quality_score": 0.76, "usage_count": 0}'),
+-- 工作日晚上推荐（学习场景）
+(NULL, 'evening', 'weekday', 'spring', '[7, 8, 9]', 
+'晚间学习装备，专注提升自我', 
+'为您精选适合晚间学习的设备，帮助您专注学习，提升个人能力。', 
+'approved'),
 
--- 健身场景（时间+活动+位置）
-(NULL, 'morning', 'fitness', 'gym', '06:00-08:00', 'energetic', '{"weather": "sunny", "temperature": 20}', '[1, 2, 4]', '晨练时光，智能手表追踪运动数据，无线耳机享受运动音乐',
-'晨练装备推荐，开启活力一天', '精选适合晨练的运动装备，智能手表追踪健康数据，无线耳机享受运动乐趣。',
-'{"style": "active", "ai_generated": true, "approval_status": "approved", "quality_score": 0.82, "usage_count": 0}'),
-(NULL, 'evening', 'fitness', 'gym', '19:00-21:00', 'energetic', '{"weather": "indoor", "temperature": 22}', '[1, 2, 4]', '晚间健身，智能设备助您科学锻炼',
-'晚间健身装备，科学锻炼身体', '为您精选适合晚间健身的智能设备，帮助您科学锻炼，保持健康。',
-'{"style": "active", "ai_generated": true, "approval_status": "approved", "quality_score": 0.80, "usage_count": 0}'),
+-- 周末早晨推荐（休闲场景）
+(NULL, 'morning', 'weekend', 'spring', '[10, 11, 12]', 
+'周末休闲好物，享受慢生活', 
+'精选适合周末休闲的产品，让您在忙碌一周后享受轻松愉快的周末时光。', 
+'approved'),
+
+-- 周末午后推荐（娱乐场景）
+(NULL, 'afternoon', 'weekend', 'spring', '[13, 14, 15]', 
+'午后娱乐装备，放松身心', 
+'为您精选适合午后娱乐的产品，游戏设备、影音装备等，让您的周末更加丰富多彩。', 
+'approved'),
+
+-- 周末晚上推荐（家庭场景）
+(NULL, 'evening', 'weekend', 'spring', '[16, 17, 18]', 
+'家庭娱乐好物，共享温馨时光', 
+'精选适合家庭娱乐的产品，让您与家人共享温馨愉快的周末夜晚。', 
+'approved'),
+
+-- 节假日推荐（特殊场景）
+(NULL, 'morning', 'holiday', 'spring', '[19, 20, 21]', 
+'节日好物推荐，增添节日氛围', 
+'为您精选适合节日的特色产品，增添节日氛围，让您的假期更加难忘。', 
+'approved'),
+
+-- 夏季周末推荐（季节性场景）
+(NULL, 'afternoon', 'weekend', 'summer', '[22, 23, 24]', 
+'夏日清凉装备，清爽过夏天', 
+'精选夏季必备好物，清凉设备、防晒用品等，让您清爽舒适度过炎炎夏日。', 
+'approved'),
+
+-- 冬季工作日推荐（季节性场景）
+(NULL, 'evening', 'weekday', 'winter', '[25, 26, 27]', 
+'冬日温暖好物，抵御寒冷', 
+'为您精选冬季保暖产品，取暖设备、保暖衣物等，让您在寒冷冬日也能温暖舒适。', 
+'approved'),
 
 -- ==================== 个性化场景推荐（用户ID=1） ====================
--- 个性化时间维度推荐
-(1, 'morning', NULL, 'home', '05:00-11:59', 'energetic', '{"weather": "sunny", "temperature": 22}', '[2, 3]', '个性化早晨推荐，根据您的喜好定制',
-'个性化早晨好物推荐', '基于您的兴趣偏好，为您定制专属的早晨好物推荐。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.90, "usage_count": 0}'),
-(1, 'afternoon', NULL, 'home', '12:00-17:59', 'relaxed', '{"weather": "comfortable", "temperature": 26}', '[4, 5]', '个性化午后推荐，根据您的喜好定制',
-'个性化午后好物推荐', '基于您的兴趣偏好，为您定制专属的午后好物推荐。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.88, "usage_count": 0}'),
-(1, 'evening', NULL, 'home', '18:00-04:59', 'relaxed', '{"weather": "clear", "temperature": 20}', '[6, 1]', '个性化晚间推荐，根据您的喜好定制',
-'个性化晚间好物推荐', '基于您的兴趣偏好，为您定制专属的晚间好物推荐。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.86, "usage_count": 0}'),
+-- 个性化早晨推荐
+(1, 'morning', 'weekday', 'spring', '[2, 3, 4]', 
+'个性化早晨好物推荐', 
+'基于您的兴趣偏好，为您定制专属的早晨好物推荐，助您开启美好一天。', 
+'approved'),
 
--- 个性化复合场景推荐
-(1, 'morning', 'commute', 'subway', '08:00-09:00', 'focused', '{"weather": "comfortable", "temperature": 18}', '[2, 8]', '个性化通勤推荐：降噪耳机享受高品质音乐，搭配时尚背包展现个性',
-'个性化通勤装备，展现独特风格', '结合您的个人品味，精选适合通勤的时尚装备，让通勤路上也能展现个性魅力。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.85, "usage_count": 0}'),
-(1, 'afternoon', 'fitness', 'gym', '17:00-19:00', 'energetic', '{"weather": "indoor", "temperature": 22}', '[1, 2, 4]', '个性化健身推荐：智能手表追踪健康，无线耳机享受运动音乐',
-'个性化健身装备，科学锻炼身体', '根据您的健身习惯，为您定制专属的健身装备推荐，助您科学锻炼。',
-'{"style": "personalized", "ai_generated": true, "approval_status": "approved", "quality_score": 0.83, "usage_count": 0}');
+-- 个性化周末推荐
+(1, 'afternoon', 'weekend', 'spring', '[5, 6, 7]', 
+'个性化周末休闲推荐', 
+'根据您的兴趣爱好，为您精选适合周末休闲的个性化产品推荐。', 
+'approved'),
+
+-- 个性化晚间推荐
+(1, 'evening', 'weekday', 'spring', '[8, 9, 10]', 
+'个性化晚间娱乐推荐', 
+'基于您的娱乐偏好，为您定制晚间娱乐装备推荐，让您的夜晚更加精彩。', 
+'approved');
 
 -- 3. 社区热榜数据（销量统计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, view_count, favorite_count, avg_rating) VALUES
@@ -610,14 +610,10 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (4, 20, 23, 'personalized', 0.89, '睡眠改善用户可能对健身器材感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
 (4, 21, 24, 'personalized', 0.86, '厨房电器用户可能对个人护理产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
 (4, 22, 25, 'personalized', 0.91, '便携设备用户可能对充电宝感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
-(4, 23, 16, 'personalized', 0.84, '健身用户可能对智能家居产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 23, 16, 'personalized', 0.84, '健身用户可能对智能家居产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00');
 
 -- 更多个性化推荐
-(4, 24, 17, 'personalized', 0.88, '个人护理用户可能对影音设备感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
-(4, 25, 18, 'personalized', 0.85, '电子产品用户可能对办公设备感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
-(4, 16, 24, 'personalized', 0.82, '智能家居用户可能对个人护理产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
-(4, 17, 25, 'personalized', 0.89, '影音设备用户可能对充电设备感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
-(4, 18, 16, 'personalized', 0.87, '办公设备用户可能对智能家居感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00');
+
 
 -- 为user_id 4创建用户兴趣画像
 INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests, last_updated, profile_version) VALUES

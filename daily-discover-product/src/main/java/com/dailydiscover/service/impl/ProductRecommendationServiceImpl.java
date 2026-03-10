@@ -372,28 +372,22 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     @Override
-    public List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext) {
+    public List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String dateTime) {
         try {
             List<Map<String, Object>> result = new ArrayList<>();
             
-            // 解析locationContext获取locationKey
-            String locationKey = extractLocationKey(locationContext);
-            
-            // 解析activityContext：如果前端传入则使用，否则智能推断
-            String finalActivityContext = activityContext;
-            if (finalActivityContext == null || finalActivityContext.trim().isEmpty()) {
-                finalActivityContext = extractActivityContext(locationContext);
-            }
+            // 解析日期时间，计算时间、日期、季节维度
+            ScenarioDimensions dimensions = parseDateTimeToDimensions(dateTime);
             
             // 1. 先查询用户专属推荐（最多4条）
             if (userId != null) {
-                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext, finalActivityContext, locationKey);
+                List<Map<String, Object>> userRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, dimensions.timePeriod, dimensions.dayType, dimensions.seasonType);
                 result.addAll(userRecommendations);
             }
             
             // 2. 如果用户专属推荐不足4条，补充通用推荐
             if (result.size() < 4) {
-                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext, finalActivityContext, locationKey);
+                List<Map<String, Object>> generalRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(dimensions.timePeriod, dimensions.dayType, dimensions.seasonType);
                 
                 // 只补充到总共4条
                 int remaining = 4 - result.size();
@@ -409,9 +403,9 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             for (Map<String, Object> scenario : result) {
                 // 转换为DTO
                 LifeScenarioResponseDTO dto = convertToLifeScenarioResponseDTO(scenario);
-                dto.setScenarioTimeType(timeContext);
-                dto.setScenarioActivityType(finalActivityContext);
-                dto.setScenarioLocationType(locationContext);
+                dto.setScenarioTimeType(dimensions.timePeriod);
+                dto.setScenarioDayType(dimensions.dayType);
+                dto.setScenarioSeasonType(dimensions.seasonType);
                 
                 // 解析recommended_products字段（JSON字符串格式）
                 String recommendedProductsJson = (String) scenario.get("recommended_products");
@@ -446,49 +440,13 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             // 4. 确保返回最多4条记录（前端横向滚动需要更多数据）
             return finalResult.size() > 4 ? finalResult.subList(0, 4) : finalResult;
         } catch (Exception e) {
-            log.error("获取生活场景推荐失败，userId: {}, timeContext: {}, locationContext: {}", userId, timeContext, locationContext, e);
+            log.error("获取生活场景推荐失败，userId: {}, dateTime: {}", userId, dateTime, e);
             return List.of();
         }
     }
     
 
-    /**
-     * 获取locationKey（现在locationContext已经是简单字符串）
-     */
-    private String extractLocationKey(String locationContext) {
-        if (locationContext == null || locationContext.trim().isEmpty()) {
-            return "home"; // 默认值
-        }
-        return locationContext.trim(); // 直接返回字符串
-    }
 
-    /**
-     * 获取activityContext（基于位置和时间智能推断）
-     */
-    private String extractActivityContext(String locationContext) {
-        if (locationContext == null || locationContext.trim().isEmpty()) {
-            return "relax"; // 默认休闲活动
-        }
-        
-        String location = locationContext.trim().toLowerCase();
-        
-        // 基于位置智能推断活动类型
-        switch (location) {
-            case "home":
-                return "relax"; // 家庭场景通常是休闲活动
-            case "office":
-                return "work"; // 办公室场景通常是工作活动
-            case "commute":
-            case "subway":
-                return "commute"; // 通勤场景
-            case "gym":
-                return "fitness"; // 健身房场景
-            case "outdoor":
-                return "travel"; // 户外场景可能是旅行
-            default:
-                return "relax"; // 默认休闲活动
-        }
-    }
 
     @Override
     public List<CommunityHotListResponseDTO> getCommunityHotList() {
@@ -580,6 +538,71 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     /**
+     * 场景维度信息类
+     */
+    private static class ScenarioDimensions {
+        String timePeriod;    // 时间段：morning/afternoon/evening/night
+        String dayType;       // 日期类型：weekday/weekend/holiday
+        String seasonType;    // 季节类型：spring/summer/autumn/winter
+    }
+
+    /**
+     * 将日期时间字符串解析为场景维度
+     */
+    private ScenarioDimensions parseDateTimeToDimensions(String dateTime) {
+        ScenarioDimensions dimensions = new ScenarioDimensions();
+        
+        // 如果未提供日期时间，使用当前时间
+        java.time.LocalDateTime now;
+        if (dateTime == null || dateTime.trim().isEmpty()) {
+            now = java.time.LocalDateTime.now();
+        } else {
+            try {
+                // 解析ISO格式的日期时间字符串
+                now = java.time.LocalDateTime.parse(dateTime);
+            } catch (Exception e) {
+                // 解析失败，使用当前时间
+                now = java.time.LocalDateTime.now();
+            }
+        }
+        
+        // 计算时间段
+        int hour = now.getHour();
+        if (hour >= 5 && hour < 12) {
+            dimensions.timePeriod = "morning";
+        } else if (hour >= 12 && hour < 18) {
+            dimensions.timePeriod = "afternoon";
+        } else if (hour >= 18 && hour < 23) {
+            dimensions.timePeriod = "evening";
+        } else {
+            dimensions.timePeriod = "night";
+        }
+        
+        // 计算日期类型
+        java.time.DayOfWeek dayOfWeek = now.getDayOfWeek();
+        if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+            // TODO: 这里可以添加节假日判断逻辑
+            dimensions.dayType = "weekend";
+        } else {
+            dimensions.dayType = "weekday";
+        }
+        
+        // 计算季节类型
+        int month = now.getMonthValue();
+        if (month >= 3 && month <= 5) {
+            dimensions.seasonType = "spring";
+        } else if (month >= 6 && month <= 8) {
+            dimensions.seasonType = "summer";
+        } else if (month >= 9 && month <= 11) {
+            dimensions.seasonType = "autumn";
+        } else {
+            dimensions.seasonType = "winter";
+        }
+        
+        return dimensions;
+    }
+
+    /**
      * 将Map转换为LifeScenarioResponseDTO
      */
     private LifeScenarioResponseDTO convertToLifeScenarioResponseDTO(Map<String, Object> map) {
@@ -590,9 +613,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
         if (map.get("recommendation_description") != null) {
             dto.setRecommendationDescription((String) map.get("recommendation_description"));
-        }
-        if (map.get("confidence_score") != null) {
-            dto.setConfidenceScore(BigDecimal.valueOf(getDoubleValue(map.get("confidence_score"))));
         }
         
         return dto;

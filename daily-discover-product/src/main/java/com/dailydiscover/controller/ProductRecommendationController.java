@@ -173,14 +173,9 @@ public class ProductRecommendationController {
     @ApiLog("获取生活场景推荐")
     public ResponseEntity<List<LifeScenarioResponseDTO>> getLifeScenarioRecommendations(
             @RequestParam(required = false) Long userId,
-            @RequestParam(required = false, defaultValue = "morning") String timeContext,
-            @RequestParam(required = false) String locationContext,
-            @RequestParam(required = false) String activityContext) {
+            @RequestParam(required = false) String dateTime) {
         try {
-            // 如果前端没有传入activityContext，传递null给Service层进行智能推断
-            String finalActivityContext = (activityContext != null && !activityContext.trim().isEmpty()) ? activityContext : null;
-            
-            List<LifeScenarioResponseDTO> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext, locationContext, finalActivityContext);
+            List<LifeScenarioResponseDTO> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, dateTime);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -79,14 +79,12 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
     List<DailyDiscoveryResponseDTO> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page);
 
     /**
-     * 获取生活场景推荐（多维度设计）
-     * @param userId 用户ID
-     * @param timeContext 时间场景（morning/afternoon/evening）
-     * @param locationContext 位置场景（home/office/commute/subway/outdoor/gym）
-     * @param activityContext 活动场景（commute/work/fitness/travel/gaming/health/relax）
+     * 获取生活场景推荐（基于时间、日期、季节维度）
+     * @param userId 用户ID（可选）
+     * @param dateTime 日期时间字符串（ISO格式，可选，默认使用当前时间）
      * @return 生活场景推荐列表（保证返回2条记录）
      */
-    List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext);
+    List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String dateTime);
 
     /**
      * 获取社区热榜推荐（客观排名，不关联用户）
