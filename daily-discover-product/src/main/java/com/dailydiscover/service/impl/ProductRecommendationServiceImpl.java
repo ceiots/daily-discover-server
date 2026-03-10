@@ -371,60 +371,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
     }
 
-    // 获取场景类型图标文字 - 优化场景名，避免'生活'标签
-    private String getScenarioType(String title) {
-        if (title == null) return "场景推荐";
-        if (title.contains("早餐") || title.contains("早晨") || title.contains("morning")) return "早餐推荐";
-        if (title.contains("午餐") || title.contains("中午") || title.contains("afternoon")) return "午间推荐";
-        if (title.contains("晚餐") || title.contains("晚上") || title.contains("evening")) return "晚间推荐";
-        if (title.contains("运动") || title.contains("健身")) return "运动推荐";
-        if (title.contains("购物")) return "购物推荐";
-        if (title.contains("工作")) return "工作推荐";
-        if (title.contains("学习")) return "学习推荐";
-        if (title.contains("娱乐")) return "娱乐推荐";
-        if (title.contains("社交")) return "社交推荐";
-        return "场景推荐";
-    }
-
-    // 文案优化配置 - 情绪价值优先，画面感强，电商转化导向
-    private static final Map<String, String[]> SCENARIO_TEXT_MAP = Map.of(
-        // 早餐：突出元气、治愈，唤醒晨间情绪
-        "早餐推荐", new String[]{"元气早餐", "一口热乎，治愈整个清晨"},
-        // 午间：突出放松、犒劳，贴合午休场景
-        "午间推荐", new String[]{"午间小憩", "犒劳努力的自己"},
-        // 晚间：突出慵懒、治愈，营造放松氛围
-        "晚间推荐", new String[]{"晚间治愈", "卸下疲惫，享受慢时光"},
-        // 运动：突出活力、畅快，强化运动爽感
-        "运动推荐", new String[]{"活力运动", "汗水淋漓，畅快出发"},
-        // 购物：突出划算、心动，激发消费欲
-        "购物推荐", new String[]{"心动好物", "划算入手，不花冤枉钱"},
-        // 工作：突出高效、省心，贴合职场痛点
-        "工作推荐", new String[]{"高效办公", "效率翻倍，告别加班"},
-        // 学习：突出专注、高效，贴合学习场景
-        "学习推荐", new String[]{"专注学习", "沉浸式学习，效率拉满"},
-        // 娱乐：突出解压、快乐，强化休闲价值
-        "娱乐推荐", new String[]{"解压娱乐", "快乐充电，治愈无聊"},
-        // 社交：突出精致、体面，贴合社交需求
-        "社交推荐", new String[]{"精致社交", "体面出场，氛围感拉满"}
-    );
-
-
-
-    // 优化主标题文案 - 简短更有吸引力
-    private String getOptimizedTitle(String originalTitle, String scenarioType) {
-        if (originalTitle == null) return "精选好物";
-        String[] texts = SCENARIO_TEXT_MAP.get(scenarioType);
-        return texts != null ? texts[0] : "精选好物";
-    }
-
-    // 优化副标题文案 - 简短更有吸引力
-    private String getOptimizedSubtitle(String scenarioType) {
-        String[] texts = SCENARIO_TEXT_MAP.get(scenarioType);
-        return texts != null ? texts[1] : "为您精心挑选";
-    }
-
-
-
     @Override
     public List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext) {
         try {
