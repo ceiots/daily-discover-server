@@ -171,5 +171,48 @@ INSERT INTO user_review_stats (review_id, helpful_count, reply_count, like_count
 (9, 4, 0, 3),
 (10, 15, 1, 12);
 
+-- ============================================
+-- 为新增商品添加评价数据（user_id 4）
+-- ============================================
+
+-- 为新增商品添加用户评价
+INSERT INTO user_reviews (id, product_id, user_id, order_id, rating, title, is_anonymous, is_verified_purchase, review_date, status) VALUES
+(16, 16, 4, 1004, 5, '智能摄像头非常好用', false, true, '2026-03-08', 'approved'),
+(17, 17, 4, 1005, 4, '投影效果很清晰', false, true, '2026-03-07', 'approved'),
+(18, 18, 4, 1006, 5, '机械键盘手感很棒', false, true, '2026-03-06', 'approved'),
+(19, 19, 4, 1007, 4, '体脂秤测量准确', false, true, '2026-03-05', 'approved'),
+(20, 20, 4, 1008, 5, '睡眠耳机效果显著', false, true, '2026-03-04', 'approved'),
+(21, 21, 4, 1009, 4, '料理机功能强大', false, true, '2026-03-03', 'approved'),
+(22, 22, 4, 1010, 5, '便携咖啡机很方便', false, true, '2026-03-02', 'approved'),
+(23, 23, 4, 1011, 4, '智能跳绳计数准确', false, true, '2026-03-01', 'approved'),
+(24, 24, 4, 1012, 5, '电动牙刷清洁效果好', false, true, '2026-02-28', 'approved'),
+(25, 25, 4, 1013, 4, '充电宝容量大充电快', false, true, '2026-02-27', 'approved');
+
+-- 添加评价详情
+INSERT INTO user_review_details (review_id, user_avatar, comment, image_urls, video_url, moderation_notes) VALUES
+(16, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '安装简单，画质清晰，手机远程查看很方便，夜视功能也很棒。', '["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop"]', NULL, '评价内容真实有效'),
+(17, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '投影效果超出预期，自动对焦功能很实用，携带方便。', '["https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(18, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '茶轴手感适中，RGB灯光效果很酷，无线连接稳定。', '["https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=600&h=600&fit=crop"]', NULL, '评价内容真实有效'),
+(19, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '测量数据准确，APP数据分析详细，有助于健康管理。', '["https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(20, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '降噪效果明显，佩戴舒适，睡眠质量明显提升。', '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(21, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '破壁效果细腻，噪音控制不错，清洗方便。', '["https://images.unsplash.com/photo-1556909114-4d0d853e5b0c?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(22, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '制作咖啡快速，口感醇厚，户外使用很方便。', '["https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(23, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '计数准确，APP数据同步及时，跳绳体验很好。', '["https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(24, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '清洁模式多样，刷头柔软，电池续航时间长。', '["https://images.unsplash.com/photo-1584305574647-0d5c6c4c8a6b?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
+(25, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '充电速度快，接口丰富，外出旅行必备。', '["https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效');
+
+-- 添加评价统计
+INSERT INTO user_review_stats (review_id, helpful_count, reply_count, like_count, last_updated_at) VALUES
+(16, 12, 3, 25, '2026-03-09 10:00:00'),
+(17, 8, 2, 18, '2026-03-09 10:00:00'),
+(18, 15, 4, 32, '2026-03-09 10:00:00'),
+(19, 6, 1, 14, '2026-03-09 10:00:00'),
+(20, 20, 5, 45, '2026-03-09 10:00:00'),
+(21, 9, 2, 19, '2026-03-09 10:00:00'),
+(22, 11, 3, 26, '2026-03-09 10:00:00'),
+(23, 7, 1, 15, '2026-03-09 10:00:00'),
+(24, 13, 3, 28, '2026-03-09 10:00:00'),
+(25, 10, 2, 22, '2026-03-09 10:00:00');
+
 
 COMMIT;

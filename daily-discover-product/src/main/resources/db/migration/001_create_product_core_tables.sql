@@ -456,10 +456,10 @@ INSERT INTO product_categories (id, parent_id, name, image_url, sort_order, leve
 
 -- 插入商品基础信息数据
 INSERT INTO products (seller_id, title, brand, model, category_id, goods_slogan, min_price, max_price, status, main_image_url) VALUES
-(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 4, '全天候健康监测，运动数据实时记录，让健康管理更轻松', 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
+(1, '智能手表 Pro', 'Apple', 'Watch Series 8', 4, '全天候健康监测，运动数据实时记录', 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'),
 (1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 4, '通勤路上隔绝嘈杂，专注享受音乐时光，让每一天都充满能量', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
 (2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 3, '轻薄便携高效办公，随时随地创作无限可能，让工作更自由', 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
-(2, '智能手机旗舰版', 'Apple', 'iPhone 15', 2, '超强性能流畅体验，拍照摄影专业水准，记录生活每一刻精彩', 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
+(2, '旗舰手机', 'Apple', 'iPhone 15', 2, '超强性能流畅体验，拍照摄影专业水准，记录生活每一刻精彩，智能AI助手贴心服务，超长续航全天无忧，5G网络极速连接，让工作生活更高效便捷', 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
 (3, '运动蓝牙耳机', 'Bose', 'QuietComfort Earbuds II', 4, '运动健身专属伴侣，防水防汗稳固佩戴，让运动更尽兴', 249.00, 349.00, 1, 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop');
 
 -- 插入商品详情数据（简化版）
@@ -605,6 +605,39 @@ INSERT INTO product_selling_points (point_name, point_category, point_sub_catego
 ('耐高温', '耐用性', '耐温', '可承受高温不变形、不开裂、不释放有害物质，热水、高温环境都能用'),
 ('防摔耐造', '耐用性', '防摔', '加固结构设计，日常不小心跌落、碰撞不易损坏，结实抗造更耐用'),
 ('防水防尘', '耐用性', '防水', '日常泼溅、雨水、灰尘都不怕，户外、浴室、厨房都能安心使用');
+
+-- ============================================
+-- 为user_id 4添加更多商品数据
+-- ============================================
+
+-- 插入新商品数据（扩展产品线）
+INSERT INTO products (id, seller_id, title, category_id, brand, model, goods_slogan, min_price, max_price, status, main_image_url, created_at, updated_at) VALUES
+-- 继续现有商品ID序列
+(16, 1, '智能家居摄像头', 8, '小米', '智能摄像头Pro', '24小时守护，智能看家更安心', 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop', '2026-03-01 10:00:00', '2026-03-01 10:00:00'),
+(17, 2, '便携式投影仪', 9, '极米', 'Play特别版', '随时随地，打造私人影院', 1299.00, 1599.00, 1, 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop', '2026-03-02 11:00:00', '2026-03-02 11:00:00'),
+(18, 3, '无线机械键盘', 10, '罗技', 'MX Mechanical', '办公游戏两相宜，打字更舒适', 699.00, 899.00, 1, 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop', '2026-03-03 12:00:00', '2026-03-03 12:00:00'),
+(19, 4, '智能体脂秤', 11, '华为', '智能体脂秤2', '专业体脂监测，健康管理好帮手', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop', '2026-03-04 13:00:00', '2026-03-04 13:00:00'),
+(20, 5, '降噪睡眠耳机', 12, 'Bose', 'Sleepbuds II', '专为睡眠设计，告别噪音困扰', 1499.00, 1799.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '2026-03-05 14:00:00', '2026-03-05 14:00:00'),
+
+-- 更多商品扩展
+(21, 1, '多功能料理机', 13, '美的', '破壁料理机', '一机多用，厨房全能助手', 599.00, 799.00, 1, 'https://images.unsplash.com/photo-1556909114-4d0d853e5b0c?w=400&h=400&fit=crop', '2026-03-06 15:00:00', '2026-03-06 15:00:00'),
+(22, 2, '便携咖啡机', 14, 'Nespresso', '便携咖啡机', '随时随地，享受现磨咖啡', 899.00, 1099.00, 1, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop', '2026-03-07 16:00:00', '2026-03-07 16:00:00'),
+(23, 3, '智能跳绳', 15, 'Keep', '智能计数跳绳', '科学计数，健身更高效', 129.00, 199.00, 1, 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=400&fit=crop', '2026-03-08 17:00:00', '2026-03-08 17:00:00'),
+(24, 4, '电动牙刷', 16, '飞利浦', '声波电动牙刷', '深度清洁，呵护牙齿健康', 399.00, 599.00, 1, 'https://images.unsplash.com/photo-1584305574647-0d5c6c4c8a6b?w=400&h=400&fit=crop', '2026-03-09 18:00:00', '2026-03-09 18:00:00'),
+(25, 5, '便携充电宝', 17, 'Anker', '20000mAh快充', '大容量快充，出行无忧', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=400&h=400&fit=crop', '2026-03-10 19:00:00', '2026-03-10 19:00:00');
+
+-- 为user_id 4添加购物车数据（使用不同的sku_id避免重复）
+INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
+(4, 16, 3, 1, '{"颜色": "白色", "分辨率": "1080P"}', '白色 1080P', 1),
+(4, 17, 4, 1, '{"颜色": "黑色", "亮度": "500流明"}', '黑色 500流明', 1),
+(4, 18, 5, 1, '{"颜色": "灰色", "轴体": "茶轴"}', '灰色 茶轴', 1),
+(4, 19, 6, 1, '{"颜色": "白色", "精度": "0.1kg"}', '白色 0.1kg精度', 1),
+(4, 20, 7, 1, '{"颜色": "黑色", "续航": "10小时"}', '黑色 10小时续航', 1),
+(4, 21, 8, 1, '{"颜色": "银色", "功率": "1000W"}', '银色 1000W', 1),
+(4, 22, 9, 1, '{"颜色": "红色", "水箱容量": "0.5L"}', '红色 0.5L水箱', 1),
+(4, 23, 10, 1, '{"颜色": "蓝色", "计数方式": "智能计数"}', '蓝色 智能计数', 1),
+(4, 24, 11, 1, '{"颜色": "粉色", "模式": "3种清洁模式"}', '粉色 3种清洁模式', 1),
+(4, 25, 12, 1, '{"颜色": "黑色", "接口": "双USB-C"}', '黑色 双USB-C', 1);
 
 -- 插入商品卖点关系数据（重新调整以匹配新卖点ID）
 INSERT INTO product_selling_point_relations (product_id, selling_point_id) VALUES

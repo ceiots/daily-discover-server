@@ -594,3 +594,61 @@ INSERT INTO product_recommendations (user_id, product_id, recommended_product_id
 (NULL, 3, 2, 'similar', 0.78, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
 (NULL, 3, 4, 'similar', 0.72, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00');
 
+-- ============================================
+-- 为user_id 4添加个性化推荐数据
+-- ============================================
+
+-- 为user_id 4添加个性化推荐
+INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, recommendation_reason, is_active, created_at, updated_at) VALUES
+-- 基于用户4的购物车商品进行个性化推荐
+(4, 16, 17, 'personalized', 0.92, '智能家居爱好者可能也喜欢便携投影仪', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 16, 18, 'personalized', 0.88, '科技产品爱好者可能对机械键盘感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 16, 19, 'personalized', 0.85, '关注健康生活的用户可能喜欢体脂秤', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 17, 20, 'personalized', 0.90, '影音娱乐用户可能对降噪睡眠耳机感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 18, 21, 'personalized', 0.87, '办公设备用户可能对厨房电器感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 19, 22, 'personalized', 0.83, '健康生活用户可能对便携咖啡机感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 20, 23, 'personalized', 0.89, '睡眠改善用户可能对健身器材感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 21, 24, 'personalized', 0.86, '厨房电器用户可能对个人护理产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 22, 25, 'personalized', 0.91, '便携设备用户可能对充电宝感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 23, 16, 'personalized', 0.84, '健身用户可能对智能家居产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+
+-- 更多个性化推荐
+(4, 24, 17, 'personalized', 0.88, '个人护理用户可能对影音设备感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 25, 18, 'personalized', 0.85, '电子产品用户可能对办公设备感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 16, 24, 'personalized', 0.82, '智能家居用户可能对个人护理产品感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 17, 25, 'personalized', 0.89, '影音设备用户可能对充电设备感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00'),
+(4, 18, 16, 'personalized', 0.87, '办公设备用户可能对智能家居感兴趣', true, '2026-03-09 10:00:00', '2026-03-09 10:00:00');
+
+-- 为user_id 4创建用户兴趣画像
+INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests, last_updated, profile_version) VALUES
+(4, '["智能家居", "影音娱乐", "健康生活", "办公设备", "个人护理"]', 
+ '{"browse_frequency": "daily", "purchase_preference": "tech_products", "price_sensitivity": "medium", "brand_loyalty": "moderate"}', 
+ '{"preferred_categories": [8, 9, 10, 11, 12], "discovery_intensity": "high", "new_product_interest": "very_high"}', 
+ '["智能家居", "便携设备", "健康监测", "无线技术"]', 
+ '2026-03-09 10:00:00', '2.0');
+
+-- 为user_id 4添加用户行为日志
+INSERT INTO user_behavior_logs_core (user_id, product_id, behavior_type, behavior_weight, session_id) VALUES
+(4, 16, 'view', 1.0, 'session_4_001'),
+(4, 17, 'view', 1.0, 'session_4_001'),
+(4, 18, 'view', 1.0, 'session_4_001'),
+(4, 19, 'view', 1.0, 'session_4_001'),
+(4, 20, 'view', 1.0, 'session_4_001'),
+(4, 16, 'add_to_cart', 2.0, 'session_4_001'),
+(4, 17, 'add_to_cart', 2.0, 'session_4_001'),
+(4, 18, 'add_to_cart', 2.0, 'session_4_001'),
+(4, 19, 'add_to_cart', 2.0, 'session_4_001'),
+(4, 20, 'add_to_cart', 2.0, 'session_4_001'),
+
+-- 更多行为数据
+(4, 21, 'view', 1.0, 'session_4_002'),
+(4, 22, 'view', 1.0, 'session_4_002'),
+(4, 23, 'view', 1.0, 'session_4_002'),
+(4, 24, 'view', 1.0, 'session_4_002'),
+(4, 25, 'view', 1.0, 'session_4_002'),
+(4, 21, 'add_to_cart', 2.0, 'session_4_002'),
+(4, 22, 'add_to_cart', 2.0, 'session_4_002'),
+(4, 23, 'add_to_cart', 2.0, 'session_4_002'),
+(4, 24, 'add_to_cart', 2.0, 'session_4_002'),
+(4, 25, 'add_to_cart', 2.0, 'session_4_002');
+

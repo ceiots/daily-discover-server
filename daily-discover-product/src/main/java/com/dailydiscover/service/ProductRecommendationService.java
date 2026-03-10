@@ -2,9 +2,12 @@ package com.dailydiscover.service;
 
 import com.dailydiscover.model.ProductRecommendation;
 import com.dailydiscover.model.dto.RelatedProductDTO;
+import com.dailydiscover.model.dto.DailyDiscoveryResponseDTO;
+import com.dailydiscover.model.dto.LifeScenarioResponseDTO;
+import com.dailydiscover.model.dto.CommunityHotListResponseDTO;
+import com.dailydiscover.model.dto.PersonalizedDiscoveryResponseDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 商品推荐服务接口
@@ -73,7 +76,7 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * @param page 页码（从1开始）
      * @return 今日发现推荐列表
      */
-    List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page);
+    List<DailyDiscoveryResponseDTO> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page);
 
     /**
      * 获取生活场景推荐（多维度设计）
@@ -83,16 +86,16 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * @param activityContext 活动场景（commute/work/fitness/travel/gaming/health/relax）
      * @return 生活场景推荐列表（保证返回2条记录）
      */
-    List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext);
+    List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext);
 
     /**
      * 获取社区热榜推荐（客观排名，不关联用户）
      * @return 社区热榜推荐列表
      */
-    List<Map<String, Object>> getCommunityHotList();
+    List<CommunityHotListResponseDTO> getCommunityHotList();
 
     /**
      * 获取个性化发现流推荐
      */
-    List<Map<String, Object>> getPersonalizedDiscoveryStream(Long userId);
+    List<PersonalizedDiscoveryResponseDTO> getPersonalizedDiscoveryStream(Long userId);
 }

@@ -6,6 +6,10 @@ import com.dailydiscover.mapper.ProductRecommendationMapper;
 import com.dailydiscover.model.ProductRecommendation;
 import com.dailydiscover.model.dto.ProductBasicInfoDTO;
 import com.dailydiscover.model.dto.RelatedProductDTO;
+import com.dailydiscover.model.dto.DailyDiscoveryResponseDTO;
+import com.dailydiscover.model.dto.LifeScenarioResponseDTO;
+import com.dailydiscover.model.dto.CommunityHotListResponseDTO;
+import com.dailydiscover.model.dto.PersonalizedDiscoveryResponseDTO;
 import com.dailydiscover.service.ProductRecommendationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -310,7 +314,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     // ==================== 首页推荐四模块 ====================
 
     @Override
-    public List<Map<String, Object>> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page) {
+    public List<DailyDiscoveryResponseDTO> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page) {
         try {
             // 设置默认值
             int finalLimit = limit != null ? limit : 20;
@@ -320,7 +324,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, finalLimit, offset);
             
             // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
-            return recommendations.stream()
+            List<Map<String, Object>> distinctRecommendations = recommendations.stream()
                 .filter(item -> item.get("item_id") != null)
                 .collect(Collectors.toMap(
                     item -> item.get("item_id"), // key: item_id
@@ -329,6 +333,11 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 ))
                 .values()
                 .stream()
+                .collect(Collectors.toList());
+            
+            // 转换为DTO
+            return distinctRecommendations.stream()
+                .map(this::convertToDailyDiscoveryResponseDTO)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("获取今日发现推荐失败，userId: {}, page: {}", userId, page, e);
@@ -527,6 +536,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         "社交推荐", new String[]{"精致社交", "体面出场，氛围感拉满"}
     );
 
+
+
     // 优化主标题文案 - 简短更有吸引力
     private String getOptimizedTitle(String originalTitle, String scenarioType) {
         if (originalTitle == null) return "精选好物";
@@ -540,8 +551,10 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         return texts != null ? texts[1] : "为您精心挑选";
     }
 
+
+
     @Override
-    public List<Map<String, Object>> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext) {
+    public List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String timeContext, String locationContext, String activityContext) {
         try {
             List<Map<String, Object>> result = new ArrayList<>();
             
@@ -572,21 +585,15 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             }
             
             // 3. 解析推荐商品ID并查询完整商品信息（全局去重）
-            List<Map<String, Object>> finalResult = new ArrayList<>();
+            List<LifeScenarioResponseDTO> finalResult = new ArrayList<>();
             Set<Long> processedProductIds = new HashSet<>(); // 用于跟踪已处理的商品ID
             
             for (Map<String, Object> scenario : result) {
-                Map<String, Object> enrichedScenario = new HashMap<>(scenario);
-                
-                // 添加场景类型和颜色信息（后端处理逻辑）
-                String title = (String) scenario.get("recommendation_title");
-                String scenarioType = getScenarioType(title);
-                enrichedScenario.put("scenario_type", scenarioType);
-                enrichedScenario.put("scenario_color", getScenarioColor(title));
-                
-                // 优化标题和副标题文案
-                enrichedScenario.put("optimized_title", getOptimizedTitle(title, scenarioType));
-                enrichedScenario.put("optimized_subtitle", getOptimizedSubtitle(scenarioType));
+                // 转换为DTO
+                LifeScenarioResponseDTO dto = convertToLifeScenarioResponseDTO(scenario);
+                dto.setScenarioTimeType(timeContext);
+                dto.setScenarioActivityType(finalActivityContext);
+                dto.setScenarioLocationType(locationContext);
                 
                 // 解析recommended_products字段（JSON字符串格式）
                 String recommendedProductsJson = (String) scenario.get("recommended_products");
@@ -601,31 +608,21 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                                 .filter(id -> !processedProductIds.contains(id))
                                 .collect(java.util.stream.Collectors.toList());
                         
-                        // 查询完整商品信息
-                        if (!uniqueProductIds.isEmpty()) {
-                            List<com.dailydiscover.model.dto.ProductBasicInfoDTO> productDetails = productMapper.findBasicInfoByIds(uniqueProductIds);
-                            // 转换为Map格式
-                            List<Map<String, Object>> productMaps = productDetails.stream()
-                                .map(this::convertProductBasicInfoToMap)
-                                .collect(java.util.stream.Collectors.toList());
-                            enrichedScenario.put("recommended_products", productMaps);
-                            
-                            // 记录已处理的商品ID
-                            uniqueProductIds.forEach(processedProductIds::add);
-                        } else {
-                            // 如果所有商品都已处理过，设置为空列表
-                            enrichedScenario.put("recommended_products", new ArrayList<>());
-                        }
+                        // 记录已处理的商品ID
+                        uniqueProductIds.forEach(processedProductIds::add);
+                        
+                        // 设置推荐商品列表
+                        dto.setRecommendedProducts(uniqueProductIds);
                     } catch (Exception e) {
                         log.warn("解析推荐商品JSON失败: {}", recommendedProductsJson);
-                        // 如果解析失败，保持原样
-                        enrichedScenario.put("recommended_products", new ArrayList<>());
+                        // 如果解析失败，设置为空列表
+                        dto.setRecommendedProducts(new ArrayList<>());
                     }
                 } else {
-                    enrichedScenario.put("recommended_products", new ArrayList<>());
+                    dto.setRecommendedProducts(new ArrayList<>());
                 }
                 
-                finalResult.add(enrichedScenario);
+                finalResult.add(dto);
             }
             
             // 4. 确保返回最多4条记录（前端横向滚动需要更多数据）
@@ -696,9 +693,19 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     @Override
-    public List<Map<String, Object>> getCommunityHotList() {
+    public List<CommunityHotListResponseDTO> getCommunityHotList() {
         try {
-            return productRecommendationMapper.findCommunityHotList();
+            List<Map<String, Object>> recommendations = productRecommendationMapper.findCommunityHotList();
+            
+            // 转换为DTO并添加排名信息
+            List<CommunityHotListResponseDTO> dtos = new ArrayList<>();
+            for (int i = 0; i < recommendations.size(); i++) {
+                CommunityHotListResponseDTO dto = convertToCommunityHotListResponseDTO(recommendations.get(i));
+                dto.setRank(i + 1); // 设置排名
+                dtos.add(dto);
+            }
+            
+            return dtos;
         } catch (Exception e) {
             log.error("获取社区热榜推荐失败", e);
             return List.of();
@@ -706,12 +713,12 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     @Override
-    public List<Map<String, Object>> getPersonalizedDiscoveryStream(Long userId) {
+    public List<PersonalizedDiscoveryResponseDTO> getPersonalizedDiscoveryStream(Long userId) {
         try {
             List<Map<String, Object>> recommendations = productRecommendationMapper.findPersonalizedDiscoveryStream(userId);
             
             // 后端去重逻辑：基于 item_id 去重，保留第一个出现的
-            return recommendations.stream()
+            List<Map<String, Object>> distinctRecommendations = recommendations.stream()
                 .filter(item -> item.get("item_id") != null)
                 .collect(Collectors.toMap(
                     item -> item.get("item_id"), // key: item_id
@@ -721,9 +728,134 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 .values()
                 .stream()
                 .collect(Collectors.toList());
+            
+            // 转换为DTO
+            return distinctRecommendations.stream()
+                .map(this::convertToPersonalizedDiscoveryResponseDTO)
+                .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("获取个性化发现流推荐失败，userId: {}", userId, e);
             return List.of();
         }
+    }
+
+    // ==================== DTO转换方法 ====================
+
+    /**
+     * 将Map转换为DailyDiscoveryResponseDTO
+     */
+    private DailyDiscoveryResponseDTO convertToDailyDiscoveryResponseDTO(Map<String, Object> map) {
+        DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
+        
+        if (map.get("item_id") != null) {
+            dto.setItemId(((Number) map.get("item_id")).longValue());
+        }
+        if (map.get("item_type") != null) {
+            dto.setItemType((String) map.get("item_type"));
+        }
+        if (map.get("title") != null) {
+            dto.setTitle((String) map.get("title"));
+        }
+        if (map.get("image_url") != null) {
+            dto.setImageUrl((String) map.get("image_url"));
+        }
+        if (map.get("view_count") != null) {
+            dto.setViewCount(getIntegerValue(map.get("view_count")));
+        }
+        if (map.get("avg_rating") != null) {
+            dto.setAvgRating(BigDecimal.valueOf(getDoubleValue(map.get("avg_rating"))));
+        }
+        if (map.get("goods_slogan") != null) {
+            dto.setGoodsSlogan((String) map.get("goods_slogan"));
+        }
+        if (map.get("price") != null) {
+            dto.setPrice(BigDecimal.valueOf(getDoubleValue(map.get("price"))));
+        }
+        if (map.get("original_price") != null) {
+            dto.setOriginalPrice(BigDecimal.valueOf(getDoubleValue(map.get("original_price"))));
+        }
+        if (map.get("recommendation_score") != null) {
+            dto.setRecommendationScore(BigDecimal.valueOf(getDoubleValue(map.get("recommendation_score"))));
+        }
+        
+        return dto;
+    }
+
+    /**
+     * 将Map转换为LifeScenarioResponseDTO
+     */
+    private LifeScenarioResponseDTO convertToLifeScenarioResponseDTO(Map<String, Object> map) {
+        LifeScenarioResponseDTO dto = new LifeScenarioResponseDTO();
+        
+        if (map.get("recommendation_title") != null) {
+            dto.setRecommendationTitle((String) map.get("recommendation_title"));
+        }
+        if (map.get("recommendation_description") != null) {
+            dto.setRecommendationDescription((String) map.get("recommendation_description"));
+        }
+        if (map.get("confidence_score") != null) {
+            dto.setConfidenceScore(BigDecimal.valueOf(getDoubleValue(map.get("confidence_score"))));
+        }
+        
+        return dto;
+    }
+
+    /**
+     * 将Map转换为CommunityHotListResponseDTO
+     */
+    private CommunityHotListResponseDTO convertToCommunityHotListResponseDTO(Map<String, Object> map) {
+        CommunityHotListResponseDTO dto = new CommunityHotListResponseDTO();
+        
+        if (map.get("item_id") != null) {
+            dto.setItemId(((Number) map.get("item_id")).longValue());
+        }
+        if (map.get("title") != null) {
+            dto.setTitle((String) map.get("title"));
+        }
+        if (map.get("image_url") != null) {
+            dto.setImageUrl((String) map.get("image_url"));
+        }
+        if (map.get("sales_count") != null) {
+            dto.setSalesCount(getIntegerValue(map.get("sales_count")));
+        }
+        if (map.get("view_count") != null) {
+            dto.setViewCount(getIntegerValue(map.get("view_count")));
+        }
+        if (map.get("avg_rating") != null) {
+            dto.setAvgRating(BigDecimal.valueOf(getDoubleValue(map.get("avg_rating"))));
+        }
+        if (map.get("goods_slogan") != null) {
+            dto.setGoodsSlogan((String) map.get("goods_slogan"));
+        }
+        
+        return dto;
+    }
+
+    /**
+     * 将Map转换为PersonalizedDiscoveryResponseDTO
+     */
+    private PersonalizedDiscoveryResponseDTO convertToPersonalizedDiscoveryResponseDTO(Map<String, Object> map) {
+        PersonalizedDiscoveryResponseDTO dto = new PersonalizedDiscoveryResponseDTO();
+        
+        if (map.get("item_id") != null) {
+            dto.setItemId(((Number) map.get("item_id")).longValue());
+        }
+        if (map.get("title") != null) {
+            dto.setTitle((String) map.get("title"));
+        }
+        if (map.get("image_url") != null) {
+            dto.setImageUrl((String) map.get("image_url"));
+        }
+        if (map.get("recommendation_score") != null) {
+            dto.setRecommendationScore(BigDecimal.valueOf(getDoubleValue(map.get("recommendation_score"))));
+        }
+        if (map.get("goods_slogan") != null) {
+            dto.setGoodsSlogan((String) map.get("goods_slogan"));
+        }
+        if (map.get("recommendation_type") != null) {
+            dto.setRecommendationType((String) map.get("recommendation_type"));
+        }
+        
+        return dto;
     }
 }

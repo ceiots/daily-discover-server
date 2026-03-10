@@ -3,6 +3,10 @@ package com.dailydiscover.controller;
 import com.dailydiscover.common.logging.ApiLog;
 import com.dailydiscover.model.ProductRecommendation;
 import com.dailydiscover.model.dto.RelatedProductDTO;
+import com.dailydiscover.model.dto.DailyDiscoveryResponseDTO;
+import com.dailydiscover.model.dto.LifeScenarioResponseDTO;
+import com.dailydiscover.model.dto.CommunityHotListResponseDTO;
+import com.dailydiscover.model.dto.PersonalizedDiscoveryResponseDTO;
 import com.dailydiscover.service.ProductRecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/product-recommendations")
@@ -159,9 +162,9 @@ public class ProductRecommendationController {
 
     @GetMapping("/daily-discovery")
     @ApiLog("获取今日发现推荐")
-    public ResponseEntity<List<Map<String, Object>>> getDailyDiscoveryRecommendations(@RequestParam(required = false) Long userId, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
+    public ResponseEntity<List<DailyDiscoveryResponseDTO>> getDailyDiscoveryRecommendations(@RequestParam(required = false) Long userId, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getDailyDiscoveryRecommendations(userId, limit, page);
+            List<DailyDiscoveryResponseDTO> recommendations = productRecommendationService.getDailyDiscoveryRecommendations(userId, limit, page);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -170,7 +173,7 @@ public class ProductRecommendationController {
 
     @GetMapping("/life-scenarios")
     @ApiLog("获取生活场景推荐")
-    public ResponseEntity<List<Map<String, Object>>> getLifeScenarioRecommendations(
+    public ResponseEntity<List<LifeScenarioResponseDTO>> getLifeScenarioRecommendations(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false, defaultValue = "morning") String timeContext,
             @RequestParam(required = false) String locationContext,
@@ -179,7 +182,7 @@ public class ProductRecommendationController {
             // 如果前端没有传入activityContext，传递null给Service层进行智能推断
             String finalActivityContext = (activityContext != null && !activityContext.trim().isEmpty()) ? activityContext : null;
             
-            List<Map<String, Object>> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext, locationContext, finalActivityContext);
+            List<LifeScenarioResponseDTO> recommendations = productRecommendationService.getLifeScenarioRecommendations(userId, timeContext, locationContext, finalActivityContext);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -188,9 +191,9 @@ public class ProductRecommendationController {
 
     @GetMapping("/community-hot-list")
     @ApiLog("获取社区热榜推荐")
-    public ResponseEntity<List<Map<String, Object>>> getCommunityHotList() {
+    public ResponseEntity<List<CommunityHotListResponseDTO>> getCommunityHotList() {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getCommunityHotList();
+            List<CommunityHotListResponseDTO> recommendations = productRecommendationService.getCommunityHotList();
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -199,9 +202,9 @@ public class ProductRecommendationController {
 
     @GetMapping("/personalized-discovery")
     @ApiLog("获取个性化发现流推荐")
-    public ResponseEntity<List<Map<String, Object>>> getPersonalizedDiscoveryStream(@RequestParam Long userId) {
+    public ResponseEntity<List<PersonalizedDiscoveryResponseDTO>> getPersonalizedDiscoveryStream(@RequestParam Long userId) {
         try {
-            List<Map<String, Object>> recommendations = productRecommendationService.getPersonalizedDiscoveryStream(userId);
+            List<PersonalizedDiscoveryResponseDTO> recommendations = productRecommendationService.getPersonalizedDiscoveryStream(userId);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
