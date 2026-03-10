@@ -546,7 +546,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
         
         if (map.get("item_id") != null) {
-            dto.setItemId(((Number) map.get("item_id")).longValue());
+            dto.setItemId(((Number) map.get("item_id")).toString());
         }
         if (map.get("item_type") != null) {
             dto.setItemType((String) map.get("item_type"));

@@ -36,8 +36,6 @@ public class ProductRecommendationController {
         }
     }
 
-
-
     /**
      * 商品详情页推荐接口（前端统一调用此接口）
      * 路径：/product-recommendations/product/{productId}/detail
