@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.mapper.ProductRecommendationMapper;
 import com.dailydiscover.model.ProductRecommendation;
-import com.dailydiscover.model.ProductRecommendation;
 import com.dailydiscover.dto.RelatedProductDTO;
 import com.dailydiscover.dto.DailyDiscoveryResponseDTO;
 import com.dailydiscover.dto.LifeScenarioResponseDTO;
 import com.dailydiscover.dto.CommunityHotListResponseDTO;
 import com.dailydiscover.dto.PersonalizedDiscoveryResponseDTO;
+import com.dailydiscover.dto.ProductBasicInfoDTO;
 import com.dailydiscover.service.ProductRecommendationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -505,26 +505,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
     }
     
-    /**
-     * 将ProductBasicInfoDTO转换为Map格式
-     */
-    private Map<String, Object> convertProductBasicInfoToMap(com.dailydiscover.model.dto.ProductBasicInfoDTO product) {
-        Map<String, Object> productMap = new HashMap<>();
-        productMap.put("id", product.getId());
-        productMap.put("title", product.getTitle());
-        productMap.put("description", product.getBrand() + " " + product.getModel());
-        productMap.put("mainImageUrl", product.getMainImageUrl());
-        productMap.put("category", product.getCategoryId());
-        productMap.put("price", product.getMaxPrice());
-        productMap.put("originalPrice", product.getMinPrice());
-        productMap.put("discount", product.getDiscount());
-        productMap.put("rating", product.getAverageRating());
-        productMap.put("reviewCount", product.getTotalReviews());
-        productMap.put("sales", product.getSalesCount());
-        productMap.put("isNew", true); // 默认值
-        productMap.put("isHot", false); // 默认值
-        return productMap;
-    }
 
     /**
      * 获取locationKey（现在locationContext已经是简单字符串）

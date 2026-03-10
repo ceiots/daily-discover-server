@@ -1,6 +1,8 @@
 package com.dailydiscover.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dailydiscover.dto.RecommendationPhraseRequestDTO;
+import com.dailydiscover.dto.RecommendationPhraseResponseDTO;
 import com.dailydiscover.mapper.ScenarioRecommendationMapper;
 import com.dailydiscover.model.ScenarioRecommendation;
 import com.dailydiscover.service.ScenarioRecommendationService;
@@ -76,8 +78,8 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     }
     
     @Override
-    public com.dailydiscover.model.dto.RecommendationPhraseResponseDTO generateRecommendationPhrase(
-            com.dailydiscover.model.dto.RecommendationPhraseRequestDTO request) {
+    public RecommendationPhraseResponseDTO generateRecommendationPhrase(
+            RecommendationPhraseRequestDTO request) {
         
         ScenarioRecommendation recommendation = new ScenarioRecommendation();
         recommendation.setScenarioType(request.getScenarioType());
@@ -100,7 +102,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
         save(recommendation);
         
         // 转换为响应DTO
-        com.dailydiscover.model.dto.RecommendationPhraseResponseDTO response = new com.dailydiscover.model.dto.RecommendationPhraseResponseDTO();
+        RecommendationPhraseResponseDTO response = new RecommendationPhraseResponseDTO();
         response.setId(recommendation.getId());
         response.setScenarioType(recommendation.getScenarioType());
         response.setRecommendationTitle(recommendation.getRecommendationTitle());
@@ -112,7 +114,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     }
     
     @Override
-    public java.util.List<com.dailydiscover.model.dto.RecommendationPhraseResponseDTO> getRecommendationPhrases(
+    public java.util.List<RecommendationPhraseResponseDTO> getRecommendationPhrases(
             String scenarioType, String approvalStatus) {
         
         // 构建查询条件
@@ -131,7 +133,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
         
         // 转换为响应DTO列表
         return recommendations.stream().map(recommendation -> {
-            com.dailydiscover.model.dto.RecommendationPhraseResponseDTO response = new com.dailydiscover.model.dto.RecommendationPhraseResponseDTO();
+            RecommendationPhraseResponseDTO response = new RecommendationPhraseResponseDTO();
             response.setId(recommendation.getId());
             response.setScenarioType(recommendation.getScenarioType());
             response.setRecommendationTitle(recommendation.getRecommendationTitle());
@@ -194,7 +196,7 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
     }
     
     @Override
-    public com.dailydiscover.model.dto.RecommendationPhraseResponseDTO getProductRecommendation(
+    public RecommendationPhraseResponseDTO getProductRecommendation(
             Long productId, String scenarioType) {
         
         ScenarioRecommendation recommendation = scenarioRecommendationMapper
@@ -206,8 +208,8 @@ public class ScenarioRecommendationServiceImpl extends ServiceImpl<ScenarioRecom
         }
         
         // 转换为响应DTO
-        com.dailydiscover.model.dto.RecommendationPhraseResponseDTO response = 
-                new com.dailydiscover.model.dto.RecommendationPhraseResponseDTO();
+        RecommendationPhraseResponseDTO response = 
+                new RecommendationPhraseResponseDTO();
         response.setId(recommendation.getId());
         response.setScenarioType(recommendation.getScenarioType());
         response.setRecommendationTitle(recommendation.getRecommendationTitle());

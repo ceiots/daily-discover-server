@@ -1,5 +1,7 @@
 package com.dailydiscover.service;
 
+import com.dailydiscover.dto.RecommendationPhraseRequestDTO;
+import com.dailydiscover.dto.RecommendationPhraseResponseDTO;
 import com.dailydiscover.model.ScenarioRecommendation;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -61,8 +63,8 @@ public interface ScenarioRecommendationService extends IService<ScenarioRecommen
      * @param request 推荐语生成请求
      * @return 生成的推荐语
      */
-    com.dailydiscover.model.dto.RecommendationPhraseResponseDTO generateRecommendationPhrase(
-            com.dailydiscover.model.dto.RecommendationPhraseRequestDTO request);
+    RecommendationPhraseResponseDTO generateRecommendationPhrase(
+            RecommendationPhraseRequestDTO request);
     
     /**
      * 获取推荐语列表
@@ -70,7 +72,7 @@ public interface ScenarioRecommendationService extends IService<ScenarioRecommen
      * @param approvalStatus 审核状态（JSON路径查询）
      * @return 推荐语列表
      */
-    java.util.List<com.dailydiscover.model.dto.RecommendationPhraseResponseDTO> getRecommendationPhrases(
+    java.util.List<RecommendationPhraseResponseDTO> getRecommendationPhrases(
             String scenarioType, String approvalStatus);
     
     /**
@@ -94,6 +96,6 @@ public interface ScenarioRecommendationService extends IService<ScenarioRecommen
      * @param scenarioType 场景类型
      * @return 推荐语信息
      */
-    com.dailydiscover.model.dto.RecommendationPhraseResponseDTO getProductRecommendation(
+    RecommendationPhraseResponseDTO getProductRecommendation(
             Long productId, String scenarioType);
 }

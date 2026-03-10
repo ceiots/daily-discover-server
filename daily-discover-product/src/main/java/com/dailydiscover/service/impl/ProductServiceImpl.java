@@ -3,7 +3,7 @@ package com.dailydiscover.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.model.Product;
-import com.dailydiscover.model.dto.ProductBasicInfoDTO;
+import com.dailydiscover.dto.ProductBasicInfoDTO;
 import com.dailydiscover.service.ProductService;
 import com.dailydiscover.common.logging.LogTracer;
 import lombok.extern.slf4j.Slf4j;

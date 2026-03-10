@@ -1,6 +1,6 @@
 package com.dailydiscover.service;
 
-import com.dailydiscover.model.dto.ProductServiceInfoDTO;
+import com.dailydiscover.dto.ProductServiceInfoDTO;
 
 import java.util.List;
 

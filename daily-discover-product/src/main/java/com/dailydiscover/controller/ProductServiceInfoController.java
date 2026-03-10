@@ -1,6 +1,6 @@
 package com.dailydiscover.controller;
 
-import com.dailydiscover.model.dto.ProductServiceInfoDTO;
+import com.dailydiscover.dto.ProductServiceInfoDTO;
 import com.dailydiscover.service.ProductServiceInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

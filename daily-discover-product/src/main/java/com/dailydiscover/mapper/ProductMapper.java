@@ -2,7 +2,7 @@ package com.dailydiscover.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.model.Product;
-import com.dailydiscover.model.dto.ProductBasicInfoDTO;
+import com.dailydiscover.dto.ProductBasicInfoDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

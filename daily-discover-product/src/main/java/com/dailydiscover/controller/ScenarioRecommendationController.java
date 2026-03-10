@@ -1,6 +1,7 @@
 package com.dailydiscover.controller;
 
 import com.dailydiscover.common.logging.ApiLog;
+import com.dailydiscover.dto.RecommendationPhraseResponseDTO;
 import com.dailydiscover.model.ScenarioRecommendation;
 import com.dailydiscover.service.ScenarioRecommendationService;
 import lombok.RequiredArgsConstructor;
@@ -108,11 +109,11 @@ public class ScenarioRecommendationController {
     
     @GetMapping("/product/{productId}/recommendation")
     @ApiLog("获取商品推荐语")
-    public ResponseEntity<com.dailydiscover.model.dto.RecommendationPhraseResponseDTO> getProductRecommendation(
+    public ResponseEntity<RecommendationPhraseResponseDTO> getProductRecommendation(
             @PathVariable Long productId, 
             @RequestParam(defaultValue = "product_detail") String scenarioType) {
         try {
-            com.dailydiscover.model.dto.RecommendationPhraseResponseDTO recommendation = 
+            RecommendationPhraseResponseDTO recommendation = 
                     scenarioRecommendationService.getProductRecommendation(productId, scenarioType);
             return recommendation != null ? ResponseEntity.ok(recommendation) : ResponseEntity.noContent().build();
         } catch (Exception e) {

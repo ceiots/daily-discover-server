@@ -1,7 +1,7 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.Product;
-import com.dailydiscover.model.dto.ProductBasicInfoDTO;
+import com.dailydiscover.dto.ProductBasicInfoDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
