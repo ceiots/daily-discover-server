@@ -21,12 +21,14 @@ public class ProductBasicInfoDTO {
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
     private String mainImageUrl;
+    private String goodsSlogan; // 商品标语
     
     // 折扣信息
     private BigDecimal discount; // 折扣
     
-    // 销量信息
+    // 销量和浏览信息
     private Integer salesCount; // 销量
+    private Integer viewCount; // 浏览量
     private String urgencyHint; // 紧迫感提示
     
     // 评价信息

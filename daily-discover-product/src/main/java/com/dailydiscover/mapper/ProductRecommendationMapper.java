@@ -15,20 +15,17 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     // ==================== 首页推荐场景 ====================
     
     /**
-     * 今日发现推荐（商品+内容混合）
+     * 今日发现推荐 - 第一步：查询推荐的商品ID集合
      */
-    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, 'product' as item_type, p.title as title, p.main_image_url as image_url, COALESCE(ps.view_count, 0) as view_count, COALESCE(ps.avg_rating, 4.5) as avg_rating, " +
-            "COALESCE(p.goods_slogan, '') as goods_slogan, p.max_price as price, p.min_price as original_price " +
+    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, pr.recommendation_score " +
             "FROM product_recommendations pr " +
-            "LEFT JOIN products p ON pr.recommended_product_id = p.id " +
-            "LEFT JOIN product_sales_stats ps ON pr.recommended_product_id = ps.product_id " +
-            "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
+            "INNER JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true " +
+            "AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
             "LIMIT #{limit} OFFSET #{offset}")
-    List<Map<String, Object>> findDailyDiscoverProducts(@Param("userId") Long userId, @Param("limit") int limit, @Param("offset") int offset);
-    
+    List<Map<String, Object>> findDailyDiscoverProductIds(@Param("userId") Long userId, @Param("limit") int limit, @Param("offset") int offset);
 
-    
     /**
      * 社区热榜推荐
      */

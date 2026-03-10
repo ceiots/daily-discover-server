@@ -68,13 +68,13 @@ public interface ProductMapper extends BaseMapper<Product> {
     @Select("<script>" +
             "SELECT DISTINCT " +
             "p.id, p.title, p.category_id, p.brand, p.model, " +
-            "p.min_price, p.max_price, p.main_image_url, " +
-            "COALESCE(pss.sales_count, 0) as sales_count, " +
+            "p.min_price, p.max_price, p.main_image_url, COALESCE(p.goods_slogan, '') as goods_slogan, " +
+            "COALESCE(pss.sales_count, 0) as sales_count, COALESCE(pss.view_count, 0) as view_count, " +
             "COALESCE(rs.average_rating, 0) as average_rating, COALESCE(rs.total_reviews, 0) as total_reviews, " +
             "p.created_at, p.updated_at " +
             "FROM products p " +
             "LEFT JOIN (" +
-            "    SELECT product_id, MAX(sales_count) as sales_count " +
+            "    SELECT product_id, MAX(sales_count) as sales_count, MAX(view_count) as view_count " +
             "    FROM product_sales_stats " +
             "    WHERE time_granularity = 'daily' " +
             "    GROUP BY product_id" +

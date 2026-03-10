@@ -321,11 +321,47 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             int finalPage = page != null ? page : 1;
             int offset = (finalPage - 1) * finalLimit;
             
-            List<Map<String, Object>> recommendations = productRecommendationMapper.findDailyDiscoverProducts(userId, finalLimit, offset);
+            // 第一步：查询推荐的商品ID集合（简单查询）
+            List<Map<String, Object>> productIdMaps = productRecommendationMapper.findDailyDiscoverProductIds(userId, finalLimit * 2, offset);
             
-            // 直接转换为DTO，不需要去重
-            return recommendations.stream()
+            if (productIdMaps.isEmpty()) {
+                return List.of();
+            }
+            
+            // 提取商品ID列表
+            List<Long> productIds = productIdMaps.stream()
+                .map(map -> (Long) map.get("item_id"))
+                .collect(Collectors.toList());
+            
+            // 第二步：根据商品ID集合查询完整商品信息（使用ProductMapper的专用方法）
+            List<Map<String, Object>> productsInfo = productMapper.findProductsInfoForRecommendation(productIds);
+            
+            // 合并推荐分数到商品信息中
+            Map<Long, Double> recommendationScores = productIdMaps.stream()
+                .collect(Collectors.toMap(
+                    map -> (Long) map.get("item_id"),
+                    map -> getDoubleValue(map.get("recommendation_score"))
+                ));
+            
+            List<Map<String, Object>> mergedRecommendations = new ArrayList<>();
+            for (Map<String, Object> productInfo : productsInfo) {
+                Long productId = (Long) productInfo.get("item_id");
+                Double recommendationScore = recommendationScores.get(productId);
+                
+                if (recommendationScore != null) {
+                    Map<String, Object> merged = new HashMap<>(productInfo);
+                    merged.put("recommendation_score", recommendationScore);
+                    mergedRecommendations.add(merged);
+                }
+            }
+            
+            // Java端智能排序
+            List<Map<String, Object>> sortedRecommendations = sortRecommendationsByIntelligentAlgorithm(mergedRecommendations);
+            
+            // 转换为DTO并限制数量
+            return sortedRecommendations.stream()
                 .map(this::convertToDailyDiscoveryResponseDTO)
+                .limit(finalLimit)
                 .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("获取今日发现推荐失败，userId: {}, page: {}", userId, page, e);
@@ -496,6 +532,42 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     // ==================== DTO转换方法 ====================
+
+    /**
+     * 智能排序算法 - 多维度综合评分
+     */
+    private List<Map<String, Object>> sortRecommendationsByIntelligentAlgorithm(List<Map<String, Object>> recommendations) {
+        if (recommendations == null || recommendations.isEmpty()) {
+            return recommendations;
+        }
+        
+        // 为每个推荐项计算综合评分
+        List<Map<String, Object>> scoredRecommendations = new ArrayList<>();
+        
+        for (Map<String, Object> recommendation : recommendations) {
+            // 计算综合评分（权重可调整）
+            double recommendationScore = getDoubleValue(recommendation.get("recommendation_score")) * 0.4; // 推荐分数权重40%
+            double viewCountScore = Math.log10(getDoubleValue(recommendation.get("view_count")) + 1) * 0.3; // 浏览量权重30%
+            double ratingScore = getDoubleValue(recommendation.get("avg_rating")) * 0.2; // 评分权重20%
+            double priceScore = (1.0 - Math.min(getDoubleValue(recommendation.get("price")) / 1000.0, 1.0)) * 0.1; // 价格权重10%
+            
+            double totalScore = recommendationScore + viewCountScore + ratingScore + priceScore;
+            
+            // 添加评分到推荐项
+            Map<String, Object> scoredRecommendation = new HashMap<>(recommendation);
+            scoredRecommendation.put("intelligent_score", totalScore);
+            scoredRecommendations.add(scoredRecommendation);
+        }
+        
+        // 按综合评分降序排序
+        scoredRecommendations.sort((a, b) -> {
+            Double scoreA = getDoubleValue(a.get("intelligent_score"));
+            Double scoreB = getDoubleValue(b.get("intelligent_score"));
+            return Double.compare(scoreB, scoreA); // 降序排序
+        });
+        
+        return scoredRecommendations;
+    }
 
     /**
      * 将Map转换为DailyDiscoveryResponseDTO
