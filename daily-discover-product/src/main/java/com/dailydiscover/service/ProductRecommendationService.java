@@ -1,11 +1,11 @@
 package com.dailydiscover.service;
 
 import com.dailydiscover.model.ProductRecommendation;
-import com.dailydiscover.model.dto.RelatedProductDTO;
-import com.dailydiscover.model.dto.DailyDiscoveryResponseDTO;
-import com.dailydiscover.model.dto.LifeScenarioResponseDTO;
-import com.dailydiscover.model.dto.CommunityHotListResponseDTO;
-import com.dailydiscover.model.dto.PersonalizedDiscoveryResponseDTO;
+import com.dailydiscover.dto.RelatedProductDTO;
+import com.dailydiscover.dto.DailyDiscoveryResponseDTO;
+import com.dailydiscover.dto.LifeScenarioResponseDTO;
+import com.dailydiscover.dto.CommunityHotListResponseDTO;
+import com.dailydiscover.dto.PersonalizedDiscoveryResponseDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
