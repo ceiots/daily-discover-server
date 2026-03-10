@@ -210,12 +210,24 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
      * 生活场景推荐 - 用户专属推荐（多维度设计）
      */
     @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
-            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
+            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score, " +
+            "sr.scenario_time_type, sr.scenario_activity_type, sr.scenario_location_type, " +
+            "JSON_ARRAYAGG(JSON_OBJECT( " +
+            "  'id', p.id, " +
+            "  'title', p.title, " +
+            "  'imageUrl', p.main_image_url, " +
+            "  'price', p.min_price, " +
+            "  'originalPrice', p.max_price, " +
+            "  'goodsSlogan', COALESCE(p.goods_slogan, ''), " +
+            "  'description', COALESCE(p.description, '') " +
+            ")) as product_details " +
             "FROM scenario_recommendations sr " +
+            "LEFT JOIN products p ON JSON_CONTAINS(sr.recommended_products, CAST(p.id AS JSON)) " +
             "WHERE sr.user_id = #{userId} " +
             "AND sr.scenario_time_type = #{timeContext} " +
             "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
             "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
+            "GROUP BY sr.id " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 4")
     List<Map<String, Object>> findUserLifeScenarioRecommendations(@Param("userId") Long userId, @Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
@@ -224,12 +236,24 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
      * 生活场景推荐 - 通用推荐（多维度设计）
      */
     @Select("SELECT sr.recommended_products, sr.recommendation_title, sr.recommendation_description, " +
-            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score " +
+            "CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) as confidence_score, " +
+            "sr.scenario_time_type, sr.scenario_activity_type, sr.scenario_location_type, " +
+            "JSON_ARRAYAGG(JSON_OBJECT( " +
+            "  'id', p.id, " +
+            "  'title', p.title, " +
+            "  'imageUrl', p.main_image_url, " +
+            "  'price', p.min_price, " +
+            "  'originalPrice', p.max_price, " +
+            "  'goodsSlogan', COALESCE(p.goods_slogan, ''), " +
+            "  'description', COALESCE(p.description, '') " +
+            ")) as product_details " +
             "FROM scenario_recommendations sr " +
+            "LEFT JOIN products p ON JSON_CONTAINS(sr.recommended_products, CAST(p.id AS JSON)) " +
             "WHERE sr.user_id IS NULL " +
             "AND sr.scenario_time_type = #{timeContext} " +
             "AND (sr.scenario_activity_type = #{activityContext} OR sr.scenario_activity_type IS NULL) " +
             "AND (sr.scenario_location_type = #{locationKey} OR sr.scenario_location_type IS NULL) " +
+            "GROUP BY sr.id " +
             "ORDER BY CAST(sr.recommendation_metadata->'$.quality_score' AS DECIMAL(3,2)) DESC " +
             "LIMIT 4")
     List<Map<String, Object>> findGeneralLifeScenarioRecommendations(@Param("timeContext") String timeContext, @Param("activityContext") String activityContext, @Param("locationKey") String locationKey);
