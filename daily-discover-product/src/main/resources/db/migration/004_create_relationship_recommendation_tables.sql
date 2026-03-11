@@ -16,8 +16,7 @@ DROP TABLE IF EXISTS user_behavior_logs_core;
 DROP TABLE IF EXISTS user_behavior_logs_details;
 DROP TABLE IF EXISTS scenario_recommendations;
 DROP TABLE IF EXISTS user_interest_profiles;
-DROP TABLE IF EXISTS product_knowledge_graph;
-DROP TABLE IF EXISTS user_lifecycle_events;
+DROP TABLE IF EXISTS user_intent_click_records;
 
 -- 统一推荐表（合并相关商品和推荐功能）
 CREATE TABLE IF NOT EXISTS product_recommendations (
@@ -233,54 +232,34 @@ CREATE TABLE IF NOT EXISTS recommendation_effects (
     INDEX idx_click_time (last_clicked_at)
 ) COMMENT '推荐效果追踪表';
 
+
+
+
+
 -- ============================================
--- 高级推荐功能新增表结构
+-- 用户意图点击记录表（简化版）
 -- ============================================
 
--- 商品知识图谱表（支持解决方案推荐）
-CREATE TABLE IF NOT EXISTS product_knowledge_graph (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '知识图谱ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    related_product_id BIGINT NOT NULL COMMENT '关联商品ID',
-    relationship_type VARCHAR(50) NOT NULL COMMENT '关系类型：solution-解决方案, prerequisite-前置条件, complementary-互补, alternative-替代',
-    relationship_strength DECIMAL(3,2) DEFAULT 0.0 COMMENT '关系强度',
-    context_description TEXT COMMENT '关系上下文描述',
-    confidence_score DECIMAL(3,2) DEFAULT 0.0 COMMENT '置信度',
-    is_active BOOLEAN DEFAULT true COMMENT '是否启用',
+-- 用户意图点击记录表
+CREATE TABLE IF NOT EXISTS user_intent_click_records (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '点击记录ID',
+    user_id BIGINT COMMENT '用户ID（NULL表示匿名用户）',
+    session_id VARCHAR(64) NOT NULL COMMENT '会话ID',
+    intent_type VARCHAR(30) NOT NULL COMMENT '意图类型：cheap-便宜, quality-高质量, new-新品, popular-热门, personalized-个性化, seasonal-季节',
+    intent_label VARCHAR(200) NOT NULL COMMENT '具体意图词（如"便宜""耐高温水杯"，补充intent_type的精细化描述）',
+    weight DOUBLE NOT NULL DEFAULT 0.5 COMMENT '意图权重（0.0~1.0）：1.0表示核心意图，0.1表示弱意图',
+    round_num INT NOT NULL COMMENT '点击轮次',
+    
+    -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     
-    INDEX idx_product_relationship (product_id, relationship_type),
-    INDEX idx_related_product (related_product_id),
-    INDEX idx_relationship_strength (relationship_strength),
-    INDEX idx_is_active (is_active),
-    
-    INDEX idx_product_active (product_id, is_active) COMMENT '商品详情页搭配推荐查询优化',
-    INDEX idx_related_active (related_product_id, is_active) COMMENT '关联商品有效性查询优化',
-    INDEX idx_product_type_active (product_id, relationship_type, is_active) COMMENT '特定关系类型查询优化',
-    INDEX idx_strength_active (relationship_strength, is_active) COMMENT '按关系强度排序查询优化'
-) COMMENT '商品知识图谱表（支持解决方案推荐）';
+    -- 索引优化
+    INDEX idx_user_session (user_id, session_id) COMMENT '用户会话查询',
+    INDEX idx_intent_type (intent_type) COMMENT '意图类型查询',
+    INDEX idx_weight (weight) COMMENT '权重查询',
+    INDEX idx_round (round_num) COMMENT '轮次查询'
+) COMMENT '用户意图点击记录表';
 
--- 用户生命周期表（支持动态时间轴推荐）
-CREATE TABLE IF NOT EXISTS user_lifecycle_events (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '生命周期事件ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    event_type VARCHAR(50) NOT NULL COMMENT '事件类型：pregnancy-怀孕, new_parent-新手父母, career_change-职业变动, relocation-搬迁, education-教育阶段',
-    event_start_date DATE COMMENT '事件开始日期',
-    event_end_date DATE COMMENT '事件结束日期',
-    predicted_next_event VARCHAR(50) COMMENT '预测下一个事件',
-    confidence_score DECIMAL(3,2) DEFAULT 0.0 COMMENT '置信度',
-    lifecycle_stage VARCHAR(30) COMMENT '生命周期阶段',
-    event_context JSON COMMENT '事件上下文',
-    is_active BOOLEAN DEFAULT true COMMENT '是否有效',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    INDEX idx_user_event (user_id, event_type),
-    INDEX idx_event_date (event_type, event_start_date),
-    INDEX idx_lifecycle_stage (lifecycle_stage),
-    INDEX idx_is_active (is_active)
-) COMMENT '用户生命周期表（支持动态时间轴推荐）';
 
 -- ============================================
 -- 首页推荐四模块测试数据
@@ -485,20 +464,6 @@ INSERT INTO content_recommendations (user_id, content_id, recommendation_type, r
 (1004, 1, 'daily_discovery', 0.92, true),
 (1005, 1, 'trending', 0.85, true);
 
--- 插入商品知识图谱数据（AI生成的关系数据）
-INSERT INTO product_knowledge_graph (product_id, related_product_id, relationship_type, relationship_strength, context_description, confidence_score, is_active) VALUES
-(1, 2, 'solution', 0.85, '购买手机后需要手机壳保护', 0.9, true),
-(1, 3, 'complementary', 0.75, '手机和耳机是常用搭配', 0.8, true),
-(2, 4, 'prerequisite', 0.9, '购买相机前需要学习摄影知识', 0.85, true),
-(3, 5, 'alternative', 0.6, '不同品牌的耳机可以互相替代', 0.7, true);
-
--- 插入用户生命周期事件数据（AI预测的用户阶段）
-INSERT INTO user_lifecycle_events (user_id, event_type, event_start_date, event_end_date, predicted_next_event, confidence_score, lifecycle_stage, event_context, is_active) VALUES
-(1001, 'pregnancy', '2026-01-01', '2026-10-01', 'new_parent', 0.85, 'family_planning', '{"trimester": 2, "due_date": "2026-10-01"}', true),
-(1002, 'career_change', '2026-02-01', '2026-05-01', 'relocation', 0.75, 'professional_development', '{"industry": "tech", "position": "senior"}', true),
-(1003, 'education', '2026-03-01', '2026-06-30', 'career_change', 0.8, 'student_life', '{"major": "computer_science", "graduation_date": "2026-06-30"}', true);
-
-
 
 -- 插入销量统计数据（单一表设计）
 INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, share_count, cart_count, avg_rating, review_count, return_count) VALUES
@@ -571,20 +536,6 @@ INSERT INTO recommendation_effects (recommendation_id, user_id, impression_count
 (3, 1003, 8, 3, 2, '2026-02-01 16:45:00', '2026-02-01 16:50:00');
 
 
-
-
-
-
-
-
-
--- 为商品1（智能手表）增加更多知识图谱数据（用于互补推荐）
-INSERT INTO product_knowledge_graph (product_id, related_product_id, relationship_type, relationship_strength, context_description, confidence_score, is_active) VALUES
-(1, 2, 'complementary', 0.85, '智能手表与无线耳机是完美搭配', 0.9, true),
-(1, 3, 'complementary', 0.78, '智能手表与笔记本电脑协同工作', 0.85, true),
-(1, 4, 'complementary', 0.72, '智能手表与智能手机数据同步', 0.8, true),
-(1, 5, 'complementary', 0.68, '智能手表与运动耳机健身组合', 0.75, true);
-
 -- 为其他商品也增加推荐数据，确保系统完整性
 INSERT INTO product_recommendations (user_id, product_id, recommended_product_id, recommendation_type, recommendation_score, is_active, created_at, updated_at) VALUES
 (NULL, 2, 1, 'similar', 0.82, true, '2026-02-01 10:00:00', '2026-02-01 10:00:00'),
@@ -647,4 +598,58 @@ INSERT INTO user_behavior_logs_core (user_id, product_id, behavior_type, behavio
 (4, 23, 'add_to_cart', 2.0, 'session_4_002'),
 (4, 24, 'add_to_cart', 2.0, 'session_4_002'),
 (4, 25, 'add_to_cart', 2.0, 'session_4_002');
+
+-- ============================================
+-- 用户意图点击记录测试数据
+-- ============================================
+
+-- 插入用户意图点击记录数据
+INSERT INTO user_intent_click_records (user_id, session_id, intent_type, intent_label, weight, round_num) VALUES
+-- 第一轮意图点击（初始意图）
+(1, 'session_001', 'cheap', '便宜', 1.0, 1),
+(1, 'session_001', 'quality', '高质量', 0.9, 1),
+(1, 'session_001', 'new', '新品', 0.8, 1),
+(1, 'session_001', 'popular', '热门', 0.7, 1),
+(1, 'session_001', 'personalized', '个性化', 0.6, 1),
+(1, 'session_001', 'seasonal', '季节推荐', 0.5, 1),
+
+-- 第二轮意图点击（基于第一轮选择的细化）
+(1, 'session_001', 'cheap', '便宜手机', 0.9, 2),
+(1, 'session_001', 'cheap', '便宜耳机', 0.8, 2),
+(1, 'session_001', 'quality', '高质量笔记本电脑', 0.9, 2),
+(1, 'session_001', 'quality', '高质量显示器', 0.8, 2),
+(1, 'session_001', 'new', '新款智能手表', 0.9, 2),
+(1, 'session_001', 'new', '新款无线耳机', 0.8, 2),
+
+-- 第三轮意图点击（进一步细化）
+(1, 'session_001', 'cheap', '便宜安卓手机', 0.8, 3),
+(1, 'session_001', 'cheap', '便宜二手手机', 0.7, 3),
+(1, 'session_001', 'quality', '高质量游戏本', 0.9, 3),
+(1, 'session_001', 'quality', '高质量轻薄本', 0.8, 3),
+(1, 'session_001', 'new', '新款运动手表', 0.9, 3),
+(1, 'session_001', 'new', '新款智能手环', 0.8, 3),
+
+-- 匿名用户意图点击（session_id为主）
+(NULL, 'session_002', 'cheap', '便宜', 1.0, 1),
+(NULL, 'session_002', 'quality', '高质量', 0.9, 1),
+(NULL, 'session_002', 'new', '新品', 0.8, 1),
+(NULL, 'session_002', 'popular', '热门', 0.7, 1),
+
+-- 不同用户的意图点击
+(2, 'session_003', 'personalized', '个性化', 1.0, 1),
+(2, 'session_003', 'seasonal', '季节推荐', 0.9, 1),
+(2, 'session_003', 'quality', '高质量', 0.8, 1),
+(2, 'session_003', 'new', '新品', 0.7, 1),
+
+-- 具体商品相关的意图点击
+(1, 'session_004', 'cheap', '便宜水杯', 0.9, 2),
+(1, 'session_004', 'quality', '耐高温水杯', 0.8, 2),
+(1, 'session_004', 'new', '新款保温杯', 0.9, 2),
+(1, 'session_004', 'popular', '网红水杯', 0.7, 2),
+
+-- 更多细化意图
+(1, 'session_005', 'cheap', '便宜运动鞋', 0.9, 2),
+(1, 'session_005', 'quality', '高质量跑鞋', 0.9, 2),
+(1, 'session_005', 'new', '新款篮球鞋', 0.8, 2),
+(1, 'session_005', 'popular', '热门潮鞋', 0.7, 2);
 

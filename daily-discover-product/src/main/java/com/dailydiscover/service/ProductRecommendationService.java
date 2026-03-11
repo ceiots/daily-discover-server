@@ -109,19 +109,20 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
 
     /**
      * 获取引导推荐商品
-     * @param optionId 选项ID
-     * @param path 路径数组
+     * @param sessionId 会话ID
+     * @param intentLabel 意图标签
      * @param limit 限制数量
+     * @param userId 用户ID（可选）
      * @return 引导推荐商品列表
      */
-    List<GuidedProductDTO> getGuidedProducts(String optionId, List<String> path, Integer limit);
+    List<GuidedProductDTO> getGuidedProducts(String sessionId, String intentLabel, Integer limit, Long userId);
 
     /**
      * 基于商品生成下一级推荐词
      * @param products 商品列表
-     * @param path 当前路径
+     * @param intentLabel 意图标签
      * @param round 当前轮次
      * @return 下一级推荐词列表
      */
-    List<GuidedOptionDTO> generateNextOptions(List<GuidedProductDTO> products, List<String> path, Integer round);
+    List<GuidedOptionDTO> generateNextOptions(List<GuidedProductDTO> products, String intentLabel, Integer round);
 }

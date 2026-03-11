@@ -76,17 +76,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
     List<Map<String, Object>> findSimilarProducts(@Param("productId") Long productId, @Param("limit") int limit);
     
-    /**
-     * 搭配商品推荐（基于知识图谱）
-     */
-    @Select("SELECT pkg.related_product_id, pkg.relationship_type, p.title as name, p.main_image_url, pkg.relationship_strength " +
-            "FROM product_knowledge_graph pkg " +
-            "JOIN products p ON pkg.related_product_id = p.id " +
-            "WHERE pkg.product_id = #{productId} AND pkg.relationship_type IN ('complementary', 'bundle') " +
-            "AND pkg.is_active = true " +
-            "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pkg.relationship_strength DESC LIMIT #{limit}")
-    List<Map<String, Object>> findComplementaryProducts(@Param("productId") Long productId, @Param("limit") int limit);
+
     
     /**
      * 价格敏感推荐

@@ -327,36 +327,25 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                     map -> getDoubleValue(map.get("recommendation_score"))
                 ));
             
-            // 直接使用DTO进行智能排序，避免Map转换
-            List<ProductBasicInfoDTO> scoredRecommendations = new ArrayList<>();
+            // 直接转换为最终DTO，避免多层转换
+            List<DailyDiscoveryResponseDTO> scoredRecommendations = new ArrayList<>();
             for (ProductBasicInfoDTO productInfo : productsInfo) {
                 Long productId = productInfo.getId();
                 Double recommendationScore = recommendationScores.get(productId);
                 
                 if (recommendationScore != null) {
-                    // 为DTO添加推荐分数（临时字段）
-                    ProductBasicInfoDTO scoredProduct = new ProductBasicInfoDTO();
-                    // 复制所有字段
-                    scoredProduct.setId(productInfo.getId());
-                    scoredProduct.setTitle(productInfo.getTitle());
-                    scoredProduct.setMainImageUrl(productInfo.getMainImageUrl());
-                    scoredProduct.setViewCount(productInfo.getViewCount());
-                    scoredProduct.setAverageRating(productInfo.getAverageRating());
-                    scoredProduct.setGoodsSlogan(productInfo.getGoodsSlogan());
-                    scoredProduct.setMaxPrice(productInfo.getMaxPrice());
-                    scoredProduct.setMinPrice(productInfo.getMinPrice());
+                    // 直接转换为最终DTO
+                    DailyDiscoveryResponseDTO responseDTO = convertProductBasicInfoToDailyDiscoveryResponseDTO(productInfo);
                     // 设置推荐分数
-                    scoredProduct.setRecommendationScore(recommendationScore);
-                    scoredRecommendations.add(scoredProduct);
+                    responseDTO.setRecommendationScore(BigDecimal.valueOf(recommendationScore));
+                    scoredRecommendations.add(responseDTO);
                 }
             }
             
-            // Java端智能排序（基于DTO）
-            List<ProductBasicInfoDTO> sortedRecommendations = sortRecommendationsByIntelligentAlgorithm(scoredRecommendations);
+            // Java端智能排序（基于最终DTO）
+            List<DailyDiscoveryResponseDTO> sortedRecommendations = sortRecommendationsByIntelligentAlgorithm(scoredRecommendations);
             
-            // 直接转换为最终DTO
             return sortedRecommendations.stream()
-                .map(this::convertProductBasicInfoToDailyDiscoveryResponseDTO)
                 .limit(finalLimit)
                 .collect(Collectors.toList());
         } catch (Exception e) {
@@ -534,7 +523,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
      */
     private DailyDiscoveryResponseDTO convertProductBasicInfoToDailyDiscoveryResponseDTO(ProductBasicInfoDTO dto) {
         DailyDiscoveryResponseDTO responseDTO = new DailyDiscoveryResponseDTO();
-        responseDTO.setItemId(dto.getId());
+        // 修复类型转换问题：Long -> String，Double -> BigDecimal
+        responseDTO.setItemId(dto.getId() != null ? dto.getId().toString() : "");
         responseDTO.setTitle(dto.getTitle());
         responseDTO.setImageUrl(dto.getMainImageUrl());
         responseDTO.setViewCount(dto.getViewCount() != null ? dto.getViewCount() : 0);
@@ -542,7 +532,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         responseDTO.setGoodsSlogan(dto.getGoodsSlogan() != null ? dto.getGoodsSlogan() : "");
         responseDTO.setPrice(dto.getMaxPrice());
         responseDTO.setOriginalPrice(dto.getMinPrice());
-        responseDTO.setRecommendationScore(dto.getRecommendationScore() != null ? dto.getRecommendationScore() : 0.0);
+        // 设置默认推荐分数为0.5，实际分数在调用处设置
+        responseDTO.setRecommendationScore(new BigDecimal("0.5"));
         return responseDTO;
     }
 
@@ -780,40 +771,5 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         return scoredRecommendations;
     }
 
-    /**
-     * 将Map转换为DailyDiscoveryResponseDTO
-     */
-    private DailyDiscoveryResponseDTO convertMapToDailyDiscoveryResponseDTO(Map<String, Object> map) {
-        DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
-        
-        if (map.get("item_id") != null) {
-            dto.setItemId(((Number) map.get("item_id")).longValue());
-        }
-        if (map.get("item_type") != null) {
-            dto.setItemType((String) map.get("item_type"));
-        }
-        if (map.get("title") != null) {
-            dto.setTitle((String) map.get("title"));
-        }
-        if (map.get("image_url") != null) {
-            dto.setImageUrl((String) map.get("image_url"));
-        }
-        if (map.get("view_count") != null) {
-            dto.setViewCount(getIntegerValue(map.get("view_count")));
-        }
-        if (map.get("avg_rating") != null) {
-            dto.setAvgRating(BigDecimal.valueOf(getDoubleValue(map.get("avg_rating"))));
-        }
-        if (map.get("goods_slogan") != null) {
-            dto.setGoodsSlogan((String) map.get("goods_slogan"));
-        }
-        if (map.get("price") != null) {
-            dto.setPrice(BigDecimal.valueOf(getDoubleValue(map.get("price"))));
-        }
-        if (map.get("original_price") != null) {
-            dto.setOriginalPrice(BigDecimal.valueOf(getDoubleValue(map.get("original_price"))));
-        }
-        
-        return dto;
-    }
+
 }
