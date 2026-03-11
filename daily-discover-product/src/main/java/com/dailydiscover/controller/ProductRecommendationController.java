@@ -7,6 +7,8 @@ import com.dailydiscover.dto.DailyDiscoveryResponseDTO;
 import com.dailydiscover.dto.LifeScenarioResponseDTO;
 import com.dailydiscover.dto.CommunityHotListResponseDTO;
 import com.dailydiscover.dto.PersonalizedDiscoveryResponseDTO;
+import com.dailydiscover.dto.GuidedOptionDTO;
+import com.dailydiscover.dto.GuidedProductDTO;
 import com.dailydiscover.service.ProductRecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -190,6 +192,73 @@ public class ProductRecommendationController {
         try {
             List<PersonalizedDiscoveryResponseDTO> recommendations = productRecommendationService.getPersonalizedDiscoveryStream(userId);
             return ResponseEntity.ok(recommendations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ==================== 引导推荐接口 ====================
+
+    @GetMapping("/guided-options")
+    @ApiLog("获取引导推荐选项")
+    public ResponseEntity<List<GuidedOptionDTO>> getGuidedOptions() {
+        try {
+            List<GuidedOptionDTO> options = productRecommendationService.getGuidedOptions();
+            return ResponseEntity.ok(options);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/guided-products")
+    @ApiLog("获取引导推荐商品")
+    public ResponseEntity<List<GuidedProductDTO>> getGuidedProducts(
+            @RequestParam String sessionId,
+            @RequestParam String optionId,
+            @RequestParam(required = false) List<String> path,
+            @RequestParam(defaultValue = "6") Integer limit) {
+        try {
+            List<String> effectivePath = path != null ? path : Collections.emptyList();
+            
+            List<GuidedProductDTO> products = productRecommendationService.getGuidedProducts(
+                sessionId,
+                optionId, 
+                effectivePath, 
+                limit
+            );
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/guided-recommendation")
+    @ApiLog("获取引导推荐（商品+下一级推荐词）")
+    public ResponseEntity<Map<String, Object>> getGuidedRecommendation(
+            @RequestBody Map<String, Object> request) {
+        try {
+            String optionId = (String) request.get("optionId");
+            List<String> path = (List<String>) request.get("path");
+            Integer round = request.get("round") != null ? (Integer) request.get("round") : 1;
+            Integer limit = request.get("limit") != null ? (Integer) request.get("limit") : 6;
+            
+            // 获取商品
+            List<GuidedProductDTO> products = productRecommendationService.getGuidedProducts(
+                optionId, path, limit
+            );
+            
+            // 基于商品生成下一级推荐词
+            List<GuidedOptionDTO> nextOptions = productRecommendationService.generateNextOptions(
+                products, path, round
+            );
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("products", products);
+            response.put("nextOptions", nextOptions);
+            response.put("currentPath", path);
+            response.put("round", round);
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

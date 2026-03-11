@@ -6,6 +6,8 @@ import com.dailydiscover.dto.DailyDiscoveryResponseDTO;
 import com.dailydiscover.dto.LifeScenarioResponseDTO;
 import com.dailydiscover.dto.CommunityHotListResponseDTO;
 import com.dailydiscover.dto.PersonalizedDiscoveryResponseDTO;
+import com.dailydiscover.dto.GuidedOptionDTO;
+import com.dailydiscover.dto.GuidedProductDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
@@ -96,4 +98,30 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * 获取个性化发现流推荐
      */
     List<PersonalizedDiscoveryResponseDTO> getPersonalizedDiscoveryStream(Long userId);
+
+    // ==================== 引导推荐接口 ====================
+
+    /**
+     * 获取引导推荐选项
+     * @return 引导推荐选项列表
+     */
+    List<GuidedOptionDTO> getGuidedOptions();
+
+    /**
+     * 获取引导推荐商品
+     * @param optionId 选项ID
+     * @param path 路径数组
+     * @param limit 限制数量
+     * @return 引导推荐商品列表
+     */
+    List<GuidedProductDTO> getGuidedProducts(String optionId, List<String> path, Integer limit);
+
+    /**
+     * 基于商品生成下一级推荐词
+     * @param products 商品列表
+     * @param path 当前路径
+     * @param round 当前轮次
+     * @return 下一级推荐词列表
+     */
+    List<GuidedOptionDTO> generateNextOptions(List<GuidedProductDTO> products, List<String> path, Integer round);
 }

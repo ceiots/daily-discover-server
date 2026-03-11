@@ -1,5 +1,4 @@
 package com.dailydiscover.service.impl;
-
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dailydiscover.mapper.ProductMapper;
 import com.dailydiscover.mapper.ProductRecommendationMapper;
@@ -10,6 +9,8 @@ import com.dailydiscover.dto.LifeScenarioResponseDTO;
 import com.dailydiscover.dto.CommunityHotListResponseDTO;
 import com.dailydiscover.dto.PersonalizedDiscoveryResponseDTO;
 import com.dailydiscover.dto.ProductBasicInfoDTO;
+import com.dailydiscover.dto.GuidedOptionDTO;
+import com.dailydiscover.dto.GuidedProductDTO;
 import com.dailydiscover.service.ProductRecommendationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
