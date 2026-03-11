@@ -2,6 +2,8 @@ package com.dailydiscover.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dailydiscover.model.ProductRecommendation;
+
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -371,6 +373,62 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "LIMIT #{limit}")
     List<Map<String, Object>> findGeneralGuidedProducts(@Param("limit") int limit);
     
+    /**
+     * 查询用户意图偏好记录
+     * 优先查询用户专属意图，如果没有则查询通用意图
+     */
+    @Select("SELECT intent_type, intent_label, preference_weight, usage_count " +
+            "FROM user_intent_preferences " +
+            "WHERE (user_id = #{userId} OR user_id IS NULL) " +
+            "ORDER BY " +
+            "    CASE WHEN user_id = #{userId} THEN 0 ELSE 1 END, " +
+            "    preference_weight DESC, " +
+            "    usage_count DESC, " +
+            "    last_used_at DESC " +
+            "LIMIT 20")
+    List<Map<String, Object>> findUserIntentPreferences(@Param("userId") Long userId);
+    
+    /**
+     * 查询意图点击统计数据
+     */
+    @Select("SELECT intent_type, intent_label, click_count, conversion_count, conversion_rate " +
+            "FROM intent_click_statistics " +
+            "WHERE intent_type IN ('cheap', 'quality', 'new', 'popular', 'personalized', 'seasonal') " +
+            "ORDER BY conversion_rate DESC, click_count DESC " +
+            "LIMIT 30")
+    List<Map<String, Object>> findIntentClickStatistics();
+
+    /**
+     * 插入或更新用户意图偏好记录
+     * 使用ON DUPLICATE KEY UPDATE实现智能插入/更新
+     */
+    @Insert("INSERT INTO user_intent_preferences (user_id, intent_type, intent_label, preference_weight, usage_count, last_used_at) " +
+            "VALUES (#{userId}, #{intentType}, #{intentLabel}, #{preferenceWeight}, 1, CURRENT_TIMESTAMP) " +
+            "ON DUPLICATE KEY UPDATE " +
+            "    usage_count = usage_count + 1, " +
+            "    last_used_at = CURRENT_TIMESTAMP, " +
+            "    preference_weight = GREATEST(preference_weight, #{preferenceWeight})")
+    int upsertUserIntentPreference(@Param("userId") Long userId, 
+                                   @Param("intentType") String intentType, 
+                                   @Param("intentLabel") String intentLabel, 
+                                   @Param("preferenceWeight") Double preferenceWeight);
+
+    /**
+     * 插入或更新意图点击统计记录
+     */
+    @Insert("INSERT INTO intent_click_statistics (intent_preference_id, click_count, conversion_count, conversion_rate, avg_session_duration) " +
+            "VALUES (#{intentPreferenceId}, 1, #{conversionCount}, #{conversionRate}, #{avgSessionDuration}) " +
+            "ON DUPLICATE KEY UPDATE " +
+            "    click_count = click_count + 1, " +
+            "    conversion_count = conversion_count + #{conversionCount}, " +
+            "    conversion_rate = (conversion_count + #{conversionCount}) / (click_count + 1), " +
+            "    avg_session_duration = (avg_session_duration * click_count + #{avgSessionDuration}) / (click_count + 1), " +
+            "    last_updated_at = CURRENT_TIMESTAMP")
+    int upsertIntentClickStatistics(@Param("intentPreferenceId") Long intentPreferenceId,
+                                    @Param("conversionCount") Integer conversionCount,
+                                    @Param("conversionRate") Double conversionRate,
+                                    @Param("avgSessionDuration") Double avgSessionDuration);
+
     /**
      * 查询个性化引导推荐商品（userId不为null时使用）
      * 性能优化：独立查询，执行计划稳定

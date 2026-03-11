@@ -525,6 +525,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
 
     /**
      * 将日期时间字符串解析为场景维度
+     * 支持ISO格式日期时间字符串和时间段描述（morning/afternoon/evening/night）
      */
     private ScenarioDimensions parseDateTimeToDimensions(String dateTime) {
         ScenarioDimensions dimensions = new ScenarioDimensions();
@@ -534,25 +535,36 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         if (dateTime == null || dateTime.trim().isEmpty()) {
             now = java.time.LocalDateTime.now();
         } else {
-            try {
-                // 解析ISO格式的日期时间字符串
-                now = java.time.LocalDateTime.parse(dateTime);
-            } catch (Exception e) {
-                // 解析失败，使用当前时间
-                now = java.time.LocalDateTime.now();
+            // 先检查是否是时间段描述（morning/afternoon/evening/night）
+            String timePeriod = dateTime.trim().toLowerCase();
+            if (timePeriod.equals("morning") || timePeriod.equals("afternoon") || 
+                timePeriod.equals("evening") || timePeriod.equals("night")) {
+                // 直接使用时间段描述
+                dimensions.timePeriod = timePeriod;
+                now = java.time.LocalDateTime.now(); // 使用当前时间计算其他维度
+            } else {
+                try {
+                    // 解析ISO格式的日期时间字符串
+                    now = java.time.LocalDateTime.parse(dateTime);
+                } catch (Exception e) {
+                    // 解析失败，使用当前时间
+                    now = java.time.LocalDateTime.now();
+                }
             }
         }
         
-        // 计算时间段
-        int hour = now.getHour();
-        if (hour >= 5 && hour < 12) {
-            dimensions.timePeriod = "morning";
-        } else if (hour >= 12 && hour < 18) {
-            dimensions.timePeriod = "afternoon";
-        } else if (hour >= 18 && hour < 23) {
-            dimensions.timePeriod = "evening";
-        } else {
-            dimensions.timePeriod = "night";
+        // 如果时间段未设置（即不是直接传递时间段描述），则根据时间计算
+        if (dimensions.timePeriod == null) {
+            int hour = now.getHour();
+            if (hour >= 5 && hour < 12) {
+                dimensions.timePeriod = "morning";
+            } else if (hour >= 12 && hour < 18) {
+                dimensions.timePeriod = "afternoon";
+            } else if (hour >= 18 && hour < 23) {
+                dimensions.timePeriod = "evening";
+            } else {
+                dimensions.timePeriod = "night";
+            }
         }
         
         // 计算日期类型
@@ -693,6 +705,121 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     }
 
     /**
+     * 智能生成引导推荐选项
+     * 1. 优先读取用户专属意图偏好
+     * 2. 如果没有用户专属记录，读取通用意图
+     * 3. 结合点击统计数据智能生成推荐词
+     */
+    @Override
+    public List<GuidedOptionDTO> getGuidedOptions() {
+        try {
+            // 获取用户意图偏好（这里userId可以传入，如果没有则使用null）
+            Long userId = null; // 可以根据实际业务传入用户ID
+            List<Map<String, Object>> userIntentPreferences = productRecommendationMapper.findUserIntentPreferences(userId);
+            List<Map<String, Object>> intentClickStatistics = productRecommendationMapper.findIntentClickStatistics();
+            
+            // 构建意图权重映射
+            Map<String, Double> intentWeights = new HashMap<>();
+            Map<String, String> intentLabels = new HashMap<>();
+            
+            // 处理用户意图偏好数据
+            for (Map<String, Object> preference : userIntentPreferences) {
+                String intentType = (String) preference.get("intent_type");
+                String intentLabel = (String) preference.get("intent_label");
+                Double preferenceWeight = (Double) preference.get("preference_weight");
+                Integer usageCount = (Integer) preference.get("usage_count");
+                
+                // 计算综合权重：偏好权重 * 使用次数 * 0.1
+                double weight = preferenceWeight * usageCount * 0.1;
+                
+                if (intentWeights.containsKey(intentType)) {
+                    // 如果已存在，取权重更高的
+                    if (weight > intentWeights.get(intentType)) {
+                        intentWeights.put(intentType, weight);
+                        intentLabels.put(intentType, intentLabel);
+                    }
+                } else {
+                    intentWeights.put(intentType, weight);
+                    intentLabels.put(intentType, intentLabel);
+                }
+            }
+            
+            // 处理点击统计数据，增强热门意图的权重
+            for (Map<String, Object> stat : intentClickStatistics) {
+                String intentType = (String) stat.get("intent_type");
+                Double conversionRate = (Double) stat.get("conversion_rate");
+                Integer clickCount = (Integer) stat.get("click_count");
+                
+                // 计算热度权重：转化率 * 点击次数 * 0.01
+                double heatWeight = conversionRate * clickCount * 0.01;
+                
+                if (intentWeights.containsKey(intentType)) {
+                    // 增强已有意图的权重
+                    intentWeights.put(intentType, intentWeights.get(intentType) + heatWeight);
+                } else {
+                    // 添加新的意图类型
+                    intentWeights.put(intentType, heatWeight);
+                    intentLabels.put(intentType, getDefaultIntentLabel(intentType));
+                }
+            }
+            
+            // 如果数据库中没有数据，使用默认推荐词
+            if (intentWeights.isEmpty()) {
+                return getDefaultGuidedOptions();
+            }
+            
+            // 按权重降序排序
+            List<Map.Entry<String, Double>> sortedIntents = new ArrayList<>(intentWeights.entrySet());
+            sortedIntents.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+            
+            // 生成最终推荐选项（最多6个）
+            List<GuidedOptionDTO> options = new ArrayList<>();
+            for (int i = 0; i < Math.min(sortedIntents.size(), 6); i++) {
+                Map.Entry<String, Double> entry = sortedIntents.get(i);
+                String intentType = entry.getKey();
+                String label = intentLabels.getOrDefault(intentType, getDefaultIntentLabel(intentType));
+                options.add(createGuidedOption(intentType, label));
+            }
+            
+            return options;
+            
+        } catch (Exception e) {
+            log.error("智能生成引导推荐选项失败", e);
+            // 降级方案：返回默认推荐词
+            return getDefaultGuidedOptions();
+        }
+    }
+    
+    /**
+     * 获取默认的引导推荐选项
+     */
+    private List<GuidedOptionDTO> getDefaultGuidedOptions() {
+        List<GuidedOptionDTO> options = new ArrayList<>();
+        options.add(createGuidedOption("cheap", "便宜"));
+        options.add(createGuidedOption("quality", "高质量"));
+        options.add(createGuidedOption("new", "新品"));
+        options.add(createGuidedOption("popular", "热门"));
+        options.add(createGuidedOption("personalized", "个性化"));
+        options.add(createGuidedOption("seasonal", "季节"));
+        return options;
+    }
+    
+    /**
+     * 根据意图类型获取默认标签
+     */
+    private String getDefaultIntentLabel(String intentType) {
+        switch (intentType) {
+            case "cheap": return "便宜";
+            case "quality": return "高质量";
+            case "new": return "新品";
+            case "popular": return "热门";
+            case "personalized": return "个性化";
+            case "seasonal": return "季节";
+            default: return intentType;
+        }
+    }
+
+    /**
      * 创建引导推荐选项
      */
     private GuidedOptionDTO createGuidedOption(String id, String label) {
@@ -702,25 +829,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         return option;
     }
 
-    @Override
-    public List<GuidedOptionDTO> getGuidedOptions() {
-        try {
-            List<GuidedOptionDTO> options = new ArrayList<>();
-            
-            // 第一轮引导选项
-            options.add(createGuidedOption("cheap", "便宜"));
-            options.add(createGuidedOption("quality", "高质量"));
-            options.add(createGuidedOption("new", "新品"));
-            options.add(createGuidedOption("popular", "热门"));
-            options.add(createGuidedOption("personalized", "个性化"));
-            options.add(createGuidedOption("seasonal", "季节"));
-            
-            return options;
-        } catch (Exception e) {
-            log.error("获取引导推荐选项失败", e);
-            return List.of();
-        }
-    }
+
 
     @Override
     public List<GuidedProductDTO> getGuidedProducts(String sessionId, String intentLabel, Integer limit, Long userId) {

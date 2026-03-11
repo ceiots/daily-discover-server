@@ -16,7 +16,9 @@ DROP TABLE IF EXISTS user_behavior_logs_core;
 DROP TABLE IF EXISTS user_behavior_logs_details;
 DROP TABLE IF EXISTS scenario_recommendations;
 DROP TABLE IF EXISTS user_interest_profiles;
-DROP TABLE IF EXISTS user_intent_click_records;
+DROP TABLE IF EXISTS intent_click_statistics;
+DROP TABLE IF EXISTS user_intent_preferences;
+
 
 -- 统一推荐表（合并相关商品和推荐功能）
 CREATE TABLE IF NOT EXISTS product_recommendations (
@@ -240,25 +242,42 @@ CREATE TABLE IF NOT EXISTS recommendation_effects (
 -- 用户意图点击记录表（简化版）
 -- ============================================
 
--- 用户意图点击记录表
-CREATE TABLE IF NOT EXISTS user_intent_click_records (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '点击记录ID',
-    user_id BIGINT COMMENT '用户ID（NULL表示匿名用户）',
-    session_id VARCHAR(64) NOT NULL COMMENT '会话ID',
+-- 用户意图偏好表（核心意图，不带点击记录）
+CREATE TABLE IF NOT EXISTS user_intent_preferences (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '意图偏好ID',
+    user_id BIGINT COMMENT '用户ID（NULL表示通用意图）',
     intent_type VARCHAR(30) NOT NULL COMMENT '意图类型：cheap-便宜, quality-高质量, new-新品, popular-热门, personalized-个性化, seasonal-季节',
     intent_label VARCHAR(200) NOT NULL COMMENT '具体意图词（如"便宜""耐高温水杯"，补充intent_type的精细化描述）',
-    weight DOUBLE NOT NULL DEFAULT 0.5 COMMENT '意图权重（0.0~1.0）：1.0表示核心意图，0.1表示弱意图',
-    round_num INT NOT NULL COMMENT '点击轮次',
-    
-    -- 时间戳
+    preference_weight DOUBLE NOT NULL DEFAULT 0.5 COMMENT '偏好权重（0.0~1.0）：1.0表示强偏好，0.1表示弱偏好',
+    usage_count INT DEFAULT 1 COMMENT '使用次数',
+    last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '最后使用时间',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     
     -- 索引优化
-    INDEX idx_user_session (user_id, session_id) COMMENT '用户会话查询',
+    INDEX idx_user_intent (user_id, intent_type) COMMENT '用户意图查询',
     INDEX idx_intent_type (intent_type) COMMENT '意图类型查询',
-    INDEX idx_weight (weight) COMMENT '权重查询',
-    INDEX idx_round (round_num) COMMENT '轮次查询'
-) COMMENT '用户意图点击记录表';
+    INDEX idx_weight (preference_weight) COMMENT '权重查询',
+    INDEX idx_usage (usage_count) COMMENT '使用次数查询',
+    -- 唯一约束：支持ON DUPLICATE KEY UPDATE操作
+    UNIQUE KEY uk_user_intent_label (user_id, intent_type, intent_label) COMMENT '用户意图词唯一约束'
+) COMMENT '用户意图偏好表';
+
+-- 意图点击统计表（记录点击转化情况）
+CREATE TABLE IF NOT EXISTS intent_click_statistics (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '统计ID',
+    intent_preference_id BIGINT NOT NULL COMMENT '关联用户意图偏好ID',
+    click_count INT DEFAULT 0 COMMENT '点击次数',
+    conversion_count INT DEFAULT 0 COMMENT '转化次数（如购买、收藏等）',
+    conversion_rate DOUBLE DEFAULT 0.0 COMMENT '转化率',
+    avg_session_duration DOUBLE DEFAULT 0.0 COMMENT '平均会话时长（秒）',
+    last_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    
+    -- 索引优化
+    INDEX idx_intent_preference (intent_preference_id) COMMENT '意图偏好查询',
+    INDEX idx_conversion_rate (conversion_rate) COMMENT '转化率查询',
+    UNIQUE KEY uk_intent_preference (intent_preference_id) COMMENT '意图偏好唯一约束'
+) COMMENT '意图点击统计表';
 
 
 -- ============================================
@@ -599,57 +618,33 @@ INSERT INTO user_behavior_logs_core (user_id, product_id, behavior_type, behavio
 (4, 24, 'add_to_cart', 2.0, 'session_4_002'),
 (4, 25, 'add_to_cart', 2.0, 'session_4_002');
 
--- ============================================
--- 用户意图点击记录测试数据
--- ============================================
+-- 插入用户意图偏好测试数据
+INSERT INTO user_intent_preferences (user_id, intent_type, intent_label, preference_weight, usage_count) VALUES
+-- 用户1的意图偏好
+(1, 'cheap', '便宜', 0.9, 5),
+(1, 'quality', '高质量', 0.8, 3),
+(1, 'new', '新品', 0.7, 2),
+(1, 'popular', '热门', 0.6, 4),
+-- 通用意图偏好（user_id为NULL）
+(NULL, 'cheap', '便宜', 0.8, 10),
+(NULL, 'quality', '高质量', 0.7, 8),
+(NULL, 'new', '新品', 0.6, 6),
+(NULL, 'popular', '热门', 0.5, 12),
+(NULL, 'personalized', '个性化', 0.4, 3),
+(NULL, 'seasonal', '季节', 0.3, 2);
 
--- 插入用户意图点击记录数据
-INSERT INTO user_intent_click_records (user_id, session_id, intent_type, intent_label, weight, round_num) VALUES
--- 第一轮意图点击（初始意图）
-(1, 'session_001', 'cheap', '便宜', 1.0, 1),
-(1, 'session_001', 'quality', '高质量', 0.9, 1),
-(1, 'session_001', 'new', '新品', 0.8, 1),
-(1, 'session_001', 'popular', '热门', 0.7, 1),
-(1, 'session_001', 'personalized', '个性化', 0.6, 1),
-(1, 'session_001', 'seasonal', '季节推荐', 0.5, 1),
-
--- 第二轮意图点击（基于第一轮选择的细化）
-(1, 'session_001', 'cheap', '便宜手机', 0.9, 2),
-(1, 'session_001', 'cheap', '便宜耳机', 0.8, 2),
-(1, 'session_001', 'quality', '高质量笔记本电脑', 0.9, 2),
-(1, 'session_001', 'quality', '高质量显示器', 0.8, 2),
-(1, 'session_001', 'new', '新款智能手表', 0.9, 2),
-(1, 'session_001', 'new', '新款无线耳机', 0.8, 2),
-
--- 第三轮意图点击（进一步细化）
-(1, 'session_001', 'cheap', '便宜安卓手机', 0.8, 3),
-(1, 'session_001', 'cheap', '便宜二手手机', 0.7, 3),
-(1, 'session_001', 'quality', '高质量游戏本', 0.9, 3),
-(1, 'session_001', 'quality', '高质量轻薄本', 0.8, 3),
-(1, 'session_001', 'new', '新款运动手表', 0.9, 3),
-(1, 'session_001', 'new', '新款智能手环', 0.8, 3),
-
--- 匿名用户意图点击（session_id为主）
-(NULL, 'session_002', 'cheap', '便宜', 1.0, 1),
-(NULL, 'session_002', 'quality', '高质量', 0.9, 1),
-(NULL, 'session_002', 'new', '新品', 0.8, 1),
-(NULL, 'session_002', 'popular', '热门', 0.7, 1),
-
--- 不同用户的意图点击
-(2, 'session_003', 'personalized', '个性化', 1.0, 1),
-(2, 'session_003', 'seasonal', '季节推荐', 0.9, 1),
-(2, 'session_003', 'quality', '高质量', 0.8, 1),
-(2, 'session_003', 'new', '新品', 0.7, 1),
-
--- 具体商品相关的意图点击
-(1, 'session_004', 'cheap', '便宜水杯', 0.9, 2),
-(1, 'session_004', 'quality', '耐高温水杯', 0.8, 2),
-(1, 'session_004', 'new', '新款保温杯', 0.9, 2),
-(1, 'session_004', 'popular', '网红水杯', 0.7, 2),
-
--- 更多细化意图
-(1, 'session_005', 'cheap', '便宜运动鞋', 0.9, 2),
-(1, 'session_005', 'quality', '高质量跑鞋', 0.9, 2),
-(1, 'session_005', 'new', '新款篮球鞋', 0.8, 2),
-(1, 'session_005', 'popular', '热门潮鞋', 0.7, 2);
+-- 插入意图点击统计测试数据
+INSERT INTO intent_click_statistics (intent_preference_id, click_count, conversion_count, conversion_rate, avg_session_duration) VALUES
+-- 便宜意图的统计数据
+(1, 150, 45, 0.3, 120.5),
+(5, 300, 75, 0.25, 110.2),
+-- 高质量意图的统计数据
+(2, 120, 36, 0.3, 135.8),
+(6, 200, 50, 0.25, 125.3),
+-- 新品意图的统计数据
+(3, 80, 20, 0.25, 140.2),
+(7, 150, 30, 0.2, 130.5),
+-- 热门意图的统计数据
+(4, 200, 60, 0.3, 115.7),
+(8, 400, 100, 0.25, 105.8);
 
