@@ -354,37 +354,43 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     List<ProductRecommendation> findGeneralRecommendations(@Param("limit") int limit);
     
     /**
-     * 查询引导推荐商品（支持通用和个性化推荐）
-     * 当userId为null时返回通用推荐，当userId不为null时返回个性化推荐
+     * 查询通用引导推荐商品（userId为null时使用）
+     * 性能优化：独立查询，执行计划稳定
      */
-    @Select("<script>" +
-            "SELECT p.id, p.title, p.main_image_url as image_url, p.max_price as price, " +
+    @Select("SELECT p.id, p.title, p.main_image_url as image_url, p.max_price as price, " +
             "p.max_price as current_price, p.min_price as original_price, " +
             "ps.avg_rating as rating, ps.review_count as reviews, " +
             "pt.name as category " +
-            "<if test='userId != null'>" +
-            ", pr.recommendation_score " +
-            "</if>" +
             "FROM products p " +
             "LEFT JOIN product_sales_stats ps ON p.id = ps.product_id " +
             "LEFT JOIN product_tag_relations ptr ON p.id = ptr.product_id " +
             "LEFT JOIN product_tags pt ON ptr.tag_id = pt.id AND pt.tag_type = 'category' " +
-            "<if test='userId != null'>" +
-            "INNER JOIN product_recommendations pr ON p.id = pr.recommended_product_id " +
-            "</if>" +
             "WHERE p.status = 1 AND p.is_deleted = 0 " +
             "AND (ps.time_granularity = 'daily' OR ps.time_granularity IS NULL) " +
-            "<if test='userId != null'>" +
+            "ORDER BY ps.sales_count DESC, ps.view_count DESC " +
+            "LIMIT #{limit}")
+    List<Map<String, Object>> findGeneralGuidedProducts(@Param("limit") int limit);
+    
+    /**
+     * 查询个性化引导推荐商品（userId不为null时使用）
+     * 性能优化：独立查询，执行计划稳定
+     */
+    @Select("SELECT p.id, p.title, p.main_image_url as image_url, p.max_price as price, " +
+            "p.max_price as current_price, p.min_price as original_price, " +
+            "ps.avg_rating as rating, ps.review_count as reviews, " +
+            "pt.name as category, " +
+            "pr.recommendation_score " +
+            "FROM products p " +
+            "LEFT JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "LEFT JOIN product_tag_relations ptr ON p.id = ptr.product_id " +
+            "LEFT JOIN product_tags pt ON ptr.tag_id = pt.id AND pt.tag_type = 'category' " +
+            "INNER JOIN product_recommendations pr ON p.id = pr.recommended_product_id " +
+            "WHERE p.status = 1 AND p.is_deleted = 0 " +
             "AND pr.user_id = #{userId} " +
             "AND pr.recommendation_type = 'personalized' " +
             "AND pr.is_active = true " +
-            "</if>" +
-            "ORDER BY " +
-            "<if test='userId != null'>" +
-            "pr.recommendation_score DESC, " +
-            "</if>" +
-            "ps.sales_count DESC, ps.view_count DESC " +
-            "LIMIT #{limit}" +
-            "</script>")
-    List<Map<String, Object>> findGuidedProducts(@Param("userId") Long userId, @Param("limit") int limit);
+            "AND (ps.time_granularity = 'daily' OR ps.time_granularity IS NULL) " +
+            "ORDER BY pr.recommendation_score DESC, ps.sales_count DESC, ps.view_count DESC " +
+            "LIMIT #{limit}")
+    List<Map<String, Object>> findPersonalizedGuidedProducts(@Param("userId") Long userId, @Param("limit") int limit);
 }

@@ -728,8 +728,16 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             // 设置默认限制
             int finalLimit = limit != null ? limit : 6;
             
-            // 使用合并后的单一方法，支持通用和个性化推荐
-            List<Map<String, Object>> productMaps = productRecommendationMapper.findGuidedProducts(userId, finalLimit);
+            // 性能优化：根据userId是否为null选择不同的查询方法
+            // 避免动态SQL的性能问题，确保执行计划稳定
+            List<Map<String, Object>> productMaps;
+            if (userId != null) {
+                // 个性化推荐 - 执行计划稳定
+                productMaps = productRecommendationMapper.findPersonalizedGuidedProducts(userId, finalLimit);
+            } else {
+                // 通用推荐 - 执行计划稳定
+                productMaps = productRecommendationMapper.findGeneralGuidedProducts(finalLimit);
+            }
             
             // 转换为GuidedProductDTO
             List<GuidedProductDTO> result = new ArrayList<>();
