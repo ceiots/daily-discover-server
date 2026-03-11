@@ -231,35 +231,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
     }
     
-
-    
-    private List<ProductRecommendation> convertMapListToProductRecommendations(List<Map<String, Object>> mapList) {
-        List<ProductRecommendation> result = new ArrayList<>();
-        for (Map<String, Object> map : mapList) {
-            ProductRecommendation recommendation = new ProductRecommendation();
-            
-            // 设置推荐商品ID
-            Object itemId = map.get("item_id");
-            if (itemId != null) {
-                recommendation.setRecommendedProductId(((Number) itemId).longValue());
-            }
-            
-            // 设置推荐分数
-            Object score = map.get("recommendation_score");
-            if (score != null) {
-                if (score instanceof Double) {
-                    recommendation.setRecommendationScore(BigDecimal.valueOf((Double) score));
-                } else if (score instanceof BigDecimal) {
-                    recommendation.setRecommendationScore((BigDecimal) score);
-                }
-            }
-            
-            recommendation.setIsActive(true);
-            result.add(recommendation);
-        }
-        return result;
-    }
-    
     /**
      * 安全转换对象为 Double 类型
      * 支持 BigDecimal、Double、Integer、Long、Float 等数字类型
@@ -683,99 +654,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         return dto;
     }
 
-    /**
-     * 根据用户意图过滤推荐商品
-     * @param recommendations 推荐商品列表
-     * @param userIntent 用户意图：cheap-便宜, quality-高质量, new-新品, popular-热门
-     * @return 过滤后的推荐商品列表
-     */
-    private List<ProductBasicInfoDTO> filterRecommendationsByUserIntent(List<ProductBasicInfoDTO> recommendations, String userIntent) {
-        if (userIntent == null || userIntent.trim().isEmpty()) {
-            return recommendations;
-        }
-        
-        return recommendations.stream()
-            .filter(product -> {
-                switch (userIntent) {
-                    case "cheap":
-                        // 便宜的：价格低于100元
-                        return product.getMaxPrice() != null && product.getMaxPrice().doubleValue() < 100;
-                    case "quality":
-                        // 高质量的：评分高于4.5
-                        return product.getAverageRating() != null && product.getAverageRating().doubleValue() >= 4.5;
-                    case "new":
-                        // 新品：简化实现，返回所有商品
-                        return true;
-                    case "popular":
-                        // 热门的：浏览量大于1000
-                        return product.getViewCount() != null && product.getViewCount() > 1000;
-                    case "related":
-                        // 相关推荐：简化实现，返回所有商品
-                        return true;
-                    case "trending":
-                        // 趋势商品：简化实现，返回所有商品
-                        return true;
-                    case "personalized":
-                        // 个性化：推荐分数大于0.8
-                        return product.getRecommendationScore() != null && product.getRecommendationScore().doubleValue() > 0.8;
-                    case "seasonal":
-                        // 季节推荐：简化实现，返回所有商品
-                        return true;
-                    default:
-                        return true;
-                }
-            })
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * 智能排序算法 - 多维度综合评分（基于DTO）
-     */
-    private List<ProductBasicInfoDTO> sortRecommendationsByIntelligentAlgorithm(List<ProductBasicInfoDTO> recommendations) {
-        if (recommendations == null || recommendations.isEmpty()) {
-            return recommendations;
-        }
-        
-        // 为每个推荐项计算综合评分
-        List<ProductBasicInfoDTO> scoredRecommendations = new ArrayList<>();
-        
-        for (ProductBasicInfoDTO recommendation : recommendations) {
-            // 计算综合评分（权重可调整）
-            double recommendationScore = getDoubleValue(recommendation.getRecommendationScore()) * 0.4; // 推荐分数权重40%
-            double viewCountScore = Math.log10(getDoubleValue(recommendation.getViewCount()) + 1) * 0.3; // 浏览量权重30%
-            double ratingScore = getDoubleValue(recommendation.getAverageRating()) * 0.2; // 评分权重20%
-            double priceScore = (1.0 - Math.min(getDoubleValue(recommendation.getMaxPrice()) / 1000.0, 1.0)) * 0.1; // 价格权重10%
-            
-            double totalScore = recommendationScore + viewCountScore + ratingScore + priceScore;
-            
-            // 添加评分到推荐项
-            ProductBasicInfoDTO scoredRecommendation = new ProductBasicInfoDTO();
-            // 复制所有字段
-            scoredRecommendation.setId(recommendation.getId());
-            scoredRecommendation.setTitle(recommendation.getTitle());
-            scoredRecommendation.setMainImageUrl(recommendation.getMainImageUrl());
-            scoredRecommendation.setViewCount(recommendation.getViewCount());
-            scoredRecommendation.setAverageRating(recommendation.getAverageRating());
-            scoredRecommendation.setGoodsSlogan(recommendation.getGoodsSlogan());
-            scoredRecommendation.setMaxPrice(recommendation.getMaxPrice());
-            scoredRecommendation.setMinPrice(recommendation.getMinPrice());
-            scoredRecommendation.setRecommendationScore(recommendation.getRecommendationScore());
-            // 设置智能评分
-            scoredRecommendation.setIntelligentScore(totalScore);
-            scoredRecommendations.add(scoredRecommendation);
-        }
-        
-        // 按综合评分降序排序
-        scoredRecommendations.sort((a, b) -> {
-            Double scoreA = getDoubleValue(a.getIntelligentScore());
-            Double scoreB = getDoubleValue(b.getIntelligentScore());
-            return Double.compare(scoreB, scoreA); // 降序排序
-        });
-        
-        return scoredRecommendations;
-    }
-
-
 
     /**
      * 基于商品生成下一级推荐词
@@ -850,13 +728,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             // 设置默认限制
             int finalLimit = limit != null ? limit : 6;
             
-            // 基于意图标签和用户ID查询推荐商品
-            List<Map<String, Object>> productMaps = productRecommendationMapper.findGuidedProducts(sessionId, intentLabel, finalLimit, userId);
-            
-            if (productMaps.isEmpty()) {
-                // 如果没有找到特定意图的商品，返回通用推荐
-                productMaps = productRecommendationMapper.findGeneralGuidedProducts(finalLimit);
-            }
+            // 使用合并后的单一方法，支持通用和个性化推荐
+            List<Map<String, Object>> productMaps = productRecommendationMapper.findGuidedProducts(userId, finalLimit);
             
             // 转换为GuidedProductDTO
             List<GuidedProductDTO> result = new ArrayList<>();
