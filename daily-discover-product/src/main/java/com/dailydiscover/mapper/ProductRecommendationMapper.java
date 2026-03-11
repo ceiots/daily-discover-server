@@ -17,12 +17,14 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
     /**
      * 今日发现推荐 - 第一步：查询推荐的商品ID集合
      */
-    @Select("SELECT DISTINCT pr.recommended_product_id as item_id, pr.recommendation_score " +
+    @Select("SELECT pr.recommended_product_id as item_id, MAX(pr.recommendation_score) as recommendation_score " +
             "FROM product_recommendations pr " +
             "INNER JOIN products p ON pr.recommended_product_id = p.id " +
             "WHERE pr.recommendation_type = 'daily_discovery' AND pr.is_active = true " +
             "AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
+            "GROUP BY pr.recommended_product_id " +
+            "ORDER BY MAX(pr.recommendation_score) DESC " +
             "LIMIT #{limit} OFFSET #{offset}")
     List<Map<String, Object>> findDailyDiscoverProductIds(@Param("userId") Long userId, @Param("limit") int limit, @Param("offset") int offset);
 
@@ -76,7 +78,16 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
     List<Map<String, Object>> findSimilarProducts(@Param("productId") Long productId, @Param("limit") int limit);
     
-
+    /**
+     * 搭配商品推荐
+     */
+    @Select("SELECT pr.recommended_product_id, pr.recommendation_score, p.title as name, p.main_image_url " +
+            "FROM product_recommendations pr " +
+            "JOIN products p ON pr.recommended_product_id = p.id " +
+            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = 'complementary' AND pr.is_active = true " +
+            "AND p.status = 1 AND p.is_deleted = 0 " +
+            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    List<Map<String, Object>> findComplementaryProducts(@Param("productId") Long productId, @Param("limit") int limit);
     
     /**
      * 价格敏感推荐
@@ -341,4 +352,38 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "AND p.status = 1 AND p.is_deleted = 0 " +
             "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
     List<ProductRecommendation> findGeneralRecommendations(@Param("limit") int limit);
+    
+    /**
+     * 查询引导推荐商品（基于意图标签）
+     */
+    @Select("SELECT p.id, p.title, p.main_image_url as image_url, p.max_price as price, " +
+            "p.max_price as current_price, p.min_price as original_price, " +
+            "ps.avg_rating as rating, ps.review_count as reviews, " +
+            "pt.name as category " +
+            "FROM products p " +
+            "LEFT JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "LEFT JOIN product_tag_relations ptr ON p.id = ptr.product_id " +
+            "LEFT JOIN product_tags pt ON ptr.tag_id = pt.id AND pt.tag_type = 'category' " +
+            "WHERE p.status = 1 AND p.is_deleted = 0 " +
+            "AND (ps.time_granularity = 'daily' OR ps.time_granularity IS NULL) " +
+            "ORDER BY ps.sales_count DESC, ps.view_count DESC " +
+            "LIMIT #{limit}")
+    List<Map<String, Object>> findGeneralGuidedProducts(@Param("limit") int limit);
+    
+    /**
+     * 查询引导推荐商品（基于意图标签和用户行为）
+     */
+    @Select("SELECT p.id, p.title, p.main_image_url as image_url, p.max_price as price, " +
+            "p.max_price as current_price, p.min_price as original_price, " +
+            "ps.avg_rating as rating, ps.review_count as reviews, " +
+            "pt.name as category " +
+            "FROM products p " +
+            "LEFT JOIN product_sales_stats ps ON p.id = ps.product_id " +
+            "LEFT JOIN product_tag_relations ptr ON p.id = ptr.product_id " +
+            "LEFT JOIN product_tags pt ON ptr.tag_id = pt.id AND pt.tag_type = 'category' " +
+            "WHERE p.status = 1 AND p.is_deleted = 0 " +
+            "AND (ps.time_granularity = 'daily' OR ps.time_granularity IS NULL) " +
+            "ORDER BY ps.sales_count DESC, ps.view_count DESC " +
+            "LIMIT #{limit}")
+    List<Map<String, Object>> findGuidedProducts(@Param("sessionId") String sessionId, @Param("intentLabel") String intentLabel, @Param("limit") int limit, @Param("userId") Long userId);
 }

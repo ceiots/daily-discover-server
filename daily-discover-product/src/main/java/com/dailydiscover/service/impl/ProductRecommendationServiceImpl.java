@@ -342,10 +342,14 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 }
             }
             
-            // Java端智能排序（基于最终DTO）
-            List<DailyDiscoveryResponseDTO> sortedRecommendations = sortRecommendationsByIntelligentAlgorithm(scoredRecommendations);
+            // 按推荐分数降序排序
+            scoredRecommendations.sort((a, b) -> {
+                Double scoreA = a.getRecommendationScore() != null ? a.getRecommendationScore().doubleValue() : 0.0;
+                Double scoreB = b.getRecommendationScore() != null ? b.getRecommendationScore().doubleValue() : 0.0;
+                return Double.compare(scoreB, scoreA); // 降序排序
+            });
             
-            return sortedRecommendations.stream()
+            return scoredRecommendations.stream()
                 .limit(finalLimit)
                 .collect(Collectors.toList());
         } catch (Exception e) {
@@ -771,5 +775,125 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         return scoredRecommendations;
     }
 
+
+
+    /**
+     * 基于商品生成下一级推荐词
+     */
+    @Override
+    public List<GuidedOptionDTO> generateNextOptions(List<GuidedProductDTO> products, String intentLabel, Integer round) {
+        if (products == null || products.isEmpty()) {
+            return List.of();
+        }
+        
+        // 根据当前轮次和意图标签生成下一级推荐词
+        List<GuidedOptionDTO> nextOptions = new ArrayList<>();
+        
+        // 第一轮：基础意图
+        if (round == 1) {
+            nextOptions.add(createGuidedOption("cheap", "更便宜的"));
+            nextOptions.add(createGuidedOption("quality", "更高质量的"));
+            nextOptions.add(createGuidedOption("new", "最新款"));
+            nextOptions.add(createGuidedOption("popular", "更热门"));
+        }
+        // 第二轮：细化意图
+        else if (round == 2) {
+            nextOptions.add(createGuidedOption("brand", "品牌"));
+            nextOptions.add(createGuidedOption("size", "尺寸"));
+            nextOptions.add(createGuidedOption("color", "颜色"));
+            nextOptions.add(createGuidedOption("material", "材质"));
+        }
+        // 第三轮及以上：深度细化
+        else {
+            nextOptions.add(createGuidedOption("budget", "预算范围"));
+            nextOptions.add(createGuidedOption("feature", "特色功能"));
+            nextOptions.add(createGuidedOption("usage", "使用场景"));
+            nextOptions.add(createGuidedOption("review", "用户评价"));
+        }
+        
+        return nextOptions;
+    }
+
+    /**
+     * 创建引导推荐选项
+     */
+    private GuidedOptionDTO createGuidedOption(String id, String label) {
+        GuidedOptionDTO option = new GuidedOptionDTO();
+        option.setId(id);
+        option.setLabel(label);
+        return option;
+    }
+
+    @Override
+    public List<GuidedOptionDTO> getGuidedOptions() {
+        try {
+            List<GuidedOptionDTO> options = new ArrayList<>();
+            
+            // 第一轮引导选项
+            options.add(createGuidedOption("cheap", "便宜"));
+            options.add(createGuidedOption("quality", "高质量"));
+            options.add(createGuidedOption("new", "新品"));
+            options.add(createGuidedOption("popular", "热门"));
+            options.add(createGuidedOption("personalized", "个性化"));
+            options.add(createGuidedOption("seasonal", "季节"));
+            
+            return options;
+        } catch (Exception e) {
+            log.error("获取引导推荐选项失败", e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<GuidedProductDTO> getGuidedProducts(String sessionId, String intentLabel, Integer limit, Long userId) {
+        try {
+            // 设置默认限制
+            int finalLimit = limit != null ? limit : 6;
+            
+            // 基于意图标签和用户ID查询推荐商品
+            List<Map<String, Object>> productMaps = productRecommendationMapper.findGuidedProducts(sessionId, intentLabel, finalLimit, userId);
+            
+            if (productMaps.isEmpty()) {
+                // 如果没有找到特定意图的商品，返回通用推荐
+                productMaps = productRecommendationMapper.findGeneralGuidedProducts(finalLimit);
+            }
+            
+            // 转换为GuidedProductDTO
+            List<GuidedProductDTO> result = new ArrayList<>();
+            for (Map<String, Object> productMap : productMaps) {
+                GuidedProductDTO dto = new GuidedProductDTO();
+                dto.setId(String.valueOf(productMap.get("id")));
+                dto.setTitle((String) productMap.get("title"));
+                dto.setImageUrl((String) productMap.get("image_url"));
+                dto.setPrice(String.valueOf(productMap.get("price")));
+                dto.setCurrentPrice(String.valueOf(productMap.get("current_price")));
+                dto.setOriginalPrice(String.valueOf(productMap.get("original_price")));
+                
+                // 安全转换数值类型
+                Object discount = productMap.get("discount");
+                if (discount != null) {
+                    dto.setDiscount(convertToDouble(discount));
+                }
+                
+                Object rating = productMap.get("rating");
+                if (rating != null) {
+                    dto.setRating(convertToDouble(rating));
+                }
+                
+                Object reviews = productMap.get("reviews");
+                if (reviews != null) {
+                    dto.setReviews(getIntegerValue(reviews));
+                }
+                
+                dto.setCategory(String.valueOf(productMap.get("category")));
+                result.add(dto);
+            }
+            
+            return result;
+        } catch (Exception e) {
+            log.error("获取引导推荐商品失败，sessionId: {}, intentLabel: {}, userId: {}", sessionId, intentLabel, userId, e);
+            return List.of();
+        }
+    }
 
 }
