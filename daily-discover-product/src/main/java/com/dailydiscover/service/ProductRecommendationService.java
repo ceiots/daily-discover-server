@@ -58,7 +58,7 @@ public interface ProductRecommendationService extends IService<ProductRecommenda
      * @param userId 用户ID
      * @return 每日发现推荐列表
      */
-    List<ProductRecommendation> getDailyDiscoverRecommendations(Long userId);
+
     
     /**
      * 获取通用推荐

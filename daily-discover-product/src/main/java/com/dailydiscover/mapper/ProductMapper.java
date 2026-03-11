@@ -87,4 +87,6 @@ public interface ProductMapper extends BaseMapper<Product> {
             "AND p.status = 1 AND p.is_deleted = 0" +
             "</script>")
     List<ProductBasicInfoDTO> findBasicInfoByIds(@Param("ids") List<Long> ids);
+
+
 }

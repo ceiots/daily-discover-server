@@ -43,5 +43,9 @@ public class ProductBasicInfoDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
+    // 推荐系统专用字段
+    private Double recommendationScore; // 推荐分数
+    private Double intelligentScore; // 智能评分
+    
 
 }

@@ -76,16 +76,7 @@ public class ProductRecommendationController {
         }
     }
 
-    @GetMapping("/daily-discover/{userId}")
-    @ApiLog("获取每日发现推荐")
-    public ResponseEntity<List<ProductRecommendation>> getDailyDiscoverRecommendations(@PathVariable Long userId) {
-        try {
-            List<ProductRecommendation> recommendations = productRecommendationService.getDailyDiscoverRecommendations(userId);
-            return ResponseEntity.ok(recommendations);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+
 
     @GetMapping("/general")
     @ApiLog("获取通用推荐")
