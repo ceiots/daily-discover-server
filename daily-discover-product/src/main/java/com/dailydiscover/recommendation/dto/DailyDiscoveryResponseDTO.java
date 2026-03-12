@@ -1,8 +1,7 @@
-package com.dailydiscover.dto;
+package com.dailydiscover.recommendation.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import java.math.BigDecimal;
 
 /**
  * 今日发现推荐项DTO
@@ -36,16 +35,16 @@ public class DailyDiscoveryResponseDTO {
     private String imageUrl;
     
     /**
-     * 浏览量
+     * 商品价格
      */
-    @JsonProperty("view_count")
-    private Integer viewCount;
+    @JsonProperty("price")
+    private String price;
     
     /**
-     * 平均评分
+     * 商品原价
      */
-    @JsonProperty("avg_rating")
-    private BigDecimal avgRating;
+    @JsonProperty("original_price")
+    private String originalPrice;
     
     /**
      * 商品标语
@@ -54,20 +53,8 @@ public class DailyDiscoveryResponseDTO {
     private String goodsSlogan;
     
     /**
-     * 商品价格
+     * 商品描述
      */
-    @JsonProperty("price")
-    private BigDecimal price;
-    
-    /**
-     * 商品原价
-     */
-    @JsonProperty("original_price")
-    private BigDecimal originalPrice;
-    
-    /**
-     * 推荐分数
-     */
-    @JsonProperty("recommendation_score")
-    private BigDecimal recommendationScore;
+    @JsonProperty("description")
+    private String description;
 }

@@ -1,7 +1,6 @@
-package com.dailydiscover.dto;
+package com.dailydiscover.recommendation.dto;
 
 import lombok.Data;
-import java.math.BigDecimal;
 
 /**
  * 个性化发现流推荐响应DTO
@@ -12,7 +11,7 @@ public class PersonalizedDiscoveryResponseDTO {
     /**
      * 商品ID
      */
-    private Long itemId;
+    private String itemId;
     
     /**
      * 商品标题
@@ -27,7 +26,7 @@ public class PersonalizedDiscoveryResponseDTO {
     /**
      * 推荐分数
      */
-    private BigDecimal recommendationScore;
+    private Double recommendationScore;
     
     /**
      * 商品标语
@@ -35,7 +34,7 @@ public class PersonalizedDiscoveryResponseDTO {
     private String goodsSlogan;
     
     /**
-     * 推荐类型（personalized/general）
+     * 推荐类型
      */
     private String recommendationType;
 }

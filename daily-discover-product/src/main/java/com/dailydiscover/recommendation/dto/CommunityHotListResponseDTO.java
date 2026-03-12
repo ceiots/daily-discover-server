@@ -1,7 +1,6 @@
-package com.dailydiscover.dto;
+package com.dailydiscover.recommendation.dto;
 
 import lombok.Data;
-import java.math.BigDecimal;
 
 /**
  * 社区热榜推荐响应DTO
@@ -12,7 +11,7 @@ public class CommunityHotListResponseDTO {
     /**
      * 商品ID
      */
-    private Long itemId;
+    private String itemId;
     
     /**
      * 商品标题
@@ -35,17 +34,12 @@ public class CommunityHotListResponseDTO {
     private Integer viewCount;
     
     /**
-     * 平均评分
+     * 评分
      */
-    private BigDecimal avgRating;
+    private Double rating;
     
     /**
      * 商品标语
      */
     private String goodsSlogan;
-    
-    /**
-     * 排名
-     */
-    private Integer rank;
 }

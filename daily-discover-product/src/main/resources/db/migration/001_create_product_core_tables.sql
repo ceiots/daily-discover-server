@@ -12,7 +12,6 @@ DROP TABLE IF EXISTS product_selling_points;
 DROP TABLE IF EXISTS product_tags;
 DROP TABLE IF EXISTS product_service_info_values;
 DROP TABLE IF EXISTS product_service_categories;
-DROP TABLE IF EXISTS shopping_cart;
 DROP TABLE IF EXISTS product_sku_spec_options;
 DROP TABLE IF EXISTS product_sku_specs;
 DROP TABLE IF EXISTS product_skus;
@@ -155,37 +154,6 @@ CREATE TABLE IF NOT EXISTS product_skus (
 
 
 
--- 购物车表（支持多规格购买）
-CREATE TABLE IF NOT EXISTS shopping_cart (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '购物车ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    sku_id BIGINT NOT NULL COMMENT 'SKU ID（对应具体规格）',
-    
-    -- 购买数量
-    quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
-    
-    -- 规格信息（记录用户选择的规格组合）
-    specs_json JSON COMMENT '规格组合JSON：{"颜色": "黑色", "存储": "128GB"}',
-    specs_text VARCHAR(500) COMMENT '规格文本：黑色 128GB',
-    
-    -- 购物车项状态
-    is_selected TINYINT DEFAULT 1 COMMENT '是否选中：0-未选中 1-选中',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_user_id (user_id),
-    INDEX idx_product_id (product_id),
-    INDEX idx_sku_id (sku_id),
-    INDEX idx_user_product (user_id, product_id),
-    INDEX idx_is_selected (is_selected),
-    
-    -- 唯一约束：一个用户对同一个SKU只能有一条记录
-    UNIQUE KEY uk_user_sku (user_id, sku_id)
-) COMMENT '购物车表（支持多规格购买）';
 
 -- 商品规格定义表（购买选择型）- 明确是SKU规格
 CREATE TABLE IF NOT EXISTS product_sku_specs (
@@ -563,11 +531,6 @@ INSERT INTO product_tag_relations (product_id, tag_id) VALUES
 (5, 4),  -- 运动蓝牙耳机 - 无线
 (5, 5);  -- 运动蓝牙耳机 - 降噪
 
--- 插入购物车数据
-INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
-(1001, 4, 1, 1, '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 1),
-(1001, 2, 3, 2, '{"颜色": "黑色"}', '黑色', 1),
-(1002, 4, 7, 1, '{"颜色": "蓝色", "存储": "256GB", "网络版本": "5G版"}', '蓝色 256GB 5G版', 1);
 
 -- ============================================
 -- 商品卖点标签系统初始数据
@@ -624,20 +587,39 @@ INSERT INTO products (id, seller_id, title, category_id, brand, model, goods_slo
 (22, 2, '便携咖啡机', 14, 'Nespresso', '便携咖啡机', '随时随地，享受现磨咖啡', 899.00, 1099.00, 1, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop', '2026-03-07 16:00:00', '2026-03-07 16:00:00'),
 (23, 3, '智能跳绳', 15, 'Keep', '智能计数跳绳', '科学计数，健身更高效', 129.00, 199.00, 1, 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=400&fit=crop', '2026-03-08 17:00:00', '2026-03-08 17:00:00'),
 (24, 4, '电动牙刷', 16, '飞利浦', '声波电动牙刷', '深度清洁，呵护牙齿健康', 399.00, 599.00, 1, 'https://images.unsplash.com/photo-1584305574647-0d5c6c4c8a6b?w=400&h=400&fit=crop', '2026-03-09 18:00:00', '2026-03-09 18:00:00'),
-(25, 5, '便携充电宝', 17, 'Anker', '20000mAh快充', '大容量快充，出行无忧', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=400&h=400&fit=crop', '2026-03-10 19:00:00', '2026-03-10 19:00:00');
+(25, 5, '便携充电宝', 17, 'Anker', '20000mAh快充', '大容量快充，出行无忧', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=400&h=400&fit=crop', '2026-03-10 19:00:00', '2026-03-10 19:00:00'),
 
--- 为user_id 4添加购物车数据（使用不同的sku_id避免重复）
-INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
-(4, 16, 3, 1, '{"颜色": "白色", "分辨率": "1080P"}', '白色 1080P', 1),
-(4, 17, 4, 1, '{"颜色": "黑色", "亮度": "500流明"}', '黑色 500流明', 1),
-(4, 18, 5, 1, '{"颜色": "灰色", "轴体": "茶轴"}', '灰色 茶轴', 1),
-(4, 19, 6, 1, '{"颜色": "白色", "精度": "0.1kg"}', '白色 0.1kg精度', 1),
-(4, 20, 7, 1, '{"颜色": "黑色", "续航": "10小时"}', '黑色 10小时续航', 1),
-(4, 21, 8, 1, '{"颜色": "银色", "功率": "1000W"}', '银色 1000W', 1),
-(4, 22, 9, 1, '{"颜色": "红色", "水箱容量": "0.5L"}', '红色 0.5L水箱', 1),
-(4, 23, 10, 1, '{"颜色": "蓝色", "计数方式": "智能计数"}', '蓝色 智能计数', 1),
-(4, 24, 11, 1, '{"颜色": "粉色", "模式": "3种清洁模式"}', '粉色 3种清洁模式', 1),
-(4, 25, 12, 1, '{"颜色": "黑色", "接口": "双USB-C"}', '黑色 双USB-C', 1);
+-- ==================== 场景推荐相关商品（ID: 26-43） ====================
+-- 2026-03-12 早晨场景商品
+(26, 1, '香薰机', 18, '无印良品', '超声波香薰机', '清晨起床仪式感，雾化细腻香气持久', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400&h=400&fit=crop', '2026-03-11 09:00:00', '2026-03-11 09:00:00'),
+(27, 2, '舒适睡衣', 19, '优衣库', 'AIRism睡衣', '温柔早晨的柔软陪伴，材质亲肤透气', 149.00, 249.00, 1, 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop', '2026-03-11 10:00:00', '2026-03-11 10:00:00'),
+(28, 3, '保温杯', 20, '膳魔师', 'JNL-500保温杯', '起床后补水必备，保温效果持久', 129.00, 199.00, 1, 'https://images.unsplash.com/photo-1572099606223-6e29045d294d?w=400&h=400&fit=crop', '2026-03-11 11:00:00', '2026-03-11 11:00:00'),
+
+-- 2026-03-12 午后场景商品
+(29, 4, '遮光眼罩', 21, 'Slip', '真丝遮光眼罩', '午后小憩好帮手，遮光效果极佳', 89.00, 159.00, 1, 'https://images.unsplash.com/photo-1584305574647-0d5c6c4c8a6b?w=400&h=400&fit=crop', '2026-03-11 12:00:00', '2026-03-11 12:00:00'),
+(30, 5, '蓝牙耳机', 22, 'Sony', 'WF-1000XM4', '放松时听轻音乐，音质纯净细腻', 899.00, 1299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', '2026-03-11 13:00:00', '2026-03-11 13:00:00'),
+(31, 1, '茶叶礼盒', 23, '八马茶业', '铁观音礼盒', '小憩后提神醒脑，香气清新怡人', 199.00, 399.00, 1, 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=400&fit=crop', '2026-03-11 14:00:00', '2026-03-11 14:00:00'),
+
+-- 2026-03-12 晚上场景商品
+(32, 2, '笔记本', 24, 'Moleskine', '经典笔记本', '晚间规划好伙伴，纸张质感上乘', 129.00, 229.00, 1, 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=400&fit=crop', '2026-03-11 15:00:00', '2026-03-11 15:00:00'),
+(33, 3, '护眼台灯', 25, '小米', '智能护眼台灯', '规划时点一盏灯，光线柔和舒适', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop', '2026-03-11 16:00:00', '2026-03-11 16:00:00'),
+(34, 4, '保鲜盒', 26, '乐扣乐扣', '玻璃保鲜盒', '为明天准备早餐，密封保鲜效果好', 69.00, 129.00, 1, 'https://images.unsplash.com/photo-1572099606223-6e29045d294d?w=400&h=400&fit=crop', '2026-03-11 17:00:00', '2026-03-11 17:00:00'),
+
+-- 2026-03-13 早晨场景商品
+(35, 5, '茶具套装', 27, '景德镇', '青花瓷茶具', '早晨泡茶仪式感，设计简约优雅', 299.00, 499.00, 1, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop', '2026-03-12 09:00:00', '2026-03-12 09:00:00'),
+(36, 1, '茶叶礼盒', 28, '西湖龙井', '明前龙井', '茶香需要好茶叶，口感醇厚回甘', 399.00, 699.00, 1, 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=400&fit=crop', '2026-03-12 10:00:00', '2026-03-12 10:00:00'),
+(37, 2, '点心盘', 29, 'Royal Doulton', '骨瓷点心盘', '喝茶时配点心，精致实用美观', 159.00, 259.00, 1, 'https://images.unsplash.com/photo-1556909114-4d0d853e5b0c?w=400&h=400&fit=crop', '2026-03-12 11:00:00', '2026-03-12 11:00:00'),
+
+-- 2026-03-13 午后场景商品
+(38, 3, '文件夹', 30, '得力', '分类文件夹', '整理工作收获，分类清晰便捷', 29.00, 59.00, 1, 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=400&fit=crop', '2026-03-12 12:00:00', '2026-03-12 12:00:00'),
+(39, 4, '笔记本', 31, '国誉', 'Campus笔记本', '记录成长点滴，书写流畅顺滑', 19.00, 39.00, 1, 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=400&fit=crop', '2026-03-12 13:00:00', '2026-03-12 13:00:00'),
+(40, 5, '咖啡机', 32, '德龙', '全自动咖啡机', '总结时喝杯咖啡，操作简单便捷', 1299.00, 1899.00, 1, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop', '2026-03-12 14:00:00', '2026-03-12 14:00:00'),
+
+-- 2026-03-13 晚上场景商品
+(41, 1, '日历', 33, 'Moleskine', '2026年日历', '周末规划好帮手，设计美观实用', 99.00, 169.00, 1, 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=400&fit=crop', '2026-03-12 15:00:00', '2026-03-12 15:00:00'),
+(42, 2, '便签', 34, '3M', 'Post-it便签', '规划活动记录，粘贴牢固易撕', 15.00, 29.00, 1, 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=400&fit=crop', '2026-03-12 16:00:00', '2026-03-12 16:00:00'),
+(43, 3, '保鲜盒', 35, 'Tupperware', '塑料保鲜盒', '为周末准备食材，密封性好耐用', 49.00, 89.00, 1, 'https://images.unsplash.com/photo-1572099606223-6e29045d294d?w=400&h=400&fit=crop', '2026-03-12 17:00:00', '2026-03-12 17:00:00');
+
 
 -- 插入商品卖点关系数据（重新调整以匹配新卖点ID）
 INSERT INTO product_selling_point_relations (product_id, selling_point_id) VALUES

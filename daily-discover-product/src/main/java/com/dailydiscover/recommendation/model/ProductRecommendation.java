@@ -1,4 +1,4 @@
-package com.dailydiscover.model;
+package com.dailydiscover.recommendation.model;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;

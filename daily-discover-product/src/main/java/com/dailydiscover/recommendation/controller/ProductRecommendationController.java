@@ -1,16 +1,16 @@
-package com.dailydiscover.controller;
+package com.dailydiscover.recommendation.controller;
 
 import com.dailydiscover.common.logging.ApiLog;
-import com.dailydiscover.model.ProductRecommendation;
-import com.dailydiscover.dto.RelatedProductDTO;
-import com.dailydiscover.dto.DailyDiscoveryResponseDTO;
-import com.dailydiscover.dto.LifeScenarioResponseDTO;
-import com.dailydiscover.dto.CommunityHotListResponseDTO;
-import com.dailydiscover.dto.PersonalizedDiscoveryResponseDTO;
-import com.dailydiscover.dto.GuidedOptionDTO;
-import com.dailydiscover.dto.GuidedProductDTO;
-import com.dailydiscover.dto.GuidedRecommendationResponseDTO;
-import com.dailydiscover.service.ProductRecommendationService;
+import com.dailydiscover.recommendation.model.ProductRecommendation;
+import com.dailydiscover.recommendation.dto.RelatedProductDTO;
+import com.dailydiscover.recommendation.dto.DailyDiscoveryResponseDTO;
+import com.dailydiscover.recommendation.dto.LifeScenarioResponseDTO;
+import com.dailydiscover.recommendation.dto.CommunityHotListResponseDTO;
+import com.dailydiscover.recommendation.dto.PersonalizedDiscoveryResponseDTO;
+import com.dailydiscover.recommendation.dto.GuidedOptionDTO;
+import com.dailydiscover.recommendation.dto.GuidedProductDTO;
+import com.dailydiscover.recommendation.dto.GuidedRecommendationResponseDTO;
+import com.dailydiscover.recommendation.service.ProductRecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -81,8 +81,6 @@ public class ProductRecommendationController {
         }
     }
 
-
-
     @GetMapping("/general")
     @ApiLog("获取通用推荐")
     public ResponseEntity<List<ProductRecommendation>> getGeneralRecommendations(@RequestParam(defaultValue = "20") int limit) {
@@ -115,8 +113,6 @@ public class ProductRecommendationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
-
     
     @PostMapping
     @ApiLog("创建商品推荐")
@@ -212,8 +208,6 @@ public class ProductRecommendationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
 
     @PostMapping("/guided-recommendation")
     @ApiLog("获取引导推荐（商品+下一级推荐词）")

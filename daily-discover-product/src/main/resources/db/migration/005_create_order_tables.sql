@@ -6,11 +6,46 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
+DROP TABLE IF EXISTS shopping_cart;
 DROP TABLE IF EXISTS after_sales_applications;
 DROP TABLE IF EXISTS order_invoices;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders_extend;
 DROP TABLE IF EXISTS orders_core;
+
+
+
+-- 购物车表（支持多规格购买）
+CREATE TABLE IF NOT EXISTS shopping_cart (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '购物车ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    sku_id BIGINT NOT NULL COMMENT 'SKU ID（对应具体规格）',
+    
+    -- 购买数量
+    quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
+    
+    -- 规格信息（记录用户选择的规格组合）
+    specs_json JSON COMMENT '规格组合JSON：{"颜色": "黑色", "存储": "128GB"}',
+    specs_text VARCHAR(500) COMMENT '规格文本：黑色 128GB',
+    
+    -- 购物车项状态
+    is_selected TINYINT DEFAULT 1 COMMENT '是否选中：0-未选中 1-选中',
+    
+    -- 时间戳
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    
+    -- 索引优化
+    INDEX idx_user_id (user_id),
+    INDEX idx_product_id (product_id),
+    INDEX idx_sku_id (sku_id),
+    INDEX idx_user_product (user_id, product_id),
+    INDEX idx_is_selected (is_selected),
+    
+    -- 唯一约束：一个用户对同一个SKU只能有一条记录
+    UNIQUE KEY uk_user_sku (user_id, sku_id)
+) COMMENT '购物车表（支持多规格购买）';
 
 -- 订单核心表（高频查询字段，8个字段）
 CREATE TABLE IF NOT EXISTS orders_core (
@@ -196,8 +231,25 @@ CREATE TABLE IF NOT EXISTS after_sales_applications (
     INDEX idx_applied_at (applied_at)
 ) COMMENT '售后申请表';
 
-COMMIT;
+-- 为user_id 4添加购物车数据（使用不同的sku_id避免重复）
+INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
+(4, 16, 3, 1, '{"颜色": "白色", "分辨率": "1080P"}', '白色 1080P', 1),
+(4, 17, 4, 1, '{"颜色": "黑色", "亮度": "500流明"}', '黑色 500流明', 1),
+(4, 18, 5, 1, '{"颜色": "灰色", "轴体": "茶轴"}', '灰色 茶轴', 1),
+(4, 19, 6, 1, '{"颜色": "白色", "精度": "0.1kg"}', '白色 0.1kg精度', 1),
+(4, 20, 7, 1, '{"颜色": "黑色", "续航": "10小时"}', '黑色 10小时续航', 1),
+(4, 21, 8, 1, '{"颜色": "银色", "功率": "1000W"}', '银色 1000W', 1),
+(4, 22, 9, 1, '{"颜色": "红色", "水箱容量": "0.5L"}', '红色 0.5L水箱', 1),
+(4, 23, 10, 1, '{"颜色": "蓝色", "计数方式": "智能计数"}', '蓝色 智能计数', 1),
+(4, 24, 11, 1, '{"颜色": "粉色", "模式": "3种清洁模式"}', '粉色 3种清洁模式', 1),
+(4, 25, 12, 1, '{"颜色": "黑色", "接口": "双USB-C"}', '黑色 双USB-C', 1);
 
+
+-- 插入购物车数据
+INSERT INTO shopping_cart (user_id, product_id, sku_id, quantity, specs_json, specs_text, is_selected) VALUES
+(1001, 4, 1, 1, '{"颜色": "黑色", "存储": "128GB"}', '黑色 128GB', 1),
+(1001, 2, 3, 2, '{"颜色": "黑色"}', '黑色', 1),
+(1002, 4, 7, 1, '{"颜色": "蓝色", "存储": "256GB", "网络版本": "5G版"}', '蓝色 256GB 5G版', 1);
 -- ============================================
 -- 订单模块表初始数据
 -- ============================================

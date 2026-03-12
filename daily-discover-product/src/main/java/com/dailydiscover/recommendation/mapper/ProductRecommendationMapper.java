@@ -1,7 +1,7 @@
-package com.dailydiscover.mapper;
+package com.dailydiscover.recommendation.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.dailydiscover.model.ProductRecommendation;
+import com.dailydiscover.recommendation.model.ProductRecommendation;
 
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -285,75 +285,47 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
      */
     @Select("SELECT pr.recommended_product_id as item_id, p.title as title, " +
             "p.main_image_url as image_url, pr.recommendation_score, COALESCE(p.goods_slogan, '') as goods_slogan, " +
-            "CASE " +
-            "    WHEN pr.user_id IS NOT NULL THEN 'personalized' " +
-            "    ELSE 'general' " +
-            "END as recommendation_type " +
+            "CASE WHEN pr.user_id IS NOT NULL THEN 'personalized' ELSE 'general' END as recommendation_type " +
             "FROM product_recommendations pr " +
             "JOIN products p ON pr.recommended_product_id = p.id " +
-            "LEFT JOIN user_interest_profiles uip ON pr.user_id = uip.user_id " +
             "WHERE pr.recommendation_type = 'personalized' AND pr.is_active = true " +
+            "AND (pr.user_id IS NULL OR pr.user_id = #{userId}) " +
             "AND p.status = 1 AND p.is_deleted = 0 " +
-            "AND (pr.user_id = #{userId} OR pr.user_id IS NULL) " +
-            "ORDER BY " +
-            "    CASE " +
-            "        WHEN pr.user_id = #{userId} THEN pr.recommendation_score * 1.5 " +
-            "        ELSE pr.recommendation_score " +
-            "    END DESC " +
-            "LIMIT 8")
+            "ORDER BY pr.recommendation_score DESC " +
+            "LIMIT 10")
     List<Map<String, Object>> findPersonalizedDiscoveryStream(@Param("userId") Long userId);
-     
+
+    // ==================== 引导推荐接口 ====================
+
     // ==================== 基础推荐方法 ====================
     
     /**
-     * 根据商品ID和推荐类型查询推荐列表
+     * 根据商品ID获取相关推荐
      */
-    @Select("SELECT pr.* FROM product_recommendations pr " +
-            "JOIN products p ON pr.recommended_product_id = p.id " +
-            "WHERE pr.product_id = #{productId} AND pr.recommendation_type = #{recommendationType} " +
-            "AND pr.is_active = true AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pr.recommendation_score DESC LIMIT 10")
-    List<ProductRecommendation> findByProductIdAndType(@Param("productId") Long productId, @Param("recommendationType") String recommendationType);
-    
-    /**
-     * 根据用户ID查询个性化推荐
-     */
-    @Select("SELECT pr.* FROM product_recommendations pr " +
-            "JOIN products p ON pr.recommended_product_id = p.id " +
-            "WHERE pr.user_id = #{userId} AND pr.is_active = true " +
-            "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pr.recommendation_score DESC LIMIT 20")
-    List<ProductRecommendation> findByUserId(@Param("userId") Long userId);
-    
-    /**
-     * 根据推荐类型查询热门推荐
-     */
-    @Select("SELECT pr.* FROM product_recommendations pr " +
-            "JOIN products p ON pr.recommended_product_id = p.id " +
-            "WHERE pr.recommendation_type = #{recommendationType} AND pr.is_active = true " +
-            "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
-    List<ProductRecommendation> findByTypeWithLimit(@Param("recommendationType") String recommendationType, @Param("limit") int limit);
-    
-    /**
-     * 根据商品ID查询相关推荐
-     */
-    @Select("SELECT pr.* FROM product_recommendations pr " +
-            "JOIN products p ON pr.recommended_product_id = p.id " +
-            "WHERE pr.product_id = #{productId} AND pr.is_active = true " +
-            "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    @Select("SELECT * FROM product_recommendations WHERE product_id = #{productId} AND is_active = true " +
+            "ORDER BY recommendation_score DESC LIMIT #{limit}")
     List<ProductRecommendation> findRelatedProductsByProductId(@Param("productId") Long productId, @Param("limit") int limit);
     
     /**
-     * 查询通用推荐（无用户ID的推荐）
+     * 根据推荐类型获取推荐
      */
-    @Select("SELECT pr.* FROM product_recommendations pr " +
-            "JOIN products p ON pr.recommended_product_id = p.id " +
-            "WHERE pr.user_id IS NULL AND pr.is_active = true " +
-            "AND p.status = 1 AND p.is_deleted = 0 " +
-            "ORDER BY pr.recommendation_score DESC LIMIT #{limit}")
+    @Select("SELECT * FROM product_recommendations WHERE recommendation_type = #{recommendationType} AND is_active = true " +
+            "ORDER BY recommendation_score DESC LIMIT #{limit}")
+    List<ProductRecommendation> findRecommendationsByType(@Param("recommendationType") String recommendationType, @Param("limit") int limit);
+    
+    /**
+     * 获取通用推荐
+     */
+    @Select("SELECT * FROM product_recommendations WHERE user_id IS NULL AND is_active = true " +
+            "ORDER BY recommendation_score DESC LIMIT #{limit}")
     List<ProductRecommendation> findGeneralRecommendations(@Param("limit") int limit);
+    
+    /**
+     * 获取搭配推荐
+     */
+    @Select("SELECT * FROM product_recommendations WHERE product_id = #{productId} AND recommendation_type = 'complementary' AND is_active = true " +
+            "ORDER BY recommendation_score DESC LIMIT #{limit}")
+    List<ProductRecommendation> findComplementaryRecommendations(@Param("productId") Long productId, @Param("limit") int limit);
     
     /**
      * 查询通用引导推荐商品（userId为null时使用）
@@ -372,62 +344,6 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY ps.sales_count DESC, ps.view_count DESC " +
             "LIMIT #{limit}")
     List<Map<String, Object>> findGeneralGuidedProducts(@Param("limit") int limit);
-    
-    /**
-     * 查询用户意图偏好记录
-     * 优先查询用户专属意图，如果没有则查询通用意图
-     */
-    @Select("SELECT intent_type, intent_label, preference_weight, usage_count " +
-            "FROM user_intent_preferences " +
-            "WHERE (user_id = #{userId} OR user_id IS NULL) " +
-            "ORDER BY " +
-            "    CASE WHEN user_id = #{userId} THEN 0 ELSE 1 END, " +
-            "    preference_weight DESC, " +
-            "    usage_count DESC, " +
-            "    last_used_at DESC " +
-            "LIMIT 20")
-    List<Map<String, Object>> findUserIntentPreferences(@Param("userId") Long userId);
-    
-    /**
-     * 查询意图点击统计数据
-     */
-    @Select("SELECT intent_type, intent_label, click_count, conversion_count, conversion_rate " +
-            "FROM intent_click_statistics " +
-            "WHERE intent_type IN ('cheap', 'quality', 'new', 'popular', 'personalized', 'seasonal') " +
-            "ORDER BY conversion_rate DESC, click_count DESC " +
-            "LIMIT 30")
-    List<Map<String, Object>> findIntentClickStatistics();
-
-    /**
-     * 插入或更新用户意图偏好记录
-     * 使用ON DUPLICATE KEY UPDATE实现智能插入/更新
-     */
-    @Insert("INSERT INTO user_intent_preferences (user_id, intent_type, intent_label, preference_weight, usage_count, last_used_at) " +
-            "VALUES (#{userId}, #{intentType}, #{intentLabel}, #{preferenceWeight}, 1, CURRENT_TIMESTAMP) " +
-            "ON DUPLICATE KEY UPDATE " +
-            "    usage_count = usage_count + 1, " +
-            "    last_used_at = CURRENT_TIMESTAMP, " +
-            "    preference_weight = GREATEST(preference_weight, #{preferenceWeight})")
-    int upsertUserIntentPreference(@Param("userId") Long userId, 
-                                   @Param("intentType") String intentType, 
-                                   @Param("intentLabel") String intentLabel, 
-                                   @Param("preferenceWeight") Double preferenceWeight);
-
-    /**
-     * 插入或更新意图点击统计记录
-     */
-    @Insert("INSERT INTO intent_click_statistics (intent_preference_id, click_count, conversion_count, conversion_rate, avg_session_duration) " +
-            "VALUES (#{intentPreferenceId}, 1, #{conversionCount}, #{conversionRate}, #{avgSessionDuration}) " +
-            "ON DUPLICATE KEY UPDATE " +
-            "    click_count = click_count + 1, " +
-            "    conversion_count = conversion_count + #{conversionCount}, " +
-            "    conversion_rate = (conversion_count + #{conversionCount}) / (click_count + 1), " +
-            "    avg_session_duration = (avg_session_duration * click_count + #{avgSessionDuration}) / (click_count + 1), " +
-            "    last_updated_at = CURRENT_TIMESTAMP")
-    int upsertIntentClickStatistics(@Param("intentPreferenceId") Long intentPreferenceId,
-                                    @Param("conversionCount") Integer conversionCount,
-                                    @Param("conversionRate") Double conversionRate,
-                                    @Param("avgSessionDuration") Double avgSessionDuration);
 
     /**
      * 查询个性化引导推荐商品（userId不为null时使用）
@@ -451,4 +367,28 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY pr.recommendation_score DESC, ps.sales_count DESC, ps.view_count DESC " +
             "LIMIT #{limit}")
     List<Map<String, Object>> findPersonalizedGuidedProducts(@Param("userId") Long userId, @Param("limit") int limit);
-}
+
+    /**
+     * 插入推荐记录
+     */
+    @Insert("INSERT INTO product_recommendations (product_id, recommended_product_id, recommendation_type, recommendation_score, user_id, is_active) " +
+            "VALUES (#{productId}, #{recommendedProductId}, #{recommendationType}, #{recommendationScore}, #{userId}, #{isActive})")
+    int insertRecommendation(@Param("productId") Long productId, @Param("recommendedProductId") Long recommendedProductId, 
+                            @Param("recommendationType") String recommendationType, @Param("recommendationScore") Double recommendationScore, 
+                            @Param("userId") Long userId, @Param("isActive") Boolean isActive);
+
+    /**
+     * 更新推荐记录状态
+     */
+    @Select("UPDATE product_recommendations SET is_active = #{isActive} WHERE id = #{id}")
+    int updateRecommendationStatus(@Param("id") Long id, @Param("isActive") Boolean isActive);
+
+    /**
+     * 获取用户推荐历史
+     */
+    @Select("SELECT * FROM product_recommendations WHERE user_id = #{userId} AND recommendation_type = #{recommendationType} " +
+            "ORDER BY created_at DESC LIMIT #{limit}")
+    List<ProductRecommendation> findUserRecommendationHistory(@Param("userId") Long userId, 
+                                                             @Param("recommendationType") String recommendationType, 
+                                                             @Param("limit") int limit);
+} 
