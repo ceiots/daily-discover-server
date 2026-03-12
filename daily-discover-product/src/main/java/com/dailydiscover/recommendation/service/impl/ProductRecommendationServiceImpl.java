@@ -152,21 +152,25 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 return List.of();
             }
             
-            // 通过Feign客户端获取商品详细信息
-            List<RecommendationProductDTO> products = productServiceClient.getProductsByIds(ids);
-            
-            // 转换为DTO
+            // 通过Feign客户端逐个获取商品详细信息
             List<DailyDiscoveryResponseDTO> result = new ArrayList<>();
-            for (RecommendationProductDTO product : products) {
-                DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
-                dto.setItemId(String.valueOf(product.getId()));
-                dto.setTitle(product.getTitle());
-                dto.setImageUrl(product.getImageUrl());
-                dto.setPrice(String.valueOf(product.getPrice()));
-                dto.setOriginalPrice(String.valueOf(product.getOriginalPrice()));
-                dto.setGoodsSlogan(product.getGoodsSlogan());
-                dto.setDescription(product.getDescription());
-                result.add(dto);
+            for (Long id : ids) {
+                try {
+                    RecommendationProductDTO product = productServiceClient.getProductById(id);
+                    if (product != null) {
+                        DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
+                        dto.setItemId(String.valueOf(product.getId()));
+                        dto.setTitle(product.getTitle());
+                        dto.setImageUrl(product.getImageUrl());
+                        dto.setPrice(product.getPrice() != null ? product.getPrice().toString() : "0");
+                        dto.setOriginalPrice(product.getOriginalPrice() != null ? product.getOriginalPrice().toString() : "0");
+                        dto.setGoodsSlogan(product.getGoodsSlogan());
+                        dto.setDescription(product.getDescription());
+                        result.add(dto);
+                    }
+                } catch (Exception e) {
+                    log.warn("获取商品信息失败，productId: {}", id, e);
+                }
             }
             
             return result;
