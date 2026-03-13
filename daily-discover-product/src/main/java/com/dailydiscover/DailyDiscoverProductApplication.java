@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.dailydiscover.mapper")
+@MapperScan({"com.dailydiscover.mapper", "com.dailydiscover.recommendation.mapper"})
 public class DailyDiscoverProductApplication {
     public static void main(String[] args) {
         SpringApplication.run(DailyDiscoverProductApplication.class, args);

@@ -13,8 +13,9 @@ import java.util.List;
  * 
  * 注意：当前项目为单体Spring Boot应用，使用path配置
  * 调用同一项目内的ProductController（路径为根路径）
+ * 禁用负载均衡，直接调用本地服务
  */
-@FeignClient(name = "product-service", path = "/")
+@FeignClient(name = "product-service", url = "http://localhost:8092")
 public interface ProductServiceClient {
     
     /**

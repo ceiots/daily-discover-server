@@ -26,6 +26,7 @@
         <spring-boot.version>3.2.0</spring-boot.version>
         <hutool.version>5.8.25</hutool.version>
         <jackson.version>2.16.1</jackson.version>
+        <spring-cloud.version>4.1.0</spring-cloud.version>
         <!-- 配置为库模式，不启动Web服务器 -->
         <skip.spring-boot.execution>true</skip.spring-boot.execution>
     </properties>
@@ -161,6 +162,20 @@
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.0.0</version>
             <scope>provided</scope>
+        </dependency>
+        
+        <!-- Spring Cloud OpenFeign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <version>${spring-cloud.version}</version>
+        </dependency>
+        
+        <!-- Spring Cloud LoadBalancer -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+            <version>${spring-cloud.version}</version>
         </dependency>
     </dependencies>
     

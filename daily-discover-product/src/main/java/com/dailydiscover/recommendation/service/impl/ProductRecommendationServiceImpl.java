@@ -1,7 +1,6 @@
 package com.dailydiscover.recommendation.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dailydiscover.recommendation.client.ProductServiceClient;
 import com.dailydiscover.recommendation.mapper.ProductRecommendationMapper;
 import com.dailydiscover.recommendation.model.ProductRecommendation;
 import com.dailydiscover.recommendation.dto.RelatedProductDTO;
@@ -11,7 +10,6 @@ import com.dailydiscover.recommendation.dto.CommunityHotListResponseDTO;
 import com.dailydiscover.recommendation.dto.PersonalizedDiscoveryResponseDTO;
 import com.dailydiscover.recommendation.dto.GuidedOptionDTO;
 import com.dailydiscover.recommendation.dto.GuidedProductDTO;
-import com.dailydiscover.recommendation.dto.RecommendationProductDTO;
 import com.dailydiscover.recommendation.service.ProductRecommendationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +25,9 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Autowired
     private ProductRecommendationMapper productRecommendationMapper;
     
-    @Autowired
-    private ProductServiceClient productServiceClient;
-    
     @Override
     public List<ProductRecommendation> getRecommendationsByProductId(Long productId) {
         try {
-            // 使用修复后的Mapper方法查询相关推荐
             return productRecommendationMapper.findRelatedProductsByProductId(productId, 10);
         } catch (Exception e) {
             log.error("获取商品推荐失败，productId: {}", productId, e);
@@ -44,7 +38,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<ProductRecommendation> getRecommendationsByType(String recommendationType) {
         try {
-            // 使用修复后的Mapper方法查询特定类型推荐
             return productRecommendationMapper.findRecommendationsByType(recommendationType, 20);
         } catch (Exception e) {
             log.error("获取特定类型推荐失败，recommendationType: {}", recommendationType, e);
@@ -55,7 +48,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<ProductRecommendation> getGeneralRecommendations(int limit) {
         try {
-            // 使用修复后的Mapper方法查询通用推荐
             return productRecommendationMapper.findGeneralRecommendations(limit);
         } catch (Exception e) {
             log.error("获取通用推荐失败，limit: {}", limit, e);
@@ -66,7 +58,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<ProductRecommendation> getComplementaryRecommendations(Long productId) {
         try {
-            // 使用修复后的Mapper方法查询搭配推荐
             return productRecommendationMapper.findComplementaryRecommendations(productId, 10);
         } catch (Exception e) {
             log.error("获取搭配推荐失败，productId: {}", productId, e);
@@ -77,7 +68,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<RelatedProductDTO> getProductDetailRecommendations(Long productId, Double currentPrice, Integer limit) {
         try {
-            // 设置默认限制
             int finalLimit = limit != null ? limit : 10;
             
             // 获取相似商品推荐
@@ -98,7 +88,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             
             // 处理相似商品
             for (Map<String, Object> product : similarProducts) {
-                Long id = ((Number) product.get("recommended_product_id")).longValue();
+                Long id = ((Number) product.get("id")).longValue();
                 if (!processedIds.contains(id)) {
                     result.add(convertToRelatedProductDTO(product, "similar"));
                     processedIds.add(id);
@@ -107,7 +97,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             
             // 处理搭配商品
             for (Map<String, Object> product : complementaryProducts) {
-                Long id = ((Number) product.get("recommended_product_id")).longValue();
+                Long id = ((Number) product.get("id")).longValue();
                 if (!processedIds.contains(id)) {
                     result.add(convertToRelatedProductDTO(product, "complementary"));
                     processedIds.add(id);
@@ -116,7 +106,7 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             
             // 处理价格敏感商品
             for (Map<String, Object> product : priceSensitiveProducts) {
-                Long id = ((Number) product.get("recommended_product_id")).longValue();
+                Long id = ((Number) product.get("id")).longValue();
                 if (!processedIds.contains(id)) {
                     result.add(convertToRelatedProductDTO(product, "price_sensitive"));
                     processedIds.add(id);
@@ -135,42 +125,22 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<DailyDiscoveryResponseDTO> getDailyDiscoveryRecommendations(Long userId, Integer limit, Integer page) {
         try {
-            // 设置默认值
             int finalLimit = limit != null ? limit : 20;
-            int finalPage = page != null ? page : 0;
-            int offset = finalPage * finalLimit;
             
-            // 获取推荐的商品ID集合
-            List<Map<String, Object>> productIds = productRecommendationMapper.findDailyDiscoverProductIds(userId, finalLimit, offset);
+            // 基于场景的商品推荐
+            List<Map<String, Object>> productMaps = productRecommendationMapper.findDailyDiscoveryProducts(finalLimit);
             
-            // 提取商品ID
-            List<Long> ids = productIds.stream()
-                .map(item -> ((Number) item.get("item_id")).longValue())
-                .collect(Collectors.toList());
-            
-            if (ids.isEmpty()) {
-                return List.of();
-            }
-            
-            // 通过Feign客户端逐个获取商品详细信息
             List<DailyDiscoveryResponseDTO> result = new ArrayList<>();
-            for (Long id : ids) {
-                try {
-                    RecommendationProductDTO product = productServiceClient.getProductById(id);
-                    if (product != null) {
-                        DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
-                        dto.setItemId(String.valueOf(product.getId()));
-                        dto.setTitle(product.getTitle());
-                        dto.setImageUrl(product.getImageUrl());
-                        dto.setPrice(product.getPrice() != null ? product.getPrice().toString() : "0");
-                        dto.setOriginalPrice(product.getOriginalPrice() != null ? product.getOriginalPrice().toString() : "0");
-                        dto.setGoodsSlogan(product.getGoodsSlogan());
-                        dto.setDescription(product.getDescription());
-                        result.add(dto);
-                    }
-                } catch (Exception e) {
-                    log.warn("获取商品信息失败，productId: {}", id, e);
-                }
+            for (Map<String, Object> productMap : productMaps) {
+                DailyDiscoveryResponseDTO dto = new DailyDiscoveryResponseDTO();
+                dto.setItemId(String.valueOf(productMap.get("item_id")));
+                dto.setTitle((String) productMap.get("title"));
+                dto.setImageUrl((String) productMap.get("image_url"));
+                dto.setPrice(String.valueOf(productMap.get("price")));
+                dto.setOriginalPrice(String.valueOf(productMap.get("original_price")));
+                dto.setGoodsSlogan((String) productMap.get("goods_slogan"));
+                dto.setDescription((String) productMap.get("scene_description"));
+                result.add(dto);
             }
             
             return result;
@@ -184,36 +154,37 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     public List<LifeScenarioResponseDTO> getLifeScenarioRecommendations(Long userId, String dateTime) {
         try {
             // 解析时间参数
-            String timeContext = parseTimeContext(dateTime);
-            String dayType = parseDayType();
-            String seasonType = parseSeasonType();
+            String targetDate = parseTargetDate(dateTime);
+            String timePeriod = parseTimePeriod(dateTime);
             
-            List<Map<String, Object>> scenarioRecommendations;
+            // 获取生活场景推荐
+            List<Map<String, Object>> scenarioMaps = productRecommendationMapper.findLifeScenarioRecommendations(targetDate, timePeriod);
             
-            // 根据userId选择查询方法
-            if (userId != null) {
-                scenarioRecommendations = productRecommendationMapper.findUserLifeScenarioRecommendations(userId, timeContext, dayType, seasonType);
-            } else {
-                scenarioRecommendations = productRecommendationMapper.findGeneralLifeScenarioRecommendations(timeContext, dayType, seasonType);
-            }
-            
-            // 转换为DTO
             List<LifeScenarioResponseDTO> result = new ArrayList<>();
-            for (Map<String, Object> scenario : scenarioRecommendations) {
+            for (Map<String, Object> scenarioMap : scenarioMaps) {
                 LifeScenarioResponseDTO dto = new LifeScenarioResponseDTO();
-                dto.setTitle((String) scenario.get("recommendation_title"));
-                dto.setDescription((String) scenario.get("recommendation_description"));
-                dto.setTimePeriod((String) scenario.get("time_period"));
-                dto.setDayType((String) scenario.get("day_type"));
-                dto.setSeasonType((String) scenario.get("season_type"));
+                dto.setTitle((String) scenarioMap.get("title"));
+                dto.setDescription((String) scenarioMap.get("description"));
+                dto.setTimePeriod((String) scenarioMap.get("time_period"));
+                dto.setTargetDate((String) scenarioMap.get("target_date"));
+                dto.setCoverImage((String) scenarioMap.get("cover_image"));
+                dto.setProductCount((Integer) scenarioMap.get("product_count"));
                 
-                // 解析推荐商品列表
-                String recommendedProductsJson = (String) scenario.get("recommended_products");
-                if (recommendedProductsJson != null && !recommendedProductsJson.isEmpty()) {
-                    // 这里需要实现JSON解析逻辑
-                    // 暂时返回空列表
-                    dto.setRecommendedProducts(List.of());
+                // 获取场景关联的商品
+                Long sceneId = ((Number) scenarioMap.get("scene_id")).longValue();
+                List<Map<String, Object>> productMaps = productRecommendationMapper.findProductsBySceneId(sceneId);
+                
+                List<Map<String, Object>> productList = new ArrayList<>();
+                for (Map<String, Object> productMap : productMaps) {
+                    Map<String, Object> productInfo = new HashMap<>();
+                    productInfo.put("id", productMap.get("product_id"));
+                    productInfo.put("title", productMap.get("title"));
+                    productInfo.put("image_url", productMap.get("main_image_url"));
+                    productInfo.put("price", productMap.get("max_price"));
+                    productInfo.put("reason", productMap.get("product_reason"));
+                    productList.add(productInfo);
                 }
+                dto.setRecommendedProducts(productList);
                 
                 result.add(dto);
             }
@@ -240,6 +211,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setViewCount(getIntegerValue(product.get("view_count")));
                 dto.setRating(convertToDouble(product.get("avg_rating")));
                 dto.setGoodsSlogan((String) product.get("goods_slogan"));
+                dto.setPrice(String.valueOf(product.get("price")));
+                dto.setOriginalPrice(String.valueOf(product.get("original_price")));
                 result.add(dto);
             }
             
@@ -264,6 +237,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setRecommendationScore(convertToDouble(product.get("recommendation_score")));
                 dto.setGoodsSlogan((String) product.get("goods_slogan"));
                 dto.setRecommendationType((String) product.get("recommendation_type"));
+                dto.setPrice(String.valueOf(product.get("price")));
+                dto.setOriginalPrice(String.valueOf(product.get("original_price")));
                 result.add(dto);
             }
             
@@ -299,17 +274,15 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     @Override
     public List<GuidedProductDTO> getGuidedProducts(String sessionId, String intentLabel, Integer limit, Long userId) {
         try {
-            // 设置默认限制
             int finalLimit = limit != null ? limit : 6;
             
             // 性能优化：根据userId是否为null选择不同的查询方法
-            // 避免动态SQL的性能问题，确保执行计划稳定
             List<Map<String, Object>> productMaps;
             if (userId != null) {
-                // 个性化推荐 - 执行计划稳定
+                // 个性化推荐
                 productMaps = productRecommendationMapper.findPersonalizedGuidedProducts(userId, finalLimit);
             } else {
-                // 通用推荐 - 执行计划稳定
+                // 通用推荐
                 productMaps = productRecommendationMapper.findGeneralGuidedProducts(finalLimit);
             }
             
@@ -325,11 +298,6 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setOriginalPrice(String.valueOf(productMap.get("original_price")));
                 
                 // 安全转换数值类型
-                Object discount = productMap.get("discount");
-                if (discount != null) {
-                    dto.setDiscount(convertToDouble(discount));
-                }
-                
                 Object rating = productMap.get("rating");
                 if (rating != null) {
                     dto.setRating(convertToDouble(rating));
@@ -407,25 +375,39 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
     
     private RelatedProductDTO convertToRelatedProductDTO(Map<String, Object> product, String recommendationType) {
         RelatedProductDTO dto = new RelatedProductDTO();
-        dto.setId(String.valueOf(product.get("recommended_product_id")));
+        dto.setId(String.valueOf(product.get("id")));
         dto.setName((String) product.get("name"));
         dto.setImageUrl((String) product.get("main_image_url"));
         dto.setRecommendationType(recommendationType);
         
-        Object score = product.get("recommendation_score");
-        if (score != null) {
-            dto.setRecommendationScore(convertToDouble(score));
-        }
-        
-        Object price = product.get("max_price");
+        Object price = product.get("price");
         if (price != null) {
             dto.setPrice(convertToDouble(price));
+        }
+        
+        Object score = product.get("similarity_score");
+        if (score != null) {
+            dto.setRecommendationScore(convertToDouble(score));
         }
         
         return dto;
     }
     
-    private String parseTimeContext(String dateTime) {
+    private String parseTargetDate(String dateTime) {
+        if (dateTime == null || dateTime.isEmpty()) {
+            // 默认使用当前日期
+            return new java.sql.Date(System.currentTimeMillis()).toString();
+        }
+        
+        try {
+            // 简单的日期解析，假设格式为 yyyy-MM-dd
+            return dateTime.split("T")[0];
+        } catch (Exception e) {
+            return new java.sql.Date(System.currentTimeMillis()).toString();
+        }
+    }
+    
+    private String parseTimePeriod(String dateTime) {
         if (dateTime == null || dateTime.isEmpty()) {
             // 根据当前时间判断
             Calendar calendar = Calendar.getInstance();
@@ -442,63 +424,51 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             }
         }
         
-        // 解析传入的时间参数
-        return dateTime.toLowerCase();
-    }
-    
-    private String parseDayType() {
-        Calendar calendar = Calendar.getInstance();
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-        
-        if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
-            return "weekend";
-        } else {
-            return "weekday";
+        try {
+            // 从日期时间字符串中提取小时
+            String[] parts = dateTime.split("T");
+            if (parts.length > 1) {
+                String timePart = parts[1].split(":")[0];
+                int hour = Integer.parseInt(timePart);
+                
+                if (hour >= 6 && hour < 12) {
+                    return "morning";
+                } else if (hour >= 12 && hour < 18) {
+                    return "afternoon";
+                } else if (hour >= 18 && hour < 22) {
+                    return "evening";
+                } else {
+                    return "night";
+                }
+            }
+        } catch (Exception e) {
+            // 解析失败，返回默认值
         }
-    }
-    
-    private String parseSeasonType() {
-        Calendar calendar = Calendar.getInstance();
-        int month = calendar.get(Calendar.MONTH) + 1; // 月份从0开始，需要+1
         
-        if (month >= 3 && month <= 5) {
-            return "spring";
-        } else if (month >= 6 && month <= 8) {
-            return "summer";
-        } else if (month >= 9 && month <= 11) {
-            return "autumn";
-        } else {
-            return "winter";
-        }
+        return "morning"; // 默认值
     }
     
     private Double convertToDouble(Object value) {
-        if (value == null) return null;
+        if (value == null) return 0.0;
         if (value instanceof Number) {
             return ((Number) value).doubleValue();
         }
-        if (value instanceof String) {
-            try {
-                return Double.parseDouble((String) value);
-            } catch (NumberFormatException e) {
-                return null;
-            }
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+            return 0.0;
         }
-        return null;
     }
     
     private Integer getIntegerValue(Object value) {
-        if (value == null) return null;
+        if (value == null) return 0;
         if (value instanceof Number) {
             return ((Number) value).intValue();
         }
-        if (value instanceof String) {
-            try {
-                return Integer.parseInt((String) value);
-            } catch (NumberFormatException e) {
-                return null;
-            }
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return 0;
         }
-        return null;
     }
 }
