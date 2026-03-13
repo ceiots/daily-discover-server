@@ -38,13 +38,13 @@ public class DailyDiscoveryResponseDTO {
      * 商品价格
      */
     @JsonProperty("price")
-    private String price;
+    private Double price;
     
     /**
      * 商品原价
      */
     @JsonProperty("original_price")
-    private String originalPrice;
+    private Double originalPrice;
     
     /**
      * 商品标语

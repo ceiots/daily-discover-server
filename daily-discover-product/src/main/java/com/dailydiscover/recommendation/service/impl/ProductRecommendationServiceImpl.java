@@ -137,8 +137,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setItemId(String.valueOf(productMap.get("item_id")));
                 dto.setTitle((String) productMap.get("title"));
                 dto.setImageUrl((String) productMap.get("image_url"));
-                dto.setPrice(String.valueOf(productMap.get("price")));
-                dto.setOriginalPrice(String.valueOf(productMap.get("original_price")));
+                dto.setPrice(convertToDouble(productMap.get("price")));
+                dto.setOriginalPrice(convertToDouble(productMap.get("original_price")));
                 dto.setGoodsSlogan((String) productMap.get("goods_slogan"));
                 dto.setDescription((String) productMap.get("scene_description"));
                 result.add(dto);
@@ -224,8 +224,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setViewCount(getIntegerValue(product.get("view_count")));
                 dto.setRating(convertToDouble(product.get("avg_rating")));
                 dto.setGoodsSlogan((String) product.get("goods_slogan"));
-                dto.setPrice(String.valueOf(product.get("price")));
-                dto.setOriginalPrice(String.valueOf(product.get("original_price")));
+                dto.setPrice(convertToDouble(product.get("price")));
+                dto.setOriginalPrice(convertToDouble(product.get("original_price")));
                 result.add(dto);
             }
             
@@ -250,8 +250,8 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setRecommendationScore(convertToDouble(product.get("recommendation_score")));
                 dto.setGoodsSlogan((String) product.get("goods_slogan"));
                 dto.setRecommendationType((String) product.get("recommendation_type"));
-                dto.setPrice(String.valueOf(product.get("price")));
-                dto.setOriginalPrice(String.valueOf(product.get("original_price")));
+                dto.setPrice(convertToDouble(product.get("price")));
+                dto.setOriginalPrice(convertToDouble(product.get("original_price")));
                 result.add(dto);
             }
             

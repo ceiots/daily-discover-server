@@ -46,10 +46,10 @@ public class CommunityHotListResponseDTO {
     /**
      * 商品价格
      */
-    private String price;
+    private Double price;
     
     /**
      * 商品原价
      */
-    private String originalPrice;
+    private Double originalPrice;
 }
