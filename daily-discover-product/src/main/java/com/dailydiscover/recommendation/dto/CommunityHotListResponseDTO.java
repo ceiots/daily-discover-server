@@ -42,4 +42,14 @@ public class CommunityHotListResponseDTO {
      * 商品标语
      */
     private String goodsSlogan;
+    
+    /**
+     * 商品价格
+     */
+    private String price;
+    
+    /**
+     * 商品原价
+     */
+    private String originalPrice;
 }

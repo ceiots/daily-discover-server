@@ -8,6 +8,7 @@ import com.dailydiscover.recommendation.dto.DailyDiscoveryResponseDTO;
 import com.dailydiscover.recommendation.dto.LifeScenarioResponseDTO;
 import com.dailydiscover.recommendation.dto.CommunityHotListResponseDTO;
 import com.dailydiscover.recommendation.dto.PersonalizedDiscoveryResponseDTO;
+import com.dailydiscover.recommendation.dto.RecommendationProductDTO;
 import com.dailydiscover.recommendation.dto.GuidedOptionDTO;
 import com.dailydiscover.recommendation.dto.GuidedProductDTO;
 import com.dailydiscover.recommendation.service.ProductRecommendationService;
@@ -174,15 +175,27 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 Long sceneId = ((Number) scenarioMap.get("scene_id")).longValue();
                 List<Map<String, Object>> productMaps = productRecommendationMapper.findProductsBySceneId(sceneId);
                 
-                List<Map<String, Object>> productList = new ArrayList<>();
+                List<RecommendationProductDTO> productList = new ArrayList<>();
                 for (Map<String, Object> productMap : productMaps) {
-                    Map<String, Object> productInfo = new HashMap<>();
-                    productInfo.put("id", productMap.get("product_id"));
-                    productInfo.put("title", productMap.get("title"));
-                    productInfo.put("image_url", productMap.get("main_image_url"));
-                    productInfo.put("price", productMap.get("max_price"));
-                    productInfo.put("reason", productMap.get("product_reason"));
-                    productList.add(productInfo);
+                    RecommendationProductDTO productDTO = new RecommendationProductDTO();
+                    productDTO.setId(((Number) productMap.get("product_id")).longValue());
+                    productDTO.setTitle((String) productMap.get("title"));
+                    productDTO.setImageUrl((String) productMap.get("main_image_url"));
+                    
+                    Object price = productMap.get("max_price");
+                    if (price != null) {
+                        productDTO.setPrice(convertToDouble(price));
+                    }
+                    
+                    Object originalPrice = productMap.get("min_price");
+                    if (originalPrice != null) {
+                        productDTO.setOriginalPrice(convertToDouble(originalPrice));
+                    }
+                    
+                    // 使用商品适配理由作为描述
+                    productDTO.setDescription((String) productMap.get("product_reason"));
+                    
+                    productList.add(productDTO);
                 }
                 dto.setRecommendedProducts(productList);
                 

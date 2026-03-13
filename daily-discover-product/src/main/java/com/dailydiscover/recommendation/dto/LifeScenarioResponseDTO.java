@@ -25,6 +25,11 @@ public class LifeScenarioResponseDTO {
     private String timePeriod;
     
     /**
+     * 目标日期（格式：yyyy-MM-dd）
+     */
+    private String targetDate;
+    
+    /**
      * 日期类型：weekday(工作日)/weekend(周末)/holiday(节假日)
      */
     private String dayType;
@@ -35,7 +40,17 @@ public class LifeScenarioResponseDTO {
     private String seasonType;
     
     /**
+     * 场景封面图片URL
+     */
+    private String coverImage;
+    
+    /**
+     * 推荐商品数量
+     */
+    private Integer productCount;
+    
+    /**
      * 推荐商品列表
      */
-    private List<Object> recommendedProducts;
+    private List<RecommendationProductDTO> recommendedProducts;
 }

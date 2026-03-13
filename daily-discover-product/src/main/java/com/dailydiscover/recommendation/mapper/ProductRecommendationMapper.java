@@ -96,7 +96,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "AND sr.is_active = true " +
             "GROUP BY sr.id, sr.target_date, sr.time_period, sr.scene_sentence, sr.scene_subtitle, sr.cover_image " +
             "ORDER BY sr.created_at DESC " +
-            "LIMIT 4")
+            "LIMIT 3")
     List<Map<String, Object>> findLifeScenarioRecommendations(@Param("targetDate") String targetDate, @Param("timePeriod") String timePeriod);
     
     /**

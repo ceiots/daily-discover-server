@@ -37,4 +37,14 @@ public class PersonalizedDiscoveryResponseDTO {
      * 推荐类型
      */
     private String recommendationType;
+    
+    /**
+     * 商品价格
+     */
+    private String price;
+    
+    /**
+     * 商品原价
+     */
+    private String originalPrice;
 }
