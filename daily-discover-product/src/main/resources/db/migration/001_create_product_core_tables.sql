@@ -428,7 +428,7 @@ INSERT INTO products (seller_id, title, brand, model, category_id, goods_slogan,
 (1, '无线降噪耳机', 'Sony', 'WH-1000XM5', 4, '通勤路上隔绝嘈杂，专注享受音乐时光，让每一天都充满能量', 199.00, 299.00, 1, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'),
 (2, '轻薄笔记本电脑', 'Apple', 'MacBook Air', 3, '轻薄便携高效办公，随时随地创作无限可能，让工作更自由', 5999.00, 6999.00, 1, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop'),
 (2, '旗舰手机', 'Apple', 'iPhone 15', 2, '超强性能流畅体验，拍照摄影专业水准，记录生活每一刻精彩，智能AI助手贴心服务，超长续航全天无忧，5G网络极速连接，让工作生活更高效便捷', 4999.00, 5999.00, 1, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop'),
-(3, '运动蓝牙耳机', 'Bose', 'QuietComfort Earbuds II', 4, '运动健身专属伴侣，防水防汗稳固佩戴，让运动更尽兴', 249.00, 349.00, 1, 'https://images.unsplash.com/photo-1590658165737-15a047b8b5e8?w=400&h=400&fit=crop');
+(3, '运动蓝牙耳机', 'Bose', 'QuietComfort Earbuds II', 4, '运动健身专属伴侣，防水防汗稳固佩戴，让运动更尽兴', 249.00, 349.00, 1, 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400&h=400&fit=crop');
 
 -- 插入商品详情数据（简化版）
 INSERT INTO product_details (product_id, media_type, media_url, is_video, thumbnail_url, sort_order) VALUES

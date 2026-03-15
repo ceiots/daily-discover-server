@@ -38,7 +38,25 @@ public class DateUtils {
      * @return 转换后的 Date 对象
      */
     public static Date convertLocalDateTimeToDate(LocalDateTime localDateTime) {
-        // Method implementation
         return java.sql.Timestamp.valueOf(localDateTime);
+    }
+
+    /**
+     * 将各种日期对象转换为字符串格式 (yyyy-MM-dd)
+     * @param dateObj 日期对象，支持 java.sql.Date、java.util.Date、String 等类型
+     * @return 格式化后的日期字符串，如果输入为null则返回null
+     */
+    public static String convertDateToString(Object dateObj) {
+        if (dateObj == null) return null;
+        
+        if (dateObj instanceof java.sql.Date) {
+            return ((java.sql.Date) dateObj).toString();
+        } else if (dateObj instanceof java.util.Date) {
+            return new SimpleDateFormat("yyyy-MM-dd").format((java.util.Date) dateObj);
+        } else if (dateObj instanceof String) {
+            return (String) dateObj;
+        } else {
+            return dateObj.toString();
+        }
     }
 }

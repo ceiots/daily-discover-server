@@ -11,6 +11,7 @@ import com.dailydiscover.recommendation.dto.PersonalizedDiscoveryResponseDTO;
 import com.dailydiscover.recommendation.dto.RecommendationProductDTO;
 import com.dailydiscover.recommendation.dto.GuidedOptionDTO;
 import com.dailydiscover.recommendation.dto.GuidedProductDTO;
+import com.dailydiscover.common.util.DateUtils;
 import com.dailydiscover.recommendation.service.ProductRecommendationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,9 +166,9 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
                 dto.setTitle((String) scenarioMap.get("title"));
                 dto.setDescription((String) scenarioMap.get("description"));
                 dto.setTimePeriod((String) scenarioMap.get("time_period"));
-                dto.setTargetDate((String) scenarioMap.get("target_date"));
+                dto.setTargetDate(DateUtils.convertDateToString(scenarioMap.get("target_date")));
                 dto.setCoverImage((String) scenarioMap.get("cover_image"));
-                dto.setProductCount((Integer) scenarioMap.get("product_count"));
+                dto.setProductCount(getIntegerValue(scenarioMap.get("product_count")));
                 
                 // 获取场景关联的商品
                 Long sceneId = ((Number) scenarioMap.get("scene_id")).longValue();
@@ -482,4 +483,5 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
             return 0;
         }
     }
+    
 }
