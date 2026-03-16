@@ -6,12 +6,6 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS product_tag_relations;
-DROP TABLE IF EXISTS product_selling_point_relations;
-DROP TABLE IF EXISTS product_selling_points;
-DROP TABLE IF EXISTS product_tags;
-DROP TABLE IF EXISTS product_service_info_values;
-DROP TABLE IF EXISTS product_service_categories;
 DROP TABLE IF EXISTS product_sku_spec_options;
 DROP TABLE IF EXISTS product_sku_specs;
 DROP TABLE IF EXISTS product_skus;
@@ -194,218 +188,16 @@ CREATE TABLE IF NOT EXISTS product_sku_spec_options (
 
 
 
--- ============================================
--- 6. 商品标签系统模块（商品属性扩展）
--- ============================================
-
--- 商品标签表
-CREATE TABLE IF NOT EXISTS product_tags (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '标签ID',
-    tag_name VARCHAR(100) NOT NULL COMMENT '标签名称',
-    tag_type VARCHAR(20) DEFAULT 'custom' COMMENT '标签类型',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_tag_name (tag_name),
-    INDEX idx_tag_type (tag_type),
-    
-    -- 唯一约束（防止重复标签）
-    UNIQUE KEY uk_tag_name (tag_name)
-) COMMENT '商品标签表';
-
--- 商品标签关联表
-CREATE TABLE IF NOT EXISTS product_tag_relations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '关联ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    tag_id BIGINT NOT NULL COMMENT '标签ID',
-    
-    UNIQUE KEY uk_product_tag (product_id, tag_id),
-    
-    -- 索引优化
-    INDEX idx_product_id (product_id),
-    INDEX idx_tag_id (tag_id),
-    INDEX idx_product_tag (product_id, tag_id)
-) COMMENT '商品标签关联表';
 
 
--- ============================================
--- 7. 商品卖点标签系统模块（推荐系统专用）
--- ============================================
 
--- 商品卖点标签表（推荐系统特征标签）
-CREATE TABLE IF NOT EXISTS product_selling_points (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '卖点ID',
-    
-    -- 卖点基本信息
-    point_name VARCHAR(50) NOT NULL COMMENT '卖点名称（通用、可复用、分级描述）',
-    point_category VARCHAR(50) NOT NULL COMMENT '卖点大类（安全性、性能感、体验感、健康呵护、耐用性）',
-    point_sub_category VARCHAR(50) COMMENT '卖点小类（材质、降噪、续航等）',
-    point_description VARCHAR(200) COMMENT '卖点说明（具体、量化、打动人、有画面感）',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    UNIQUE KEY uk_point_name (point_name) COMMENT '卖点名称唯一性',
-    INDEX idx_point_category (point_category),
-    INDEX idx_point_sub_category (point_sub_category),
-    INDEX idx_category_sub_category (point_category, point_sub_category)
-) COMMENT '商品卖点标签表（推荐系统特征标签）';
 
--- 商品卖点关系表（商品与卖点关联）
-CREATE TABLE IF NOT EXISTS product_selling_point_relations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '关系ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    selling_point_id BIGINT NOT NULL COMMENT '卖点ID',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    UNIQUE KEY uk_product_point (product_id, selling_point_id) COMMENT '商品卖点唯一性',
-    INDEX idx_product_id (product_id),
-    INDEX idx_selling_point_id (selling_point_id)
-) COMMENT '商品卖点关系表（商品与卖点关联）';
 
--- ============================================
--- 8. 产品服务信息模块（可扩展设计）
--- ============================================
 
--- 产品服务信息分类表（定义信息类型）
-CREATE TABLE IF NOT EXISTS product_service_categories (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '分类ID',
-    
-    -- 分类基本信息
-    category_name VARCHAR(100) NOT NULL COMMENT '分类名称（如：产品参数、售后服务、认证信息）',
-    category_code VARCHAR(50) NOT NULL COMMENT '分类代码（英文标识，如：specs, service, certification）',
-    
-    -- 分类属性
-    sort_order INT DEFAULT 0 COMMENT '排序顺序',
-    is_collapsible BOOLEAN DEFAULT true COMMENT '是否可折叠',
-    
-    -- 显示配置
-    display_icon VARCHAR(100) COMMENT '显示图标',
-    display_color VARCHAR(20) COMMENT '显示颜色',
-    
-    -- 状态管理
-    status TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-启用',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    UNIQUE KEY uk_category_code (category_code),
-    INDEX idx_sort_order (sort_order),
-    INDEX idx_status (status)
-) COMMENT '产品服务信息分类表';
 
--- 产品服务信息值表（合并信息项和值存储）
-CREATE TABLE IF NOT EXISTS product_service_info_values (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '值ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    category_id BIGINT NOT NULL COMMENT '分类ID',
-    
-    -- 信息项定义
-    info_key VARCHAR(100) NOT NULL COMMENT '信息项键（英文标识，如：weight, warranty_period）',
-    info_label VARCHAR(100) NOT NULL COMMENT '信息项标签（显示名称，如：产品重量、质保期限）',
-    
-    -- 数据类型配置
-    data_type VARCHAR(20) DEFAULT 'text' COMMENT '数据类型：text-文本, number-数字, boolean-布尔, date-日期',
-    value_unit VARCHAR(20) COMMENT '数值单位（如：kg, month, year）',
-    
-    -- 值存储（支持多值）
-    string_value VARCHAR(500) COMMENT '字符串值',
-    number_value DECIMAL(15,4) COMMENT '数值',
-    boolean_value BOOLEAN COMMENT '布尔值',
-    date_value DATE COMMENT '日期值',
-    
-    -- 显示配置
-    sort_order INT DEFAULT 0 COMMENT '排序顺序',
-    
-    -- 状态管理
-    status TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-启用',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_product_id (product_id),
-    INDEX idx_category_id (category_id),
-    INDEX idx_info_key (info_key),
-    INDEX idx_product_category (product_id, category_id),
-    INDEX idx_sort_order (sort_order),
-    INDEX idx_status (status),
-    
-    -- 唯一约束（一个商品一个分类一个信息项只能有一条记录）
-    UNIQUE KEY uk_product_category_info (product_id, category_id, info_key)
-) COMMENT '产品服务信息值表（合并信息项和值存储）';
 
--- ============================================
--- 产品服务信息初始数据
--- ============================================
 
--- 插入产品服务信息分类数据
-INSERT INTO product_service_categories (category_name, category_code, sort_order, is_collapsible, display_icon, display_color) VALUES
-('产品参数', 'specs', 1, true, '📦', '#3498db'),
-('售后服务', 'service', 2, true, '🛡️', '#e74c3c'),
-('认证信息', 'certification', 3, true, '✅', '#27ae60'),
-('包装清单', 'package', 4, true, '📋', '#f39c12'),
-('使用说明', 'instructions', 5, true, '📖', '#9b59b6');
 
--- 为现有商品插入产品服务信息值（示例数据）
-INSERT INTO product_service_info_values (product_id, category_id, info_key, info_label, data_type, value_unit, string_value, number_value, sort_order) VALUES
--- 智能手表 Pro（产品ID=1）
-(1, 1, 'origin', '产品产地', 'text', NULL, '中国', NULL, 1),
-(1, 1, 'weight', '产品重量', 'number', 'kg', NULL, 0.05, 2),
-(1, 1, 'dimensions', '产品尺寸', 'text', NULL, '4.2×3.6×1.2cm', NULL, 3),
-(1, 1, 'material', '产品材质', 'text', NULL, '不锈钢表壳，蓝宝石玻璃', NULL, 4),
-(1, 1, 'shelf_life', '保质期', 'number', 'month', NULL, 24, 5),
-(1, 2, 'return_policy', '退换货政策', 'text', NULL, '7天无理由退换货，1年质保', NULL, 1),
-(1, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 12, 2),
-(1, 2, 'customer_service_hotline', '客服热线', 'text', NULL, '400-123-4567', NULL, 3),
-(1, 4, 'package_contents', '包装清单', 'text', NULL, 'Apple Watch Series 8，充电线，说明书', NULL, 1),
-(1, 5, 'usage_method', '使用方法', 'text', NULL, '长按侧边按钮开机，连接手机App设置', NULL, 1),
-
--- 无线降噪耳机（产品ID=2）
-(2, 1, 'origin', '产品产地', 'text', NULL, '日本', NULL, 1),
-(2, 1, 'weight', '产品重量', 'number', 'kg', NULL, 0.25, 2),
-(2, 1, 'material', '产品材质', 'text', NULL, '塑料外壳，蛋白皮耳罩', NULL, 3),
-(2, 1, 'shelf_life', '保质期', 'number', 'month', NULL, 36, 4),
-(2, 2, 'return_policy', '退换货政策', 'text', NULL, '15天无理由退换货，2年质保', NULL, 1),
-(2, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 24, 2),
-(2, 4, 'package_contents', '包装清单', 'text', NULL, 'Sony WH-1000XM5，充电线，收纳盒，说明书', NULL, 1),
-
--- 轻薄笔记本电脑（产品ID=3）
-(3, 1, 'origin', '产品产地', 'text', NULL, '美国', NULL, 1),
-(3, 1, 'weight', '产品重量', 'number', 'kg', NULL, 1.29, 2),
-(3, 1, 'dimensions', '产品尺寸', 'text', NULL, '30.4×21.5×1.6cm', NULL, 3),
-(3, 1, 'material', '产品材质', 'text', NULL, '铝合金机身，Retina显示屏', NULL, 4),
-(3, 2, 'return_policy', '退换货政策', 'text', NULL, '质量问题7天包退，15天包换，2年保修', NULL, 1),
-(3, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 24, 2),
-
--- 智能手机旗舰版（产品ID=4）
-(4, 1, 'origin', '产品产地', 'text', NULL, '中国', NULL, 1),
-(4, 1, 'weight', '产品重量', 'number', 'kg', NULL, 0.17, 2),
-(4, 1, 'dimensions', '产品尺寸', 'text', NULL, '14.7×7.1×0.78cm', NULL, 3),
-(4, 1, 'material', '产品材质', 'text', NULL, '玻璃后盖，不锈钢边框', NULL, 4),
-(4, 2, 'return_policy', '退换货政策', 'text', NULL, '7天无理由退换货，1年官方保修', NULL, 1),
-(4, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 12, 2),
-(4, 3, 'quality_certification', '质量认证', 'text', NULL, '3C认证，入网许可证', NULL, 1),
-(4, 4, 'package_contents', '包装清单', 'text', NULL, 'iPhone 15，充电线，说明书，SIM卡针', NULL, 1),
--- 运动蓝牙耳机（产品ID=5）
-(5, 1, 'origin', '产品产地', 'text', NULL, '美国', NULL, 1),
-(5, 1, 'weight', '产品重量', 'number', 'kg', NULL, 0.08, 2),
-(5, 1, 'dimensions', '产品尺寸', 'text', NULL, '2.5×2.5×1.2cm', NULL, 3),
-(5, 1, 'material', '产品材质', 'text', NULL, '硅胶材质，防水设计', NULL, 4),
-(5, 1, 'battery_life', '电池续航', 'number', 'hour', NULL, 6, 5),
-(5, 2, 'return_policy', '退换货政策', 'text', NULL, '30天无理由退换货，2年质保', NULL, 1),
-(5, 2, 'warranty_period', '质保期限', 'number', 'month', NULL, 24, 2),
-(5, 4, 'package_contents', '包装清单', 'text', NULL, 'Bose QuietComfort Earbuds II，充电盒，USB-C充电线，说明书', NULL, 1),
-(5, 5, 'usage_method', '使用方法', 'text', NULL, '打开充电盒自动连接，支持触控操作和语音助手', NULL, 1);
 
 
 -- ============================================
@@ -507,67 +299,14 @@ INSERT INTO product_skus (product_id, seller_id, price, original_price) VALUES
 (5, 3, 249.00, 349.00),
 (5, 3, 299.00, 399.00);
 
--- 插入商品标签数据
-INSERT INTO product_tags (tag_name, tag_type) VALUES
-('智能', 'feature'),
-('运动', 'feature'),
-('健康', 'feature'),
-('无线', 'feature'),
-('降噪', 'feature'),
-('轻薄', 'feature'),
-('旗舰', 'style'),
-('纯棉', 'feature');
 
--- 插入商品标签关联数据
-INSERT INTO product_tag_relations (product_id, tag_id) VALUES
-(1, 1),  -- 智能手表 - 智能
-(1, 2),  -- 智能手表 - 运动
-(1, 3),  -- 智能手表 - 健康
-(2, 4),  -- 无线耳机 - 无线
-(2, 5),  -- 无线耳机 - 降噪
-(3, 6),  -- 笔记本电脑 - 轻薄
-(4, 7),  -- 智能手机 - 旗舰
-(5, 2),  -- 运动蓝牙耳机 - 运动
-(5, 4),  -- 运动蓝牙耳机 - 无线
-(5, 5);  -- 运动蓝牙耳机 - 降噪
 
 
 -- ============================================
 -- 商品卖点标签系统初始数据
 -- ============================================
 
--- 插入商品卖点标签数据（高转化电商版本）
-INSERT INTO product_selling_points (point_name, point_category, point_sub_category, point_description) VALUES
--- ====================== 安全性（统一大类）
-('食品级材质', '安全性', '材质', '采用食品接触级安全材质，无毒无异味，母婴、老人日常使用都放心'),
-('无任何添加', '安全性', '成分', '0防腐剂、0香精、0色素，天然纯净，吃进嘴里、接触皮肤都更安心'),
-('0农残检测', '安全性', '检测', '经过专业机构检测，农残未检出，生鲜果蔬直接清洗即可食用'),
-('银离子抗菌', '安全性', '抗菌', '内置银离子抗菌层，有效抑制日常细菌滋生，贴身佩戴更卫生'),
-('无辐射安全', '安全性', '辐射', '低辐射合规设计，远低于国家安全标准，贴身佩戴、长期使用无负担'),
 
--- ====================== 性能感
-('超轻便携', '性能感', '重量', '重量比手机还轻，随身放包、口袋无压力，出门携带完全不费劲'),
-('柔软舒适', '性能感', '触感', '高弹柔肤材质，触感细腻不磨皮肤，长时间佩戴/使用也不闷不勒'),
-('强效省电', '性能感', '能耗', '达到一级节能标准，待机更久、耗电更低，长期使用能省一大笔电费'),
-('快速充电', '性能感', '充电', '充电10分钟就能用很久，碎片化时间快速回血，出门从不担心没电'),
-('超长续航', '性能感', '续航', '一次充满，连续使用数天，告别频繁充电，出差旅行更省心'),
-
--- ====================== 体验感
-('深度降噪', '体验感', '降噪', '有效隔绝外界嘈杂人声、交通噪音，办公、通勤、睡觉都能保持安静'),
-('静音运行', '体验感', '噪音', '运行声音极轻，深夜使用不打扰家人，图书馆、卧室都能安心用'),
-('一键操作', '体验感', '操作', '功能简单直观，一键开启/切换，不用看说明书，老人小孩都能轻松上手'),
-('智能控制', '体验感', '智能', '支持手机APP远程控制，不用起身就能调节，懒人、老人使用超方便'),
-('防滑不脱手', '体验感', '防滑', '表面防滑纹理设计，手上出汗、沾水也能牢牢握住，不易滑落摔落'),
-
--- ====================== 健康呵护
-('护眼柔和', '健康呵护', '护眼', '屏幕无频闪、低蓝光，长时间看视频、办公、学习，眼睛不易酸胀疲劳'),
-('亲肤透气', '健康呵护', '透气', '透气面料不闷汗，夏天佩戴不粘皮肤，长时间使用也清爽舒适'),
-('环保材质', '健康呵护', '环保', '可降解环保材料，无毒无害，丢弃不污染环境，使用更有责任感'),
-
--- ====================== 耐用性
-('耐高温', '耐用性', '耐温', '可承受高温不变形、不开裂、不释放有害物质，热水、高温环境都能用'),
-('防摔耐造', '耐用性', '防摔', '加固结构设计，日常不小心跌落、碰撞不易损坏，结实抗造更耐用'),
-('防水防尘', '耐用性', '防水', '日常泼溅、雨水、灰尘都不怕，户外、浴室、厨房都能安心使用');
 
 -- ============================================
 -- 为user_id 4添加更多商品数据
@@ -575,6 +314,10 @@ INSERT INTO product_selling_points (point_name, point_category, point_sub_catego
 
 -- 插入新商品数据（扩展产品线）
 INSERT INTO products (id, seller_id, title, category_id, brand, model, goods_slogan, min_price, max_price, status, main_image_url, created_at, updated_at) VALUES
+-- 补充缺失的商品ID 13,14,15
+(13, 1, '茶具套装', 22, '景德镇', '青花瓷茶具', '下午茶时光的优雅伴侣，让聚会更有格调', 299.00, 499.00, 1, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop', '2026-03-01 09:00:00', '2026-03-01 09:00:00'),
+(14, 2, '点心盘', 23, '宜家', '陶瓷点心盘', '与好友分享甜点的精致容器', 159.00, 259.00, 1, 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=400&fit=crop', '2026-03-01 09:30:00', '2026-03-01 09:30:00'),
+(15, 3, '蓝牙音箱', 24, 'JBL', '便携蓝牙音箱', '聊天时播放轻音乐，音质纯净出色', 399.00, 599.00, 1, 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop', '2026-03-01 10:00:00', '2026-03-01 10:00:00'),
 -- 继续现有商品ID序列
 (16, 1, '智能家居摄像头', 8, '小米', '智能摄像头Pro', '24小时守护，智能看家更安心', 299.00, 399.00, 1, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop', '2026-03-01 10:00:00', '2026-03-01 10:00:00'),
 (17, 2, '便携式投影仪', 9, '极米', 'Play特别版', '随时随地，打造私人影院', 1299.00, 1599.00, 1, 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop', '2026-03-02 11:00:00', '2026-03-02 11:00:00'),
@@ -621,42 +364,6 @@ INSERT INTO products (id, seller_id, title, category_id, brand, model, goods_slo
 (43, 3, '保鲜盒', 35, 'Tupperware', '塑料保鲜盒', '为周末准备食材，密封性好耐用', 49.00, 89.00, 1, 'https://images.unsplash.com/photo-1572099606223-6e29045d294d?w=400&h=400&fit=crop', '2026-03-12 17:00:00', '2026-03-12 17:00:00');
 
 
--- 插入商品卖点关系数据（重新调整以匹配新卖点ID）
-INSERT INTO product_selling_point_relations (product_id, selling_point_id) VALUES
--- 智能手表 Pro（产品ID=1）
-(1, 6),  -- 超轻便携（性能感-重量）
-(1, 7),  -- 柔软舒适（性能感-触感）
-(1, 10), -- 超长续航（性能感-续航）
-(1, 5),  -- 无辐射安全（安全性-辐射）
-(1, 21), -- 防水防尘（耐用性-防水）
 
--- 无线降噪耳机（产品ID=2）
-(2, 6),  -- 超轻便携（性能感-重量）
-(2, 10), -- 超长续航（性能感-续航）
-(2, 12), -- 静音运行（体验感-噪音）
-(2, 14), -- 智能控制（体验感-智能）
-(2, 20), -- 防摔耐造（耐用性-防摔）
-
--- 轻薄笔记本电脑（产品ID=3）
-(3, 6),  -- 超轻便携（性能感-重量）
-(3, 8),  -- 强效省电（性能感-能耗）
-(3, 9),  -- 快速充电（性能感-充电）
-(3, 13), -- 一键操作（体验感-操作）
-(3, 19), -- 耐高温（耐用性-耐温）
-
--- 智能手机旗舰版（产品ID=4）
-(4, 6),  -- 超轻便携（性能感-重量）
-(4, 9),  -- 快速充电（性能感-充电）
-(4, 10), -- 超长续航（性能感-续航）
-(4, 14), -- 智能控制（体验感-智能）
-(4, 15), -- 防滑不脱手（体验感-防滑）
-(4, 18), -- 环保材质（健康呵护-环保）
-
--- 运动蓝牙耳机（产品ID=5）
-(5, 6),  -- 超轻便携（性能感-重量）
-(5, 7),  -- 柔软舒适（性能感-触感）
-(5, 10), -- 超长续航（性能感-续航）
-(5, 12), -- 静音运行（体验感-噪音）
-(5, 21); -- 防水防尘（耐用性-防水）
 
 COMMIT;
