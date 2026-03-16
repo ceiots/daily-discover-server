@@ -41,17 +41,7 @@ public interface ProductRecommendationMapper extends BaseMapper<ProductRecommend
             "ORDER BY spr.display_order ASC")
     List<Map<String, Object>> findProductsBySceneId(@Param("sceneId") Long sceneId);
     
-    /**
-     * 获取今日场景推荐（基于当前日期和时间）
-     */
-    @Select("SELECT sr.id, sr.target_date, sr.time_period, sr.scene_sentence, sr.scene_subtitle, " +
-            "sr.cover_image, sr.is_active " +
-            "FROM scene_recommendations sr " +
-            "WHERE sr.target_date = CURDATE() AND sr.time_period = #{timePeriod} " +
-            "AND sr.is_active = true " +
-            "ORDER BY sr.created_at DESC " +
-            "LIMIT 1")
-    Map<String, Object> findTodaySceneByPeriod(@Param("timePeriod") String timePeriod);
+
     
     /**
      * 获取未来几天的场景推荐（用于预览）

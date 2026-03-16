@@ -437,20 +437,14 @@ public class ProductRecommendationServiceImpl extends ServiceImpl<ProductRecomme
         }
         
         try {
-            // 从日期时间字符串中提取小时
+            // 从日期时间字符串中提取时段名称（如 afternoon, morning, evening）
             String[] parts = dateTime.split("T");
             if (parts.length > 1) {
-                String timePart = parts[1].split(":")[0];
-                int hour = Integer.parseInt(timePart);
-                
-                if (hour >= 6 && hour < 12) {
-                    return "morning";
-                } else if (hour >= 12 && hour < 18) {
-                    return "afternoon";
-                } else if (hour >= 18 && hour < 22) {
-                    return "evening";
-                } else {
-                    return "night";
+                String timePeriod = parts[1].toLowerCase();
+                // 验证时段名称是否有效
+                if (timePeriod.equals("morning") || timePeriod.equals("afternoon") || 
+                    timePeriod.equals("evening") || timePeriod.equals("night")) {
+                    return timePeriod;
                 }
             }
         } catch (Exception e) {
