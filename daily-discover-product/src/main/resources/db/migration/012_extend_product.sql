@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS product_selling_points;
 DROP TABLE IF EXISTS product_tag_relations;
 DROP TABLE IF EXISTS product_tags;
 
+DROP TABLE IF EXISTS flash_sales;
+
 -- ============================================
 -- 6. 商品标签系统模块（商品属性扩展）
 -- ============================================
@@ -85,6 +87,29 @@ CREATE TABLE IF NOT EXISTS product_selling_point_relations (
     INDEX idx_product_id (product_id),
     INDEX idx_selling_point_id (selling_point_id)
 ) COMMENT '商品卖点关系表（商品与卖点关联）';
+
+CREATE TABLE IF NOT EXISTS flash_sales (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '限时活动ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    flash_price DECIMAL(10,2) NOT NULL COMMENT '秒杀价',
+    flash_stock INT DEFAULT 0 COMMENT '秒杀库存',
+    start_time DATETIME NOT NULL COMMENT '开始时间',
+    end_time DATETIME NOT NULL COMMENT '结束时间（倒计时来源）',
+    status TINYINT DEFAULT 0 COMMENT '状态：0-待开始 1-进行中 2-已结束 3-已取消',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_product_id (product_id),
+    INDEX idx_status (status),
+    INDEX idx_end_time (end_time),
+    INDEX idx_status_end_time (status, end_time) COMMENT '查询进行中的活动'
+) COMMENT '限时秒杀活动表';
+
+-- 插入限时秒杀示例数据
+INSERT INTO flash_sales (product_id, flash_price, flash_stock, start_time, end_time, status) VALUES
+(1, 99.99, 100, '2026-06-01 00:00:00', '2026-06-01 23:59:59', 1),
+(2, 199.99, 50, '2026-06-02 00:00:00', '2026-06-02 23:59:59', 1),
+(3, 49.99, 200, '2026-06-03 00:00:00', '2026-06-03 23:59:59', 1);
 
 -- ============================================
 -- 初始数据（可选）

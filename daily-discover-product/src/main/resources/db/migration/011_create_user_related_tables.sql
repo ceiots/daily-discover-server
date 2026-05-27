@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS user_interest_profiles;
 DROP TABLE IF EXISTS intent_click_statistics;
 DROP TABLE IF EXISTS user_behavior_logs_core;
 DROP TABLE IF EXISTS user_behavior_logs_details;
+DROP TABLE IF EXISTS user_reminders;
 
 -- 用户群体分类表（MVP简化版）
 CREATE TABLE IF NOT EXISTS user_groups (
@@ -126,6 +127,34 @@ CREATE TABLE IF NOT EXISTS user_behavior_logs_details (
     INDEX idx_id (id),
     INDEX idx_created_at (created_at)
 ) COMMENT '用户行为详情表（低频查询大字段）';
+
+-- ============================================
+-- 8. 用户提醒模块（明日提醒功能）
+-- ============================================
+
+-- 用户提醒表（明日提醒功能）
+CREATE TABLE IF NOT EXISTS user_reminders (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '提醒ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    remind_time DATETIME NOT NULL COMMENT '提醒时间',
+    is_notified TINYINT DEFAULT 0 COMMENT '是否已通知：0-未通知 1-已通知',
+    status TINYINT DEFAULT 1 COMMENT '状态：0-取消 1-生效',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_user_id (user_id),
+    INDEX idx_product_id (product_id),
+    INDEX idx_remind_time (remind_time),
+    INDEX idx_status_notified (status, is_notified),
+    UNIQUE KEY uk_user_product (user_id, product_id) COMMENT '用户对同一商品只能设置一个提醒'
+) COMMENT '用户提醒表（明日提醒功能）';
+
+-- 示例数据：用户提醒记录
+INSERT INTO user_reminders (user_id, product_id, remind_time, is_notified, status) VALUES
+    (1001, 5, '2026-06-10 09:00:00', 0, 1),
+    (1002, 2, '2026-06-11 12:30:00', 0, 1),
+    (1003, 3, '2026-06-12 18:45:00', 0, 1);
 
 -- ============================================
 -- 用户相关测试数据
