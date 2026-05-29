@@ -1,17 +1,18 @@
 package com.dailydiscover.platform.flink.job;
 
+import com.dailydiscover.platform.config.HotTopicConfig;
 import com.dailydiscover.platform.config.PipelineConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CdcToKafkaJob {
+public class HotTopicCdcToKafkaJob {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CdcToKafkaJob.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HotTopicCdcToKafkaJob.class);
 
     public static void main(String[] args) throws Exception {
-        LOG.info("启动 Flink 作业1: CDC → Kafka");
+        LOG.info("启动今日热点作业1: CDC → Kafka");
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(60000);
@@ -172,7 +173,7 @@ public class CdcToKafkaJob {
         tEnv.executeSql(insertSalesSql);
         tEnv.executeSql(insertReviewSql);
 
-        LOG.info("作业1: CDC → Kafka 已提交，等待执行...");
-        env.execute("Pipeline-CDC-to-Kafka");
+        LOG.info("今日热点作业1: CDC → Kafka 已提交，等待执行...");
+        env.execute(HotTopicConfig.JOB_NAME_CDC);
     }
 }

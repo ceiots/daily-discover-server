@@ -1,15 +1,15 @@
 -- ============================================
--- 商品展示读模型宽表
--- 业务模块: 今日热点、限时机会等高频查询场景
--- 设计目的: 减少跨表JOIN查询，提升查询性能
--- 数据更新: 通过定时任务或事件驱动刷新
+-- 今日热点展示读模型宽表
+-- 业务模块: 今日热点
+-- 设计目的: 减少跨表JOIN查询，提升首页查询性能
+-- 数据更新: 通过 daily-discovery-platform 的 Flink CDC 管道实时同步
 -- ============================================
 
 USE daily_discover;
 
-DROP TABLE IF EXISTS product_display_read_model;
+DROP TABLE IF EXISTS hot_topic_display_read_model;
 
-CREATE TABLE IF NOT EXISTS product_display_read_model (
+CREATE TABLE IF NOT EXISTS hot_topic_display_read_model (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '记录ID',
     product_id BIGINT NOT NULL COMMENT '商品ID',
 
@@ -23,14 +23,14 @@ CREATE TABLE IF NOT EXISTS product_display_read_model (
     brand VARCHAR(100) COMMENT '品牌名称',
     status TINYINT DEFAULT 1 COMMENT '状态：0-已下架 1-销售中',
 
-    -- 热度数据（来自product_sales_stats）
+    -- 热度数据
     sales_count INT DEFAULT 0 COMMENT '销量',
     view_count INT DEFAULT 0 COMMENT '浏览量',
     favorite_count INT DEFAULT 0 COMMENT '收藏量',
     sales_growth_rate DECIMAL(5,2) COMMENT '销量增长率',
     hot_score DECIMAL(10,4) DEFAULT 0 COMMENT '热度评分（综合计算）',
 
-    -- 评价数据（来自review_stats）
+    -- 评价数据
     average_rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '平均评分',
     total_reviews INT DEFAULT 0 COMMENT '评价数量',
     positive_rate DECIMAL(5,2) DEFAULT 0.0 COMMENT '好评率（%）',
@@ -50,5 +50,4 @@ CREATE TABLE IF NOT EXISTS product_display_read_model (
     INDEX idx_is_trending (is_trending, hot_score DESC) COMMENT '今日热门排序',
     INDEX idx_category_hot (category_id, hot_score DESC) COMMENT '分类热度排序',
     INDEX idx_status (status) COMMENT '状态查询'
-) COMMENT '商品展示读模型宽表（今日热点等高频查询场景）';
-
+) COMMENT '今日热点展示读模型宽表';

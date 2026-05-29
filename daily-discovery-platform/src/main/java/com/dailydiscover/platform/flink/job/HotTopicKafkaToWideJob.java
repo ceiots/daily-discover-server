@@ -1,5 +1,6 @@
 package com.dailydiscover.platform.flink.job;
 
+import com.dailydiscover.platform.config.HotTopicConfig;
 import com.dailydiscover.platform.config.PipelineConfig;
 import com.dailydiscover.platform.flink.udf.HotScoreFunction;
 import com.dailydiscover.platform.flink.udf.PositiveRateFunction;
@@ -9,12 +10,12 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KafkaToWideTableJob {
+public class HotTopicKafkaToWideJob {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaToWideTableJob.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HotTopicKafkaToWideJob.class);
 
     public static void main(String[] args) throws Exception {
-        LOG.info("启动 Flink 作业2: Kafka → 宽表");
+        LOG.info("启动今日热点作业2: Kafka → 宽表");
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(60000);
@@ -25,10 +26,11 @@ public class KafkaToWideTableJob {
         tEnv.createTemporarySystemFunction("hot_tag", HotTagFunction.class);
 
         String kafkaServers = PipelineConfig.KAFKA_BOOTSTRAP_SERVERS;
-        String groupId = PipelineConfig.KAFKA_GROUP_ID;
+        String groupId = HotTopicConfig.KAFKA_GROUP_ID;
         String jdbcUrl = PipelineConfig.JDBC_URL;
         String username = PipelineConfig.MYSQL_USERNAME;
         String password = PipelineConfig.MYSQL_PASSWORD;
+        String wideTableName = HotTopicConfig.WIDE_TABLE_NAME;
 
         String kafkaProducts = String.format("""
                 CREATE TABLE kafka_products (
@@ -89,7 +91,7 @@ public class KafkaToWideTableJob {
                 """, kafkaServers, groupId);
 
         String wideTable = String.format("""
-                CREATE TABLE product_display_read_model (
+                CREATE TABLE %s (
                     product_id          BIGINT PRIMARY KEY,
                     title               STRING,
                     main_image_url      STRING,
@@ -114,17 +116,17 @@ public class KafkaToWideTableJob {
                 ) WITH (
                     'connector' = 'jdbc',
                     'url' = '%s',
-                    'table-name' = 'product_display_read_model',
+                    'table-name' = '%s',
                     'username' = '%s',
                     'password' = '%s',
                     'driver' = 'com.mysql.cj.jdbc.Driver',
                     'sink.buffer-flush.max-rows' = '100',
                     'sink.buffer-flush.interval' = '5s'
                 )
-                """, jdbcUrl, username, password);
+                """, wideTableName, jdbcUrl, wideTableName, username, password);
 
         String insertSql = """
-                INSERT INTO product_display_read_model
+                INSERT INTO %s
                 SELECT
                     p.id,
                     p.title,
@@ -161,14 +163,16 @@ public class KafkaToWideTableJob {
                 LEFT JOIN kafka_review_stats r ON p.id = r.product_id
                 """;
 
+        String insertSqlFinal = String.format(insertSql, wideTableName);
+
         tEnv.executeSql(kafkaProducts);
         tEnv.executeSql(kafkaSalesStats);
         tEnv.executeSql(kafkaReviewStats);
         tEnv.executeSql(wideTable);
 
-        tEnv.executeSql(insertSql);
+        tEnv.executeSql(insertSqlFinal);
 
-        LOG.info("作业2: Kafka → 宽表 已提交，等待执行...");
-        env.execute("Pipeline-Kafka-to-WideTable");
+        LOG.info("今日热点作业2: Kafka → 宽表 已提交，等待执行...");
+        env.execute(HotTopicConfig.JOB_NAME_WIDE);
     }
 }
