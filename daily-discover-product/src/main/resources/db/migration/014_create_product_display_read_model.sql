@@ -52,6 +52,3 @@ CREATE TABLE IF NOT EXISTS product_display_read_model (
     INDEX idx_status (status) COMMENT '状态查询'
 ) COMMENT '商品展示读模型宽表（今日热点等高频查询场景）';
 
--- ============================================
--- 初始化数据：从现有表同步到宽表
--- ============================================
