@@ -11,7 +11,7 @@ spring:
 
   # MySQL数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/daily_discover?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://100.76.38.80:3306/daily_discover?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: "123456"

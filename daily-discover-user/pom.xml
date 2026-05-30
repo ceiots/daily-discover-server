@@ -168,7 +168,7 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>10.0.0</version>
                 <configuration>
-                    <url>jdbc:mysql://localhost:3306/daily_discover?useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true</url>
+                    <url>jdbc:mysql://100.76.38.80:3306/daily_discover?useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true</url>
                     <user>root</user>
                     <password>123456</password>
                     <locations>

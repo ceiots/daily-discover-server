@@ -15,7 +15,7 @@ import java.util.List;
  * 调用同一项目内的ProductController（路径为根路径）
  * 禁用负载均衡，直接调用本地服务
  */
-@FeignClient(name = "product-service", url = "http://localhost:8092")
+@FeignClient(name = "product-service", url = "http://100.76.38.80:8092")
 public interface ProductServiceClient {
     
     /**
