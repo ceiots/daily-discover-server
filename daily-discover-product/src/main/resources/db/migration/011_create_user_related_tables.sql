@@ -161,14 +161,14 @@ INSERT INTO user_reminders (user_id, product_id, remind_time, is_notified, statu
 -- ============================================
 
 -- 插入用户群体测试数据
-INSERT INTO user_groups (group_name, group_type, group_description, characteristic_tags, member_count) VALUES
-('价格敏感用户', 'price_sensitive', '关注价格优惠，喜欢性价比高的商品', '{"price_sensitivity": "高", "brand_preference": "中等", "category_preference": "生活用品"}', 500),
-('品质追求用户', 'quality_focused', '注重商品品质和品牌，愿意为质量买单', '{"price_sensitivity": "低", "brand_preference": "强", "category_preference": "电子产品"}', 300),
-('潮流追随用户', 'trend_follower', '关注时尚潮流，喜欢新品和热门商品', '{"price_sensitivity": "中等", "brand_preference": "强", "category_preference": "服装配饰"}', 400),
-('家庭用户', 'family_user', '关注家庭生活用品，注重实用性和安全性', '{"price_sensitivity": "中等", "brand_preference": "中等", "category_preference": "家居用品"}', 600),
-('学生群体', 'student', '预算有限，关注性价比和实用性', '{"price_sensitivity": "高", "brand_preference": "中等", "category_preference": "学习用品"}', 200),
-('职场人士', 'professional', '注重品质和形象，关注商务和办公用品', '{"price_sensitivity": "低", "brand_preference": "强", "category_preference": "办公用品"}', 350),
-('中老年群体', 'senior', '注重实用性和健康，关注养生和家居用品', '{"price_sensitivity": "中等", "brand_preference": "中等", "category_preference": "健康养生"}', 250);
+INSERT INTO user_groups (group_name, group_type, group_description, characteristic_tags) VALUES
+('价格敏感用户', 'price_sensitive', '关注价格优惠，喜欢性价比高的商品', '{"price_sensitivity": "高", "brand_preference": "中等", "category_preference": "生活用品"}'),
+('品质追求用户', 'quality_focused', '注重商品品质和品牌，愿意为质量买单', '{"price_sensitivity": "低", "brand_preference": "强", "category_preference": "电子产品"}'),
+('潮流追随用户', 'trend_follower', '关注时尚潮流，喜欢新品和热门商品', '{"price_sensitivity": "中等", "brand_preference": "强", "category_preference": "服装配饰"}'),
+('家庭用户', 'family_user', '关注家庭生活用品，注重实用性和安全性', '{"price_sensitivity": "中等", "brand_preference": "中等", "category_preference": "家居用品"}'),
+('学生群体', 'student', '预算有限，关注性价比和实用性', '{"price_sensitivity": "高", "brand_preference": "中等", "category_preference": "学习用品"}'),
+('职场人士', 'professional', '注重品质和形象，关注商务和办公用品', '{"price_sensitivity": "低", "brand_preference": "强", "category_preference": "办公用品"}'),
+('中老年群体', 'senior', '注重实用性和健康，关注养生和家居用品', '{"price_sensitivity": "中等", "brand_preference": "中等", "category_preference": "健康养生"}');
 
 -- 插入用户兴趣画像测试数据
 INSERT INTO user_interest_profiles (user_id, interest_tags, behavior_patterns, discovery_preferences, trending_interests, last_updated, profile_version) VALUES

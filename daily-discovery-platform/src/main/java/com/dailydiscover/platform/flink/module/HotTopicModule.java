@@ -111,7 +111,8 @@ public class HotTopicModule extends FlinkModule {
                     'topic' = 'cdc_products',
                     'properties.bootstrap.servers' = '%s',
                     'key.format' = 'json',
-                    'value.format' = 'json'
+                    'value.format' = 'json',
+                    'sink.transactional-id-prefix' = 'products'
                 )
                 """, kafkaServers);
 
@@ -130,7 +131,8 @@ public class HotTopicModule extends FlinkModule {
                     'topic' = 'cdc_product_sales_stats',
                     'properties.bootstrap.servers' = '%s',
                     'key.format' = 'json',
-                    'value.format' = 'json'
+                    'value.format' = 'json',
+                    'sink.transactional-id-prefix' = 'sales_stats'
                 )
                 """, kafkaServers);
 
@@ -145,7 +147,8 @@ public class HotTopicModule extends FlinkModule {
                     'topic' = 'cdc_review_stats',
                     'properties.bootstrap.servers' = '%s',
                     'key.format' = 'json',
-                    'value.format' = 'json'
+                    'value.format' = 'json',
+                    'sink.transactional-id-prefix' = 'review_stats'
                 )
                 """, kafkaServers);
 

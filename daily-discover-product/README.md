@@ -139,7 +139,7 @@ migration/
 
 ```bash
 # 执行所有迁移脚本（推荐）
-mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\001_create_product_core_tables.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\001_create_product_core_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\002_create_seller_inventory_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\003_create_review_interaction_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\004_create_relationship_recommendation_tables.sql"
@@ -148,7 +148,11 @@ mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\007_create_payment_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\008_create_promotion_tables.sql"
 mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\009_create_customer_service_tables.sql"
-mysql -u root -p -h localhost -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\010_create_content_management_tables.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\010_create_content_management_tables.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\011_create_user_related_tables.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\012_extend_product.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\013_optional_product.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\015_create_hot_topic_display_read_model.sql"
 ```
 
 ## 开发指南
