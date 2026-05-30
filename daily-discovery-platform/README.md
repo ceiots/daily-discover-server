@@ -91,6 +91,10 @@ cd daily-discovery-platform
 mvn clean package -DskipTests
 ```
 
+## 启动flink
+sudo systemctl start flink-jobmanager.service
+sudo systemctl start flink-taskmanager.service
+
 ### 提交作业
 
 ```bash

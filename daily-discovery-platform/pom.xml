@@ -62,10 +62,10 @@
             <version>${flink.version}</version>
         </dependency>
 
-        <!-- Flink CDC Connector（MySQL binlog）仅在运行时需要 -->
+        <!-- Flink CDC MySQL 连接器（用于 flink run -c 方式提交） -->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-sql-connector-mysql-cdc</artifactId>
+            <artifactId>flink-connector-mysql-cdc</artifactId>
             <version>${flink.cdc.version}</version>
         </dependency>
 
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>9.0.0</version>
+            <version>8.3.0</version>
         </dependency>
 
         <!-- Jackson -->

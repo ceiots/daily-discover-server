@@ -1,5 +1,6 @@
 package com.dailydiscover.platform.flink.job;
 
+import com.dailydiscover.platform.config.HotTopicConfig;
 import com.dailydiscover.platform.config.PipelineConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -171,11 +172,9 @@ public class HotTopicCdcToKafkaJob {
         tEnv.executeSql(kafkaSalesStats);
         tEnv.executeSql(kafkaReviewStats);
 
-        tEnv.createStatementSet()
-                .addInsertSql(insertSql)
-                .addInsertSql(insertSalesSql)
-                .addInsertSql(insertReviewSql)
-                .execute();
+        tEnv.executeSql(insertSql);
+        tEnv.executeSql(insertSalesSql);
+        tEnv.executeSql(insertReviewSql);
 
         LOG.info("今日热点作业1: CDC → Kafka 已提交");
     }

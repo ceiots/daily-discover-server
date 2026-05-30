@@ -37,8 +37,16 @@ public class PipelineApplication {
                 switch (command) {
                     case "submit-all" -> {
                         LOG.info("提交今日热点所有作业...");
-                        HotTopicCdcToKafkaJob.main(new String[]{});
-                        HotTopicKafkaToWideJob.main(new String[]{});
+                        try {
+                            HotTopicCdcToKafkaJob.main(new String[]{});
+                        } catch (Exception e) {
+                            LOG.error("作业1 CDC→Kafka 提交失败", e);
+                        }
+                        try {
+                            HotTopicKafkaToWideJob.main(new String[]{});
+                        } catch (Exception e) {
+                            LOG.error("作业2 Kafka→宽表 提交失败", e);
+                        }
                     }
                     case "submit-cdc" -> {
                         LOG.info("提交今日热点作业1: CDC → Kafka...");

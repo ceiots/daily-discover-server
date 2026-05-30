@@ -171,7 +171,7 @@ public class HotTopicKafkaToWideJob {
         tEnv.executeSql(wideTable);
 
         tEnv.executeSql(insertSqlFinal);
-
+        
         LOG.info("今日热点作业2: Kafka → 宽表 已提交");
     }
 }
