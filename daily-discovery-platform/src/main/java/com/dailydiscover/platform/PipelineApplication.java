@@ -1,7 +1,7 @@
 package com.dailydiscover.platform;
 
-import com.dailydiscover.platform.flink.job.HotTopicCdcToKafkaJob;
-import com.dailydiscover.platform.flink.job.HotTopicKafkaToWideJob;
+import com.dailydiscover.platform.flink.job.CdcToKafkaJob;
+import com.dailydiscover.platform.flink.job.KafkaToWideJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,23 +38,23 @@ public class PipelineApplication {
                     case "submit-all" -> {
                         LOG.info("提交今日热点所有作业...");
                         try {
-                            HotTopicCdcToKafkaJob.main(new String[]{});
+                            CdcToKafkaJob.main(new String[]{});
                         } catch (Exception e) {
                             LOG.error("作业1 CDC→Kafka 提交失败", e);
                         }
                         try {
-                            HotTopicKafkaToWideJob.main(new String[]{});
+                            KafkaToWideJob.main(new String[]{});
                         } catch (Exception e) {
                             LOG.error("作业2 Kafka→宽表 提交失败", e);
                         }
                     }
                     case "submit-cdc" -> {
                         LOG.info("提交今日热点作业1: CDC → Kafka...");
-                        HotTopicCdcToKafkaJob.main(new String[]{});
+                        CdcToKafkaJob.main(new String[]{});
                     }
                     case "submit-wide" -> {
                         LOG.info("提交今日热点作业2: Kafka → 宽表...");
-                        HotTopicKafkaToWideJob.main(new String[]{});
+                        KafkaToWideJob.main(new String[]{});
                     }
                     default -> LOG.warn("今日热点未知命令: {}", command);
                 }
