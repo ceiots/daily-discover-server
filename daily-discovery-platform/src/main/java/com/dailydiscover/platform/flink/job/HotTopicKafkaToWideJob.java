@@ -45,12 +45,12 @@ public class HotTopicKafkaToWideJob {
                     created_at      TIMESTAMP(3),
                     PRIMARY KEY (id) NOT ENFORCED
                 ) WITH (
-                    'connector' = 'kafka',
+                    'connector' = 'upsert-kafka',
                     'topic' = 'cdc_products',
                     'properties.bootstrap.servers' = '%s',
                     'properties.group.id' = '%s',
-                    'scan.startup.mode' = 'earliest-offset',
-                    'format' = 'json'
+                    'key.format' = 'json',
+                    'value.format' = 'json'
                 )
                 """, kafkaServers, groupId);
 
@@ -65,12 +65,12 @@ public class HotTopicKafkaToWideJob {
                     stat_date           DATE,
                     PRIMARY KEY (product_id, time_granularity, stat_date) NOT ENFORCED
                 ) WITH (
-                    'connector' = 'kafka',
+                    'connector' = 'upsert-kafka',
                     'topic' = 'cdc_product_sales_stats',
                     'properties.bootstrap.servers' = '%s',
                     'properties.group.id' = '%s',
-                    'scan.startup.mode' = 'earliest-offset',
-                    'format' = 'json'
+                    'key.format' = 'json',
+                    'value.format' = 'json'
                 )
                 """, kafkaServers, groupId);
 
@@ -81,12 +81,12 @@ public class HotTopicKafkaToWideJob {
                     average_rating  DECIMAL(3,2),
                     PRIMARY KEY (product_id) NOT ENFORCED
                 ) WITH (
-                    'connector' = 'kafka',
+                    'connector' = 'upsert-kafka',
                     'topic' = 'cdc_review_stats',
                     'properties.bootstrap.servers' = '%s',
                     'properties.group.id' = '%s',
-                    'scan.startup.mode' = 'earliest-offset',
-                    'format' = 'json'
+                    'key.format' = 'json',
+                    'value.format' = 'json'
                 )
                 """, kafkaServers, groupId);
 
@@ -172,7 +172,6 @@ public class HotTopicKafkaToWideJob {
 
         tEnv.executeSql(insertSqlFinal);
 
-        LOG.info("今日热点作业2: Kafka → 宽表 已提交，等待执行...");
-        env.execute(HotTopicConfig.JOB_NAME_WIDE);
+        LOG.info("今日热点作业2: Kafka → 宽表 已提交");
     }
 }

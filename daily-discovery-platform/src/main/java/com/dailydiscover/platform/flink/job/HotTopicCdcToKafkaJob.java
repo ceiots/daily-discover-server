@@ -1,6 +1,5 @@
 package com.dailydiscover.platform.flink.job;
 
-import com.dailydiscover.platform.config.HotTopicConfig;
 import com.dailydiscover.platform.config.PipelineConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -105,10 +104,11 @@ public class HotTopicCdcToKafkaJob {
                     created_at      TIMESTAMP(3),
                     PRIMARY KEY (id) NOT ENFORCED
                 ) WITH (
-                    'connector' = 'kafka',
+                    'connector' = 'upsert-kafka',
                     'topic' = 'cdc_products',
                     'properties.bootstrap.servers' = '%s',
-                    'format' = 'json'
+                    'key.format' = 'json',
+                    'value.format' = 'json'
                 )
                 """, kafkaServers);
 
@@ -123,10 +123,11 @@ public class HotTopicCdcToKafkaJob {
                     stat_date           DATE,
                     PRIMARY KEY (product_id, time_granularity, stat_date) NOT ENFORCED
                 ) WITH (
-                    'connector' = 'kafka',
+                    'connector' = 'upsert-kafka',
                     'topic' = 'cdc_product_sales_stats',
                     'properties.bootstrap.servers' = '%s',
-                    'format' = 'json'
+                    'key.format' = 'json',
+                    'value.format' = 'json'
                 )
                 """, kafkaServers);
 
@@ -137,10 +138,11 @@ public class HotTopicCdcToKafkaJob {
                     average_rating  DECIMAL(3,2),
                     PRIMARY KEY (product_id) NOT ENFORCED
                 ) WITH (
-                    'connector' = 'kafka',
+                    'connector' = 'upsert-kafka',
                     'topic' = 'cdc_review_stats',
                     'properties.bootstrap.servers' = '%s',
-                    'format' = 'json'
+                    'key.format' = 'json',
+                    'value.format' = 'json'
                 )
                 """, kafkaServers);
 
@@ -169,11 +171,12 @@ public class HotTopicCdcToKafkaJob {
         tEnv.executeSql(kafkaSalesStats);
         tEnv.executeSql(kafkaReviewStats);
 
-        tEnv.executeSql(insertSql);
-        tEnv.executeSql(insertSalesSql);
-        tEnv.executeSql(insertReviewSql);
+        tEnv.createStatementSet()
+                .addInsertSql(insertSql)
+                .addInsertSql(insertSalesSql)
+                .addInsertSql(insertReviewSql)
+                .execute();
 
-        LOG.info("今日热点作业1: CDC → Kafka 已提交，等待执行...");
-        env.execute(HotTopicConfig.JOB_NAME_CDC);
+        LOG.info("今日热点作业1: CDC → Kafka 已提交");
     }
 }

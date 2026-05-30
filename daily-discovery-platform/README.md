@@ -95,13 +95,13 @@ mvn clean package -DskipTests
 
 ```bash
 # 提交今日热点所有作业
-/home/sshuser/flink-1.20.4/bin/flink run -d -m localhost:8081 -c com.dailydiscover.platform.PipelineApplication target/daily-discovery-platform.jar hotopic:submit-all
+/home/sshuser/flink-1.20.4/bin/flink run -d -m localhost:8090 -c com.dailydiscover.platform.PipelineApplication /home/sshuser/daily-discovery-platform.jar hotopic:submit-all
 
 # 也可分开提交
 # hotopic:submit-cdc（仅作业1）或 hotopic:submit-wide（仅作业2）
 
 # 查看作业
-/home/sshuser/flink-1.20.4/bin/flink list -m localhost:8081
+/home/sshuser/flink-1.20.4/bin/flink list -m localhost:8090
 ```
 
 ---
@@ -111,7 +111,7 @@ mvn clean package -DskipTests
 ### 常用命令
 
 ```bash
-# 查看 Flink Web UI：http://localhost:8081
+# 查看 Flink Web UI：http://localhost:8090
 
 # 查看 Kafka 消费堆积
 /home/sshuser/kafka_2.13-4.2.0/bin/kafka-consumer-groups.sh \
