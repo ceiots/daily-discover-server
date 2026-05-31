@@ -60,13 +60,13 @@ kafka-topics.sh --bootstrap-server localhost:9092 --list
 如果缺少以下 topic，手动创建：
 
 ```bash
-kafka-topics.sh --create --topic cdc_products \
+./kafka_2.13-4.2.0/bin/kafka-topics.sh --create --topic cdc_products \
   --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-kafka-topics.sh --create --topic cdc_product_sales_stats \
+./kafka_2.13-4.2.0/bin/kafka-topics.sh --create --topic cdc_product_sales_stats \
   --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-kafka-topics.sh --create --topic cdc_review_stats \
+./kafka_2.13-4.2.0/bin/kafka-topics.sh --create --topic cdc_review_stats \
   --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-kafka-topics.sh --create --topic cdc_scene_product_relation \
+./kafka_2.13-4.2.0/bin/kafka-topics.sh --create --topic cdc_scene_product_relation \
   --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 ```
 

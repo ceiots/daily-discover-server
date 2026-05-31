@@ -366,17 +366,17 @@ public class HotTopicModule extends FlinkModule {
                     p.category_id,
                     p.brand,
                     p.status,
-                    COALESCE(s.sales_count, 0),
-                    COALESCE(s.view_count, 0),
-                    COALESCE(s.favorite_count, 0),
-                    COALESCE(s.sales_growth_rate, 0),
-                    hot_score(COALESCE(s.sales_count, 0), COALESCE(s.view_count, 0), COALESCE(s.favorite_count, 0)),
-                    COALESCE(r.average_rating, 0),
-                    COALESCE(r.total_reviews, 0),
-                    positive_rate(COALESCE(r.average_rating, 0), COALESCE(r.total_reviews, 0)),
-                    CASE WHEN COALESCE(s.sales_count, 0) > 1000 THEN 1 ELSE 0 END,
-                    CASE WHEN p.created_at >= NOW() - INTERVAL '7' DAY THEN 1 ELSE 0 END,
-                    PROCTIME()
+                    COALESCE(s.sales_count, 0) AS sales_count,
+                    COALESCE(s.view_count, 0) AS view_count,
+                    COALESCE(s.favorite_count, 0) AS favorite_count,
+                    COALESCE(s.sales_growth_rate, 0) AS sales_growth_rate,
+                    hot_score(COALESCE(s.sales_count, 0), COALESCE(s.view_count, 0), COALESCE(s.favorite_count, 0)) AS hot_score,
+                    COALESCE(r.average_rating, 0) AS average_rating,
+                    COALESCE(r.total_reviews, 0) AS total_reviews,
+                    positive_rate(COALESCE(r.average_rating, 0), COALESCE(r.total_reviews, 0)) AS positive_rate,
+                    CASE WHEN COALESCE(s.sales_count, 0) > 1000 THEN 1 ELSE 0 END AS is_trending,
+                    CASE WHEN p.created_at >= NOW() - INTERVAL '7' DAY THEN 1 ELSE 0 END AS is_new_arrival,
+                    PROCTIME() AS updated_at
                 FROM kafka_products p
                 LEFT JOIN (
                     SELECT product_id,
