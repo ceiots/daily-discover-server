@@ -1,6 +1,8 @@
 package com.dailydiscover.platform.flink.job;
 
 import com.dailydiscover.platform.config.HotTopicConfig;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -15,7 +17,8 @@ public class CdcToKafkaJob {
         LOG.info("启动 CDC → Kafka 统一作业");
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.getConfiguration().set(org.apache.flink.configuration.PipelineOptions.NAME, HotTopicConfig.JOB_NAME_CDC);
+        Configuration conf = (Configuration) env.getConfiguration();
+        conf.set(PipelineOptions.NAME, HotTopicConfig.JOB_NAME_CDC);
         env.enableCheckpointing(60000);
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 

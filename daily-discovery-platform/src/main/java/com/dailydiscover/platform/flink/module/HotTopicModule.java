@@ -253,7 +253,7 @@ public class HotTopicModule extends FlinkModule {
 
         return String.format("""
                 CREATE TABLE IF NOT EXISTS %s (
-                    product_id          BIGINT PRIMARY KEY,
+                    product_id          BIGINT,
                     title               STRING,
                     main_image_url      STRING,
                     min_price           DECIMAL(10,2),
@@ -273,7 +273,8 @@ public class HotTopicModule extends FlinkModule {
                     is_trending         INT,
                     is_new_arrival      INT,
                     hot_tag             STRING,
-                    updated_at          TIMESTAMP(3)
+                    updated_at          TIMESTAMP(3),
+                    PRIMARY KEY (product_id) NOT ENFORCED
                 ) WITH (
                     'connector' = 'jdbc',
                     'url' = '%s',
