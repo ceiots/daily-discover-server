@@ -4,8 +4,8 @@ public class PipelineConfig {
 
     public static final String MYSQL_HOST = "100.76.38.80";
     public static final int MYSQL_PORT = 3306;
-    public static final String MYSQL_USERNAME = "root";
-    public static final String MYSQL_PASSWORD = "123456";
+    public static final String MYSQL_USERNAME = "flink";
+    public static final String MYSQL_PASSWORD = "12345678";
     public static final String MYSQL_DATABASE = "daily_discover";
 
     public static final String KAFKA_BOOTSTRAP_SERVERS = "localhost:9092";

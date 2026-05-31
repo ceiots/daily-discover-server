@@ -1,5 +1,6 @@
 package com.dailydiscover.platform.flink.job;
 
+import com.dailydiscover.platform.config.HotTopicConfig;
 import com.dailydiscover.platform.flink.udf.HotScoreFunction;
 import com.dailydiscover.platform.flink.udf.HotTagFunction;
 import com.dailydiscover.platform.flink.udf.PositiveRateFunction;
@@ -16,6 +17,7 @@ public class KafkaToWideJob {
         LOG.info("启动 Kafka → 宽表 统一作业");
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.getConfiguration().set(org.apache.flink.configuration.PipelineOptions.NAME, HotTopicConfig.JOB_NAME_WIDE);
         env.enableCheckpointing(60000);
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
