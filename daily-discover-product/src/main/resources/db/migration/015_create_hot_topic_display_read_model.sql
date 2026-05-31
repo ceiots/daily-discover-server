@@ -38,7 +38,6 @@ CREATE TABLE IF NOT EXISTS hot_topic_display_read_model (
     -- 标签和标记
     is_trending TINYINT DEFAULT 0 COMMENT '是否今日热门：0-否 1-是',
     is_new_arrival TINYINT DEFAULT 0 COMMENT '是否新品首发：0-否 1-是',
-    hot_tag VARCHAR(20) DEFAULT '' COMMENT '热度标签（如：今日热门、新品首发）',
 
     -- 时间戳
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

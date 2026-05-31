@@ -87,7 +87,28 @@ public class HotTopicModule extends FlinkModule {
                 )
                 """, host, port, username, password, database);
 
-        return List.of(cdcProducts, cdcSalesStats, cdcReviewStats);
+        String cdcSceneProductRelation = String.format("""
+                CREATE TABLE IF NOT EXISTS cdc_scene_product_relation (
+                    scene_id            BIGINT,
+                    product_id          BIGINT,
+                    product_reason      STRING,
+                    display_order       INT,
+                    is_active           INT,
+                    PRIMARY KEY (scene_id, product_id) NOT ENFORCED
+                ) WITH (
+                    'connector' = 'mysql-cdc',
+                    'hostname' = '%s',
+                    'port' = '%d',
+                    'username' = '%s',
+                    'password' = '%s',
+                    'database-name' = '%s',
+                    'table-name' = 'scene_product_relation',
+                    'scan.startup.mode' = 'initial',
+                    'server-id' = '5404'
+                )
+                """, host, port, username, password, database);
+
+        return List.of(cdcProducts, cdcSalesStats, cdcReviewStats, cdcSceneProductRelation);
     }
 
     @Override
@@ -152,7 +173,25 @@ public class HotTopicModule extends FlinkModule {
                 )
                 """, kafkaServers);
 
-        return List.of(kafkaProducts, kafkaSalesStats, kafkaReviewStats);
+        String kafkaSceneProduct = String.format("""
+                CREATE TABLE IF NOT EXISTS kafka_scene_product_relation (
+                    scene_id            BIGINT,
+                    product_id          BIGINT,
+                    product_reason      STRING,
+                    display_order       INT,
+                    is_active           INT,
+                    PRIMARY KEY (scene_id, product_id) NOT ENFORCED
+                ) WITH (
+                    'connector' = 'upsert-kafka',
+                    'topic' = 'cdc_scene_product_relation',
+                    'properties.bootstrap.servers' = '%s',
+                    'key.format' = 'json',
+                    'value.format' = 'json',
+                    'sink.transactional-id-prefix' = 'scene_product'
+                )
+                """, kafkaServers);
+
+        return List.of(kafkaProducts, kafkaSalesStats, kafkaReviewStats, kafkaSceneProduct);
     }
 
     @Override
@@ -175,7 +214,13 @@ public class HotTopicModule extends FlinkModule {
                 FROM cdc_review_stats
                 """;
 
-        return List.of(insertProducts, insertSales, insertReviews);
+        String insertSceneProduct = """
+                INSERT INTO kafka_scene_product_relation
+                SELECT scene_id, product_id, product_reason, display_order, is_active
+                FROM cdc_scene_product_relation
+                """;
+
+        return List.of(insertProducts, insertSales, insertReviews, insertSceneProduct);
     }
 
     @Override
@@ -241,7 +286,25 @@ public class HotTopicModule extends FlinkModule {
                 )
                 """, kafkaServers, groupId);
 
-        return List.of(kafkaProducts, kafkaSalesStats, kafkaReviewStats);
+        String kafkaSceneProduct = String.format("""
+                CREATE TABLE IF NOT EXISTS kafka_scene_product_relation (
+                    scene_id            BIGINT,
+                    product_id          BIGINT,
+                    product_reason      STRING,
+                    display_order       INT,
+                    is_active           INT,
+                    PRIMARY KEY (scene_id, product_id) NOT ENFORCED
+                ) WITH (
+                    'connector' = 'upsert-kafka',
+                    'topic' = 'cdc_scene_product_relation',
+                    'properties.bootstrap.servers' = '%s',
+                    'properties.group.id' = '%s',
+                    'key.format' = 'json',
+                    'value.format' = 'json'
+                )
+                """, kafkaServers, groupId);
+
+        return List.of(kafkaProducts, kafkaSalesStats, kafkaReviewStats, kafkaSceneProduct);
     }
 
     @Override
@@ -272,7 +335,6 @@ public class HotTopicModule extends FlinkModule {
                     positive_rate       DECIMAL(5,2),
                     is_trending         INT,
                     is_new_arrival      INT,
-                    hot_tag             STRING,
                     updated_at          TIMESTAMP(3),
                     PRIMARY KEY (product_id) NOT ENFORCED
                 ) WITH (
@@ -300,7 +362,7 @@ public class HotTopicModule extends FlinkModule {
                     p.main_image_url,
                     p.min_price,
                     p.goods_slogan,
-                    '好评如潮，用户反馈品质出众，值得入手' AS recommendation_reason,
+                    COALESCE(spr.product_reason, '') AS recommendation_reason,
                     p.category_id,
                     p.brand,
                     p.status,
@@ -314,7 +376,6 @@ public class HotTopicModule extends FlinkModule {
                     positive_rate(COALESCE(r.average_rating, 0), COALESCE(r.total_reviews, 0)),
                     CASE WHEN COALESCE(s.sales_count, 0) > 1000 THEN 1 ELSE 0 END,
                     CASE WHEN p.created_at >= NOW() - INTERVAL '7' DAY THEN 1 ELSE 0 END,
-                    hot_tag(COALESCE(s.sales_count, 0), p.created_at),
                     PROCTIME()
                 FROM kafka_products p
                 LEFT JOIN (
@@ -328,6 +389,11 @@ public class HotTopicModule extends FlinkModule {
                     GROUP BY product_id
                 ) s ON p.id = s.product_id
                 LEFT JOIN kafka_review_stats r ON p.id = r.product_id
+                LEFT JOIN (
+                    SELECT product_id, product_reason
+                    FROM kafka_scene_product_relation
+                    WHERE is_active = 1
+                ) spr ON p.id = spr.product_id
                 """, wideTableName);
     }
 }

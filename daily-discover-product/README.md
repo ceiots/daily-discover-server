@@ -119,22 +119,6 @@ curl -X GET http://localhost:8092/category/1
 - `customer_service_conversations` - 客服会话表
 - `customer_service_messages` - 客服消息表
 
-### 数据库迁移脚本
-迁移脚本位于 `src/main/resources/db/migration/` 目录：
-
-```
-migration/
-├── 001_create_product_core_tables.sql      # 商品核心信息模块
-├── 002_create_seller_inventory_tables.sql  # 商家与库存模块
-├── 003_create_review_interaction_tables.sql # 评价与互动模块
-├── 004_create_relationship_recommendation_tables.sql # 商品关系与推荐模块
-├── 005_create_order_tables.sql             # 订单管理模块
-├── 006_create_shipping_region_tables.sql   # 物流和地区管理模块
-├── 007_create_payment_tables.sql           # 支付管理模块
-├── 008_create_promotion_tables.sql         # 营销促销管理模块
-└── 009_create_customer_service_tables.sql  # 客户服务管理模块
-```
-
 ### 手动执行数据库迁移
 
 ```bash

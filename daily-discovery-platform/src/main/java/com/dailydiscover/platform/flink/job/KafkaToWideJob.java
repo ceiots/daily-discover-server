@@ -2,7 +2,6 @@ package com.dailydiscover.platform.flink.job;
 
 import com.dailydiscover.platform.config.HotTopicConfig;
 import com.dailydiscover.platform.flink.udf.HotScoreFunction;
-import com.dailydiscover.platform.flink.udf.HotTagFunction;
 import com.dailydiscover.platform.flink.udf.PositiveRateFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
@@ -26,7 +25,6 @@ public class KafkaToWideJob {
 
         tEnv.createTemporarySystemFunction("hot_score", HotScoreFunction.class);
         tEnv.createTemporarySystemFunction("positive_rate", PositiveRateFunction.class);
-        tEnv.createTemporarySystemFunction("hot_tag", HotTagFunction.class);
 
         ModuleRegistry.all().forEach(module -> {
             LOG.info("注册宽表模块: {}", module.moduleName());
