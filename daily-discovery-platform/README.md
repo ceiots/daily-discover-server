@@ -82,9 +82,9 @@ mvn clean package -DskipTests
 CDC 层使用 Flink CDC Connector 读取 binlog 写入 Kafka：
 
 ```bash
-flink run -d -m localhost:8090 \
+./flink run -d -m localhost:8090 \
   -c com.dailydiscover.platform.flink.job.CdcToKafkaJob \
-  daily-discovery-platform.jar
+  /home/sshuser/daily-discovery-platform.jar
 ```
 
 ### 验证 CDC 数据
@@ -128,9 +128,9 @@ public class WideTableConsumer {
 如果已有 Flink 集群，可直接提交 KafkaToWideJob：
 
 ```bash
-flink run -d -m localhost:8090 \
+./flink run -d -m localhost:8090 \
   -c com.dailydiscover.platform.flink.job.KafkaToWideJob \
-  daily-discovery-platform.jar
+  /home/sshuser/daily-discovery-platform.jar
 ```
 
 ### 查看作业状态
