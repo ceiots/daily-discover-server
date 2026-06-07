@@ -9,59 +9,10 @@ USE daily_discover;
 -- 删除表（便于可重复执行）
 DROP TABLE IF EXISTS product_search_keywords;
 DROP TABLE IF EXISTS user_intent_preferences;
-DROP TABLE IF EXISTS product_sales_stats;
 DROP TABLE IF EXISTS scene_product_relation;
 DROP TABLE IF EXISTS scene_recommendations;
 
-
 -- ============================================
--- 销量统计表（单一表设计，主流电商最佳实践）
--- ============================================
-
--- 销量统计表（支持多种时间粒度）
-CREATE TABLE IF NOT EXISTS product_sales_stats (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '统计ID',
-    product_id BIGINT NOT NULL COMMENT '商品ID',
-    
-    -- 时间粒度
-    time_granularity VARCHAR(10) NOT NULL COMMENT '时间粒度',
-    stat_date DATE NOT NULL COMMENT '统计日期（如：日粒度-2026-02-01，月粒度-2026-02-01，年粒度-2026-01-01）',
-    
-    -- 核心业务数据
-    `rank` INT NOT NULL COMMENT '排名',
-    sales_count INT DEFAULT 0 COMMENT '销量',
-    sales_amount DECIMAL(12,2) DEFAULT 0.0 COMMENT '销售额',
-    sales_growth_rate DECIMAL(5,2) COMMENT '销量增长率',
-    
-    -- 用户行为数据
-    view_count INT DEFAULT 0 COMMENT '浏览量',
-    favorite_count INT DEFAULT 0 COMMENT '收藏量',
-    share_count INT DEFAULT 0 COMMENT '分享量',
-    cart_count INT DEFAULT 0 COMMENT '加购量',
-    
-    -- 商品质量数据
-    avg_rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '平均评分',
-    review_count INT DEFAULT 0 COMMENT '评价数量',
-    return_count INT DEFAULT 0 COMMENT '退货数量',
-    
-    -- 时间戳
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    -- 索引优化
-    INDEX idx_product_id (product_id),
-    INDEX idx_time_granularity (time_granularity),
-    INDEX idx_stat_date (stat_date),
-    INDEX idx_rank (`rank`),
-    INDEX idx_sales_count (sales_count),
-    INDEX idx_avg_rating (avg_rating),
-    INDEX idx_product_granularity_date (product_id, time_granularity, stat_date),
-    
-    -- 唯一约束（避免重复统计）
-    UNIQUE KEY uk_product_granularity_date (product_id, time_granularity, stat_date)
-) COMMENT '销量统计表（支持多种时间粒度）';
-
-
 -- 用户意图偏好表（核心意图，不带点击记录）
 CREATE TABLE IF NOT EXISTS user_intent_preferences (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '意图偏好ID',
@@ -302,41 +253,6 @@ true),
 '放松身心，迎接充满希望的新开始', 
 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800', 
 true);
-
--- 3. 社区热榜数据（销量统计）
-INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, view_count, favorite_count, avg_rating) VALUES
-(1, 'daily', CURDATE(), 1, 150, 75000.00, 3000, 120, 4.8),
-(2, 'daily', CURDATE(), 2, 120, 48000.00, 2500, 95, 4.7),
-(3, 'daily', CURDATE(), 3, 100, 60000.00, 2200, 85, 4.6),
-(4, 'daily', CURDATE(), 4, 90, 45000.00, 2000, 75, 4.5),
-(5, 'daily', CURDATE(), 5, 80, 32000.00, 1800, 65, 4.4),
-(6, 'daily', CURDATE(), 6, 70, 28000.00, 1600, 55, 4.3);
-
-
-
-
-
--- 插入销量统计数据（单一表设计）
-INSERT INTO product_sales_stats (product_id, time_granularity, stat_date, `rank`, sales_count, sales_amount, sales_growth_rate, view_count, favorite_count, share_count, cart_count, avg_rating, review_count, return_count) VALUES
--- 日粒度数据
-(1, 'daily', '2026-02-01', 1, 25, 7475.00, 25.5, 500, 45, 15, 30, 4.5, 20, 1),
-(2, 'daily', '2026-02-01', 2, 18, 3582.00, 18.3, 450, 35, 8, 25, 4.8, 15, 0),
-(3, 'daily', '2026-02-01', 3, 12, 71988.00, 30.1, 600, 50, 5, 35, 4.2, 8, 1),
-(4, 'daily', '2026-02-01', 4, 8, 39992.00, 15.7, 400, 30, 20, 20, 4.7, 12, 0),
-
--- 月粒度数据
-(1, 'monthly', '2026-02-01', 1, 80, 23920.00, 15.2, 2500, 120, 45, 80, 4.5, 80, 4),
-(2, 'monthly', '2026-02-01', 2, 60, 11940.00, 12.8, 2000, 100, 24, 70, 4.8, 60, 2),
-(3, 'monthly', '2026-02-01', 3, 40, 239952.00, 18.5, 8000, 400, 15, 300, 4.2, 32, 3),
-(4, 'monthly', '2026-02-01', 4, 30, 149976.00, 14.3, 6000, 300, 60, 200, 4.7, 48, 1),
-
--- 年粒度数据
-(1, 'yearly', '2026-01-01', 1, 500, 149500.00, 20.5, 15000, 800, 180, 500, 4.5, 400, 20),
-(2, 'yearly', '2026-01-01', 2, 350, 69650.00, 18.2, 12000, 600, 96, 400, 4.8, 280, 10),
-(3, 'yearly', '2026-01-01', 3, 250, 1499760.00, 15.8, 50000, 2500, 60, 1800, 4.2, 200, 15),
-(4, 'yearly', '2026-01-01', 4, 200, 999840.00, 13.5, 40000, 2000, 240, 1500, 4.7, 240, 8);
-
-
 
 -- 插入商品搜索关键词数据
 INSERT INTO product_search_keywords (keyword, search_count, click_count, conversion_count, last_searched_at, is_trending, is_recommended) VALUES

@@ -7,9 +7,7 @@
 USE daily_discover;
 
 -- 删除表（便于可重复执行）
-DROP TABLE IF EXISTS review_stats;
 DROP TABLE IF EXISTS review_replies;
-DROP TABLE IF EXISTS user_review_stats;
 DROP TABLE IF EXISTS user_review_details;
 DROP TABLE IF EXISTS user_reviews;
 
@@ -53,19 +51,6 @@ CREATE TABLE IF NOT EXISTS user_review_details (
     INDEX idx_review_id (review_id)
 ) COMMENT '用户评价详情表';
 
--- 用户评价统计表（实时统计字段）
-CREATE TABLE IF NOT EXISTS user_review_stats (
-    review_id BIGINT PRIMARY KEY COMMENT '评价ID',
-    helpful_count INT DEFAULT 0 COMMENT '有用数量',
-    reply_count INT DEFAULT 0 COMMENT '回复数量',
-    like_count INT DEFAULT 0 COMMENT '点赞数量',
-    last_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
-    
-    INDEX idx_review_id (review_id),
-    INDEX idx_helpful_count (helpful_count),
-    INDEX idx_like_count (like_count)
-) COMMENT '用户评价统计表';
-
 -- 评价回复表
 CREATE TABLE IF NOT EXISTS review_replies (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '回复ID',
@@ -85,9 +70,6 @@ CREATE TABLE IF NOT EXISTS review_replies (
     INDEX idx_is_seller_reply (is_seller_reply),
     INDEX idx_status (status)
 ) COMMENT '评价回复表';
-
-
-
 -- 商品评价统计表（聚合统计）
 CREATE TABLE IF NOT EXISTS review_stats (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '统计ID',
@@ -104,11 +86,6 @@ CREATE TABLE IF NOT EXISTS review_stats (
     INDEX idx_average_rating (average_rating),
     INDEX idx_total_reviews (total_reviews)
 ) COMMENT '商品评价统计表';
-
-
-
-
-
 COMMIT;
 
 -- ============================================
@@ -138,13 +115,6 @@ INSERT INTO review_replies (review_id, user_id, content, is_seller_reply, like_c
 (7, 2, '感谢您的反馈！我们会持续优化电池续航表现。', true, 3, 'active'),
 (10, 2, '感谢您的认可！这款手机确实专为商务人士设计，多任务处理能力很强。', true, 4, 'active');
 
--- 插入评价统计数据
-INSERT INTO review_stats (product_id, total_reviews, average_rating, rating_distribution, purchased_reviews_count, last_30_days_reviews) VALUES
-(1, 128, 4.5, '{"5": 80, "4": 35, "3": 10, "2": 2, "1": 1}', 120, 25),
-(2, 89, 4.3, '{"5": 50, "4": 25, "3": 10, "2": 3, "1": 1}', 80, 18),
-(3, 256, 4.7, '{"5": 180, "4": 60, "3": 12, "2": 3, "1": 1}', 240, 40),
-(4, 194, 4.8, '{"5": 150, "4": 40, "3": 3, "2": 1, "1": 0}', 180, 35);
-
 -- 插入用户评价详情数据
 INSERT INTO user_review_details (review_id, user_avatar, comment, image_urls, video_url, moderation_notes) VALUES
 (1, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '这款智能手表功能非常强大，特别是健康监测功能很准确。运动模式也很丰富，续航能力也不错。', '["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop","https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop"]', NULL, '评价内容符合规范'),
@@ -157,19 +127,6 @@ INSERT INTO user_review_details (review_id, user_avatar, comment, image_urls, vi
 (8, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '5G速度超快，网络连接稳定。系统流畅，应用加载速度快。整体体验很好。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
 (9, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '系统优化不错，界面简洁美观。电池续航表现良好，日常使用完全够用。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范'),
 (10, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '完美的商务手机，多任务处理能力强。安全性高，适合商务人士使用。', '["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"]', NULL, '评价内容符合规范');
-
--- 插入用户评价统计数据
-INSERT INTO user_review_stats (review_id, helpful_count, reply_count, like_count) VALUES
-(1, 12, 2, 8),
-(2, 5, 0, 3),
-(3, 18, 1, 15),
-(4, 3, 0, 2),
-(5, 8, 0, 6),
-(6, 25, 2, 20),
-(7, 7, 1, 5),
-(8, 10, 0, 8),
-(9, 4, 0, 3),
-(10, 15, 1, 12);
 
 -- ============================================
 -- 为新增商品添加评价数据（user_id 4）
@@ -200,19 +157,5 @@ INSERT INTO user_review_details (review_id, user_avatar, comment, image_urls, vi
 (23, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '计数准确，APP数据同步及时，跳绳体验很好。', '["https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
 (24, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '清洁模式多样，刷头柔软，电池续航时间长。', '["https://images.unsplash.com/photo-1584305574647-0d5c6c4c8a6b?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效'),
 (25, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', '充电速度快，接口丰富，外出旅行必备。', '["https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=400&h=400&fit=crop"]', NULL, '评价内容真实有效');
-
--- 添加评价统计
-INSERT INTO user_review_stats (review_id, helpful_count, reply_count, like_count, last_updated_at) VALUES
-(16, 12, 3, 25, '2026-03-09 10:00:00'),
-(17, 8, 2, 18, '2026-03-09 10:00:00'),
-(18, 15, 4, 32, '2026-03-09 10:00:00'),
-(19, 6, 1, 14, '2026-03-09 10:00:00'),
-(20, 20, 5, 45, '2026-03-09 10:00:00'),
-(21, 9, 2, 19, '2026-03-09 10:00:00'),
-(22, 11, 3, 26, '2026-03-09 10:00:00'),
-(23, 7, 1, 15, '2026-03-09 10:00:00'),
-(24, 13, 3, 28, '2026-03-09 10:00:00'),
-(25, 10, 2, 22, '2026-03-09 10:00:00');
-
 
 COMMIT;

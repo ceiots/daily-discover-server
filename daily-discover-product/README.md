@@ -136,7 +136,7 @@ mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\dai
 mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\011_create_user_related_tables.sql"
 mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\012_extend_product.sql"
 mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\013_optional_product.sql"
-mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\015_create_hot_topic_display_read_model.sql"
+mysql -u root -p -h 100.76.38.80 -P 3306 daily_discover < "d:\daily-discover\daily-discover-server\daily-discover-product\src\main\resources\db\migration\020_create_hot_topic_display_read_model.sql"
 ```
 
 ## 开发指南

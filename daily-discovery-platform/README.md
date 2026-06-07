@@ -89,14 +89,11 @@ mvn clean package -DskipTests
 
 ```bash
 # 作业1：MySQL CDC → Kafka
-./flink run -d -m localhost:8090 \
-  -c com.dailydiscover.platform.flink.job.CdcToKafkaJob \
-  /home/sshuser/daily-discovery-platform.jar
+./flink-1.20.4/bin/flink run -d -m localhost:8090 -c com.dailydiscover.platform.flink.job.CdcToKafkaJob /home/sshuser/daily-discovery-platform.jar
 
 # 作业2：Kafka → 宽表
-./flink run -d -m localhost:8090 \
-  -c com.dailydiscover.platform.flink.job.KafkaToWideJob \
-  /home/sshuser/daily-discovery-platform.jar
+./flink-1.20.4/bin/flink run -d -m localhost:8090 -c com.dailydiscover.platform.flink.job.KafkaToWideJob /home/sshuser/daily-discovery-platform.jar
+
 ```
 
 
