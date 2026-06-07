@@ -29,7 +29,10 @@ public class ReviewStats {
     
     @TableField("purchased_reviews_count")
     private Integer purchasedReviewsCount;
-    
+
+    @TableField("positive_rate")
+    private BigDecimal positiveRate;
+
     @TableField("last_30_days_reviews")
     private Integer last30DaysReviews;
     

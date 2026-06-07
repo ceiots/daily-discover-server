@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS review_stats (
     average_rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '平均评分',
     rating_distribution JSON COMMENT '评分分布',
     purchased_reviews_count INT DEFAULT 0 COMMENT '已购评价数（真实购买用户的评价）',
+    positive_rate DECIMAL(5,2) DEFAULT 0.0 COMMENT '好评率（%）',
     last_30_days_reviews INT DEFAULT 0 COMMENT '近30天评价数',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

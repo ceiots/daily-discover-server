@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS review_stats (
     average_rating DECIMAL(3,2) DEFAULT 0.0 COMMENT '平均评分',
     rating_distribution JSON COMMENT '评分分布',
     purchased_reviews_count INT DEFAULT 0 COMMENT '已购评价数（真实购买用户的评价）',
+    positive_rate DECIMAL(5,2) DEFAULT 0.0 COMMENT '好评率（%）',
     last_30_days_reviews INT DEFAULT 0 COMMENT '近 30 天评价数',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -105,11 +106,11 @@ COMMIT;
 -- ============================================
 
 -- 插入评价统计数据
-INSERT INTO review_stats (product_id, total_reviews, average_rating, rating_distribution, purchased_reviews_count, last_30_days_reviews) VALUES
-(1, 128, 4.5, '{"5": 80, "4": 35, "3": 10, "2": 2, "1": 1}', 120, 25),
-(2, 89, 4.3, '{"5": 50, "4": 25, "3": 10, "2": 3, "1": 1}', 80, 18),
-(3, 256, 4.7, '{"5": 180, "4": 60, "3": 12, "2": 3, "1": 1}', 240, 40),
-(4, 194, 4.8, '{"5": 150, "4": 40, "3": 3, "2": 1, "1": 0}', 180, 35);
+INSERT INTO review_stats (product_id, total_reviews, average_rating, positive_rate, rating_distribution, purchased_reviews_count, last_30_days_reviews) VALUES
+(1, 128, 4.5, 90.00, '{"5": 80, "4": 35, "3": 10, "2": 2, "1": 1}', 120, 25),
+(2, 89, 4.3, 86.00, '{"5": 50, "4": 25, "3": 10, "2": 3, "1": 1}', 80, 18),
+(3, 256, 4.7, 94.00, '{"5": 180, "4": 60, "3": 12, "2": 3, "1": 1}', 240, 40),
+(4, 194, 4.8, 96.00, '{"5": 150, "4": 40, "3": 3, "2": 1, "1": 0}', 180, 35);
 
 -- 插入用户评价统计数据
 INSERT INTO user_review_stats (review_id, helpful_count, reply_count, like_count) VALUES
