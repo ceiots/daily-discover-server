@@ -134,16 +134,4 @@ kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
 
 ---
 
-## 如何添加新业务模块
-
-1. 在 `flink/module/` 下新建 `XxxModule.java`，继承 `FlinkModule`
-2. 在 `ModuleRegistry.java` 的列表加一行
-
-```java
-private static final List<FlinkModule> ALL_MODULES = List.of(
-    new HotTopicModule(),
-    new XxxModule()
-);
-```
-
-无需修改 CdcToKafkaJob 和 KafkaToWideJob 的代码。
+TRUNCATE TABLE hot_topic_display_read_model;
