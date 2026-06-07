@@ -100,8 +100,7 @@ mvn clean package -DskipTests
 ### 验证 CDC 数据
 
 ```bash
-kafka-console-consumer.sh --bootstrap-server localhost:9092 \
-  --topic cdc_products --from-beginning --max-messages 3
+./kafka_2.13-4.2.0/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic kafka_review_stats --from-beginning
 ```
 
 能看到 JSON 格式的 binlog 变更数据，说明 CDC 层正常工作。
