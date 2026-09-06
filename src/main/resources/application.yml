@@ -1,41 +1,52 @@
-jwt:
-  secret: "c8e6eca7e31d89e8e6eca7e31d89c8e6eca7e31d89c8e6eca7e31d89c8e6eca7"  # 至少64字节(512位)的密钥 
-
-mybatis:
-  type-handlers-package: com.example.util
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.example.model
-
-# 增加文件上传限制配置
 spring:
+  application:
+    name: daily-discover-server
+  
+  datasource:
+    url: jdbc:postgresql://192.168.1.63:5432/daily_discover
+    username: postgres
+    password: ""
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+    open-in-view: false
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+server:
+  port: 8080
   servlet:
-    multipart:
-      max-file-size: 20MB       # 单个文件最大大小
-      max-request-size: 100MB   # 单次请求最大大小
-      enabled: true             # 开启文件上传
+    context-path: /api
 
-# 文件上传配置
-file:
-  upload:
-    local-path: E:\\media\\         # 本地上传路径
-    base-url: https://dailydiscover.top/media/       # 文件访问基础URL
+logging:
+  level:
+    com.dailydiscover: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# 物流API配置
-logistics:
-  kdniao:
-    app-id: test1234567  # 快递鸟应用ID，测试环境使用固定值
-    app-key: 12345678    # 快递鸟应用密钥，测试环境使用固定值
-    api-url: http://api.kdniao.com/Ebusiness/EbusinessOrderHandle.aspx  # 快递鸟API地址
-
-# SSH远程服务器配置
-ssh:
-  remote:
-    host: "2409:8a55:3490:8cb0:9889:19eb:5557:5139"
-    user: "sshuser"
-    port: 22
-    base-path: "E:\\media"
-    content-path: "E:\\media\\content"
-    private-key-path: "C:\\Users\\ceiots\\.ssh\\id_ed25519" # 如果使用私钥认证，设置私钥路径
+# 自定义配置
+daily-discover:
+  anonymous-header: X-Anonymous-Id
+  recommendation:
+    max-candidates: 100
+    max-results: 10
