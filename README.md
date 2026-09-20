@@ -1,26 +1,52 @@
-# 运行命令
-java -jar daily-discover-0.0.1-SNAPSHOT.jar
+# daily-discover-server｜每日发现服务端 MVP
 
-# 启停nginx
-.\nginx.exe -s reload
-或者
-.\nginx.exe -s stop
-start nginx.exe
+依据《01 Data-Model-MVP》《03 API-MVP》《04 Architecture-Server-MVP》实现的单体服务端。
 
-#  登录数据库
-mysql -u root -p
+## 技术栈
 
-# 授权语句
-CREATE USER 'demo0000'@'localhost' IDENTIFIED BY 'demo0000';
-GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP ON demo.* TO 'demo0000'@'localhost';
+- Java 17 + Spring Boot 3.2（Web / Validation / Data JPA / Actuator）
+- PostgreSQL（192.168.1.63:5432/daily_discover）
+- Maven（`./mvnw`）
 
-# 刷新权限语句
-FLUSH PRIVILEGES;
+## 数据库初始化
 
-# 数据库创建语句
-CREATE DATABASE demo;
+```bash
+PGPASSWORD='<密码>' psql -h 192.168.1.63 -p 5432 -U postgres -d postgres \
+  -c "CREATE DATABASE daily_discover;"
+PGPASSWORD='<密码>' psql -h 192.168.1.63 -p 5432 -U postgres \
+  -d daily_discover -f sql/mvp_init.sql
+```
 
-# 数据库使用语句
-USE demo;
+5 张核心表（无数据库外键）：`users` / `discoveries` / `products` / `discovery_products` / `behaviors`。
+内置 10 条真实发现 + 24 件商品种子数据。
 
-D:\install\maven-mvnd-2.0.0-rc-3-windows-amd64\bin\mvnd.exe  clean install
+## 运行
+
+```bash
+./mvnw clean package -DskipTests
+java -jar target/daily-discover-server-1.0.0-SNAPSHOT.jar
+# 默认 http://127.0.0.1:8080/api
+```
+
+## P0 接口（所有请求需携带 X-Anonymous-Id 请求头）
+
+| 接口 | 说明 |
+| --- | --- |
+| `GET /api/v1/discoveries/today` | 今日发现（PUBLISHED + 未过期，priority DESC） |
+| `GET /api/v1/discoveries/{id}` | 发现详情（含商品列表） |
+| `POST /api/v1/behaviors` | 上报行为（IMPRESSION / DETAIL_VIEW / INTERESTED / NOT_INTERESTED / SKIP / ACTION_CLICK，追加记录） |
+| `GET /api/v1/health` | 健康检查 |
+
+## 统一响应与错误码
+
+```json
+{ "code": 0, "message": "success", "data": {} }
+```
+
+| 错误码 | 含义 | HTTP |
+| --- | --- | --- |
+| 4000 | INVALID_PARAMETER | 400 |
+| 4001 | DISCOVERY_NOT_FOUND | 404 |
+| 4002 | DISCOVERY_NOT_AVAILABLE | 404 |
+| 4003 | INVALID_BEHAVIOR | 400 |
+| 5000 | INTERNAL_ERROR | 500 |

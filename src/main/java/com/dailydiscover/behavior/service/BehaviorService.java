@@ -1,55 +1,67 @@
 package com.dailydiscover.behavior.service;
 
 import com.dailydiscover.behavior.domain.Behavior;
+import com.dailydiscover.behavior.domain.BehaviorType;
+import com.dailydiscover.behavior.dto.BehaviorRequest;
 import com.dailydiscover.behavior.repository.BehaviorRepository;
-import com.dailydiscover.content.domain.Content;
-import com.dailydiscover.content.repository.ContentRepository;
-import com.dailydiscover.user.domain.User;
-import com.dailydiscover.user.service.UserService;
 import com.dailydiscover.common.exception.BusinessException;
 import com.dailydiscover.common.exception.ErrorCode;
+import com.dailydiscover.discovery.service.DiscoveryService;
+import com.dailydiscover.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class BehaviorService {
 
     private final BehaviorRepository behaviorRepository;
-    private final ContentRepository contentRepository;
     private final UserService userService;
+    private final DiscoveryService discoveryService;
 
-    // 支持的行为类型
-    private static final Set<String> VALID_TYPES = Set.of(
-            "VIEW", "CLICK", "LIKE", "DISLIKE", "SHARE", "SKIP"
-    );
-
-    public void recordBehavior(String anonymousId, Long contentId, String behaviorType) {
-        if (!VALID_TYPES.contains(behaviorType)) {
-            throw new BusinessException(ErrorCode.INVALID_PARAMETER, "不支持的行为类型: " + behaviorType);
+    /**
+     * 记录行为（03 API-MVP.md 第 7/14 节）：
+     * anonymous_id 存在 → discoveryId 存在 → behaviorType 合法 → 追加写入
+     */
+    @Transactional
+    public void recordBehavior(String anonymousId, BehaviorRequest request) {
+        if (!BehaviorType.ALL.contains(request.getBehaviorType())) {
+            throw new BusinessException(ErrorCode.INVALID_BEHAVIOR, HttpStatus.BAD_REQUEST);
         }
 
-        User user = userService.getOrCreateUser(anonymousId);
-        Content content = contentRepository.findById(contentId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CONTENT_NOT_FOUND));
+        // 确保匿名用户存在（users 表）
+        userService.getOrCreateUser(anonymousId);
 
-        // VIEW 行为允许重复记录，其他行为去重
-        if (!"VIEW".equals(behaviorType)) {
-            if (behaviorRepository.existsByUserIdAndContentIdAndBehaviorType(user.getId(), contentId, behaviorType)) {
-                return; // 已存在，忽略
-            }
+        // 校验发现存在且允许记录行为（业务校验，数据库无外键）
+        discoveryService.getAvailableDiscovery(request.getDiscoveryId());
+
+        String metadataJson = serializeMetadata(request.getMetadata());
+        behaviorRepository.save(Behavior.builder()
+                .anonymousId(anonymousId)
+                .discoveryId(request.getDiscoveryId())
+                .behaviorType(request.getBehaviorType())
+                .metadata(metadataJson)
+                .build());
+        log.info("Behavior recorded: user={}, discovery={}, type={}",
+                anonymousId, request.getDiscoveryId(), request.getBehaviorType());
+    }
+
+    /**
+     * metadata 统一序列化为 JSONB 字符串保存
+     */
+    private String serializeMetadata(Object metadata) {
+        if (metadata == null) {
+            return null;
         }
-
-        Behavior behavior = Behavior.builder()
-                .user(user)
-                .content(content)
-                .behaviorType(behaviorType)
-                .build();
-
-        behaviorRepository.save(behavior);
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .writeValueAsString(metadata);
+        } catch (Exception e) {
+            return String.valueOf(metadata);
+        }
     }
 }

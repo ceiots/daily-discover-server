@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 统一 API 响应格式
+ * 统一响应结构：{ code, message, data }
  */
 @Data
 @NoArgsConstructor
@@ -25,9 +25,5 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(int code, String message) {
         return new ApiResponse<>(code, message, null);
-    }
-
-    public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(-1, message, null);
     }
 }

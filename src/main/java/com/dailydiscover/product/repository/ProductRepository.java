@@ -4,20 +4,16 @@ import com.dailydiscover.product.domain.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
-@Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    Optional<Product> findByIdAndStatus(Long id, String status);
-
-    @Query("SELECT p FROM Product p WHERE p.status = :status ORDER BY p.id ASC")
-    List<Product> findByStatus(@Param("status") String status);
-
-    List<Product> findByStatusOrderByIdAsc(String status);
-
-    Optional<Product> findBySourceAndSourceIdAndStatus(String source, String sourceId, String status);
+    /**
+     * 查询一条发现包含的商品，按 sort_order 排序，只返回 ACTIVE 商品
+     */
+    @Query(value = "SELECT p FROM Product p WHERE p.id IN " +
+            "(SELECT dp.productId FROM com.dailydiscover.discovery.domain.DiscoveryProduct dp " +
+            "WHERE dp.discoveryId = :discoveryId) AND p.status = 'ACTIVE'")
+    List<Product> findActiveProductsByDiscoveryId(@Param("discoveryId") Long discoveryId);
 }

@@ -6,8 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 匿名用户 ID 参数注解
- * 用于标记 Controller 方法参数需要从请求头获取匿名用户 ID
+ * 标记 Controller 方法参数从 X-Anonymous-Id 请求头解析
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

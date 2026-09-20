@@ -1,52 +1,47 @@
 package com.dailydiscover.common.exception;
 
 import com.dailydiscover.common.response.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.stream.Collectors;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
-@RestControllerAdvice(basePackages = "com.dailydiscover")
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e, HttpServletRequest request) {
-        log.warn("Business exception: {} - {}", e.getCode(), e.getMessage());
-        return ResponseEntity.status(HttpStatus.OK)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
+        log.warn("Business exception: code={}, message={}", e.getCode(), e.getMessage());
+        return ResponseEntity.status(e.getHttpStatus())
                 .body(ApiResponse.error(e.getCode(), e.getMessage()));
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    public ResponseEntity<ApiResponse<Void>> handleValidationException(Exception e, HttpServletRequest request) {
-        String message;
-        if (e instanceof MethodArgumentNotValidException ex) {
-            message = ex.getBindingResult().getFieldErrors().stream()
-                    .map(FieldError::getDefaultMessage)
-                    .collect(Collectors.joining("; "));
-        } else if (e instanceof BindException ex) {
-            message = ex.getBindingResult().getFieldErrors().stream()
-                    .map(FieldError::getDefaultMessage)
-                    .collect(Collectors.joining("; "));
-        } else {
-            message = "参数校验失败";
-        }
-        log.warn("Validation error: {}", message);
-        return ResponseEntity.status(HttpStatus.OK)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(f -> f.getField() + ": " + f.getDefaultMessage())
+                .findFirst()
+                .orElse(ErrorCode.INVALID_PARAMETER.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ErrorCode.INVALID_PARAMETER.getCode(), message));
     }
 
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class, IllegalArgumentException.class})
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ErrorCode.INVALID_PARAMETER.getCode(),
+                        ErrorCode.INVALID_PARAMETER.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception e, HttpServletRequest request) {
-        log.error("Unexpected error: {}", e.getMessage(), e);
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        log.error("Unexpected error", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ErrorCode.INTERNAL_ERROR.getCode(), ErrorCode.INTERNAL_ERROR.getMessage()));
+                .body(ApiResponse.error(ErrorCode.INTERNAL_ERROR.getCode(),
+                        ErrorCode.INTERNAL_ERROR.getMessage()));
     }
 }

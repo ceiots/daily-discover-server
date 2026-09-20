@@ -1,21 +1,19 @@
 package com.dailydiscover.behavior.domain;
 
-import com.dailydiscover.content.domain.Content;
-import com.dailydiscover.user.domain.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
+/**
+ * 用户行为（behaviors 表，anonymous_id / discovery_id 只保存业务 ID，无外键）
+ * 行为采用追加记录，不修改过去的行为（03 API-MVP.md 第 9/16 节）
+ */
 @Entity
-@Table(name = "behavior", indexes = {
-    @Index(name = "idx_behavior_user_id", columnList = "user_id"),
-    @Index(name = "idx_behavior_content_id", columnList = "content_id"),
-    @Index(name = "idx_behavior_type", columnList = "behavior_type"),
-    @Index(name = "idx_behavior_created_at", columnList = "created_at"),
-    @Index(name = "idx_behavior_user_content_type", columnList = "user_id, content_id, behavior_type")
-})
+@Table(name = "behaviors")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,21 +25,20 @@ public class Behavior {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "anonymous_id", nullable = false, length = 64)
+    private String anonymousId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "content_id", nullable = false)
-    private Content content;
+    @Column(name = "discovery_id", nullable = false)
+    private Long discoveryId;
 
-    @Column(name = "behavior_type", nullable = false, length = 16)
+    @Column(name = "behavior_type", nullable = false, length = 32)
     private String behaviorType;
 
-    @Column(name = "extra_data", columnDefinition = "JSONB")
-    private String extraData;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB")
+    private String metadata;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 }

@@ -10,8 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 行为控制器
- * - POST /api/v1/behaviors  上报行为
+ * 行为接口（03 API-MVP.md P0）：POST /api/v1/behaviors
+ * 用户判断（INTERESTED / NOT_INTERESTED / SKIP）也统一通过本接口记录
  */
 @Slf4j
 @RestController
@@ -21,22 +21,11 @@ public class BehaviorController {
 
     private final BehaviorService behaviorService;
 
-    /**
-     * 上报用户行为
-     */
     @PostMapping
     public ApiResponse<Void> recordBehavior(
             @AnonymousId String anonymousId,
             @Valid @RequestBody BehaviorRequest request) {
-        log.debug("Record behavior, user: {}, contentId: {}, type: {}", 
-                anonymousId, request.getContentId(), request.getBehaviorType());
-
-        behaviorService.recordBehavior(
-                anonymousId,
-                request.getContentId(),
-                request.getBehaviorType()
-        );
-
+        behaviorService.recordBehavior(anonymousId, request);
         return ApiResponse.success();
     }
 }

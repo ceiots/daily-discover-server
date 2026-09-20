@@ -1,18 +1,20 @@
 package com.dailydiscover.product.domain;
 
-import com.dailydiscover.scene.domain.Scene;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
 
+/**
+ * 商品（products 表，无外键）
+ */
 @Entity
-@Table(name = "product")
+@Table(name = "products")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,45 +26,36 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 200)
     private String name;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(name = "original_price", precision = 10, scale = 2)
-    private BigDecimal originalPrice;
-
-    @Column(length = 3, nullable = false)
-    private String currency = "CNY";
-
-    @Column(name = "image_url", length = 512)
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
-    @Column(name = "product_url", length = 512)
-    private String productUrl;
+    @Column(name = "purchase_url", columnDefinition = "TEXT")
+    private String purchaseUrl;
 
     @Column(length = 32)
-    private String source;
+    private String platform;
 
-    @Column(name = "source_id", length = 128)
-    private String sourceId;
+    @Column(nullable = false, length = 32)
+    private String status;
 
-    @Column(length = 16, nullable = false)
-    private String status = "ACTIVE";
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB")
+    private String metadata;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @ManyToMany(mappedBy = "products")
-    @Builder.Default
-    private List<Scene> scenes = new ArrayList<>();
+    private OffsetDateTime updatedAt;
 }
