@@ -47,6 +47,27 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- 每日发现公共模块 -->
+        <dependency>
+            <groupId>com.dailydiscover</groupId>
+            <artifactId>daily-discover-common</artifactId>
+            <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger-ui</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-boot-starter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- 工具类 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
