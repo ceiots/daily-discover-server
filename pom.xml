@@ -65,6 +65,12 @@
                     <groupId>io.springfox</groupId>
                     <artifactId>springfox-boot-starter</artifactId>
                 </exclusion>
+                <!-- mybatis-plus-boot-starter 3.5.4.1 与 Spring Boot 3.2.5 不兼容（ddlApplicationRunner NullBean），
+                     server 持久层为 JPA，不使用 mybatis，排除之 -->
+                <exclusion>
+                    <groupId>com.baomidou</groupId>
+                    <artifactId>mybatis-plus-boot-starter</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
