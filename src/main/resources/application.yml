@@ -23,15 +23,20 @@ spring:
       hibernate:
         format_sql: true
 
-  flyway:
-    enabled: false
-
 server:
   port: 8080
   servlet:
     context-path: /api
 
 logging:
+  file:
+    name: /home/sshuser/logs/daily-discover/server.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: /home/sshuser/logs/daily-discover/server.%d{yyyy-MM-dd}.%i.log.gz
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 1GB
   level:
     com.dailydiscover: INFO
 
