@@ -20,12 +20,48 @@ PGPASSWORD='<密码>' psql -h 192.168.1.63 -p 5432 -U postgres \
 5 张核心表（无数据库外键）：`users` / `discoveries` / `products` / `discovery_products` / `behaviors`。
 内置 10 条真实发现 + 24 件商品种子数据。
 
-## 运行
+## 运行（Docker，推荐）
+
+前置：本机 PostgreSQL 运行在 `192.168.1.63:5432`（即本机），Docker 守护进程已配置代理（见下方"网络注意"）。
 
 ```bash
+./mvnw clean package -DskipTests        # 先本地构建 JAR（Dockerfile 直接复制 target/*.jar）
+docker compose up -d --build           # 构建镜像并启动
+docker compose ps                      # 查看状态（health=healthy 即成功）
+docker compose logs -f                 # 跟踪日志
+docker compose restart                 # 重启
+docker compose down                    # 停止并删除容器
+```
+
+- 服务端口：`8080`（对外 `https://api.dailydiscover.cloud/api`）
+- 日志文件：`/home/sshuser/logs/daily-discover/server.log`（已挂载出容器）
+- 健康检查：`curl http://localhost:8080/api/actuator/health`
+- 容器内通过 `host.docker.internal`（compose 中 `extra_hosts: host-gateway`）访问宿主机 PostgreSQL
+
+### 网络注意（镜像拉取）
+
+`openjdk` 官方镜像已从 Docker Hub 下架，基础镜像改用 `eclipse-temurin:17-jre`。
+国内直连 Docker Hub 不通，dockerd 需走本机 clash 代理：
+
+```bash
+# /etc/systemd/system/docker.service.d/proxy.conf
+[Service]
+Environment="HTTP_PROXY=http://127.0.0.1:7893"
+Environment="HTTPS_PROXY=http://127.0.0.1:7893"
+Environment="NO_PROXY=localhost,127.0.0.1,::1"
+```
+
+改后 `sudo systemctl daemon-reload && sudo systemctl restart docker`。
+`/etc/docker/daemon.json` 的 `registry-mirrors` 保持为空数组（baidu/163/ustc 等公共镜像源已停服，配置它们会导致 pull 失败）。
+
+## 运行（本地直跑，开发调试用）
+
+```bash
+./mvnw spring-boot:run
+# 或
 ./mvnw clean package -DskipTests
 java -jar target/daily-discover-server-1.0.0-SNAPSHOT.jar
-# 默认 http://127.0.0.1:8080/api
+# 默认 http://127.0.0.1:8080/api，与 Docker 容器互斥（都占用 8080）
 ```
 
 ## P0 接口（所有请求需携带 X-Anonymous-Id 请求头）
@@ -52,15 +88,4 @@ java -jar target/daily-discover-server-1.0.0-SNAPSHOT.jar
 | 4001 | DISCOVERY_NOT_FOUND     | 404  |
 | 4002 | DISCOVERY_NOT_AVAILABLE | 404  |
 | 4003 | INVALID_BEHAVIOR        | 400  |
-| 5000 | INTERNAL_ERROR          | 500  |
-
-
-
-
-# 运行
-
-docker compose up -d --build   # 一次构建并启动                                 
-
-   docker compose logs -f         # 查看日志
-
-   docker compose restart         # 重启    
+| 5000 | INTERNAL_ERROR          | 500  |    
