@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(systemctl status docker.service --no-pager -l | head -40)",
+      "Bash(journalctl:*)",
+      "Bash(cat /etc/docker/daemon.json)",
+      "Read(//etc/docker/**)",
+      "Bash(sudo -n true 2>&1 && echo \"sudo OK\" || echo \"no passwordless sudo\")",
+      "Bash(docker info 2>/dev/null | grep -A5 -i \"registry mirrors\\\\|Server Version\" ; echo ---; docker images | head -20)",
+      "Bash(for h in mirror.baidubce.com hub-mirror.c.163.com docker.mirrors.ustc.edu.cn registry-1.docker.io docker.io docker.m.daocloud.io; do echo -n \"$h: \"; getent hosts $h >/dev/null 2>&1 && echo OK || echo FAIL; done; echo ---; cat /etc/resolv.conf; echo ---; resolvectl status 2>/dev/null | head -20)",
+      "Bash(echo -n \"daocloud: \"; curl -s -o /dev/null -w \"%{http_code}\" -m 10 https://docker.m.daocloud.io/v2/ ; echo; echo -n \"docker-hub: \"; curl -s -o /dev/null -w \"%{http_code}\" -m 10 https://registry-1.docker.io/v2/ ; echo)",
+      "Bash(docker info 2>/dev/null | grep -A3 -i \"registry mirrors\"; systemctl is-active docker; ls -la /home/sshuser/每日发现/daily-discover-server/target/*.jar 2>/dev/null || echo \"JAR 不存在\")",
+      "Bash(cd /home/sshuser/每日发现/daily-discover-server && docker compose build 2>&1 | tail -30)",
+      "Bash(timeout 120 docker pull openjdk:17-jre-slim 2>&1 | tail -5)",
+      "Bash(for h in docker.1ms.run hub.rat.dev docker.xuanyuan.me dockerproxy.net docker.aityp.com mirror.ccs.tencentyun.com; do echo -n \"$h: \"; getent hosts $h >/dev/null 2>&1 || { echo \"DNS FAIL\"; continue; }; curl -s -o /dev/null -w \"%{http_code}\" -m 8 https://$h/v2/ 2>/dev/null; echo; done)",
+      "Bash(env | grep -i proxy; echo ---; curl -s -o /dev/null -w \"github: %{http_code}\\\\n\" -m 8 https://github.com; tailscale status 2>/dev/null | head -10)",
+      "Bash(timeout 180 docker pull docker.1ms.run/library/openjdk:17-jre-slim 2>&1 | tail -3)",
+      "Bash(timeout 180 docker pull docker.xuanyuan.me/library/openjdk:17-jre-slim 2>&1 | tail -3; echo ===; timeout 60 docker pull hub.rat.dev/library/openjdk:17-jre-slim 2>&1 | tail -2)",
+      "Bash(systemctl is-active docker; docker info 2>/dev/null | grep -A2 -i \"registry mirrors\"; cat /etc/systemd/system/docker.service.d/proxy.conf 2>/dev/null)",
+      "Bash(cd /home/sshuser/每日发现/daily-discover-server && docker compose build 2>&1 | tail -25)",
+      "Bash(timeout 240 docker pull openjdk:17-jre-slim 2>&1 | tail -3)",
+      "Bash(P=http://100.76.38.80:7893; T=$\\(curl -s -m 15 -x $P \"https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/openjdk:pull\" | sed -n 's/.*\"token\":\"\\\\\\([^\"]*\\\\\\)\".*/\\\\1/p'\\); echo \"token len: ${#T}\"; for tag in 17-jre-slim 17-jre 11-jre-slim; do echo -n \"openjdk:$tag -> \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 15 -x $P -H \"Authorization: Bearer $T\" \"https://registry-1.docker.io/v2/library/openjdk/manifests/$tag\"; done; echo ---; T2=$\\(curl -s -m 15 -x $P \"https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/eclipse-temurin:pull\" | sed -n 's/.*\"token\":\"\\\\\\([^\"]*\\\\\\)\".*/\\\\1/p'\\); for tag in 17-jre 17-jre-jammy; do echo -n \"eclipse-temurin:$tag -> \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 15 -x $P -H \"Authorization: Bearer $T2\" -H \"Accept: application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.list.v2+json\" \"https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/$tag\"; done)",
+      "Bash(timeout 300 docker pull eclipse-temurin:17-jre 2>&1 | tail -2 && docker run --rm eclipse-temurin:17-jre sh -c 'which curl wget; java -version 2>&1 | head -1')",
+      "Bash(for i in 1 2 3; do echo \"== attempt $i\"; timeout 300 docker pull eclipse-temurin:17-jre 2>&1 | tail -2 && break; sleep 5; done)",
+      "Bash(for i in 1 2 3 4 5; do curl -s -o /dev/null -w \"auth.docker.io via proxy: %{http_code} %{time_total}s\\\\n\" -m 15 -x http://100.76.38.80:7893 \"https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/eclipse-temurin:pull\"; sleep 2; done)",
+      "Bash(echo -n \"auth 直连: \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 10 \"https://auth.docker.io/token?service=registry.docker.io\"; echo -n \"registry 直连: \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 10 https://registry-1.docker.io/v2/; echo -n \"registry 走代理: \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 10 -x http://100.76.38.80:7893 https://registry-1.docker.io/v2/; echo -n \"github 走代理: \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 10 -x http://100.76.38.80:7893 https://github.com; echo -n \"auth 走代理\\(重试\\): \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 20 -x http://100.76.38.80:7893 \"https://auth.docker.io/token?service=registry.docker.io\")",
+      "Bash(for i in 1 2 3 4 5 6; do out=$\\(timeout 300 docker pull eclipse-temurin:17-jre 2>&1 | tail -1\\); echo \"[$i] $out\"; case \"$out\" in *Digest*|*Status*|*up-to-date*\\) break;; esac; sleep 8; done)",
+      "Bash(ss -tlnp 2>/dev/null | grep 7893; echo ---; for i in 1 2 3; do curl -s -o /dev/null -w \"127.0.0.1 auth: %{http_code} %{time_total}s\\\\n\" -m 15 -x http://127.0.0.1:7893 \"https://auth.docker.io/token?service=registry.docker.io\"; done; curl -s -o /dev/null -w \"127.0.0.1 registry: %{http_code}\\\\n\" -m 15 -x http://127.0.0.1:7893 https://registry-1.docker.io/v2/)",
+      "Bash(cat /etc/systemd/system/docker.service.d/proxy.conf; systemctl show docker --property=Environment --no-pager; sudo -n true 2>&1 | head -1)",
+      "Bash(timeout 600 docker pull eclipse-temurin:17-jre 2>&1 | tail -3)",
+      "Bash(cat -A /etc/systemd/system/docker.service.d/proxy.conf; echo ---; systemctl show docker --property=Environment)",
+      "Bash(systemctl show docker --property=Environment; echo ---; cat -A /etc/systemd/system/docker.service.d/proxy.conf | head -6)",
+      "Bash(cd /home/sshuser/每日发现/daily-discover-server && docker compose build 2>&1 | tail -12)",
+      "Bash(docker run:*)",
+      "Bash(cd /home/sshuser/每日发现/daily-discover-server && docker compose up -d 2>&1 | tail -3; sleep 20; docker compose ps; echo ---; docker logs daily-discover-server 2>&1 | tail -5)"
+    ]
+  }
+}

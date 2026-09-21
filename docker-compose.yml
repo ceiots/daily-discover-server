@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: daily-discover-server:latest
+    container_name: daily-discover-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/sshuser/logs/daily-discover:/home/sshuser/logs/daily-discover
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/daily_discover
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - LOGGING_FILE_NAME=/home/sshuser/logs/daily-discover/server.log
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+  # 可选：本地跑 postgres 用（生产用外部 DB 就删掉这段）
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: daily-discover-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_DB=daily_discover
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# volumes:
+#   postgres_data:

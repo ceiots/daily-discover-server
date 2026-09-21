@@ -3,9 +3,9 @@ spring:
     name: daily-discover-server
 
   datasource:
-    url: jdbc:postgresql://192.168.1.63:5432/daily_discover
-    username: postgres
-    password: "postgres"
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://192.168.1.63:5432/daily_discover}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -30,10 +30,10 @@ server:
 
 logging:
   file:
-    name: /home/sshuser/logs/daily-discover/server.log
+    name: ${LOGGING_FILE_NAME:/home/sshuser/logs/daily-discover/server.log}
   logback:
     rollingpolicy:
-      file-name-pattern: /home/sshuser/logs/daily-discover/server.%d{yyyy-MM-dd}.%i.log.gz
+      file-name-pattern: ${LOGGING_FILE_NAME:/home/sshuser/logs/daily-discover/server}.%d{yyyy-MM-dd}.%i.log.gz
       max-file-size: 50MB
       max-history: 30
       total-size-cap: 1GB

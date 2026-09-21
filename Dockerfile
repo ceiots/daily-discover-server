@@ -1,13 +1,7 @@
 # Dockerfile for daily-discover-server
-FROM eclipse-temurin:17-jdk-jammy AS builder
+# 直接复制本地预构建的 JAR（避免容器内编译、基础镜像拉取慢）
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
-RUN mvn clean package -DskipTests
-
-FROM eclipse-temurin:17-jre-jammy
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
+COPY target/daily-discover-server-1.0.0-SNAPSHOT.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
